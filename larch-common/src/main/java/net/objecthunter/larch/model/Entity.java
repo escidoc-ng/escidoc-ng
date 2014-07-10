@@ -36,6 +36,8 @@ public class Entity {
 
     private String id;
 
+    private String workspaceId;
+
     private String publishId;
 
     private String label;
@@ -61,6 +63,14 @@ public class Entity {
     private List<AlternativeIdentifier> alternativeIdentifiers;
 
     private Map<String, List<String>> relations;
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
 
     /**
      * Get the relations of an {@link Entity}
@@ -144,6 +154,15 @@ public class Entity {
     }
 
     /**
+     * Set the if of the entity
+     * 
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
      * @return the publishId
      */
     public String getPublishId() {
@@ -155,15 +174,6 @@ public class Entity {
      */
     public void setPublishId(String publishId) {
         this.publishId = publishId;
-    }
-
-    /**
-     * Set the if of the entity
-     * 
-     * @param id the id to set
-     */
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**
