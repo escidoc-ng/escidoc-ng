@@ -28,6 +28,7 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
@@ -332,6 +333,26 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public SearchResult scanIndex(int offset) throws IOException {
         return scanIndex(offset, maxRecords);
+    }
+
+    @Override
+    public String createWorkspace(Workspace workspace) {
+        return null;
+    }
+
+    @Override
+    public Workspace retrieveWorkspace(String id) {
+        return null;
+    }
+
+    @Override
+    public void updateWorkspace(Workspace workspace) {
+
+    }
+
+    @Override
+    public void patchWorkSpace(Workspace workspace) {
+
     }
 
     /**

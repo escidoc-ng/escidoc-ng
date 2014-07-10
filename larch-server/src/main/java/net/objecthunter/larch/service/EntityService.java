@@ -21,10 +21,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import net.objecthunter.larch.model.AuditRecord;
-import net.objecthunter.larch.model.Entities;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.*;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -106,4 +103,12 @@ public interface EntityService {
      * @return the requested old versions of the entity as Entities-Object
      */
     Entities getOldVersions(String id) throws IOException;
+
+    String createWorkspace(Workspace workspace) throws IOException;
+
+    Workspace retrieveWorkspace(String id) throws IOException;
+
+    void updateWorkspace(Workspace workspace) throws IOException;
+
+    void patchWorkspace(Workspace workspace) throws IOException;
 }

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
@@ -69,5 +70,4 @@ public interface BackendEntityService {
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
     SearchResult scanIndex(int offset) throws IOException;
-
 }
