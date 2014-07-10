@@ -335,25 +335,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         return scanIndex(offset, maxRecords);
     }
 
-    @Override
-    public String createWorkspace(Workspace workspace) {
-        return null;
-    }
-
-    @Override
-    public Workspace retrieveWorkspace(String id) {
-        return null;
-    }
-
-    @Override
-    public void updateWorkspace(Workspace workspace) {
-
-    }
-
-    @Override
-    public void patchWorkSpace(Workspace workspace) {
-
-    }
 
     /**
      * Holds enabled search-fields in entities-index. Differentiate between name of GET/POST-Parameter and name of

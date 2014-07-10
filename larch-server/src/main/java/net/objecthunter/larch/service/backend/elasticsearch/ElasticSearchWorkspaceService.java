@@ -70,44 +70,46 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
                 .setSource(mapper.writeValueAsBytes(workspace))
                 .execute()
                 .actionGet();
+        this.refreshIndex(INDEX_WORKSPACES);
         return index.getId();
     }
 
     @Override
-    public Workspace retrieveWorkspace(String id) throws IOException {
+    public Workspace retrieveWorkspace(final String id) throws IOException {
         final GetResponse get = this.client.prepareGet(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, id)
                 .execute()
                 .actionGet();
 
         /* check if the workspace does exist */
-        if (get.isExists()) {
+        if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + id + "' does not exist");
         }
         return this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
     }
 
     @Override
-    public void updateWorkspace(Workspace workspace) throws IOException {
+    public void updateWorkspace(final Workspace workspace) throws IOException {
         /* check if the workspace does exist */
         final GetResponse get = this.client.prepareGet(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, workspace.getId())
                 .execute()
                 .actionGet();
-        if (get.isExists()) {
+        if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + workspace.getId() + "' does not exist");
         }
         final IndexResponse index = this.client.prepareIndex(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, workspace.getId())
                 .setSource(mapper.writeValueAsBytes(workspace))
                 .execute()
                 .actionGet();
+        this.refreshIndex(INDEX_WORKSPACES);
     }
 
     @Override
-    public void patchWorkSpace(Workspace workspace) throws IOException {
+    public void patchWorkSpace(final Workspace workspace) throws IOException {
         /* check if the workspace does exist */
         final GetResponse get = this.client.prepareGet(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, workspace.getId())
                 .execute()
                 .actionGet();
-        if (get.isExists()) {
+        if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + workspace.getId() + "' does not exist");
         }
         /* only update the fields given in the patch request */
@@ -122,5 +124,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
                 .setSource(mapper.writeValueAsBytes(orig))
                 .execute()
                 .actionGet();
+
+        this.refreshIndex(INDEX_WORKSPACES);
     }
 }
