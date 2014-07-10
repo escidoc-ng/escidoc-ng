@@ -46,7 +46,38 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertNotNull(id);
         assertEquals(ws.getId(), id);
 
-        String uri = "http://localhost:8080/workspace/" + id;
+        resp = Request.Get("http://localhost:8080/workspace/" + id)
+                .execute()
+                .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
+        assertEquals(ws, fetched);
+    }
+
+    @Test
+    public void testCreateAndUpdate() throws Exception {
+        final Workspace ws = new Workspace();
+        ws.setId(RandomStringUtils.randomAlphanumeric(16));
+        ws.setOwner("foo");
+        ws.setName("bar");
+        HttpResponse resp = Request.Post("http://localhost:8080/workspace")
+                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
+                .execute()
+                .returnResponse();
+
+        final String id = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(id);
+        assertEquals(ws.getId(), id);
+
+        ws.setName("bar2");
+        resp = Request.Put("http://localhost:8080/workspace/" + id)
+                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
+                .execute()
+                .returnResponse();
+
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
         resp = Request.Get("http://localhost:8080/workspace/" + id)
                 .execute()
                 .returnResponse();
