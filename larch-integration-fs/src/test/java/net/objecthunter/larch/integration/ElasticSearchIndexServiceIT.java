@@ -31,9 +31,6 @@ public class ElasticSearchIndexServiceIT extends AbstractLarchIT {
     @Autowired
     private ElasticSearchEntityService service;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Test
     public void testGetState() throws Exception {
         IndexState state = service.status();

@@ -49,7 +49,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public abstract class AbstractLarchIT {
 
     @Autowired
-    private ObjectMapper mapper;
+    protected ObjectMapper mapper;
 
     final PrintStream sysOut = System.out;
 

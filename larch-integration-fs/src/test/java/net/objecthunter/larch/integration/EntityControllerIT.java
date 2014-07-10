@@ -57,9 +57,6 @@ public class EntityControllerIT extends AbstractLarchIT {
 
     private static final String entityUrl = "http://localhost:8080/entity/";
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Test
     public void testCreateAndUpdateEntity() throws Exception {
         HttpResponse resp =

@@ -48,4 +48,26 @@ public class Workspace {
     public void setOwner(String owner) {
         this.owner = owner;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Workspace workspace = (Workspace) o;
+
+        if (id != null ? !id.equals(workspace.id) : workspace.id != null) return false;
+        if (name != null ? !name.equals(workspace.name) : workspace.name != null) return false;
+        if (owner != null ? !owner.equals(workspace.owner) : workspace.owner != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = owner != null ? owner.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        return result;
+    }
 }

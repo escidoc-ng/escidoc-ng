@@ -31,9 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SerializationIT extends AbstractLarchIT {
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Test
     public void testSerializeEntity() throws Exception {
         Entity e = Fixtures.createFixtureEntity();

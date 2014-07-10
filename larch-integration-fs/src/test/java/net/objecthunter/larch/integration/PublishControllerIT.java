@@ -48,9 +48,6 @@ public class PublishControllerIT extends AbstractLarchIT {
 
     private static final String identifierUrl = entityUrl + "{id}/identifier/";
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Test
     public void testRetrievePublishedEntity() throws Exception {
         // create

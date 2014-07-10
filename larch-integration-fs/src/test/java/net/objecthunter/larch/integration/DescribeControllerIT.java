@@ -30,9 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DescribeControllerIT extends AbstractLarchIT {
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Test
     public void testDescribe() throws Exception {
         HttpResponse resp = Request.Get("http://localhost:8080/describe")
