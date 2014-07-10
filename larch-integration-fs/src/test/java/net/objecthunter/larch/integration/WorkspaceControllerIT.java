@@ -26,6 +26,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class WorkspaceControllerIT extends AbstractLarchIT {
@@ -84,5 +85,45 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertEquals(200, resp.getStatusLine().getStatusCode());
         final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
         assertEquals(ws, fetched);
+    }
+
+    @Test
+    @Ignore
+    /**
+     * This test is ignored until there is patch support in fluent-hc
+     */
+    public void testCreateAndPatch() throws Exception {
+        final Workspace ws = new Workspace();
+        ws.setId(RandomStringUtils.randomAlphanumeric(16));
+        ws.setOwner("foo");
+        ws.setName("bar");
+        HttpResponse resp = Request.Post("http://localhost:8080/workspace")
+                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
+                .execute()
+                .returnResponse();
+
+        final String id = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(id);
+        assertEquals(ws.getId(), id);
+
+        final Workspace patch = new Workspace();
+        patch.setName("bar3");
+
+        resp = Request.Post("http://localhost:8080/workspace/" + id)
+                .bodyString(this.mapper.writeValueAsString(patch), ContentType.APPLICATION_JSON)
+                .execute()
+                .returnResponse();
+
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        resp = Request.Get("http://localhost:8080/workspace/" + id)
+                .execute()
+                .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
+        assertEquals(ws.getId(), fetched.getId());
+        assertEquals(ws.getOwner(), fetched.getOwner());
+        assertEquals(patch.getName(), fetched.getName());
     }
 }
