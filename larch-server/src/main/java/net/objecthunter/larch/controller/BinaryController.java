@@ -73,13 +73,13 @@ public class BinaryController extends AbstractLarchController {
      * @return The redirect address to view the updated Entity
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST, consumes = { "multipart/form-data",
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST, consumes = { "multipart/form-data",
         "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
+    public String create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
+        entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
         entityService.createAuditRecord(AuditRecords.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
         return "redirect:/entity/" + entityId;
@@ -94,12 +94,12 @@ public class BinaryController extends AbstractLarchController {
      * @param src The request body containing the actual data
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST)
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
+    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
-        entityService.createBinary(entityId, name, mimeType, src);
+        entityService.createBinary(workspaceId, entityId, name, mimeType, src);
         entityService.createAuditRecord(AuditRecords.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
     }
@@ -112,12 +112,12 @@ public class BinaryController extends AbstractLarchController {
      * @param src An Inputstream holding the request body's content
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST, consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
+    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource().getInputStream());
+        this.entityService.createBinary(workspaceId, entityId, b.getName(), b.getMimetype(), b.getSource().getInputStream());
         entityService.createAuditRecord(AuditRecords.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
     }
@@ -131,12 +131,12 @@ public class BinaryController extends AbstractLarchController {
      * @return The Binary object requested
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public Binary retrieve(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
+    public Binary retrieve(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
             throw new IOException("The Binary " + name + " does not exist on the entity " + entityId);
         }
@@ -155,10 +155,10 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView retrieveHtml(@PathVariable("id") final String entityId,
+    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId,
             @PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("binary", this.retrieve(entityId, name));
+        model.addAttribute("binary", this.retrieve(workspaceId, entityId, name));
         model.addAttribute("metadataTypes", schemaService.getSchemaTypes());
         return new ModelAndView("binary", model);
     }
@@ -173,13 +173,13 @@ public class BinaryController extends AbstractLarchController {
      *        used to write the actual byte stream to the client.
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{binary-name}/content", method = RequestMethod.GET)
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/content", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public void download(@PathVariable("id") final String id, @PathVariable("binary-name") final String name,
+    public void download(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {
         // TODO: Content Size
-        final Entity e = entityService.retrieve(id);
+        final Entity e = entityService.retrieve(workspaceId, id);
         final Binary bin = e.getBinaries().get(name);
         response.setContentType(bin.getMimetype());
         response.setContentLength(-1);
@@ -195,13 +195,13 @@ public class BinaryController extends AbstractLarchController {
      * @param name the name of the binary to delete
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void delete(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
+    public void delete(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
-        this.entityService.deleteBinary(entityId, name);
+        this.entityService.deleteBinary(workspaceId, entityId, name);
         this.entityService.createAuditRecord(AuditRecords.deleteEntityRecord(entityId));
         this.messagingService.publishDeleteBinary(entityId, name);
     }
