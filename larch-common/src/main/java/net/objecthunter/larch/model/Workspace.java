@@ -26,6 +26,16 @@ public class Workspace {
 
     private String id;
 
+    private WorkspacePermissions permissions;
+
+    public WorkspacePermissions getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(WorkspacePermissions permissions) {
+        this.permissions = permissions;
+    }
+
     public String getName() {
         return name;
     }
