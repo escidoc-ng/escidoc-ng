@@ -53,6 +53,8 @@ public class AuditRecord {
 
     private String id;
 
+    private String workspaceId;
+
     private String entityId;
 
     private String agentName;
@@ -151,8 +153,16 @@ public class AuditRecord {
         this.timestamp = timestamp;
     }
 
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
     @Override
     public String toString() {
-        return "ID:" + this.id + ", TS:" + this.timestamp + ", EVENT:" + this.action + ", ENTITY:" + this.entityId;
+        return "ID:" + this.id + ",WS: " + this.workspaceId + " TS:" + this.timestamp + ", EVENT:" + this.action + ", ENTITY:" + this.entityId;
     }
 }

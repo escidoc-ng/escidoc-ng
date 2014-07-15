@@ -31,39 +31,42 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public interface EntityService {
 
-    String create(Entity e) throws IOException;
+    String create(String workspaceId, Entity e) throws IOException;
 
-    void update(Entity e) throws IOException;
+    void update(String workspaceId, Entity e) throws IOException;
 
-    Entity retrieve(String id) throws IOException;
+    Entity retrieve(String workspaceId, String id) throws IOException;
 
-    void delete(String id) throws IOException;
+    void delete(String workspaceId, String id) throws IOException;
 
-    InputStream getContent(String id, String name) throws IOException;
+    InputStream getContent(String workspaceId, String id, String name) throws IOException;
 
-    Entity retrieve(String id, int i) throws IOException;
+    Entity retrieve(String workspaceId, String id, int i) throws IOException;
 
-    void createBinary(String entityId, String name, String contentType, InputStream inputStream) throws IOException;
+    void createBinary(String workspaceId, String entityId, String name, String contentType, InputStream inputStream)
+            throws IOException;
 
-    void patch(String id, JsonNode node) throws IOException;
+    void patch(String workspaceId, String id, JsonNode node) throws IOException;
 
-    void createRelation(String id, String predicate, String object) throws IOException;
+    void createRelation(String workspaceId, String id, String predicate, String object) throws IOException;
 
-    void deleteBinary(String entityId, String name) throws IOException;
+    void deleteBinary(String workspaceId, String entityId, String name) throws IOException;
 
     InputStream retrieveBinary(String path) throws IOException;
 
-    void deleteMetadata(String entityId, String mdName) throws IOException;
+    void deleteMetadata(String workspaceId, String entityId, String mdName) throws IOException;
 
-    void deleteBinaryMetadata(String entityId, String binaryName, String mdName) throws IOException;
+    void deleteBinaryMetadata(String workspaceId, String entityId, String binaryName, String mdName)
+            throws IOException;
 
-    void createIdentifier(String entityId, String type, String value) throws IOException;
+    void createIdentifier(String workspaceId, String entityId, String type, String value) throws IOException;
 
-    void deleteIdentifier(String entityId, String type, String value) throws IOException;
+    void deleteIdentifier(String workspaceId, String entityId, String type, String value) throws IOException;
 
-    String publish(String id) throws IOException;
+    String publish(String workspaceId, String id) throws IOException;
 
-    List<AuditRecord> retrieveAuditRecords(String entityId, int offset, int count) throws IOException;
+    List<AuditRecord> retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
+            throws IOException;
 
     void createAuditRecord(AuditRecord auditRecord) throws IOException;
 
@@ -102,7 +105,7 @@ public interface EntityService {
      * @param id the id of the entity to retrieve
      * @return the requested old versions of the entity as Entities-Object
      */
-    Entities getOldVersions(String id) throws IOException;
+    Entities getOldVersions(String workspaceId, String id) throws IOException;
 
     String createWorkspace(Workspace workspace) throws IOException;
 
