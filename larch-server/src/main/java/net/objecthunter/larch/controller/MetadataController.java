@@ -25,11 +25,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.helpers.AuditRecords;
-import net.objecthunter.larch.model.Binary;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.MetadataValidationResult;
+import net.objecthunter.larch.model.*;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -40,13 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -81,13 +71,15 @@ public class MetadataController extends AbstractLarchController {
      * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST, consumes = "multipart/form-data")
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
+            consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String addMetadata(@PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
+    public String addMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
-        final Entity e = entityService.retrieve(entityId);
+        final Entity e = entityService.retrieve(workspaceId, entityId);
         if (e.getMetadata() == null) {
             e.setMetadata(new HashMap<>());
         }
@@ -101,7 +93,7 @@ public class MetadataController extends AbstractLarchController {
         md.setType(type);
         md.setOriginalFilename(file.getOriginalFilename());
         e.getMetadata().put(mdName, md);
-        entityService.update(e);
+        entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
         return "redirect:/entity/" + entityId;
@@ -116,11 +108,13 @@ public class MetadataController extends AbstractLarchController {
      * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
+            consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
-        final Entity e = entityService.retrieve(entityId);
+    public void addMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, final InputStream src) throws IOException {
+        final Entity e = entityService.retrieve(workspaceId, entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
         if (e.getMetadata() == null) {
             e.setMetadata(new HashMap<>());
@@ -129,7 +123,7 @@ public class MetadataController extends AbstractLarchController {
             throw new IOException("Meta data " + md.getName() + " already exists on Entity " + entityId);
         }
         e.getMetadata().put(md.getName(), md);
-        entityService.update(e);
+        entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
@@ -142,14 +136,16 @@ public class MetadataController extends AbstractLarchController {
      * @param src the request body as an InputStream
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{binary-name}/metadata", method = RequestMethod.POST,
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata",
+            method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void addBinaryMetadata(@PathVariable("id") final String entityId,
+    public void addBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
 
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist ");
@@ -164,7 +160,7 @@ public class MetadataController extends AbstractLarchController {
                     + " of the entity " + entityId);
         }
         bin.getMetadata().put(md.getName(), md);
-        this.entityService.update(e);
+        this.entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
@@ -180,16 +176,18 @@ public class MetadataController extends AbstractLarchController {
      * @param file the http multipart file containing the actual bytes
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{binary-name}/metadata", method = RequestMethod.POST,
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata",
+            method = RequestMethod.POST,
             consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String addBinaryMetadataHtml(@PathVariable("id") final String entityId,
+    public String addBinaryMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
 
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Metadata md = new Metadata();
         md.setName(mdName);
         md.setType(type);
@@ -210,7 +208,7 @@ public class MetadataController extends AbstractLarchController {
                     + " of the entity " + entityId);
         }
         bin.getMetadata().put(md.getName(), md);
-        this.entityService.update(e);
+        this.entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
         return "redirect:/entity/" + entityId + "/binary/" + binaryName;
@@ -227,15 +225,17 @@ public class MetadataController extends AbstractLarchController {
      *        directly written
      * @throws IOException
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/metadata/{metadata-name}/content", produces = {
-        "application/xml", "text/xml" })
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}/content", produces = {
+                "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
-    public void retrieveMetadataXml(@PathVariable("id") final String id,
+    public void retrieveMetadataXml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName, @RequestHeader("Accept") final String accept,
             final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/xml");
         resp.setHeader("Content-Disposition", "inline");
-        final String data = entityService.retrieve(id).getMetadata().get(metadataName).getData();
+        final String data = entityService.retrieve(workspaceId, id).getMetadata().get(metadataName).getData();
         IOUtils.write(data, resp.getOutputStream());
         resp.flushBuffer();
     }
@@ -253,16 +253,18 @@ public class MetadataController extends AbstractLarchController {
      * @throws IOException
      */
     @RequestMapping(method = RequestMethod.GET,
-            value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}/content", produces = {
+            value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}/content",
+            produces = {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
-    public void retrieveBinaryMetadataXml(@PathVariable("id") final String id,
+    public void retrieveBinaryMetadataXml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName, @RequestHeader("Accept") final String accept,
             final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/xml");
         resp.setHeader("Content-Disposition", "inline");
-        final Entity e = this.entityService.retrieve(id);
+        final Entity e = this.entityService.retrieve(workspaceId, id);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on entity " + id);
         }
@@ -285,11 +287,13 @@ public class MetadataController extends AbstractLarchController {
      * @return A JSON representation of a {@link net.objecthunter.larch.model.MetadataValidationResult}
      * @throws IOException
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/metadata/{metadata-name}/validate",
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}/validate",
             produces = { "application/json" })
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public MetadataValidationResult validate(@PathVariable("id") final String id,
+    public MetadataValidationResult validate(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
         return this.schemaService.validate(id, metadataName);
     }
@@ -305,11 +309,12 @@ public class MetadataController extends AbstractLarchController {
      * @throws IOException
      */
     @RequestMapping(method = RequestMethod.GET,
-            value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}/validate",
+            value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}/validate",
             produces = { "application/json" })
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public MetadataValidationResult validate(@PathVariable("id") final String id,
+    public MetadataValidationResult validate(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
         return this.schemaService.validate(id, binaryName, metadataName);
@@ -382,13 +387,15 @@ public class MetadataController extends AbstractLarchController {
         return "redirect:/metadatatype";
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/metadata/{metadata-name}",
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}",
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public Metadata retrieveMetadata(@PathVariable("id") final String entityId,
+    public Metadata retrieveMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         Metadata md = e.getMetadata().get(mdName);
         if (md == null) {
             throw new FileNotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
@@ -396,13 +403,15 @@ public class MetadataController extends AbstractLarchController {
         return md;
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/metadata/{metadata-name}",
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}",
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView retrieveMetadataHtml(@PathVariable("id") final String entityId,
+    public ModelAndView retrieveMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Metadata md = e.getMetadata().get(mdName);
         if (md == null) {
             throw new FileNotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
@@ -412,14 +421,16 @@ public class MetadataController extends AbstractLarchController {
         return new ModelAndView("metadata", model);
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public Metadata retrieveBinaryMetadata(@PathVariable("id") final String entityId,
+    public Metadata retrieveBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Binary b = e.getBinaries().get(binaryName);
         if (b == null) {
             throw new FileNotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
@@ -432,14 +443,16 @@ public class MetadataController extends AbstractLarchController {
         return md;
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView retrieveBinaryMetadataHtml(@PathVariable("id") final String entityId,
+    public ModelAndView retrieveBinaryMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
-        final Entity e = this.entityService.retrieve(entityId);
+        final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Binary b = e.getBinaries().get(binaryName);
         if (b == null) {
             throw new FileNotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
@@ -454,22 +467,25 @@ public class MetadataController extends AbstractLarchController {
         return new ModelAndView("metadata", model);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/entity/{id}/metadata/{metadata-name}")
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void deleteMetadata(@PathVariable("id") final String entityId,
+    public void deleteMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
-        this.entityService.deleteMetadata(entityId, mdName);
+        this.entityService.deleteMetadata(workspaceId, entityId, mdName);
         this.messagingService.publishDeleteMetadata(entityId, mdName);
     }
 
     @RequestMapping(method = RequestMethod.DELETE,
-            value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}")
+            value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteBinaryMetadata(@PathVariable("id") final String entityId,
+    public void deleteBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
-        this.entityService.deleteBinaryMetadata(entityId, binaryName, mdName);
+        this.entityService.deleteBinaryMetadata(workspaceId, entityId, binaryName, mdName);
         this.messagingService.publishDeleteBinaryMetadata(entityId, binaryName, mdName);
     }
 }
