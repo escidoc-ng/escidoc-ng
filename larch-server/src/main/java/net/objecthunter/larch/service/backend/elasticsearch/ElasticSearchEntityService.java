@@ -28,7 +28,6 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
@@ -63,9 +62,9 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     public static final String INDEX_ENTITY_TYPE = "entity";
 
-    private int maxRecords = 50;
-
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityService.class);
+
+    private int maxRecords = 50;
 
     @Autowired
     private ObjectMapper mapper;
@@ -77,8 +76,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         this.waitForIndex(INDEX_ENTITIES);
     }
 
+    private void verifyWorkspaceId(String workspaceId) throws IOException {
+        if (workspaceId == null || StringUtils.isAlphanumeric(workspaceId)) {
+            throw new IOException("Workspace id is not valid: " + workspaceId);
+        }
+    }
+
     @Override
     public String create(Entity e) throws IOException {
+        this.verifyWorkspaceId(e.getWorkspaceId());
         log.debug("creating new entity");
         if (e.getId() != null) {
             final GetResponse resp =
@@ -101,6 +107,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     @Override
     public void update(Entity e) throws IOException {
+        this.verifyWorkspaceId(e.getWorkspaceId());
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         try {
@@ -116,19 +123,20 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public Entity retrieve(String id) throws IOException {
-        log.debug("fetching entity " + id);
+    public Entity retrieve(String workspaceId, String entityId) throws IOException {
+        this.verifyWorkspaceId(workspaceId);
+        log.debug("fetching entity " + entityId);
         final GetResponse resp;
         try {
-            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
+            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         if (resp.isSourceEmpty()) {
-            throw new NotFoundException("entity with id " + id + " not found");
+            throw new NotFoundException("Entity with id " + entityId + " not found");
         }
         final Entity parent = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        parent.setChildren(fetchChildren(id));
+        parent.setChildren(fetchChildren(entityId));
         return parent;
     }
 
@@ -335,7 +343,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         return scanIndex(offset, maxRecords);
     }
 
-
     /**
      * Holds enabled search-fields in entities-index. Differentiate between name of GET/POST-Parameter and name of
      * Search-Field in index.
@@ -356,14 +363,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             this.searchFieldName = searchFieldName;
         }
 
-        public String getRequestParameterName() {
-            return requestParameterName;
-        }
-
-        public String getFieldName() {
-            return searchFieldName;
-        }
-
         /**
          * EntitiesSearchField anhand requestParameterName ermitteln.
          * 
@@ -377,6 +376,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 }
             }
             return null;
+        }
+
+        public String getRequestParameterName() {
+            return requestParameterName;
+        }
+
+        public String getFieldName() {
+            return searchFieldName;
         }
     }
 

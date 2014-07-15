@@ -34,7 +34,7 @@ public interface BackendEntityService {
 
     void update(Entity e) throws IOException;
 
-    Entity retrieve(String id) throws IOException;
+    Entity retrieve(String workspaceId, String entityId) throws IOException;
 
     void delete(String id) throws IOException;
 

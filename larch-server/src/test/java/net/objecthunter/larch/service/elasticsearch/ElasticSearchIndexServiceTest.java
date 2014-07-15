@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.test.util.Fixtures;
@@ -193,7 +194,7 @@ public class ElasticSearchIndexServiceTest {
 
         replay(mockClient, mockHits, mockSearchRequestBuilder, mockSearchResponse, mockGetResponse,
                 mockGetRequestBuilder, mockFuture);
-        this.indexService.retrieve(e.getId());
+        this.indexService.retrieve(Workspace.DEFAULT, e.getId());
         verify(mockClient, mockHits, mockSearchRequestBuilder, mockSearchResponse, mockGetRequestBuilder,
                 mockGetResponse, mockFuture);
     }

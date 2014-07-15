@@ -16,12 +16,7 @@
 
 package net.objecthunter.larch.service.impl;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -85,10 +80,10 @@ public class DefaultEntityServiceTest {
 
         mockEntitiesService.update(e);
         expectLastCall();
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.update(Workspace.DEFAULT,e);
+        this.entityService.update(Workspace.DEFAULT, e);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -96,10 +91,10 @@ public class DefaultEntityServiceTest {
     public void testRetrieve() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(Workspace.DEFAULT,e.getId());
+        this.entityService.retrieve(Workspace.DEFAULT, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -107,14 +102,14 @@ public class DefaultEntityServiceTest {
     public void testDelete() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
         mockEntitiesService.delete(e.getId());
         expectLastCall();
         mockBlobstoreService.delete(e.getBinaries().entrySet().iterator().next().getValue().getPath());
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.delete(Workspace.DEFAULT,e.getId());
+        this.entityService.delete(Workspace.DEFAULT, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -123,11 +118,11 @@ public class DefaultEntityServiceTest {
         Entity e = Fixtures.createEntity();
         Binary b = Fixtures.createBinary();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
         expect(mockBlobstoreService.retrieve(b.getPath())).andReturn(new ByteArrayInputStream(new byte[3]));
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.getContent(Workspace.DEFAULT,e.getId(), "BINARY-1");
+        this.entityService.getContent(Workspace.DEFAULT, e.getId(), "BINARY-1");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -135,10 +130,10 @@ public class DefaultEntityServiceTest {
     public void testRetrieve1() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(Workspace.DEFAULT,e.getId());
+        this.entityService.retrieve(Workspace.DEFAULT, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -148,14 +143,15 @@ public class DefaultEntityServiceTest {
         Binary b = Fixtures.createBinary();
         b.setName("BINARY_CREATE");
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
         expect(mockBlobstoreService.create(anyObject(InputStream.class))).andReturn("/path/to/bin");
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createBinary(Workspace.DEFAULT,e.getId(), b.getName(), "application/octet-stream", new ByteArrayInputStream(
-                new byte[3]));
+        this.entityService.createBinary(Workspace.DEFAULT, e.getId(), b.getName(), "application/octet-stream",
+                new ByteArrayInputStream(
+                        new byte[3]));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -163,12 +159,13 @@ public class DefaultEntityServiceTest {
     public void testPatch() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e).times(2);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e).times(2);
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.patch(Workspace.DEFAULT,e.getId(), new ObjectMapper().readTree("{\"label\": \"label update\"}"));
+        this.entityService.patch(Workspace.DEFAULT, e.getId(), new ObjectMapper()
+                .readTree("{\"label\": \"label update\"}"));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
     }
@@ -177,12 +174,12 @@ public class DefaultEntityServiceTest {
     public void testCreateRelation() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createRelation(Workspace.DEFAULT,e.getId(), "<http://example.com/hasType>", "test");
+        this.entityService.createRelation(Workspace.DEFAULT, e.getId(), "<http://example.com/hasType>", "test");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
     }
