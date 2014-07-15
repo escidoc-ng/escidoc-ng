@@ -115,6 +115,7 @@ public class DefaultWeedFsEntityServiceIT extends AbstractWeedFsLarchIT {
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Book");
         e.setBinaries(binaries);
+        e.setWorkspaceId(Workspace.DEFAULT);
         return e;
     }
 }

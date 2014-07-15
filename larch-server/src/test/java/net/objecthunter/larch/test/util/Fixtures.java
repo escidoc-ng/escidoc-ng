@@ -22,10 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.objecthunter.larch.model.Binary;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.MetadataType;
+import net.objecthunter.larch.model.*;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -72,6 +69,7 @@ public abstract class Fixtures {
         e.setMetadata(createMetadataMap());
         e.setBinaries(createBinaryMap());
         e.setRelations(createRelations());
+        e.setWorkspaceId(Workspace.DEFAULT);
         return e;
     }
 
@@ -99,12 +97,12 @@ public abstract class Fixtures {
 
     public static Map<String, Metadata> createMetadataMap() {
         Map<String, Metadata> metadataMap = new HashMap<>(1);
-        Metadata md = creatMetadata();
+        Metadata md = createMetadata();
         metadataMap.put(md.getName(), md);
         return metadataMap;
     }
 
-    public static Metadata creatMetadata() {
+    public static Metadata createMetadata() {
         Metadata data = new Metadata();
         data.setName("DC");
         data.setType("Dublin Core");
@@ -151,6 +149,7 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
+        e.setWorkspaceId(Workspace.DEFAULT);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Book");
@@ -188,6 +187,7 @@ public abstract class Fixtures {
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Image");
         e.setBinaries(binaries);
+        e.setWorkspaceId(Workspace.DEFAULT);
         return e;
     }
 
@@ -196,12 +196,14 @@ public abstract class Fixtures {
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Image");
+        e.setWorkspaceId(Workspace.DEFAULT);
         return e;
     }
 
     public static Entity createFixtureCollectionEntity() throws Exception {
         Entity e = createSimpleFixtureEntity();
         e.setType("Collection");
+        e.setWorkspaceId(Workspace.DEFAULT);
         return e;
     }
 
