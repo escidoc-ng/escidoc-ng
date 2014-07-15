@@ -32,7 +32,7 @@ public class DescribeControllerIT extends AbstractLarchIT {
 
     @Test
     public void testDescribe() throws Exception {
-        HttpResponse resp = Request.Get("http://localhost:8080/describe")
+        HttpResponse resp = Request.Get(hostUrl + "/describe")
                 .execute()
                 .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());

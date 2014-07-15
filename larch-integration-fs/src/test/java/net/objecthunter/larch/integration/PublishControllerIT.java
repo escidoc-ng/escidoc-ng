@@ -30,21 +30,14 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PublishControllerIT extends AbstractLarchIT {
 
     private static final Logger log = LoggerFactory.getLogger(PublishControllerIT.class);
 
-    private static final String hostUrl = "http://localhost:8080/";
+    private static final String publishedUrl = defaultWorkspaceUrl + "published/";
 
-    private static final String entityUrl = hostUrl + "entity/";
-
-    private static final String publishedUrl = entityUrl + "published/";
-
-    private static final String publishedForEntityUrl = entityUrl + "{id}/published/";
+    private static final String publishedForEntityUrl = publishedUrl + "{id}/list/";
 
     private static final String identifierUrl = entityUrl + "{id}/identifier/";
 
@@ -86,7 +79,7 @@ public class PublishControllerIT extends AbstractLarchIT {
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
-        resp = this.execute(Request.Post("http://localhost:8080/entity/" + id + "/publish")).returnResponse();
+        resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
         // resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
         String publishId = EntityUtils.toString(resp.getEntity());
 

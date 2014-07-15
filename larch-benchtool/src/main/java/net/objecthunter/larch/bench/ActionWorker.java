@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
 import net.objecthunter.larch.client.LarchClient;
 import net.objecthunter.larch.model.Entity;
 
+import net.objecthunter.larch.model.Workspace;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,29 +69,29 @@ public class ActionWorker implements Callable<BenchToolResult> {
     private BenchToolResult doDelete() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(e);
+        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
+        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
 
         /* measure the deletion duration */
         long time = System.currentTimeMillis();
-        this.larchClient.deleteEntity(entityId);
+        this.larchClient.deleteEntity(Workspace.DEFAULT, entityId);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
     private BenchToolResult doUpdate() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(e);
+        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
+        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
@@ -99,7 +100,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
         e.setLabel("updated label");
         e.setId(entityId);
         long time = System.currentTimeMillis();
-        this.larchClient.postBinary(entityId,
+        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
@@ -109,18 +110,18 @@ public class ActionWorker implements Callable<BenchToolResult> {
     private BenchToolResult doRetrieve() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(e);
+        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
+        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
 
         /* measure the retrieval duration */
         long time = System.currentTimeMillis();
-        this.larchClient.retrieveBinaryContent(entityId, binaryName);
+        this.larchClient.retrieveBinaryContent(Workspace.DEFAULT, entityId, binaryName);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
@@ -129,10 +130,10 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
         long time = System.currentTimeMillis();
         /* create an entity */
-        final String entityId = this.larchClient.postEntity(e);
+        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
 
         /* add a binary */
-        this.larchClient.postBinary(entityId,
+        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
                 RandomStringUtils.randomAlphabetic(16),
                 "application/octet-stream",
                 new RandomInputStream(size));

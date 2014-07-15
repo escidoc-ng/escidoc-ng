@@ -23,6 +23,7 @@ import java.io.PrintStream;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
+import net.objecthunter.larch.model.Workspace;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -47,22 +48,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @WebAppConfiguration
 @ActiveProfiles("fs")
 public abstract class AbstractLarchIT {
+    protected static final int port =8080;
+    
+    protected static final String hostUrl = "http://localhost:" + port + "/";
 
-    @Autowired
-    protected ObjectMapper mapper;
+    protected static final String workspaceUrl = hostUrl + "workspace/";
+
+    protected static final String defaultWorkspaceUrl = workspaceUrl + Workspace.DEFAULT + "/";
+
+    protected static final String entityUrl = defaultWorkspaceUrl + "entity/";
 
     final PrintStream sysOut = System.out;
-
     final PrintStream sysErr = System.err;
+    @Autowired
+    protected ObjectMapper mapper;
+    private HttpHost localhost = new HttpHost("localhost", 8080, "http");
+    private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
 
     @Before
     public void resetSystOutErr() {
         this.showLog();
     }
-
-    private HttpHost localhost = new HttpHost("localhost", 8080, "http");
-
-    private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
 
     protected Response execute(Request req) throws IOException {
         return this.executor.execute(req);

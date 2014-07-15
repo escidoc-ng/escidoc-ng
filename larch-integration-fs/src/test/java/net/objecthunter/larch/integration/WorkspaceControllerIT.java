@@ -37,7 +37,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         ws.setId(RandomStringUtils.randomAlphanumeric(16));
         ws.setOwner("foo");
         ws.setName("bar");
-        HttpResponse resp = Request.Post("http://localhost:8080/workspace")
+        HttpResponse resp = Request.Post(workspaceUrl)
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
@@ -47,7 +47,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertNotNull(id);
         assertEquals(ws.getId(), id);
 
-        resp = Request.Get("http://localhost:8080/workspace/" + id)
+        resp = Request.Get(workspaceUrl + id)
                 .execute()
                 .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -61,7 +61,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         ws.setId(RandomStringUtils.randomAlphanumeric(16));
         ws.setOwner("foo");
         ws.setName("bar");
-        HttpResponse resp = Request.Post("http://localhost:8080/workspace")
+        HttpResponse resp = Request.Post(workspaceUrl)
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
@@ -72,14 +72,14 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertEquals(ws.getId(), id);
 
         ws.setName("bar2");
-        resp = Request.Put("http://localhost:8080/workspace/" + id)
+        resp = Request.Put(workspaceUrl + id)
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
 
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
-        resp = Request.Get("http://localhost:8080/workspace/" + id)
+        resp = Request.Get(workspaceUrl + id)
                 .execute()
                 .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -97,7 +97,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         ws.setId(RandomStringUtils.randomAlphanumeric(16));
         ws.setOwner("foo");
         ws.setName("bar");
-        HttpResponse resp = Request.Post("http://localhost:8080/workspace")
+        HttpResponse resp = Request.Post(workspaceUrl)
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
@@ -110,14 +110,14 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         final Workspace patch = new Workspace();
         patch.setName("bar3");
 
-        resp = Request.Post("http://localhost:8080/workspace/" + id)
+        resp = Request.Post(workspaceUrl + id)
                 .bodyString(this.mapper.writeValueAsString(patch), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
 
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
-        resp = Request.Get("http://localhost:8080/workspace/" + id)
+        resp = Request.Get(workspaceUrl + id)
                 .execute()
                 .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());

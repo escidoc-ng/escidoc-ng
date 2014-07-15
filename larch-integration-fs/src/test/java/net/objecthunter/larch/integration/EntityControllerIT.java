@@ -47,15 +47,10 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class EntityControllerIT extends AbstractLarchIT {
 
     private static final Logger log = LoggerFactory.getLogger(EntityControllerIT.class);
-
-    private static final String entityUrl = "http://localhost:8080/entity/";
 
     @Test
     public void testCreateAndUpdateEntity() throws Exception {
@@ -75,11 +70,11 @@ public class EntityControllerIT extends AbstractLarchIT {
                  .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals(2, fetched.getVersion());
 
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id + "/version/1")).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id + "/version/1")).returnResponse();
         Entity oldVersion = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals(1, oldVersion.getVersion());
         assertNotNull(oldVersion.getUtcCreated());
@@ -101,7 +96,7 @@ public class EntityControllerIT extends AbstractLarchIT {
     public void testCreateAndRetrieveEntityWithChildren() throws Exception {
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createSimpleFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -113,14 +108,14 @@ public class EntityControllerIT extends AbstractLarchIT {
             child.setParentId(id);
             resp =
                     this.execute(
-                            Request.Post("http://localhost:8080/entity")
+                            Request.Post(entityUrl)
                                     .bodyString(mapper.writeValueAsString(child),
                                             ContentType.APPLICATION_JSON))
                             .returnResponse();
             assertEquals(201, resp.getStatusLine().getStatusCode());
         }
 
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals(2, fetched.getChildren().size());
     }
@@ -131,7 +126,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         long time = System.currentTimeMillis();
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(e),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -142,7 +137,7 @@ public class EntityControllerIT extends AbstractLarchIT {
             child.setParentId(id);
             resp =
                     this.execute(
-                            Request.Post("http://localhost:8080/entity")
+                            Request.Post(entityUrl)
                                     .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON))
                             .returnResponse();
             assertEquals(201, resp.getStatusLine().getStatusCode());
@@ -151,7 +146,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         assertEquals(201, resp.getStatusLine().getStatusCode());
 
         time = System.currentTimeMillis();
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
         log.debug("fetching an entity with 100 children took {} ms", System.currentTimeMillis() - time);
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals(100, fetched.getChildren().size());
@@ -173,7 +168,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // create a new entity
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createSimpleFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -204,7 +199,7 @@ public class EntityControllerIT extends AbstractLarchIT {
     public void testRetrieveVersions() throws Exception {
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -216,14 +211,14 @@ public class EntityControllerIT extends AbstractLarchIT {
             update.setLabel("My updated Label" + i);
             resp =
                     this.execute(
-                            Request.Put("http://localhost:8080/entity/" + id)
+                            Request.Put(entityUrl + id)
                                     .bodyString(mapper.writeValueAsString(update),
                                             ContentType.APPLICATION_JSON))
                             .returnResponse();
             assertEquals(200, resp.getStatusLine().getStatusCode());
         }
 
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id + "/versions")).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id + "/versions")).returnResponse();
         Entities fetched = mapper.readValue(resp.getEntity().getContent(), Entities.class);
         assertEquals(51, fetched.getEntities().size());
         int i = 51;
@@ -242,7 +237,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // create
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -250,10 +245,10 @@ public class EntityControllerIT extends AbstractLarchIT {
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
-        resp = this.execute(Request.Post("http://localhost:8080/entity/" + id + "/publish")).returnResponse();
+        resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
 
         // retrieve
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("published", fetched.getState());
         assertEquals(1, fetched.getVersion());
@@ -263,20 +258,20 @@ public class EntityControllerIT extends AbstractLarchIT {
         update.setLabel("My updated Label1");
         resp =
                 this.execute(
-                        Request.Put("http://localhost:8080/entity/" + id)
+                        Request.Put(entityUrl + id)
                                 .bodyString(mapper.writeValueAsString(update),
                                             ContentType.APPLICATION_JSON))
                     .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + id)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("ingested", fetched.getState());
         assertEquals(2, fetched.getVersion());
 
         // retrieve published
-        resp = this.execute(Request.Get("http://localhost:8080/entity/published/" + id + ":1")).returnResponse();
+        resp = this.execute(Request.Get(defaultWorkspaceUrl + "/published/" + id + ":1")).returnResponse();
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("published", fetched.getState());
         assertEquals(1, fetched.getVersion());
