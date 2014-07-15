@@ -18,8 +18,12 @@ package net.objecthunter.larch.integration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.EnumSet;
 
 import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.WorkspacePermissions;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpResponse;
@@ -34,6 +38,9 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
     @Test
     public void testCreateAndRetrieve() throws Exception {
         final Workspace ws = new Workspace();
+        final WorkspacePermissions permissions = new WorkspacePermissions();
+        permissions.setPermissions("admin", EnumSet.allOf(WorkspacePermissions.Permission.class));
+        ws.setPermissions(permissions);
         ws.setId(RandomStringUtils.randomAlphanumeric(16));
         ws.setOwner("foo");
         ws.setName("bar");
@@ -53,6 +60,8 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertEquals(200, resp.getStatusLine().getStatusCode());
         final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
         assertEquals(ws, fetched);
+        assertTrue(ws.getPermissions().hasPermissions("admin", WorkspacePermissions.Permission.READ_PENDING_BINARY));
+        assertEquals(16, ws.getPermissions().getPermissions("admin").size());
     }
 
     @Test
@@ -71,6 +80,9 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertNotNull(id);
         assertEquals(ws.getId(), id);
 
+        final WorkspacePermissions permissions = new WorkspacePermissions();
+        permissions.addPermissions("foo", WorkspacePermissions.Permission.READ_PENDING_METADATA);
+        ws.setPermissions(permissions);
         ws.setName("bar2");
         resp = Request.Put(workspaceUrl + id)
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
@@ -85,6 +97,8 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         assertEquals(200, resp.getStatusLine().getStatusCode());
         final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
         assertEquals(ws, fetched);
+        assertTrue(ws.getPermissions().hasPermissions("foo", WorkspacePermissions.Permission.READ_PENDING_METADATA));
+        assertEquals(1, ws.getPermissions().getPermissions("foo").size());
     }
 
     @Test

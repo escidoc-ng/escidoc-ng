@@ -26,36 +26,54 @@ public class WorkspacePermissions {
 
     private Map<String, EnumSet<Permission>> permissions = new HashMap<>();
 
-    public void setPermissionsForUser(User u, EnumSet<Permission> permissionsToSet) {
-        this.permissions.put(u.getName(), permissionsToSet);
+    public void setPermissions(String username, EnumSet<Permission> permissionsToSet) {
+        this.permissions.put(username, permissionsToSet);
     }
 
-    public void addPermission(User u, Permission permissionToSet) {
-        EnumSet<Permission> existingPermissions = this.permissions.get(u.getName());
+    public void addPermissions(String userName, Permission ... permissionsToSet) {
+        EnumSet<Permission> existingPermissions = this.permissions.get(userName);
         if (existingPermissions == null) {
             existingPermissions = EnumSet.noneOf(Permission.class);
         }
-        existingPermissions.add(permissionToSet);
-        this.permissions.put(u.getName(), existingPermissions);
+        for (Permission p: permissionsToSet) {
+            existingPermissions.add(p);
+        }
+        this.permissions.put(userName, existingPermissions);
     }
 
-    public void removePermission(User u, Permission permissionToRemove) {
-        EnumSet<Permission> existingPermissions = this.permissions.get(u.getName());
+    public void removePermission(String userName, Permission ... permissionsToRemove) {
+        final EnumSet<Permission> existingPermissions = this.permissions.get(userName);
         if (existingPermissions != null) {
-            existingPermissions.remove(permissionToRemove);
-            this.permissions.put(u.getName(), existingPermissions);
+            for (final Permission p: permissionsToRemove) {
+                existingPermissions.remove(p);
+            }
+            this.permissions.put(userName, existingPermissions);
         }
     }
 
-    public EnumSet<Permission> getPermissions(User u) {
-        return this.permissions.get(u.getName());
+    public EnumSet<Permission> getPermissions(String username) {
+        return this.permissions.get(username);
     }
 
     public Map<String, EnumSet<Permission>> getPermissions() {
         return this.permissions;
     }
 
-    private enum Permission {
+    public boolean hasPermissions(final String username, final Permission ... permissionsToCheck) {
+        final EnumSet<Permission> currentPermissions = this.getPermissions(username);
+        if (currentPermissions == null) {
+            return false;
+        }
+        for (final Permission p : permissionsToCheck) {
+            if (!currentPermissions.contains(p)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public enum Permission {
         READ_PENDING_METADATA,
         READ_SUBMITTED_METADATA,
         READ_RELEASED_METADATA,
