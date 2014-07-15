@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Web controller responsible for interactions on the entity level
  */
 @Controller
-@RequestMapping(value = { "/entity" })
+@RequestMapping("/workspace/{workspaceId}/entity")
 public class EntityController extends AbstractLarchController {
 
     @Autowired
@@ -73,9 +73,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void patch(@PathVariable("id") final String id, final InputStream src) throws IOException {
+    public void patch(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
-        this.entityService.patch(id, node);
+        this.entityService.patch(workspaceId, id, node);
         this.entityService.createAuditRecord(AuditRecords.updateEntityRecord(id));
         this.messagingService.publishUpdateEntity(id);
     }
@@ -91,8 +91,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public Entity retrieve(@PathVariable("id") final String id) throws IOException {
-        return entityService.retrieve(id);
+    public Entity retrieve(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
+        return entityService.retrieve(workspaceId, id);
     }
 
     /**
@@ -106,9 +106,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}", produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
+    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(id));
+        model.addAttribute("entity", entityService.retrieve(workspaceId, id));
         model.addAttribute("metadataTypes", this.schemaService.getSchemaTypes());
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
@@ -126,9 +126,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/version/{version}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public Entity retrieve(@PathVariable("id") final String id, @PathVariable("version") final int version)
+    public Entity retrieve(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
-        return entityService.retrieve(id, version);
+        return entityService.retrieve(workspaceId, id, version);
     }
 
     /**
@@ -143,10 +143,10 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/version/{version}", produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView retrieveHtml(@PathVariable("id") final String id, @PathVariable("version") final int version)
+    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(id, version));
+        model.addAttribute("entity", entityService.retrieve(workspaceId, id, version));
         return new ModelAndView("entity", model);
     }
 
@@ -162,9 +162,9 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public Entities retrieveVersions(@PathVariable("id") final String id) throws IOException {
-        Entities entities = entityService.getOldVersions(id);
-        entities.getEntities().add(0, entityService.retrieve(id));
+    public Entities retrieveVersions(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
+        Entities entities = entityService.getOldVersions(workspaceId, id);
+        entities.getEntities().add(0, entityService.retrieve(workspaceId, id));
         return entities;
     }
 
@@ -180,10 +180,10 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ModelAndView retrieveVersionsHtml(@PathVariable("id") final String id) throws IOException {
+    public ModelAndView retrieveVersionsHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        Entities entities = entityService.getOldVersions(id);
-        entities.getEntities().add(0, entityService.retrieve(id));
+        Entities entities = entityService.getOldVersions(workspaceId, id);
+        entities.getEntities().add(0, entityService.retrieve(workspaceId, id));
         model.addAttribute("entities", entities);
         return new ModelAndView("versions", model);
     }
@@ -200,8 +200,8 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String create(final InputStream src) throws IOException {
-        final String id = this.entityService.create(mapper.readValue(src, Entity.class));
+    public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src) throws IOException {
+        final String id = this.entityService.create(workspaceId, mapper.readValue(src, Entity.class));
         this.entityService.createAuditRecord(AuditRecords.createEntityRecord(id));
         this.messagingService.publishCreateEntity(id);
         return id;
@@ -218,7 +218,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void update(@PathVariable("id") final String id, final InputStream src) throws IOException {
+    public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
         if (e.getId() == null) {
             e.setId(id);
@@ -226,7 +226,7 @@ public class EntityController extends AbstractLarchController {
         else if (!e.getId().equals(id)) {
             throw new IOException("The id of the Entity and the id used in the PUT request are not the same");
         }
-        this.entityService.update(e);
+        this.entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecords.updateEntityRecord(id));
         this.messagingService.publishUpdateEntity(id);
     }
@@ -235,8 +235,8 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String publish(@PathVariable("id") final String id) throws IOException {
-        String publishId = this.entityService.publish(id);
+    public String publish(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
+        String publishId = this.entityService.publish(workspaceId, id);
         this.entityService.createAuditRecord(AuditRecords.publishEntityRecord(id));
         this.messagingService.publishPublishEntity(id);
         return publishId;
@@ -245,8 +245,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ModelAndView publishHtml(@PathVariable("id") final String id) throws IOException {
-        this.publish(id);
-        return this.retrieveHtml(id);
+    public ModelAndView publishHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id) throws IOException {
+        this.publish(workspaceId, id);
+        return this.retrieveHtml(workspaceId, id);
     }
 }

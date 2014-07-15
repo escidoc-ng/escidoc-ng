@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.service.impl.DefaultEntityService;
 
 import org.junit.Test;
@@ -41,8 +42,8 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
     @Test
     public void testCreateAndGetEntityAndContent() throws Exception {
         Entity e = createFixtureEntity();
-        entityService.create(e);
-        Entity fetched = entityService.retrieve(e.getId());
+        entityService.create(Workspace.DEFAULT, e);
+        Entity fetched = entityService.retrieve(Workspace.DEFAULT, e.getId());
         assertEquals(e.getId(), fetched.getId());
         assertEquals(e.getLabel(), fetched.getLabel());
         assertEquals(e.getBinaries().size(), fetched.getBinaries().size());
@@ -53,7 +54,7 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
             assertNotNull(b.getFilename());
             assertNotNull(b.getMimetype());
             assertNotNull(b.getPath());
-            try (final InputStream src = entityService.getContent(e.getId(), b.getName())) {
+            try (final InputStream src = entityService.getContent(Workspace.DEFAULT, e.getId(), b.getName())) {
                 assertTrue(src.available() > 0);
             } catch (IOException e1) {
                 fail("IOException: " + e1.getLocalizedMessage());
@@ -64,26 +65,26 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
     @Test
     public void testCreateAndGetEntityWithChildren() throws Exception {
         Entity e = createFixtureCollectionEntity();
-        String parentId = entityService.create(e);
+        String parentId = entityService.create(Workspace.DEFAULT, e);
         for (int i = 0; i < 2; i++) {
             Entity child = createSimpleFixtureEntity();
             child.setParentId(parentId);
-            entityService.create(child);
+            entityService.create(Workspace.DEFAULT, child);
         }
-        Entity fetched = entityService.retrieve(parentId);
+        Entity fetched = entityService.retrieve(Workspace.DEFAULT, parentId);
         assertEquals(2, fetched.getChildren().size());
     }
 
     @Test
     public void testCreateAndUpdate() throws Exception {
         Entity e = createFixtureEntity();
-        String id = entityService.create(e);
-        Entity orig = entityService.retrieve(id);
+        String id = entityService.create(Workspace.DEFAULT, e);
+        Entity orig = entityService.retrieve(Workspace.DEFAULT, id);
         Entity update = createFixtureEntity();
         update.setId(id);
         update.setLabel("My updated label");
-        entityService.update(update);
-        Entity fetched = entityService.retrieve(e.getId());
+        entityService.update(Workspace.DEFAULT, update);
+        Entity fetched = entityService.retrieve(Workspace.DEFAULT, e.getId());
         assertEquals(update.getLabel(), fetched.getLabel());
         assertEquals(orig.getUtcCreated(), fetched.getUtcCreated());
     }
@@ -91,13 +92,13 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
     @Test
     public void testCreateUpdateAndFetchOldVersion() throws Exception {
         Entity e = createFixtureEntity();
-        String id = entityService.create(e);
-        Entity orig = entityService.retrieve(id);
+        String id = entityService.create(Workspace.DEFAULT, e);
+        Entity orig = entityService.retrieve(Workspace.DEFAULT, id);
         Entity update = createFixtureEntity();
         update.setId(id);
         update.setLabel("My updated label");
-        entityService.update(update);
-        Entity fetched = entityService.retrieve(e.getId(), 1);
+        entityService.update(Workspace.DEFAULT, update);
+        Entity fetched = entityService.retrieve(Workspace.DEFAULT, e.getId(), 1);
         assertEquals(orig.getLabel(), fetched.getLabel());
         assertEquals(1, orig.getVersion());
         assertEquals(1, fetched.getVersion());

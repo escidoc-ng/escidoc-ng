@@ -18,6 +18,8 @@ package net.objecthunter.larch.model;
 
 public class Workspace {
 
+    public static final String DEFAULT = "default";
+
     private String owner;
 
     private String name;
