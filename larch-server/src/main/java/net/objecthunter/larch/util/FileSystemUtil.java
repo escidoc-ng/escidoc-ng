@@ -38,7 +38,7 @@ public abstract class FileSystemUtil {
     public static void checkAndCreate(File dir) throws IOException {
         if (!dir.exists()) {
             log.info("Creating non existing data directory {}", dir.getAbsolutePath());
-            if (!dir.mkdir()) {
+            if (!dir.mkdirs()) {
                 throw new IOException(dir.getAbsolutePath() + " could not be created");
             }
         }
