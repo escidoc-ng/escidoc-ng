@@ -36,9 +36,8 @@ public class LoginController extends AbstractLarchController {
      */
     @RequestMapping(value = "/login-redirect", method = RequestMethod.GET, produces = { "text/html" })
     @PreAuthorize("!hasRole('ROLE_ANONYMOUS')")
-    public ModelAndView loginRedirect() {
-        final ModelMap model = new ModelMap();
-        return new ModelAndView("login-redirect", model);
+    public String loginRedirect() {
+        return "redirect:/";
     }
 
     /**

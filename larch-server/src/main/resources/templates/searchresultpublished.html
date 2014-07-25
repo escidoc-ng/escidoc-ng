@@ -19,7 +19,7 @@
         <div class="resultstats">
             <p th:text="'Search for &quot;' + ${result.term} + '&quot; yielded ' + ${result.totalHits} + ' records in ' + ${result.duration} + ' ms'"></p>
         </div>
-        <a th:each="record : ${result.data}" th:href="@{~/entity/published/} + ${record.publishId}">
+        <a th:each="record : ${result.data}" th:href="@{/entity/published/} + ${record.publishId}">
             <div class="panel clickable">
                 <p class="panel_title" th:text="${record.publishId}"></p>
 

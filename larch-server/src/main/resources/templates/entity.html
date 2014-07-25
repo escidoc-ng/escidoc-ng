@@ -47,14 +47,14 @@
             <p class="property">Last modified</p>
 
             <p class="value" th:text="${entity.utcLastModified}"></p>
-            <a th:text="'Audit record'" th:href="@{'/entity/'} + ${entity.id} + '/audit'"></a>
+            <a th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
 
             <p/>
-            <a th:text="'Versions'" th:href="@{'/entity/'} + ${entity.id} + '/versions'"></a>
+            <a th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
 
             <p/>
             <a th:text="'Published Versions'"
-               th:href="@{'/entity/'} + ${entity.id} + '/published'"></a>
+               th:href="@{/entity/} + ${entity.id} + '/published'"></a>
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
@@ -80,11 +80,11 @@
             <p class="value" th:text="${md.value.utcLastModified}"></p>
 
             <p class="property">Validation</p>
-            <a th:href="'/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
                th:text="'Validate'"></a>
 
             <p class="property">Content</p>
-            <a th:href="'/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
@@ -122,11 +122,11 @@
             <p class="value" th:text="${bin.value.utcLastModified}"></p>
 
             <p class="property">Content</p>
-            <a th:href="'/entity/' + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
                th:text="'Download'"></a>
 
             <p class="property">Binary</p>
-            <a th:href="'/entity/' + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
         </div>
         <div class="panel" th:if="${entity.relations != null}">
             <p class="panel_title">Relations</p>
@@ -152,7 +152,7 @@
             <p class="panel_title">Children</p>
 
             <p th:each="child: ${entity.children}" class="value"><a
-                    th:href="@{'/entity/'} + ${child}" th:text="${child}"></a></p>
+                    th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
             <div class="panel">
@@ -188,10 +188,10 @@
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <!-- form th:action="@{'~/entity/' + ${entity.id} + '/binary'} + '?_csrf=' + ${_csrf.token}"
+                <!-- form th:action="@{/entity/} + ${entity.id} + '/binary' + '?_csrf=' + ${_csrf.token}"
                       method="post"
                       enctype="multipart/form-data" -->
-                <form th:action="@{'~/entity/' + ${entity.id} + '/binary'}"
+                <form th:action="@{/entity/} + ${entity.id} + '/binary'"
                       method="post"
                       enctype="multipart/form-data">
                     <input id="binName" type="text" name="name" title="Set the name of the binary"/>
@@ -209,9 +209,9 @@
                 <p class="panel_title">Create new metadata</p>
 
                 <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/metadata'} + '?_csrf=' + ${_csrf.token}" -->
+                      th:action="@{/entity/} + ${entity.id} + '/metadata' + '?_csrf=' + ${_csrf.token}" -->
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/metadata'}">
+                      th:action="@{/entity/} + ${entity.id} + '/metadata'">
                     <input id="mdName" type="text" name="name"
                            title="Set the name of the metadata"/>
                     <input id="mdFile" type="file" name="metadata"
@@ -233,9 +233,9 @@
                 <p class="panel_title">Create new identifier</p>
 
                 <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/identifier'} + '?_csrf=' + ${_csrf.token}" -->
+                      th:action="@{/entity/} + ${entity.id} + '/identifier' + '?_csrf=' + ${_csrf.token}" -->
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/identifier'}">
+                      th:action="@{/entity/} + ${entity.id} + '/identifier'">
                     <select id="identifierType" name="type" title="Select a valid identifier type">
                         <option th:each="identifierType : ${identifierTypes}"
                                 th:label="${identifierType.name}"
@@ -257,9 +257,9 @@
                 <p class="panel_title">Create new relation</p>
 
                 <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/relation'} + '?_csrf=' + ${_csrf.token}" -->
+                      th:action="@{/entity/} + ${entity.id} + '/relation' + '?_csrf=' + ${_csrf.token}" -->
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/relation'}">
+                      th:action="@{/entity/} + ${entity.id} + '/relation'">
                     <input id="relPredicate" type="text" name="predicate"
                            title="Set the predicate of the relation"/>
                     <input id="relObject" type="text" name="object"
@@ -271,9 +271,9 @@
                 <p class="panel_title">Publish entity</p>
 
                 <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/publish'} + '?_csrf=' + ${_csrf.token}" -->
+                      th:action="@{/entity/} + ${entity.id} + '/publish' + '?_csrf=' + ${_csrf.token}" -->
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{'~/entity/' + ${entity.id} + '/publish'}">
+                      th:action="@{/entity/} + ${entity.id} + '/publish'">
                     <input class="button" type="submit" value="publish"/>
                 </form>
             </div>

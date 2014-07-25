@@ -1,3 +1,12 @@
+var ctx = "";
+$(document).ready(function() {
+  var contextPath = $('#contextPath');
+  if (contextPath) {
+    if (contextPath.attr('src')) {
+      ctx = contextPath.attr('src');
+    }
+  }
+});
 
 function createEntity(id, type, label, tags, parentId) {
     var tagList = tags.split(',');
@@ -19,13 +28,13 @@ function createEntity(id, type, label, tags, parentId) {
         headers: {
             "X-CSRF-TOKEN" : csrf_token
         },
-        url: "/entity",
+        url: ctx + "/entity",
         type: "POST",
         data: JSON.stringify(entity),
         dataType: "text",
         contentType: "application/json; charset=utf-8",
         success: function(createdId){
-            document.location.href = '/entity/' + createdId;
+            document.location.href = ctx + '/entity/' + createdId;
         },
         error : function(request, msg, error) {
             throwError(request);
@@ -41,7 +50,7 @@ function deleteUser(name) {
         headers: {
             "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
         },
-        url: "/user/" + name,
+        url: ctx + "/user/" + name,
         type: "DELETE",
         success: function(createdId){
            location.reload(false);
@@ -53,7 +62,7 @@ function deleteUser(name) {
 }
 
 function openUser(name) {
-    document.location.href = '/user/' + name;
+    document.location.href = ctx + '/user/' + name;
 }
 
 function edit(td, name) {
@@ -94,7 +103,7 @@ function stopEdit(td, name) {
 
 function patchEntity() {
     $.ajax({
-        url : "/entity/" + $('#entityId').html(),
+        url : ctx + "/entity/" + $('#entityId').html(),
         type : "PATCH",
         data : JSON.stringify(patch),
         contentType : "application/json",
@@ -114,7 +123,7 @@ function throwError(request) {
             responseText = JSON.parse(request.responseText);
         } catch (e) {}
     }
-    var location = '/error-page';
+    var location = ctx + '/error-page';
     if (responseText != null) {
         if (responseText.status != null) {
             location += '?status=' + responseText.status;

@@ -16,7 +16,7 @@
         <div>
             <h2>Published Entities</h2>
         </div>
-        <a th:each="record : ${result.data}" th:href="@{~/entity/published/} + ${record.publishId}">
+        <a th:each="record : ${result.data}" th:href="@{/entity/published/} + ${record.publishId}">
             <div class="panel clickable">
                 <p class="panel_title" th:text="${record.publishId}"></p>
 

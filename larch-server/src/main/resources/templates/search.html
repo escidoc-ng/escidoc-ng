@@ -22,9 +22,9 @@
             });
 
             </script>
-            <!-- form method="post" th:action="'/search?_csrf=' + ${_csrf.token}"
+            <!-- form method="post" th:action="@{/search} + '?_csrf=' + ${_csrf.token}"
                   enctype="multipart/form-data" -->
-            <form method="post" th:action="'/search'"
+            <form method="post" th:action="@{/search}"
                   enctype="multipart/form-data">
                 <label for="searchMain">All Fields:</label><input type="text" id="searchMain"
                                                                   name="term"/>
@@ -47,9 +47,9 @@
             });
 
             </script>
-            <!-- form method="post" th:action="'/search/published?_csrf=' + ${_csrf.token}"
+            <!-- form method="post" th:action="@{/search/published} + '?_csrf=' + ${_csrf.token}"
                   enctype="multipart/form-data" -->
-            <form method="post" th:action="'/search/published'"
+            <form method="post" th:action="@{/search/published}"
                   enctype="multipart/form-data">
                 <label for="searchMain">All Fields:</label><input type="text" id="searchMain"
                                                                   name="term"/>

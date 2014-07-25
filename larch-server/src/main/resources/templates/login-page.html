@@ -11,7 +11,7 @@
         </div>
         <div th:if="${param.logout}"><font color="red">Successfully Logged out</font></div>
         <h3>Login with Username and Password</h3>
-        <form name='f' th:action="'/form-login'" method='POST'>
+        <form name='f' th:action="@{/form-login}" method='POST'>
             <table>
                 <tr>
                     <td>User:</td>
@@ -33,7 +33,7 @@
             </table>
         </form>
         <h3>Login with OpenID Identity</h3>
-        <form name='oidf' th:action="'/openid-login'" method='POST'>
+        <form name='oidf' th:action="@{/openid-login}" method='POST'>
             <table>
                 <tr>
                     <td>Identity:</td>

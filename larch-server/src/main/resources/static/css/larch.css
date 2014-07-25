@@ -15,7 +15,7 @@ header{
 }
 
 .three_dots {
-    background-image: url("/images/grey_dot.png");
+    background-image: url("../images/grey_dot.png");
     background-repeat: repeat-x;
     margin-left: 10px;
     margin-right: 10px;
@@ -25,7 +25,7 @@ header{
 }
 
 .three_bars {
-    background-image: url("/images/grey_bar.png");
+    background-image: url("../images/grey_bar.png");
     background-repeat: repeat-y;
     margin-top: 30px;
     margin-left: 30px;
@@ -142,30 +142,30 @@ li a{
 }
 
 #icon_dashboard {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px 0px;
 }
 #icon_settings {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px 0px;
 }
 #icon_browse {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px -59px;
     height: 12px;
     margin-top: 17px;
 }
 #icon_list {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px -71px;
     margin-top: 13px;
 }
 #icon_search {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px 0px;
 }
 #icon_users {
-    background-image: url("/images/sprite.png");
+    background-image: url("../images/sprite.png");
     background-position: 0px -39px;
     height: 20px;
 }
@@ -248,3 +248,9 @@ select,
 .resultstats {
     padding-left: 40px;
 }
+
+.off {
+  display: none !important;
+}
+
+
