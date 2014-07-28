@@ -48,7 +48,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
     private Client client;
 
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         log.debug("initialising ElasticSearchWorkspaceService");
         this.checkAndOrCreateIndex(INDEX_WORKSPACES);
         this.waitForIndex(INDEX_WORKSPACES);

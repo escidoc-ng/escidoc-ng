@@ -24,15 +24,58 @@ import net.objecthunter.larch.model.security.User;
 
 public class WorkspacePermissions {
 
-    private Map<String, EnumSet<Permission>> permissions;
+    private Map<String, EnumSet<Permission>> permissions = new HashMap<>();
 
     public void setPermissions(Map<String, EnumSet<Permission>> permissions) {
         this.permissions = permissions;
     }
 
+    public void setPermissions(String username, EnumSet<Permission> permissionsToSet) {
+        this.permissions.put(username, permissionsToSet);
+    }
+
+    public void addPermissions(String userName, Permission ... permissionsToSet) {
+        EnumSet<Permission> existingPermissions = this.permissions.get(userName);
+        if (existingPermissions == null) {
+            existingPermissions = EnumSet.noneOf(Permission.class);
+        }
+        for (Permission p: permissionsToSet) {
+            existingPermissions.add(p);
+        }
+        this.permissions.put(userName, existingPermissions);
+    }
+
+    public void removePermission(String userName, Permission ... permissionsToRemove) {
+        final EnumSet<Permission> existingPermissions = this.permissions.get(userName);
+        if (existingPermissions != null) {
+            for (final Permission p: permissionsToRemove) {
+                existingPermissions.remove(p);
+            }
+            this.permissions.put(userName, existingPermissions);
+        }
+    }
+
+    public EnumSet<Permission> getPermissions(String username) {
+        return this.permissions.get(username);
+    }
+
     public Map<String, EnumSet<Permission>> getPermissions() {
         return this.permissions;
     }
+
+    public boolean hasPermissions(final String username, final Permission ... permissionsToCheck) {
+        final EnumSet<Permission> currentPermissions = this.getPermissions(username);
+        if (currentPermissions == null) {
+            return false;
+        }
+        for (final Permission p : permissionsToCheck) {
+            if (!currentPermissions.contains(p)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     public enum Permission {
         READ_PENDING_METADATA,
