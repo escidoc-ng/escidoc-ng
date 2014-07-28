@@ -28,7 +28,7 @@ public class WebInitializer extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(LarchServer.class, LarchServerConfiguration.class, LarchServerSecurityConfiguration.class,
+        return application.sources(LarchServerConfiguration.class, LarchServerSecurityConfiguration.class,
                 OAuth2ServerConfiguration.class);
     }
 
