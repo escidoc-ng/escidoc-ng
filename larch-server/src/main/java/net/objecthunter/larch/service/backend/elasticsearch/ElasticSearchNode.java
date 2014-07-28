@@ -51,6 +51,8 @@ public class ElasticSearchNode {
                                      environment.getProperty("elasticsearch.bootstrap.mlockall"))
                                 .put("network.bind.host",
                                      environment.getProperty("elasticsearch.network.bind.host"))
+                                .put("network.host",
+                                     environment.getProperty("elasticsearch.network.host", ""))
                                 .put("gateway.expected_nodes",
                                      environment
                                          .getProperty("elasticsearch.gateway.expected_nodes"))
