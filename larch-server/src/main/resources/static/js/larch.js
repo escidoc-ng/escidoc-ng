@@ -2,7 +2,7 @@ var ctx = "";
 $(document).ready(function() {
   var contextPath = $('#contextPath');
   if (contextPath) {
-    if (contextPath.attr('src')) {
+    if (contextPath.attr('src') && contextPath.attr('src') != '') {
       ctx = contextPath.attr('src');
     }
   }
@@ -88,6 +88,29 @@ function deleteUser(name) {
         }
     });
 }
+
+function deleteEntity(id) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + id,
+	        type: "DELETE",
+	        success: function(createdId){
+	        	if (ctx != '') {
+		            document.location.href = ctx;
+	        	} else {
+		            document.location.href = "/";
+	        	}
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
 
 function openUser(name) {
     document.location.href = ctx + '/user/' + name;

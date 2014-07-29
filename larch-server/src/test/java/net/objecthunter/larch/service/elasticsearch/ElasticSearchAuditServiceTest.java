@@ -43,7 +43,9 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -63,10 +65,16 @@ public class ElasticSearchAuditServiceTest {
 
     private Client mockClient;
 
+    private AdminClient mockAdminClient;
+
+    private IndicesAdminClient mockIndicesAdminClient;
+
     @Before
     public void setup() {
-        auditService = new ElasticSearchAuditService();
         mockClient = createMock(Client.class);
+        mockAdminClient = createMock(AdminClient.class);
+        mockIndicesAdminClient = createMock(IndicesAdminClient.class);
+        auditService = new ElasticSearchAuditService();
         ReflectionTestUtils.setField(auditService, "client", mockClient);
         ReflectionTestUtils.setField(auditService, "mapper", new ObjectMapper());
         User u = new User();
@@ -135,8 +143,14 @@ public class ElasticSearchAuditServiceTest {
         expect(mockIndexRequestBuilder.execute()).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(null);
 
-        replay(mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
+        /* index refresh */
+        expect(mockClient.admin()).andReturn(mockAdminClient);
+        expect(mockAdminClient.indices()).andReturn(mockIndicesAdminClient);
+        expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
+        expect(mockFuture.actionGet()).andReturn(null);
+
+        replay(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
         auditService.create(AuditRecords.createEntityRecord("id"));
-        verify(mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
+        verify(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
     }
 }

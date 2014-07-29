@@ -26,6 +26,8 @@ import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -55,19 +57,19 @@ public class EntityControllerIT extends AbstractLarchIT {
     @Test
     public void testCreateAndUpdateEntity() throws Exception {
         HttpResponse resp =
-            this.execute(
-                Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
-                    ContentType.APPLICATION_JSON)).returnResponse();
+                this.execute(
+                        Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                ContentType.APPLICATION_JSON)).returnResponse();
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
         Entity update = createFixtureEntity();
         update.setLabel("My updated Label");
         resp =
-            this.execute(
-                Request.Put(entityUrl + id)
-                 .bodyString(mapper.writeValueAsString(update), ContentType.APPLICATION_JSON))
-                 .returnResponse();
+                this.execute(
+                        Request.Put(entityUrl + id)
+                                .bodyString(mapper.writeValueAsString(update), ContentType.APPLICATION_JSON))
+                        .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
@@ -80,7 +82,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         assertNotNull(oldVersion.getUtcCreated());
         assertNotNull(oldVersion.getUtcLastModified());
         assertTrue(Duration.between(ZonedDateTime.parse(oldVersion.getUtcLastModified()),
-            ZonedDateTime.parse(fetched.getUtcLastModified())).getNano() > 0);
+                ZonedDateTime.parse(fetched.getUtcLastModified())).getNano() > 0);
         assertEquals(ZonedDateTime.parse(oldVersion.getUtcCreated()), ZonedDateTime.parse(fetched.getUtcCreated()));
         oldVersion.getBinaries().values().forEach(b -> {
             assertNotNull(b.getUtcCreated());
@@ -260,8 +262,8 @@ public class EntityControllerIT extends AbstractLarchIT {
                 this.execute(
                         Request.Put(entityUrl + id)
                                 .bodyString(mapper.writeValueAsString(update),
-                                            ContentType.APPLICATION_JSON))
-                    .returnResponse();
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve
@@ -275,6 +277,38 @@ public class EntityControllerIT extends AbstractLarchIT {
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("published", fetched.getState());
         assertEquals(1, fetched.getVersion());
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+        // create hierarchy
+        String id = null;
+        List<String> ids = new ArrayList<String>();
+        String parentId = null;
+        for (int i = 0; i < 5; i++) {
+            Entity child = createFixtureEntity();
+            child.setParentId(id);
+            HttpResponse resp =
+                    this.execute(
+                            Request.Post("http://localhost:8080/entity")
+                                    .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON))
+                            .returnResponse();
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+            if (id == null) {
+                parentId = EntityUtils.toString(resp.getEntity());
+            }
+            id = EntityUtils.toString(resp.getEntity());
+            ids.add(EntityUtils.toString(resp.getEntity()));
+        }
+
+        // delete parent
+        HttpResponse resp =
+                this.execute(
+                        Request.Delete("http://localhost:8080/entity/" + parentId))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // Check binary
     }
 
 }

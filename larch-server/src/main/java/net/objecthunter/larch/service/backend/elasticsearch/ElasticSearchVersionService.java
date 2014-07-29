@@ -35,6 +35,8 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
 
     public static final String TYPE_VERSIONS = "version";
 
+    public static final String ENTITY_ID_FIELD = "entityId";
+
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchVersionService.class);
 
     @Autowired
@@ -102,7 +104,7 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
                             .prepareSearch(INDEX_VERSIONS)
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                            FilterBuilders.termFilter("entityId", id))).setSize(1000)
+                                            FilterBuilders.termFilter(ENTITY_ID_FIELD, id))).setSize(1000)
                             .addSort("versionNumber", SortOrder.DESC).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -118,6 +120,20 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
         Entities entit = new Entities();
         entit.setEntities(entities);
         return entit;
+    }
+
+    @Override
+    public void deleteOldVersions(String id) throws IOException {
+        log.debug("deleting all old versions for entity " + id);
+        try {
+            client.prepareDeleteByQuery(INDEX_VERSIONS).setQuery(
+                    QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                            FilterBuilders
+                                    .termFilter(ENTITY_ID_FIELD, id))).execute().actionGet();
+            refreshIndex(INDEX_VERSIONS);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
 }

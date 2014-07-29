@@ -36,4 +36,12 @@ public interface BackendVersionService {
      */
     Entities getOldVersions(String id) throws IOException;
 
+    /**
+     * Delete all old versions of an entity from the version storage
+     * 
+     * @param id the id of the entity to delete the versions of
+     * @throws IOException e
+     */
+    void deleteOldVersions(String id) throws IOException;
+
 }

@@ -30,7 +30,10 @@
 
             <p class="property">Parent</p>
 
-            <p class="value" th:text="${entity.parentId} ? ${entity.parentId} : 'None'"></p>
+            <p class="value" th:if="${entity.parentId} ? ${entity.parentId} : 'None'">
+                <a th:text="${entity.parentId}" th:href="@{/entity/} + ${entity.parentId}"></a>
+            </p>
+            <p class="value" th:if="!${entity.parentId}" th:text="'None'" />
 
             <p class="property">Tags</p>
 
@@ -159,6 +162,14 @@
                     th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
+            <div th:if="${entity.state != 'published'}" class="panel">
+                <p class="panel_title">Actions</p>
+                <form enctype="multipart/form-data" method="post"
+                      th:action="@{/entity/} + ${entity.id} + '/publish'">
+                    <input class="button" type="submit" value="Publish"/>
+                </form>
+                <input class="button" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
+            </div>
             <div class="panel">
                 <script>
                 $(document).ready(function() {
@@ -192,9 +203,6 @@
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <!-- form th:action="@{/entity/} + ${entity.id} + '/binary' + '?_csrf=' + ${_csrf.token}"
-                      method="post"
-                      enctype="multipart/form-data" -->
                 <form th:action="@{/entity/} + ${entity.id} + '/binary'"
                       method="post"
                       enctype="multipart/form-data">
@@ -269,16 +277,6 @@
                     <input id="relObject" type="text" name="object"
                            title="Set the objet of the relation"/>
                     <input class="button" type="submit" value="Create relation"/>
-                </form>
-            </div>
-            <div class="panel">
-                <p class="panel_title">Publish entity</p>
-
-                <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{/entity/} + ${entity.id} + '/publish' + '?_csrf=' + ${_csrf.token}" -->
-                <form enctype="multipart/form-data" method="post"
-                      th:action="@{/entity/} + ${entity.id} + '/publish'">
-                    <input class="button" type="submit" value="publish"/>
                 </form>
             </div>
         </div>

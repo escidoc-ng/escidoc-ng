@@ -48,6 +48,10 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
 
     public static final String INDEX_AUDIT = "audit";
 
+    public static final String INDEX_AUDIT_TYPE = "audit";
+    
+    public static final String ENTITY_ID_FIELD = "entityId";
+
     private static final Logger log = Logger.getLogger(ElasticSearchAuditService.class);
 
     private int maxRecords = 50;
@@ -73,7 +77,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders
-                                                    .termFilter("entityId", entityId)))
+                                                    .termFilter(ENTITY_ID_FIELD, entityId)))
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
                             .addSort("timestamp", SortOrder.ASC).execute().actionGet();
         } catch (ElasticsearchException ex) {
@@ -98,12 +102,27 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
         rec.setTimestamp(ZonedDateTime.now(ZoneOffset.UTC).toString());
         try {
             this.client
-                    .prepareIndex(INDEX_AUDIT, "audit", id).setSource(mapper.writeValueAsBytes(rec)).execute()
+                    .prepareIndex(INDEX_AUDIT, INDEX_AUDIT_TYPE, id).setSource(mapper.writeValueAsBytes(rec)).execute()
                     .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        refreshIndex(INDEX_AUDIT);
         return id;
+    }
+
+    @Override
+    public void deleteAll(String entityId) throws IOException {
+        log.debug("deleting all audit-records for entity " + entityId);
+        try {
+            client.prepareDeleteByQuery(INDEX_AUDIT).setQuery(
+                    QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                            FilterBuilders
+                                    .termFilter(ENTITY_ID_FIELD, entityId))).execute().actionGet();
+            refreshIndex(INDEX_AUDIT);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
     private boolean exists(String id) throws IOException {

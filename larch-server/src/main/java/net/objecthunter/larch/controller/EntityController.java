@@ -231,6 +231,20 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishUpdateEntity(id);
     }
 
+    /**
+     * Controller method for deleting an {@link net.objecthunter.larch.model.Entity} using a HTTP DELETE request.
+     * 
+     * @param id The is of the Entity to delete
+     * @throws IOException
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    public void delete(@PathVariable("id") final String id) throws IOException {
+        this.entityService.delete(id);
+        this.messagingService.publishDeleteEntity(id);
+    }
+
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

@@ -45,4 +45,12 @@ public interface BackendAuditService {
      * @throws IOException
      */
     String create(AuditRecord rec) throws IOException;
+
+    /**
+     * Delete all AuditRecords of the Entity with the given entityId
+     * 
+     * @param entityId The entityId
+     * @throws IOException
+     */
+    void deleteAll(String entityId) throws IOException;
 }
