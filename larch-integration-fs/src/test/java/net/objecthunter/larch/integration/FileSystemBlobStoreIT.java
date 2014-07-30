@@ -19,10 +19,10 @@ package net.objecthunter.larch.integration;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.state.FilesystemBlobstoreState;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
 
@@ -57,7 +57,7 @@ public class FileSystemBlobStoreIT extends AbstractLarchIT {
         }
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     public void testCreateAndDelete() throws Exception {
         String data = "mysimpledatawithÄ";
         String path = blobstoreService.create(new ByteArrayInputStream(data.getBytes(cs)));

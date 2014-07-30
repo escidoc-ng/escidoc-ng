@@ -25,6 +25,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -49,7 +50,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
     public static final String INDEX_AUDIT = "audit";
 
     public static final String INDEX_AUDIT_TYPE = "audit";
-    
+
     public static final String ENTITY_ID_FIELD = "entityId";
 
     private static final Logger log = Logger.getLogger(ElasticSearchAuditService.class);
@@ -67,7 +68,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
     }
 
     @Override
-    public List<AuditRecord> retrieve(String entityId, int offset, int numRecords) throws IOException {
+    public AuditRecords retrieve(String entityId, int offset, int numRecords) throws IOException {
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         try {
@@ -89,7 +90,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
             records.add(mapper.readValue(hit.getSourceAsString(), AuditRecord.class));
         }
 
-        return records;
+        return new AuditRecords(records);
     }
 
     @Override
@@ -102,7 +103,8 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
         rec.setTimestamp(ZonedDateTime.now(ZoneOffset.UTC).toString());
         try {
             this.client
-                    .prepareIndex(INDEX_AUDIT, INDEX_AUDIT_TYPE, id).setSource(mapper.writeValueAsBytes(rec)).execute()
+                    .prepareIndex(INDEX_AUDIT, INDEX_AUDIT_TYPE, id).setSource(mapper.writeValueAsBytes(rec))
+                    .execute()
                     .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());

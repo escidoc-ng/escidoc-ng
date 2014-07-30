@@ -38,6 +38,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import net.objecthunter.larch.integration.helpers.TestMessageListener;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 
@@ -308,7 +309,25 @@ public class EntityControllerIT extends AbstractLarchIT {
                         .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
-        // Check binary
+        // Check Audit-Records
+        for (String checkId : ids) {
+            resp =
+                    this.execute(
+                            Request.Get("http://localhost:8080/entity/" + checkId + "/audit"))
+                            .returnResponse();
+            AuditRecords fetched = mapper.readValue(resp.getEntity().getContent(), AuditRecords.class);
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            assertNotNull(fetched);
+            assertEquals(0, fetched.getAuditRecords().size());
+        }
+        // Check Entities
+        for (String checkId : ids) {
+            resp =
+                    this.execute(
+                            Request.Get("http://localhost:8080/entity/" + checkId))
+                            .returnResponse();
+            assertEquals(404, resp.getStatusLine().getStatusCode());
+        }
     }
 
 }

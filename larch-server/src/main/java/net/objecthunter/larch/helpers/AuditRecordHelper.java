@@ -27,7 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * A Factory class for creating different kinds of {@link net.objecthunter.larch.model.AuditRecord} objects
  */
-public abstract class AuditRecords {
+public abstract class AuditRecordHelper {
 
     /**
      * Create an almost empty {@link net.objecthunter.larch.model.AuditRecord}

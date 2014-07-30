@@ -27,7 +27,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -493,7 +492,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public List<AuditRecord> retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
+    public AuditRecords retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
             throws IOException {
         return backendAuditService.retrieve(entityId, offset, count);
     }
@@ -606,12 +605,6 @@ public class DefaultEntityService implements EntityService {
                 deleteRecursively(workspaceId, childId);
             }
         }
-        // delete audit-records
-        this.backendAuditService.deleteAll(id);
-
-        // delete Versions
-        this.backendVersionService.deleteOldVersions(id);
-
         // delete binaries
         if (e.getBinaries() != null) {
             for (Binary b : e.getBinaries().values()) {
@@ -620,6 +613,12 @@ public class DefaultEntityService implements EntityService {
                 }
             }
         }
+
+        // delete audit-records
+        this.backendAuditService.deleteAll(id);
+
+        // delete Versions
+        this.backendVersionService.deleteOldVersions(id);
 
         // delete entity
         this.backendEntityService.delete(id);

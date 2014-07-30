@@ -28,10 +28,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
-import java.util.List;
 
-import net.objecthunter.larch.helpers.AuditRecords;
+import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
 
@@ -108,18 +108,18 @@ public class ElasticSearchAuditServiceTest {
         expect(mockFuture.actionGet()).andReturn(mockResponse);
         expect(mockResponse.getHits()).andReturn(mockHits);
         expect(mockHits.iterator()).andReturn(Arrays.asList(hitArray).iterator());
-        String json = new ObjectMapper().writeValueAsString(AuditRecords.createEntityRecord("id"));
+        String json = new ObjectMapper().writeValueAsString(AuditRecordHelper.createEntityRecord("id"));
         expect(hitMock.getSourceAsString()).andReturn(json);
 
         replay(mockClient, mockSearchRequestBuilder, mockFuture, mockHits, mockResponse, hitMock);
-        List<AuditRecord> records = this.auditService.retrieve("id", 0, 0);
+        AuditRecords records = this.auditService.retrieve("id", 0, 0);
         verify(mockClient, mockSearchRequestBuilder, mockFuture, mockHits, mockResponse, hitMock);
 
-        assertEquals(1, records.size());
-        assertEquals("id", records.get(0).getEntityId());
-        assertEquals(AuditRecord.EVENT_CREATE_ENTITY, records.get(0).getAction());
-        assertEquals("test", records.get(0).getAgentName());
-        assertNotNull(records.get(0).getTimestamp());
+        assertEquals(1, records.getAuditRecords().size());
+        assertEquals("id", records.getAuditRecords().get(0).getEntityId());
+        assertEquals(AuditRecord.EVENT_CREATE_ENTITY, records.getAuditRecords().get(0).getAction());
+        assertEquals("test", records.getAuditRecords().get(0).getAgentName());
+        assertNotNull(records.getAuditRecords().get(0).getTimestamp());
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +138,7 @@ public class ElasticSearchAuditServiceTest {
 
         expect(mockClient.prepareIndex(eq(ElasticSearchAuditService.INDEX_AUDIT), eq("audit"), anyString()))
                 .andReturn(
-                    mockIndexRequestBuilder);
+                        mockIndexRequestBuilder);
         expect(mockIndexRequestBuilder.setSource((byte[]) anyObject())).andReturn(mockIndexRequestBuilder);
         expect(mockIndexRequestBuilder.execute()).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(null);
@@ -149,8 +149,11 @@ public class ElasticSearchAuditServiceTest {
         expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(null);
 
-        replay(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
-        auditService.create(AuditRecords.createEntityRecord("id"));
-        verify(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse, mockIndexRequestBuilder);
+        replay(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse,
+                mockIndexRequestBuilder);
+        auditService.create(AuditRecordHelper.createEntityRecord("id"));
+        verify(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture, mockResponse,
+                mockIndexRequestBuilder);
     }
+
 }

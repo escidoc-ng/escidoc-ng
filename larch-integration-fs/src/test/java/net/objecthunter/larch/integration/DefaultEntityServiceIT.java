@@ -26,9 +26,16 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.AuditRecords;
+import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
 import net.objecthunter.larch.service.impl.DefaultEntityService;
 
 import org.junit.Test;
@@ -38,6 +45,9 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
 
     @Autowired
     private DefaultEntityService entityService;
+
+    @Autowired
+    private ElasticSearchVersionService versionService;
 
     @Test
     public void testCreateAndGetEntityAndContent() throws Exception {
@@ -103,4 +113,69 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         assertEquals(1, orig.getVersion());
         assertEquals(1, fetched.getVersion());
     }
+
+    @Test
+    public void testDeleteEntity() throws Exception {
+        // create hierarchy
+        String id = null;
+        List<String> ids = new ArrayList<String>();
+        List<String> binaryPaths = new ArrayList<String>();
+        String parentId = null;
+        for (int i = 0; i < 5; i++) {
+            Entity child = createFixtureEntity();
+            child.setParentId(id);
+            String newId = entityService.create(child);
+            if (id == null) {
+                parentId = newId;
+            }
+            id = newId;
+            ids.add(newId);
+            child = entityService.retrieve(newId);
+            for (Binary binary : child.getBinaries().values()) {
+                binaryPaths.add(binary.getPath());
+            }
+        }
+
+        // check Binaries
+        for (String binaryPath : binaryPaths) {
+            InputStream in = entityService.retrieveBinary(binaryPath);
+            assertNotNull(in);
+        }
+
+        // delete parent
+        entityService.delete(parentId);
+
+        // Check Audit-Records
+        for (String checkId : ids) {
+            AuditRecords auditRecords = entityService.retrieveAuditRecords(checkId, 0, 100);
+            assertNotNull(auditRecords);
+            assertEquals(0, auditRecords.getAuditRecords().size());
+        }
+        // Check Versions
+        for (String checkId : ids) {
+            Entities entities = entityService.getOldVersions(checkId);
+            assertNotNull(entities);
+            assertEquals(0, entities.getEntities().size());
+        }
+        // Check Binaries
+        for (String binaryPath : binaryPaths) {
+            try {
+                entityService.retrieveBinary(binaryPath);
+            } catch (NotFoundException e) {
+                continue;
+            }
+            throw new Exception("Binary with path " + binaryPath + " was found after delete");
+        }
+        // Check Entities
+        for (String checkId : ids) {
+            try {
+                entityService.retrieve(checkId);
+            } catch (NotFoundException e) {
+                continue;
+            }
+            throw new Exception("Entity with id " + checkId + " was found after delete");
+        }
+
+    }
+
 }

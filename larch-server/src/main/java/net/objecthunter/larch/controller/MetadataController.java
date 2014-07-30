@@ -24,8 +24,17 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+<<<<<<< HEAD
 import net.objecthunter.larch.helpers.AuditRecords;
 import net.objecthunter.larch.model.*;
+=======
+import net.objecthunter.larch.helpers.AuditRecordHelper;
+import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.MetadataType;
+import net.objecthunter.larch.model.MetadataValidationResult;
+>>>>>>> Add class AuditRecords
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -94,7 +103,7 @@ public class MetadataController extends AbstractLarchController {
         md.setOriginalFilename(file.getOriginalFilename());
         e.getMetadata().put(mdName, md);
         entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
         return "redirect:/entity/" + entityId;
     }
@@ -124,7 +133,7 @@ public class MetadataController extends AbstractLarchController {
         }
         e.getMetadata().put(md.getName(), md);
         entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
 
@@ -161,7 +170,7 @@ public class MetadataController extends AbstractLarchController {
         }
         bin.getMetadata().put(md.getName(), md);
         this.entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
 
@@ -209,7 +218,7 @@ public class MetadataController extends AbstractLarchController {
         }
         bin.getMetadata().put(md.getName(), md);
         this.entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecords.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
         return "redirect:/entity/" + entityId + "/binary/" + binaryName;
     }
