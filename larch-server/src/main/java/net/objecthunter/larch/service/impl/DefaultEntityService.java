@@ -122,7 +122,7 @@ public class DefaultEntityService implements EntityService {
                 createAndMutateBinary(e.getId(), b);
             }
         }
-        e.setState(Entity.STATE_INGESTED);
+        e.setState(Entity.STATE_PENDING);
         e.setVersion(1);
         e.setUtcCreated(now);
         e.setUtcLastModified(now);

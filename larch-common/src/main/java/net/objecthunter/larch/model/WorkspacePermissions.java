@@ -94,6 +94,8 @@ public class WorkspacePermissions {
         WRITE_SUBMITTED_BINARY,
         WRITE_RELEASED_BINARY,
         WRITE_WITHDRAWN_BINARY,
+        READ_WORKSPACE,
+        WRITE_WORKSPACE
     }
 
     public static WorkspacePermissions getDefaultPermissions(String userName) {
@@ -103,12 +105,14 @@ public class WorkspacePermissions {
                 Permission.READ_SUBMITTED_METADATA,
                 Permission.READ_RELEASED_METADATA,
                 Permission.READ_WITHDRAWN_METADATA,
-                Permission.WRITE_SUBMITTED_METADATA,
                 Permission.READ_PENDING_BINARY,
                 Permission.READ_SUBMITTED_BINARY,
                 Permission.READ_RELEASED_BINARY,
                 Permission.READ_WITHDRAWN_BINARY,
-                Permission.WRITE_SUBMITTED_BINARY);
+                Permission.READ_WORKSPACE,
+                Permission.WRITE_PENDING_METADATA,
+                Permission.WRITE_PENDING_BINARY,
+                Permission.WRITE_WORKSPACE);
         return p;
     }
 }

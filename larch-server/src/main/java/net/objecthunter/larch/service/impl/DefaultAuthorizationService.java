@@ -16,27 +16,39 @@
 
 package net.objecthunter.larch.service.impl;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Map;
 
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
-import net.objecthunter.larch.service.backend.BackendWorkspaceService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class DefaultAuthorizationService implements AuthorizationService {
 
     @Autowired
-    private BackendWorkspaceService workspaceService;
+    private Client client;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Override
-    public boolean hasPermission(String username, String workspaceId,
-            WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
-        final Workspace ws = workspaceService.retrieveWorkspace(workspaceId);
+    public boolean hasPermission(String username, Workspace ws,
+                                 WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
         final WorkspacePermissions wsp = ws.getPermissions();
         if (wsp == null) {
             return false;
@@ -53,46 +65,59 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public void addPermissions(String userName, String workspaceId,
-            WorkspacePermissions.Permission... permissionsToSet) throws IOException {
-        final Workspace ws = workspaceService.retrieveWorkspace(workspaceId);
-        WorkspacePermissions wsp = ws.getPermissions();
-        if (wsp == null) {
-            wsp = new WorkspacePermissions();
-            ws.setPermissions(wsp);
-        }
-        Map<String, EnumSet<WorkspacePermissions.Permission>> permissionMap = wsp.getPermissions();
-        if (permissionMap == null) {
-            permissionMap = new HashMap<>(1);
-            wsp.setPermissions(permissionMap);
-        }
-        EnumSet<WorkspacePermissions.Permission> permissions = permissionMap.get(userName);
-        if (permissions == null) {
-            permissions = EnumSet.noneOf(WorkspacePermissions.Permission.class);
-        }
-        permissions.addAll(Arrays.asList(permissionsToSet));
-        workspaceService.updateWorkspace(ws);
+    public boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
+        return hasPermission(this.getCurrentUsername(), ws, permissionsToCheck);
     }
 
     @Override
-    public void removePermissions(String userName, String workspaceId,
-            WorkspacePermissions.Permission... permissionsToRemove) throws IOException {
-        final Workspace ws = workspaceService.retrieveWorkspace(workspaceId);
-        final WorkspacePermissions wsp = ws.getPermissions();
-        if (wsp == null) {
-            return;
-        }
-        final Map<String, EnumSet<WorkspacePermissions.Permission>> permissionMap = wsp.getPermissions();
-        if (permissionMap == null) {
-            return;
-        }
-        final EnumSet<WorkspacePermissions.Permission> permissions = permissionMap.get(userName);
-        if (permissions == null) {
-            return;
-        }
-        for (WorkspacePermissions.Permission p : permissionsToRemove) {
-            permissions.removeAll(Arrays.asList(permissionsToRemove));
+    public void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
+        if (!hasPermission(this.getCurrentUsername(), ws, permissionsToCheck)) {
+            throw new IOException("Access denied");
         }
     }
 
+    @Override
+    public void checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
+        final GetResponse get = this.client.prepareGet(ElasticSearchWorkspaceService.INDEX_WORKSPACES, ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE, workspaceId)
+                .execute()
+                .actionGet();
+
+        /* check if the workspace does exist */
+        if (!get.isExists()) {
+            throw new FileNotFoundException("The workspace with id '" + workspaceId + "' does not exist");
+        }
+        final Workspace ws = this.mapper.readValue(get.getSourceAsString(), Workspace.class);
+        this.checkCurrentUserPermission(ws, permissionsToCheck);
+    }
+
+    @Override
+    public WorkspacePermissions.Permission metadataReadPermissions(Entity e) {
+        if (e.getState() == null || e.getState().isEmpty() || e.getState().equals(Entity.STATE_PENDING)) {
+            return WorkspacePermissions.Permission.READ_PENDING_METADATA;
+        }else if(e.getState().equals(Entity.STATE_PUBLISHED)) {
+            return WorkspacePermissions.Permission.READ_SUBMITTED_METADATA;
+        } else {
+            return WorkspacePermissions.Permission.READ_RELEASED_METADATA;
+        }
+    }
+
+    @Override
+    public WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) {
+        return new WorkspacePermissions.Permission[] {this.metadataReadPermissions(e), this.metadataWritePermissions(e)};
+    }
+
+    @Override
+    public WorkspacePermissions.Permission metadataWritePermissions(Entity e) {
+        if (e.getState() == null || e.getState().isEmpty() || e.getState().equals(Entity.STATE_PENDING)) {
+            return WorkspacePermissions.Permission.WRITE_PENDING_METADATA;
+        }else if(e.getState().equals(Entity.STATE_PUBLISHED)) {
+            return WorkspacePermissions.Permission.WRITE_SUBMITTED_METADATA;
+        } else {
+            return WorkspacePermissions.Permission.WRITE_RELEASED_METADATA;
+        }
+    }
+
+    public String getCurrentUsername() {
+        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getName();
+    }
 }

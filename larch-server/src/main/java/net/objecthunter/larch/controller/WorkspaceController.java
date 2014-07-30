@@ -21,7 +21,6 @@ import java.util.List;
 
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.security.helpers.WorkspaceAuthorization;
 import net.objecthunter.larch.service.EntityService;
 
 import org.springframework.beans.factory.annotation.Autowired;

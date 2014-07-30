@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
+import net.objecthunter.larch.service.AuthorizationService;
 import org.apache.commons.io.IOUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;

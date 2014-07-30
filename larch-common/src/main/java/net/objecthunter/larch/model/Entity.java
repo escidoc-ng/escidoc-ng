@@ -30,7 +30,7 @@ public class Entity {
 
     public static final String STATE_ARCHIVED = "archived";
 
-    public static final String STATE_INGESTED = "ingested";
+    public static final String STATE_PENDING = "ingested";
 
     private int version;
 
@@ -326,7 +326,7 @@ public class Entity {
      */
     public void setVersionAndResetState(int version) {
         this.version = version;
-        this.state = STATE_INGESTED;
+        this.state = STATE_PENDING;
     }
 
     /**

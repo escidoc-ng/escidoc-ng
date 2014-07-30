@@ -16,11 +16,10 @@
 
 package net.objecthunter.larch.service.backend;
 
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.security.helpers.WorkspaceAuthorization;
-
 import java.io.IOException;
 import java.util.List;
+
+import net.objecthunter.larch.model.Workspace;
 
 public interface BackendWorkspaceService {
 

@@ -28,7 +28,9 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.state.IndexState;
+import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +71,9 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    protected AuthorizationService authorizationService;
+
     @PostConstruct
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
@@ -85,6 +90,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public String create(Entity e) throws IOException {
         this.verifyWorkspaceId(e.getWorkspaceId());
+        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(),
+                WorkspacePermissions.Permission.WRITE_PENDING_METADATA);
         log.debug("creating new entity");
         if (e.getId() != null) {
             final GetResponse resp =
@@ -108,6 +115,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public void update(Entity e) throws IOException {
         this.verifyWorkspaceId(e.getWorkspaceId());
+        final GetResponse resp;
+        try {
+            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        final Entity orig = this.mapper.readValue(resp.getSourceAsString(), Entity.class);
+        this.authorizationService.checkCurrentUserPermission(orig.getWorkspaceId(), authorizationService
+                .metadataReadWritePermissions(orig));
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         try {
@@ -136,6 +152,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
         final Entity parent = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
+        this.authorizationService.checkCurrentUserPermission(parent.getWorkspaceId(), authorizationService
+                .metadataReadPermissions(parent));
         parent.setChildren(fetchChildren(entityId));
         return parent;
     }
@@ -147,14 +165,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         int max = 64;
         try {
             do {
-                search =
-                        client
-                                .prepareSearch(INDEX_ENTITIES)
+                search = client.prepareSearch(INDEX_ENTITIES)
                                 .setTypes(INDEX_ENTITY_TYPE)
-                                .setQuery(
-                                        QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                                FilterBuilders
-                                                        .termFilter("parentId", id))).setFrom(offset).setSize(max)
+                                .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                                        FilterBuilders.termFilter("parentId", id)))
+                                .setFrom(offset)
+                                .setSize(max)
                                 .execute()
                                 .actionGet();
                 if (search.getHits().getHits().length > 0) {
@@ -173,6 +189,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public void delete(String id) throws IOException {
         log.debug("deleting entity " + id);
+        final GetResponse resp;
+        try {
+            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        final Entity e = this.mapper.readValue(resp.getSourceAsBytes(), Entity.class);
+        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(), this.authorizationService.metadataWritePermissions(e));
         try {
             client.prepareDelete(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
             this.client.admin().indices().refresh(new RefreshRequest(("groven"))).actionGet();

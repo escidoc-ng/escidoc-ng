@@ -21,7 +21,6 @@ import java.io.File;
 import javax.jms.Queue;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
-import net.objecthunter.larch.security.helpers.WorkspaceAuthorizationAspect;
 import net.objecthunter.larch.service.*;
 import net.objecthunter.larch.service.backend.*;
 import net.objecthunter.larch.service.backend.elasticsearch.*;
@@ -65,7 +64,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.impl.DefaultEntityService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.impl.DefaultEntityService} implementation
      */
     @Bean
@@ -75,7 +74,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.impl.DefaultPublishService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.impl.DefaultPublishService} implementation
      */
     @Bean
@@ -85,7 +84,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.impl.DefaultSchemaService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.impl.DefaultSchemaService} implementation
      */
     @Bean
@@ -95,7 +94,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get the {@link net.objecthunter.larch.service.impl.DefaultRepositoryService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.impl.DefaultRepositoryService} implementation
      */
     @Bean
@@ -110,7 +109,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get the {@link net.objecthunter.larch.service.ExportService} Spring bean
-     * 
+     *
      * @return a {@link net.objecthunter.larch.service.ExportService} implementation to be used by the repository
      */
     @Bean
@@ -120,7 +119,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a ElasticSearch {@link org.elasticsearch.client.Client} Spring bean
-     * 
+     *
      * @return the {@link org.elasticsearch.client.Client} implementation
      */
     @Bean
@@ -130,7 +129,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendAuditService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.BackendAuditService} implementation
      */
     @Bean
@@ -140,7 +139,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendSchemaService} Spring bean
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.BackendSchemaService} implementation
      */
     @Bean
@@ -150,9 +149,9 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendEntityService} implementation Spring bean
-     * 
+     *
      * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService}
-     *         implementation
+     * implementation
      */
     @Bean
     public BackendEntityService elasticSearchIndexService() {
@@ -161,7 +160,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendPublishService} implementation Spring bean
-     * 
+     *
      * @return a {@link net.objecthunter.larch.service.backend.BackendPublishService} implementation
      */
     @Bean
@@ -171,7 +170,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendVersionService} Spring bean
-     * 
+     *
      * @return a BackendVersionService implementation
      */
     @Bean
@@ -181,7 +180,7 @@ public class LarchServerConfiguration {
 
     /**
      * Get a {@link net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider} Spring bean
-     * 
+     *
      * @return a AuthenticationProvider implementation
      */
     @Bean
@@ -192,7 +191,7 @@ public class LarchServerConfiguration {
     /**
      * Get {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode} Spring bean responsible for
      * starting and stopping the ElasticSearch services
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode} object
      */
     @Bean
@@ -203,7 +202,7 @@ public class LarchServerConfiguration {
     /**
      * Get {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService} Spring bean for
      * interaction with the workspace index
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService} singleton
      */
     @Bean
@@ -214,7 +213,7 @@ public class LarchServerConfiguration {
     /**
      * Get a {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation for usage as
      * a {@link net.objecthunter.larch.service.backend.BackendBlobstoreService} in the repository
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation
      */
     @Bean
@@ -226,7 +225,7 @@ public class LarchServerConfiguration {
     /**
      * Get a {@link net.objecthunter.larch.service.backend.weedfs.WeedFsMaster} object responsible for starting and
      * stopping the Weed FS master node
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFsMaster} object
      */
     @Bean
@@ -239,7 +238,7 @@ public class LarchServerConfiguration {
     /**
      * Get a {@link net.objecthunter.larch.service.backend.weedfs.WeedFsVolume} object responsible for starting and
      * stopping a Weed FS volume node
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFsVolume} object
      */
     @Bean
@@ -252,7 +251,7 @@ public class LarchServerConfiguration {
     /**
      * Get a {@link net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService} implementation as the
      * {@link net.objecthunter.larch.service.backend.BackendBlobstoreService} fro the repository
-     * 
+     *
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService} object
      */
     @Bean
@@ -264,7 +263,7 @@ public class LarchServerConfiguration {
     /**
      * Get a Jackson {@link com.fasterxml.jackson.databind.ObjectMapper} Spring bean for JSON
      * serialization/deserialization
-     * 
+     *
      * @return the {@link com.fasterxml.jackson.databind.ObjectMapper} implementation used by various services
      */
     @Bean
@@ -278,9 +277,9 @@ public class LarchServerConfiguration {
     /**
      * Get the {@link com.fasterxml.jackson.databind.SerializationConfig} Spring bean for the Jackson
      * {@link com.fasterxml.jackson.databind.ObjectMapper}
-     * 
+     *
      * @return the {@link com.fasterxml.jackson.databind.SerializationConfig} that should be used by the Jackson
-     *         mapper
+     * mapper
      */
     @Bean
     public SerializationConfig serializationConfig() {
@@ -290,7 +289,7 @@ public class LarchServerConfiguration {
     /**
      * A commons-multipart {@link org.springframework.web.multipart.commons.CommonsMultipartResolver} for resolving
      * files in a HTTP multipart request
-     * 
+     *
      * @return a {@link org.springframework.web.multipart.commons.CommonsMultipartResolver} object used by Spring MVC
      */
     @Bean
@@ -312,13 +311,19 @@ public class LarchServerConfiguration {
     /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendCredentialsService} implementation for use by the
      * repository
-     * 
+     *
      * @return a {@link net.objecthunter.larch.service.backend.BackendCredentialsService} implementation
      */
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE - 9)
     public ElasticSearchCredentialsService larchElasticSearchAuthenticationManager() {
         return new ElasticSearchCredentialsService();
+    }
+
+    @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE - 10)
+    public AuthorizationService authorizationService() {
+        return new DefaultAuthorizationService();
     }
 
     /**
@@ -371,10 +376,5 @@ public class LarchServerConfiguration {
     @Bean
     public MessagingService messagingService() {
         return new DefaultMessagingService();
-    }
-
-    @Bean
-    public WorkspaceAuthorizationAspect workspaceAuthorizationAspect() {
-        return new WorkspaceAuthorizationAspect();
     }
 }

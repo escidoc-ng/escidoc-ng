@@ -25,7 +25,7 @@ import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.security.helpers.WorkspaceAuthorization;
+import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,7 +34,6 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -42,23 +41,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ElasticSearchWorkspaceService extends AbstractElasticSearchService implements BackendWorkspaceService {
 
-    private static final String INDEX_WORKSPACES = "workspaces";
+    public static final String INDEX_WORKSPACES = "workspaces";
 
-    private static final String INDEX_WORKSPACE_TYPE = "workspace";
+    public static final String INDEX_WORKSPACE_TYPE = "workspace";
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchWorkspaceService.class);
 
     private int maxRecords = 50;
 
     @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
-    private Client client;
+    protected AuthorizationService authorizationService;
 
     @PostConstruct
     public void init() throws IOException {
@@ -106,7 +101,9 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + id + "' does not exist");
         }
-        return this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        final Workspace ws =this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        authorizationService.checkCurrentUserPermission(ws, WorkspacePermissions.Permission.READ_WORKSPACE);
+        return ws;
     }
 
     @Override
@@ -118,6 +115,10 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + workspace.getId() + "' does not exist");
         }
+
+        final Workspace ws =this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        authorizationService.checkCurrentUserPermission(ws, WorkspacePermissions.Permission.WRITE_WORKSPACE);
+
         final IndexResponse index =
                 this.client.prepareIndex(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, workspace.getId())
                         .setSource(mapper.writeValueAsBytes(workspace))
@@ -137,6 +138,8 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         }
         /* only update the fields given in the patch request */
         final Workspace orig = mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        authorizationService.checkCurrentUserPermission(orig, WorkspacePermissions.Permission.WRITE_WORKSPACE);
+
         if (!workspace.getName().isEmpty()) {
             orig.setName(workspace.getName());
         }
