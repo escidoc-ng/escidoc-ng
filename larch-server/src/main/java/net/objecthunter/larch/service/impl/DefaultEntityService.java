@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -37,6 +38,7 @@ import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.SizeCalculatingDigestInputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
@@ -280,7 +282,14 @@ public class DefaultEntityService implements EntityService {
     public void createBinary(String workspaceId, String entityId, String name, String contentType,
             InputStream inputStream)
             throws IOException {
+        if (StringUtils.isBlank(name)) {
+            throw new InvalidParameterException("name of binary may not be null or empty");
+        }
         final Entity e = backendEntityService.retrieve(workspaceId, entityId);
+        if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
+            throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
+                    e.getId());
+        }
         this.backendVersionService.addOldVersion(e);
         final MessageDigest digest;
         try {
@@ -387,6 +396,7 @@ public class DefaultEntityService implements EntityService {
         if (e.getBinaries().get(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
+        this.backendBlobstoreService.delete(e.getBinaries().get(name).getPath());
         e.getBinaries().remove(name);
         this.update(workspaceId, e);
     }

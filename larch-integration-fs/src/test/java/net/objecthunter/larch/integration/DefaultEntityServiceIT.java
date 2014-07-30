@@ -178,4 +178,50 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
 
     }
 
+    @Test
+    public void testDeleteBinary() throws Exception {
+        List<String> binaryPaths = new ArrayList<String>();
+        // create entity
+        Entity entity = createFixtureEntity();
+        String newId = entityService.create(entity);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getBinaries());
+        assertEquals(2, entity.getBinaries().size());
+        for (Binary binary : entity.getBinaries().values()) {
+            binaryPaths.add(binary.getPath());
+        }
+        String name = entity.getBinaries().keySet().iterator().next();
+
+        // delete binary
+        assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
+        entityService.deleteBinary(newId, name);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getBinaries());
+        assertEquals(1, entity.getBinaries().size());
+        name = entity.getBinaries().keySet().iterator().next();
+
+        // delete binary
+        assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
+        entityService.deleteBinary(newId, name);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getBinaries());
+        assertEquals(0, entity.getBinaries().size());
+
+        // Check Binaries
+        for (String binaryPath : binaryPaths) {
+            try {
+                entityService.retrieveBinary(binaryPath);
+            } catch (NotFoundException e) {
+                continue;
+            }
+            throw new Exception("Binary with path " + binaryPath + " was found after delete");
+        }
+    }
+
 }

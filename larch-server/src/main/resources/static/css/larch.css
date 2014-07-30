@@ -90,6 +90,12 @@ header{
     float:right;
     color:white;
 }
+.heading{
+    margin-top:5px;
+	margin-left:40px;
+    font-size: 20pt;
+    font-weight:bold;
+}
 .user {
     background-color: #a289d2;
     height: 76px;
@@ -170,7 +176,7 @@ li a{
     height: 20px;
 }
 .panel {
-    margin-top: 30px;
+    margin-top: 10px;
     margin-left: 40px;
     float:left;
     background-color:white;
@@ -214,6 +220,26 @@ select,
     text-decoration:none;
 }
 .button:hover {
+    text-shadow: 1px 1px #000000;
+}
+.button_small {
+    background-color:#ababab;
+    -moz-border-radius:0px;
+    -webkit-border-radius:0px;
+    border-radius:4px;
+    border-width:0px;
+    margin-right:4px;
+    display:block;
+    float:left;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:arial;
+    font-size:12px;
+    font-weight:bold;
+    padding:3px 3px;
+    text-decoration:none;
+}
+.button_small:hover {
     text-shadow: 1px 1px #000000;
 }
 .right {

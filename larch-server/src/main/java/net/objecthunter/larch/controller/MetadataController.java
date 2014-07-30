@@ -24,17 +24,12 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-<<<<<<< HEAD
-import net.objecthunter.larch.helpers.AuditRecords;
-import net.objecthunter.larch.model.*;
-=======
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.MetadataValidationResult;
->>>>>>> Add class AuditRecords
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -45,7 +40,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -170,7 +171,7 @@ public class MetadataController extends AbstractLarchController {
         }
         bin.getMetadata().put(md.getName(), md);
         this.entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
 
@@ -218,7 +219,7 @@ public class MetadataController extends AbstractLarchController {
         }
         bin.getMetadata().put(md.getName(), md);
         this.entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
         return "redirect:/entity/" + entityId + "/binary/" + binaryName;
     }
@@ -484,6 +485,7 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         this.entityService.deleteMetadata(workspaceId, entityId, mdName);
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteMetadataRecord(entityId));
         this.messagingService.publishDeleteMetadata(entityId, mdName);
     }
 
@@ -495,6 +497,7 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
         this.entityService.deleteBinaryMetadata(workspaceId, entityId, binaryName, mdName);
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteBinaryMetadataRecord(entityId));
         this.messagingService.publishDeleteBinaryMetadata(entityId, binaryName, mdName);
     }
 }

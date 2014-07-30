@@ -13,8 +13,16 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
+        <div class="heading">Entity</div>
         <div class="panel">
-            <p class="panel_title" th:text="${entity.id}"></p>
+            <p class="panel_title" th:text="${entity.id}" />
+            <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
+                <form th:if="${entity.state != 'published'}" enctype="multipart/form-data" method="post"
+                      th:action="@{/entity/} + ${entity.id} + '/publish'">
+                    <input class="button_small" type="submit" value="Publish"/>
+                </form>
+                <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
+            <p th:if="${entity.state != 'published'}" class="panel_title" />
 
             <p class="property">Label</p>
 
@@ -108,6 +116,10 @@
         <div class="panel clickable" th:each="bin : ${entity.binaries}">
             <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
 
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <p class="panel_title" />
+
             <p class="property">Mime type</p>
 
             <p class="value" th:text="${bin.value.mimetype}"></p>
@@ -134,6 +146,7 @@
 
             <p class="property">Binary</p>
             <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+
         </div>
         <div class="panel" th:if="${entity.relations != null}">
             <p class="panel_title">Relations</p>
@@ -162,14 +175,6 @@
                     th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
-            <div th:if="${entity.state != 'published'}" class="panel">
-                <p class="panel_title">Actions</p>
-                <form enctype="multipart/form-data" method="post"
-                      th:action="@{/entity/} + ${entity.id} + '/publish'">
-                    <input class="button" type="submit" value="Publish"/>
-                </form>
-                <input class="button" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
-            </div>
             <div class="panel">
                 <script>
                 $(document).ready(function() {

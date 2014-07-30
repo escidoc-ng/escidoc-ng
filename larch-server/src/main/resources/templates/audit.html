@@ -13,7 +13,8 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div th:each="audit : ${auditRecords}" class="panel clickable">
+        <div class="heading">Audit-Records</div>
+        <div th:each="audit : ${auditRecords.auditRecords}" class="panel clickable">
             <p class="panel_title" th:text="${audit.action}"></p>
 
             <p class="property">Agent</p>

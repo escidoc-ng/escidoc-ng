@@ -112,6 +112,25 @@ function deleteEntity(id) {
 	    });
 	}
 
+function deleteBinary(entityId, name) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/binary/" + name,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
 function openUser(name) {
     document.location.href = ctx + '/user/' + name;
 }

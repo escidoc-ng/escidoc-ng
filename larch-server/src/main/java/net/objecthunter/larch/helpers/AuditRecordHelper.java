@@ -77,7 +77,7 @@ public abstract class AuditRecordHelper {
      */
     public static AuditRecord deleteEntityRecord(String entityId) {
         final AuditRecord record = skeletonRecord(entityId);
-        record.setAction(AuditRecord.EVENT_CREATE_ENTITY);
+        record.setAction(AuditRecord.EVENT_DELETE_ENTITY);
         return record;
     }
 
@@ -180,6 +180,58 @@ public abstract class AuditRecordHelper {
     }
 
     /**
+     * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Delete Metadata" event
+     * 
+     * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the
+     *        {@link net.objecthunter .larch.model.Metadata} got deleted
+     * @return
+     */
+    public static AuditRecord deleteMetadataRecord(String entityId) {
+        final AuditRecord record = skeletonRecord(entityId);
+        record.setAction(AuditRecord.EVENT_DELETE_METADATA);
+        return record;
+    }
+
+    /**
+     * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Create binaryMetadata" event
+     * 
+     * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the
+     *        {@link net.objecthunter .larch.model.Metadata} gets created
+     * @return
+     */
+    public static AuditRecord createBinaryMetadataRecord(String entityId) {
+        final AuditRecord record = skeletonRecord(entityId);
+        record.setAction(AuditRecord.EVENT_CREATE_BINARY_METADATA);
+        return record;
+    }
+
+    /**
+     * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Update binary Metadata" event
+     * 
+     * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the
+     *        {@link net.objecthunter .larch.model.Metadata} gets updated
+     * @return
+     */
+    public static AuditRecord updateBinaryMetadataRecord(String entityId) {
+        final AuditRecord record = skeletonRecord(entityId);
+        record.setAction(AuditRecord.EVENT_UPDATE_BINARY_METADATA);
+        return record;
+    }
+
+    /**
+     * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Delete binary Metadata" event
+     * 
+     * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the
+     *        {@link net.objecthunter .larch.model.Metadata} got deleted
+     * @return
+     */
+    public static AuditRecord deleteBinaryMetadataRecord(String entityId) {
+        final AuditRecord record = skeletonRecord(entityId);
+        record.setAction(AuditRecord.EVENT_DELETE_BINARY_METADATA);
+        return record;
+    }
+
+    /**
      * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Delete Identifier" event
      * 
      * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the identifier got deleted
@@ -201,19 +253,6 @@ public abstract class AuditRecordHelper {
     public static AuditRecord createIdentifier(String entityId) {
         final AuditRecord record = skeletonRecord(entityId);
         record.setAction(AuditRecord.EVENT_CREATE_IDENTIFIER);
-        return record;
-    }
-
-    /**
-     * Create an {@link net.objecthunter.larch.model.AuditRecord} for a "Delete Metadata" event
-     * 
-     * @param entityId the id of the {@link net.objecthunter.larch.model.Entity} on which the
-     *        {@link net.objecthunter .larch.model.Metadata} got deleted
-     * @return
-     */
-    public static AuditRecord deleteMetadataRecord(String entityId) {
-        final AuditRecord record = skeletonRecord(entityId);
-        record.setAction(AuditRecord.EVENT_DELETE_METADATA);
         return record;
     }
 

@@ -102,7 +102,7 @@ public class IdentifierController extends AbstractLarchController {
             @PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecordHelper.deleteEntityRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
     }
 
@@ -123,7 +123,7 @@ public class IdentifierController extends AbstractLarchController {
             @PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecordHelper.deleteEntityRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
         return "redirect:/entity/" + entityId;
     }

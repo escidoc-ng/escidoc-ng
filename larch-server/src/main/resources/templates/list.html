@@ -13,9 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div>
-            <h2>All Entities List</h2>
-        </div>
+        <div class="heading">All Entities List</div>
         <div class="container">
             Returned <span th:text="${result.totalHits}"></span> records in <span
                 th:text="${result.duration}"></span>

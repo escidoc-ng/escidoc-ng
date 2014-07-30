@@ -168,6 +168,7 @@ public class BinaryController extends AbstractLarchController {
             @PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("binary", this.retrieve(workspaceId, entityId, name));
+        model.addAttribute("entityId", entityId);
         model.addAttribute("metadataTypes", schemaService.getSchemaTypes());
         return new ModelAndView("binary", model);
     }
@@ -214,7 +215,7 @@ public class BinaryController extends AbstractLarchController {
             @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         this.entityService.deleteBinary(workspaceId, entityId, name);
-        this.entityService.createAuditRecord(AuditRecordHelper.deleteEntityRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteBinaryRecord(entityId));
         this.messagingService.publishDeleteBinary(entityId, name);
     }
 }
