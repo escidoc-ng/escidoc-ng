@@ -43,6 +43,14 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.createWorkspace(workspace);
     }
 
+    @RequestMapping(value = "/workspace/{id}", method = RequestMethod.GET, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
+        final ModelMap model = new ModelMap("workspace", this.entityService.retrieveWorkspace(id));
+        return new ModelAndView("workspace", model);
+    }
+
     @RequestMapping(value = "/workspace/{id}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
