@@ -36,6 +36,7 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,7 +81,8 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
                                             FilterBuilders
                                                     .termFilter(ENTITY_ID_FIELD, entityId)))
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addSort("timestamp", SortOrder.ASC).execute().actionGet();
+                            .addSort(SortBuilders.fieldSort("timestamp").ignoreUnmapped(true).order(SortOrder.ASC))
+                            .execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }

@@ -224,4 +224,50 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         }
     }
 
+    @Test
+    public void testDeleteMetadata() throws Exception {
+        // create entity
+        Entity entity = createFixtureEntity();
+        String newId = entityService.create(entity);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getMetadata());
+        assertEquals(1, entity.getMetadata().size());
+        String name = entity.getMetadata().keySet().iterator().next();
+
+        // delete metadata
+        entityService.deleteMetadata(newId, name);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getMetadata());
+        assertEquals(0, entity.getMetadata().size());
+    }
+
+    @Test
+    public void testDeleteBinaryMetadata() throws Exception {
+        // create entity
+        Entity entity = createFixtureEntity();
+        String newId = entityService.create(entity);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getBinaries());
+        assertEquals(2, entity.getBinaries().size());
+        String name = entity.getBinaries().keySet().iterator().next();
+        assertNotNull(entity.getBinaries().get(name).getMetadata());
+        assertEquals(1, entity.getBinaries().get(name).getMetadata().size());
+        String mdName = entity.getBinaries().get(name).getMetadata().keySet().iterator().next();
+
+        // delete binary metadata
+        assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
+        entityService.deleteBinaryMetadata(newId, name, mdName);
+
+        // retrieve entity
+        entity = entityService.retrieve(newId);
+        assertNotNull(entity.getBinaries().get(name).getMetadata());
+        assertEquals(0, entity.getBinaries().get(name).getMetadata().size());
+    }
+
 }

@@ -330,4 +330,73 @@ public class EntityControllerIT extends AbstractLarchIT {
         }
     }
 
+    @Test
+    public void testDeleteMetadata() throws Exception {
+        // create entity
+        HttpResponse resp =
+                this.execute(
+                        Request.Post("http://localhost:8080/entity")
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        final String newId = EntityUtils.toString(resp.getEntity());
+
+        // retrieve entity
+        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getMetadata());
+        assertEquals(1, fetched.getMetadata().size());
+        String name = fetched.getMetadata().keySet().iterator().next();
+
+        // delete metadata
+        resp =
+                this.execute(Request.Delete("http://localhost:8080/entity/" + newId + "/metadata/" + name))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // retrieve entity
+        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getMetadata());
+        assertEquals(0, fetched.getMetadata().size());
+    }
+
+    @Test
+    public void testDeleteBinaryMetadata() throws Exception {
+        // create entity
+        HttpResponse resp =
+                this.execute(
+                        Request.Post("http://localhost:8080/entity")
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        final String newId = EntityUtils.toString(resp.getEntity());
+
+        // retrieve entity
+        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getBinaries());
+        assertEquals(2, fetched.getBinaries().size());
+        String name = fetched.getBinaries().keySet().iterator().next();
+        assertNotNull(fetched.getBinaries().get(name).getMetadata());
+        assertEquals(1, fetched.getBinaries().get(name).getMetadata().size());
+        String mdName = fetched.getBinaries().get(name).getMetadata().keySet().iterator().next();
+
+        // delete binary metadata
+        resp =
+                this.execute(
+                        Request.Delete("http://localhost:8080/entity/" + newId + "/binary/" + name + "/metadata/" +
+                                mdName))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // retrieve entity
+        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getBinaries().get(name).getMetadata());
+        assertEquals(0, fetched.getBinaries().get(name).getMetadata().size());
+    }
+
 }

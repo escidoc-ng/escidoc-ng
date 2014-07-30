@@ -19,6 +19,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +106,9 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders.termFilter(ENTITY_ID_FIELD, id))).setSize(1000)
-                            .addSort("versionNumber", SortOrder.DESC).execute().actionGet();
+                            .addSort(
+                                    SortBuilders.fieldSort("versionNumber").ignoreUnmapped(true)
+                                            .order(SortOrder.DESC)).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }

@@ -59,6 +59,10 @@
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <p class="panel_title" />
+
             <p class="property">Type</p>
 
             <p class="value" th:text="${md.value.type}"></p>
