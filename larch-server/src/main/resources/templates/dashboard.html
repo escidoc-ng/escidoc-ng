@@ -85,31 +85,6 @@
                 <input class="button" id="cwButton" type="button" value="CREATE WORKSPACE"/>
             </div>
         </div>
-        <div sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" class="right">
-            <div class="panel">
-                <script>
-                $(document).ready(function() {
-                $('#ceId').watermark('Generated Id', {className: 'inactive'});
-                $('#ceLabel').watermark('Unnamed Entity', {className: 'inactive'});
-                $('#ceType').watermark('Type', {className: 'inactive'});
-                $('#ceTags').watermark('Tags', {className: 'inactive'});
-                $('#ceButton').click(function() {
-                    createEntity($('#ceId').val(), $('#ceType').val(),$('#ceLabel').val(),$('#ceTags').val());
-                    })
-                });
-
-                </script>
-                <p class="panel_title">Create new entity</p>
-                <input id="ceId" type="text" name="id"
-                       title="Set the identifier of the entity or leave empty for a generated value"/>
-                <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
-                <input id="ceType" type="text" name="type"
-                       title="Set the user defined type of the entity"/>
-                <input id="ceTags" type="text" name="tags"
-                       title="Set a comma separated list of tags for this entity"/>
-                <input class="button" id="ceButton" type="button" value="CREATE ENTITY"/>
-            </div>
-        </div>
     </div>
 </div>
 

@@ -13,7 +13,8 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div th:each="workspace : ${workspaces}" class="panel clickable">
+        <a th:each="workspace : ${workspaces}"  th:href="@{'/workspace/'} + ${workspace.id}">
+        <div class="panel clickable">
             <p class="panel_title" th:text="${workspace.name}"></p>
 
             <p class="property">Owner</p>
@@ -21,6 +22,7 @@
             <p class="value" th:text="${workspace.owner}"></p>
 
         </div>
+        </a>
     </div>
 </div>
 <div th:include="fragments :: footer" class="footer">

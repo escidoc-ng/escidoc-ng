@@ -8,13 +8,14 @@ $(document).ready(function() {
   }
 });
 
-function createEntity(id, type, label, tags, parentId) {
+function createEntity(id, workspaceId, type, label, tags, parentId) {
     var tagList = tags.split(',');
     for (var i = 0; i< tagList.length;i++) {
         tagList[i] = $.trim(tagList[i]);
     }
     var entity = {
         'id' : id,
+        'workspaceId' : workspaceId,
         'type' : type,
         'label' : label,
         'parentId' : parentId,
@@ -28,13 +29,13 @@ function createEntity(id, type, label, tags, parentId) {
         headers: {
             "X-CSRF-TOKEN" : csrf_token
         },
-        url: ctx + "/entity",
+        url: ctx + "/workspace/" + workspaceId + "/entity",
         type: "POST",
         data: JSON.stringify(entity),
         dataType: "text",
         contentType: "application/json; charset=utf-8",
         success: function(createdId){
-            document.location.href = ctx + '/entity/' + createdId;
+            document.location.href = ctx + 'workspace' + workspaceId + '/entity/' + createdId;
         },
         error : function(request, msg, error) {
             throwError(request);
