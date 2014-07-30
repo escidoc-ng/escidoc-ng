@@ -15,6 +15,11 @@
         </div>
         <div th:each="workspace : ${workspaces}" class="panel clickable">
             <p class="panel_title" th:text="${workspace.name}"></p>
+
+            <p class="property">Owner</p>
+
+            <p class="value" th:text="${workspace.owner}"></p>
+
         </div>
     </div>
 </div>

@@ -2,13 +2,13 @@ package shell
 
 import net.objecthunter.larch.model.Entity
 import net.objecthunter.larch.model.SearchResult
-import net.objecthunter.larch.service.SearchService
 import net.objecthunter.larch.util.ServiceProvider
 import org.crsh.cli.Command
 import org.crsh.cli.Usage
 import org.crsh.command.InvocationContext
 import org.crsh.text.Color
 import org.crsh.text.RenderPrintWriter
+import org.elasticsearch.search.SearchService
 
 /*
 * Copyright 2014 Frank Asseg
@@ -32,7 +32,7 @@ class ls {
     @Command
     def main(InvocationContext ctx) {
         final SearchService searchService = ServiceProvider.getService(ctx, SearchService.class);
-        final SearchResult result = searchService.scanIndex(0);
+        final SearchResult result = searchService.scanEntities(0);
         final RenderPrintWriter sink = ctx.getWriter();
         sink.print("Number of entites\t\t");
         sink.println(result.getHits(), Color.yellow);

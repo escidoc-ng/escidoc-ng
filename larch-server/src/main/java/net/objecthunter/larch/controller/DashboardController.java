@@ -50,7 +50,6 @@ public class DashboardController extends AbstractLarchController {
     public ModelAndView dashboardHtml() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("describe", repositoryService.describe());
-        SecurityContext co = SecurityContextHolder.getContext();
         return new ModelAndView("dashboard", model);
     }
 }

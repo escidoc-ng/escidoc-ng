@@ -481,12 +481,12 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult scanIndex(int offset) throws IOException {
+    public SearchResult scanEntities(int offset) throws IOException {
         return backendEntityService.scanIndex(offset);
     }
 
     @Override
-    public SearchResult scanIndex(int offset, int numRecords) throws IOException {
+    public SearchResult scanEntities(int offset, int numRecords) throws IOException {
         return backendEntityService.scanIndex(offset, numRecords);
     }
 
@@ -508,6 +508,11 @@ public class DefaultEntityService implements EntityService {
     @Override
     public Workspace retrieveWorkspace(String id) throws IOException {
         return this.backendWorkspaceService.retrieveWorkspace(id);
+    }
+
+    @Override
+    public List<Workspace> scanWorkspaces(String owner, int offset, int numRecords) throws IOException {
+        return backendWorkspaceService.scanIndex(owner, offset, numRecords);
     }
 
     @Override

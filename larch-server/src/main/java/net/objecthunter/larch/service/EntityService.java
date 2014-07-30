@@ -78,7 +78,7 @@ public interface EntityService {
      * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanIndex(int offset) throws IOException;
+    SearchResult scanEntities(int offset) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
@@ -89,7 +89,7 @@ public interface EntityService {
      * @param numRecords the number of {@link net.objecthunter.larch.model.Entity}s to return
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanIndex(int offset, int numRecords) throws IOException;
+    SearchResult scanEntities(int offset, int numRecords) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
@@ -110,6 +110,8 @@ public interface EntityService {
     String createWorkspace(Workspace workspace) throws IOException;
 
     Workspace retrieveWorkspace(String id) throws IOException;
+
+    List<Workspace> scanWorkspaces(String owner, int offset, int numRecords) throws IOException;
 
     void updateWorkspace(Workspace workspace) throws IOException;
 

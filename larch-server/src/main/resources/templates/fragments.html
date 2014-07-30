@@ -68,6 +68,8 @@
         <li><p class="icon" id="icon_dashboard"></p><a th:href="@{/}" th:text="'DASHBOARD'"></a>
         </li>
         <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
+                th:href="@{/workspace-list}" th:text="'WORKSPACES'"></a></li>
+        <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
                 th:href="@{/browse}" th:text="'BROWSE'"></a></li>
         <li th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
                 th:href="@{/browse/published}" th:text="'BROWSE'"></a></li>

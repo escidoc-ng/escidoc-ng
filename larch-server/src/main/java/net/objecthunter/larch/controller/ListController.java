@@ -69,7 +69,7 @@ public class ListController extends AbstractLarchController {
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult list() throws IOException {
-        return entityService.scanIndex(0);
+        return entityService.scanEntities(0);
     }
 
     /**

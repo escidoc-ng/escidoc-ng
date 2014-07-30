@@ -42,6 +42,33 @@ function createEntity(id, type, label, tags, parentId) {
     });
 }
 
+function createWorkspace(id, name) {
+    var workspace = {
+        'id' : id,
+        'name' : name
+    };
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax ({
+        xhrFields: {
+           withCredentials: true
+        },
+        headers: {
+            "X-CSRF-TOKEN" : csrf_token
+        },
+        url: ctx + "/workspace",
+        type: "POST",
+        data: JSON.stringify(workspace),
+        dataType: "text",
+        contentType: "application/json; charset=utf-8",
+        success: function(createdId){
+            document.location.href = ctx + '/workspace/' + createdId;
+        },
+        error : function(request, msg, error) {
+            throwError(request);
+        }
+    });
+}
+
 function deleteUser(name) {
    $.ajax ({
         xhrFields: {

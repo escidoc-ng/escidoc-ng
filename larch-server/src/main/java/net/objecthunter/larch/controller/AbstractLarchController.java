@@ -18,6 +18,7 @@ package net.objecthunter.larch.controller;
 
 import net.objecthunter.larch.model.security.User;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,8 +35,12 @@ public abstract class AbstractLarchController {
      *         SpringMVC
      */
     @ModelAttribute("user")
-    public User getUserName(@AuthenticationPrincipal User user) {
+    protected User addUserToModel(@AuthenticationPrincipal User user) {
         return user;
+    }
+
+    protected User getCurrentUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     /**

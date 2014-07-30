@@ -71,6 +71,24 @@
             <div class="panel">
                 <script>
                 $(document).ready(function() {
+                $('#cwId').watermark('Generated Id', {className: 'inactive'});
+                $('#cwName').watermark('Unnamed Workspace', {className: 'inactive'});
+                $('#cwButton').click(function() {
+                    createWorkspace($('#cwId').val(), $('#cwName').val());
+                    })
+                });
+                </script>
+                <p class="panel_title">Create Workspace</p>
+                <input id="cwId" type="text" name="id"
+                       title="Set the identifier of the workspace or leave empty for a generated value"/>
+                <input id="cwName" type="text" name="name" title="Set the name of the workspace"/>
+                <input class="button" id="cwButton" type="button" value="CREATE WORKSPACE"/>
+            </div>
+        </div>
+        <div sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" class="right">
+            <div class="panel">
+                <script>
+                $(document).ready(function() {
                 $('#ceId').watermark('Generated Id', {className: 'inactive'});
                 $('#ceLabel').watermark('Unnamed Entity', {className: 'inactive'});
                 $('#ceType').watermark('Type', {className: 'inactive'});

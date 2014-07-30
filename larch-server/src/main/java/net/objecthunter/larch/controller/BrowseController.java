@@ -56,7 +56,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse() throws IOException {
-        return this.entityService.scanIndex(0);
+        return this.entityService.scanEntities(0);
     }
 
     /**
@@ -71,7 +71,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("offset") final int offset) throws IOException {
-        return this.entityService.scanIndex(offset);
+        return this.entityService.scanEntities(offset);
     }
 
     /**
@@ -88,7 +88,7 @@ public class BrowseController extends AbstractLarchController {
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
-        return this.entityService.scanIndex(offset, numRecords);
+        return this.entityService.scanEntities(offset, numRecords);
     }
 
     /**
@@ -103,7 +103,7 @@ public class BrowseController extends AbstractLarchController {
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanIndex(0));
+        model.addAttribute("result", this.entityService.scanEntities(0));
         return new ModelAndView("browse", model);
     }
 
@@ -120,7 +120,7 @@ public class BrowseController extends AbstractLarchController {
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanIndex(offset));
+        model.addAttribute("result", this.entityService.scanEntities(offset));
         return new ModelAndView("browse", model);
     }
 
@@ -139,7 +139,7 @@ public class BrowseController extends AbstractLarchController {
     public ModelAndView browseHtml(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanIndex(offset, numRecords));
+        model.addAttribute("result", this.entityService.scanEntities(offset, numRecords));
         return new ModelAndView("browse", model);
     }
 

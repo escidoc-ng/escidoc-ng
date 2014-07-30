@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend;
 import net.objecthunter.larch.model.Workspace;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface BackendWorkspaceService {
 
@@ -30,4 +31,5 @@ public interface BackendWorkspaceService {
 
     void patchWorkSpace(Workspace workspace) throws IOException;
 
+    List<Workspace> scanIndex(String owner, int offset, int numRecords) throws IOException;
 }
