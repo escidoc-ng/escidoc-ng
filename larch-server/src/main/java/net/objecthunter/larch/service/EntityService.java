@@ -116,4 +116,6 @@ public interface EntityService {
     void updateWorkspace(Workspace workspace) throws IOException;
 
     void patchWorkspace(Workspace workspace) throws IOException;
+
+    SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
 }

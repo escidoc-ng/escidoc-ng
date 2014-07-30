@@ -21,6 +21,7 @@ import java.io.File;
 import javax.jms.Queue;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
+import net.objecthunter.larch.security.helpers.WorkspaceAuthorizationAspect;
 import net.objecthunter.larch.service.*;
 import net.objecthunter.larch.service.backend.*;
 import net.objecthunter.larch.service.backend.elasticsearch.*;
@@ -370,5 +371,10 @@ public class LarchServerConfiguration {
     @Bean
     public MessagingService messagingService() {
         return new DefaultMessagingService();
+    }
+
+    @Bean
+    public WorkspaceAuthorizationAspect workspaceAuthorizationAspect() {
+        return new WorkspaceAuthorizationAspect();
     }
 }

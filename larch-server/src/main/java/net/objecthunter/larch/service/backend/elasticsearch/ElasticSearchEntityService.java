@@ -343,6 +343,58 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         return scanIndex(offset, maxRecords);
     }
 
+    @Override
+    public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
+        final long time = System.currentTimeMillis();
+        numRecords = numRecords > maxRecords || numRecords < 1 ? maxRecords : numRecords;
+        final SearchResponse resp;
+        try {
+            resp =
+                    this.client
+                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
+                            QueryBuilders.matchQuery("workspaceId", workspaceId))
+                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
+                            .addFields("id", "label", "type", "tags", "state").execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+
+        final SearchResult result = new SearchResult();
+        result.setOffset(offset);
+        result.setNumRecords(numRecords);
+        result.setHits(resp.getHits().getHits().length);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setOffset(offset);
+        result.setNextOffset(offset + numRecords);
+        result.setPrevOffset(Math.max(offset - numRecords, 0));
+        result.setMaxRecords(maxRecords);
+
+        final List<Entity> entites = new ArrayList<>(numRecords);
+        for (final SearchHit hit : resp.getHits()) {
+            // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            String label = hit.field("label") != null ? hit.field("label").getValue() : "";
+            String type = hit.field("type") != null ? hit.field("type").getValue() : "";
+            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
+            final Entity e = new Entity();
+            e.setId(hit.field("id").getValue());
+            e.setLabel(label);
+            e.setType(type);
+            e.setState(state);
+            List<String> tags = new ArrayList<>();
+            if (hit.field("tags") != null) {
+                for (Object o : hit.field("tags").values()) {
+                    tags.add((String) o);
+                }
+            }
+            e.setTags(tags);
+            entites.add(e);
+        }
+
+        result.setData(entites);
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
+    }
+
     /**
      * Holds enabled search-fields in entities-index. Differentiate between name of GET/POST-Parameter and name of
      * Search-Field in index.

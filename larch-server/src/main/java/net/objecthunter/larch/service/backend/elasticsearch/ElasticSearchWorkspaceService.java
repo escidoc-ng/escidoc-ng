@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.security.helpers.WorkspaceAuthorization;
 import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.RandomStringUtils;

@@ -17,6 +17,7 @@
 package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
@@ -70,4 +71,6 @@ public interface BackendEntityService {
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
     SearchResult scanIndex(int offset) throws IOException;
+
+    SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
 }

@@ -524,4 +524,9 @@ public class DefaultEntityService implements EntityService {
     public void patchWorkspace(Workspace workspace) throws IOException {
         this.backendWorkspaceService.patchWorkSpace(workspace);
     }
+
+    @Override
+    public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
+        return backendEntityService.scanWorkspace(workspaceId, offset, numRecords);
+    }
 }

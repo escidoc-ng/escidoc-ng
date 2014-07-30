@@ -24,7 +24,7 @@
 
             <p class="value" th:text="${workspace.owner}"></p>
 
-            <p class="property">Permissions</p>
+            <a th:href="'/workspace/' + ${workspace.id} + '/browse'">Browse entities</a>
 
         </div>
         <div class="panel" th:each="permissionset : ${workspace.permissions.permissions}">
