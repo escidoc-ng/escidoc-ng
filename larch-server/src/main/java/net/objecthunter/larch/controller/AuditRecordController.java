@@ -17,12 +17,12 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
-import java.util.List;
 
-import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.service.EntityService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -47,14 +49,16 @@ public class AuditRecordController extends AbstractLarchController {
      * 
      * @param entityId The entity's id for which the {@link net.objecthunter.larch.model.AuditRecord}s should be
      *        returned
-     * @param offset The offset for {@link net.objecthunter.larch.helpers.AuditRecords} returned from the repository
-     * @param count The max number of {@link net.objecthunter.larch.helpers.AuditRecords} returned from the repository
+     * @param offset The offset for {@link net.objecthunter.larch.model.AuditRecords} returned from the repository
+     * @param count The max number of {@link net.objecthunter.larch.model.AuditRecords} returned from the repository
      * @return A {@link java.util.List} of {@link net.objecthunter.larch.model.AuditRecord} objects.
      * @throws IOException
      */
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET)
-    public List<AuditRecord> retrieve(@PathVariable("workspaceId") final String workspaceId,
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    public AuditRecords retrieve(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
@@ -66,11 +70,13 @@ public class AuditRecordController extends AbstractLarchController {
      * 
      * @param entityId The entity's id for which the {@link net.objecthunter.larch.model.AuditRecord}s should be
      *        returned
-     * @param offset The offset for {@link net.objecthunter.larch.helpers.AuditRecords} returned from the repository
-     * @param count The max number of {@link net.objecthunter.larch.helpers.AuditRecords} returned from the repository
+     * @param offset The offset for {@link net.objecthunter.larch.model.AuditRecords} returned from the repository
+     * @param count The max number of {@link net.objecthunter.larch.model.AuditRecords} returned from the repository
      * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} object used to render the HTML view
      * @throws IOException
      */
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET,
             produces = "text/html")

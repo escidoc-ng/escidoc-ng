@@ -199,7 +199,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(), this.authorizationService.metadataWritePermissions(e));
         try {
             client.prepareDelete(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
-            this.client.admin().indices().refresh(new RefreshRequest(("groven"))).actionGet();
+            refreshIndex(INDEX_ENTITIES);
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }

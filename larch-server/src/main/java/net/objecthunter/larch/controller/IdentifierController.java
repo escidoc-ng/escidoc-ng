@@ -18,7 +18,7 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.helpers.AuditRecords;
+import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -57,10 +57,11 @@ public class IdentifierController extends AbstractLarchController {
     @RequestMapping(value = "/identifier", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @RequestParam("type") final String type,
+    public void create(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecords.createIdentifier(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createIdentifier(entityId));
         this.messagingService.publishCreateIdentifier(entityId, type, value);
     }
 
@@ -76,10 +77,11 @@ public class IdentifierController extends AbstractLarchController {
     @RequestMapping(value = "/identifier", method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @RequestParam("type") final String type,
+    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecords.createIdentifier(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.createIdentifier(entityId));
         this.messagingService.publishCreateIdentifier(entityId, type, value);
         return "redirect:/entity/" + entityId;
     }
@@ -96,10 +98,11 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void delete(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @PathVariable("type") final String type,
+    public void delete(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecords.deleteEntityRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
     }
 
@@ -116,10 +119,11 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String deleteHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String entityId, @PathVariable("type") final String type,
+    public String deleteHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
-        this.entityService.createAuditRecord(AuditRecords.deleteEntityRecord(entityId));
+        this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
         return "redirect:/entity/" + entityId;
     }

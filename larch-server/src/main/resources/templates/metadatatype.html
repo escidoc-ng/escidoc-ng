@@ -13,6 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
+        <div class="heading">Supported Metadata Schemas</div>
         <div th:each="type : ${types}" class="panel clickable">
             <p class="panel_title" th:text="${type.name}"></p>
 
@@ -31,8 +32,6 @@
             <div class="panel">
                 <p class="panel_title">Create new meta data type</p>
 
-                <!-- form method="POST" enctype="multipart/form-data"
-                      th:action="@{/metadatatype} + '?_csrf=' + ${_csrf.token}" -->
                 <form method="POST" enctype="multipart/form-data"
                       th:action="@{/metadatatype}">
                     <input id="mdtName" type="text" name="name"

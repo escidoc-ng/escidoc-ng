@@ -13,9 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div>
-            <h2>Published Entities</h2>
-        </div>
+        <div class="heading">Published Entities</div>
         <a th:each="record : ${result.data}" th:href="@{/entity/published/} + ${record.publishId}">
             <div class="panel clickable">
                 <p class="panel_title" th:text="${record.publishId}"></p>

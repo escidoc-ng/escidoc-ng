@@ -2,7 +2,7 @@ var ctx = "";
 $(document).ready(function() {
   var contextPath = $('#contextPath');
   if (contextPath) {
-    if (contextPath.attr('src')) {
+    if (contextPath.attr('src') && contextPath.attr('src') != '') {
       ctx = contextPath.attr('src');
     }
   }
@@ -89,6 +89,86 @@ function deleteUser(name) {
     });
 }
 
+function deleteEntity(id) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + id,
+	        type: "DELETE",
+	        success: function(createdId){
+	        	if (ctx != '') {
+		            document.location.href = ctx;
+	        	} else {
+		            document.location.href = "/";
+	        	}
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function deleteBinary(entityId, name) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/binary/" + name,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function deleteMetadata(entityId, name) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/metadata/" + name,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function deleteBinaryMetadata(entityId, binaryName, name) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + name,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId + "/binary/" + binaryName;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
 function openUser(name) {
     document.location.href = ctx + '/user/' + name;
 }
@@ -151,27 +231,18 @@ function throwError(request) {
             responseText = JSON.parse(request.responseText);
         } catch (e) {}
     }
-    var location = ctx + '/error-page';
+    
+    $('#errorform').attr("action", ctx + '/error-page');
     if (responseText != null) {
         if (responseText.status != null) {
-            location += '?status=' + responseText.status;
+        	$('#errorform').append('<input type="hidden" name="status" value="' + responseText.status + '">');
         }
         if (responseText.message != null && responseText.message.length > 0) {
-            if (location.length == 11) {
-                location += '?';
-            } else {
-                location += '&';
-            }
-            location += 'message=' + responseText.message;
+        	$('#errorform').append('<input type="hidden" name="message" value="' + responseText.message + '">');
         }
         if (responseText.path != null && responseText.path.length > 0) {
-            if (location.length == 11) {
-                location += '?';
-            } else {
-                location += '&';
-            }
-            location += 'path=' + responseText.path;
+        	$('#errorform').append('<input type="hidden" name="path" value="' + responseText.path + '">');
         }
     }
-    document.location.href = location;
+    $('#errorform').submit();
 }

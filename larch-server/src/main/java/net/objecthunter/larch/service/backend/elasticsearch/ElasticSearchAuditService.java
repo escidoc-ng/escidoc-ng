@@ -25,6 +25,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -35,6 +36,7 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,6 +49,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ElasticSearchAuditService extends AbstractElasticSearchService implements BackendAuditService {
 
     public static final String INDEX_AUDIT = "audit";
+
+    public static final String INDEX_AUDIT_TYPE = "audit";
+
+    public static final String ENTITY_ID_FIELD = "entityId";
 
     private static final Logger log = Logger.getLogger(ElasticSearchAuditService.class);
 
@@ -63,7 +69,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
     }
 
     @Override
-    public List<AuditRecord> retrieve(String entityId, int offset, int numRecords) throws IOException {
+    public AuditRecords retrieve(String entityId, int offset, int numRecords) throws IOException {
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         try {
@@ -73,9 +79,10 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders
-                                                    .termFilter("entityId", entityId)))
+                                                    .termFilter(ENTITY_ID_FIELD, entityId)))
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addSort("timestamp", SortOrder.ASC).execute().actionGet();
+                            .addSort(SortBuilders.fieldSort("timestamp").ignoreUnmapped(true).order(SortOrder.ASC))
+                            .execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -85,7 +92,7 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
             records.add(mapper.readValue(hit.getSourceAsString(), AuditRecord.class));
         }
 
-        return records;
+        return new AuditRecords(records);
     }
 
     @Override
@@ -98,12 +105,28 @@ public class ElasticSearchAuditService extends AbstractElasticSearchService impl
         rec.setTimestamp(ZonedDateTime.now(ZoneOffset.UTC).toString());
         try {
             this.client
-                    .prepareIndex(INDEX_AUDIT, "audit", id).setSource(mapper.writeValueAsBytes(rec)).execute()
+                    .prepareIndex(INDEX_AUDIT, INDEX_AUDIT_TYPE, id).setSource(mapper.writeValueAsBytes(rec))
+                    .execute()
                     .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        refreshIndex(INDEX_AUDIT);
         return id;
+    }
+
+    @Override
+    public void deleteAll(String entityId) throws IOException {
+        log.debug("deleting all audit-records for entity " + entityId);
+        try {
+            client.prepareDeleteByQuery(INDEX_AUDIT).setQuery(
+                    QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                            FilterBuilders
+                                    .termFilter(ENTITY_ID_FIELD, entityId))).execute().actionGet();
+            refreshIndex(INDEX_AUDIT);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
     private boolean exists(String id) throws IOException {

@@ -13,8 +13,13 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
+        <div class="heading">Binary</div>
         <div class="panel">
             <p class="panel_title" th:text="${binary.name}"></p>
+
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entityId} + '\', \'' + ${binary.name} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Size</p>
 
@@ -50,6 +55,10 @@
         </div>
         <div th:each="md : ${binary.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
+
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinaryMetadata(\'' + ${entityId} + '\', \'' + ${binary.name} + '\', \'' + ${md.key} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Type</p>
 
@@ -87,8 +96,6 @@
                 </script>
                 <p class="panel_title">Create new metadata</p>
 
-                <!--form enctype="multipart/form-data" method="post"
-                      th:action="${binary.name} + '/metadata?_csrf=' + ${_csrf.token}" -->
                 <form enctype="multipart/form-data" method="post"
                       th:action="${binary.name} + '/metadata'">
                     <input id="mdName" type="text" name="name"

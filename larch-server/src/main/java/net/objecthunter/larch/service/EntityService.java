@@ -21,7 +21,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import net.objecthunter.larch.model.*;
+import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
+import net.objecthunter.larch.model.Entities;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,8 +70,7 @@ public interface EntityService {
 
     String publish(String workspaceId, String id) throws IOException;
 
-    List<AuditRecord> retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
-            throws IOException;
+    AuditRecords retrieveAuditRecords(String workspaceId, String entityId, int offset, int count) throws IOException;
 
     void createAuditRecord(AuditRecord auditRecord) throws IOException;
 

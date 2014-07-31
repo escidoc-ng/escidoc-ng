@@ -44,6 +44,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,8 +115,9 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
                             .setTypes(TYPE_PUBLISHED)
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                            FilterBuilders.termFilter("id", entityId))).addSort("publishId",
-                                    SortOrder.ASC).execute()
+                                            FilterBuilders.termFilter("id", entityId))).addSort(
+                                    SortBuilders.fieldSort("publishId").ignoreUnmapped(true).order(SortOrder.ASC))
+                            .execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());

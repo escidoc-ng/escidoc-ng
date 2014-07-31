@@ -24,7 +24,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -32,11 +36,26 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.SizeCalculatingDigestInputStream;
-import net.objecthunter.larch.model.*;
+import net.objecthunter.larch.model.AlternativeIdentifier;
+import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
+import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.Entities;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.LarchConstants;
+import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.ExportService;
-import net.objecthunter.larch.service.backend.*;
+import net.objecthunter.larch.service.backend.BackendAuditService;
+import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendPublishService;
+import net.objecthunter.larch.service.backend.BackendSchemaService;
+import net.objecthunter.larch.service.backend.BackendVersionService;
+import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -229,20 +248,25 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void delete(String workspaceId, String id) throws IOException {
-        final Entity e = backendEntityService.retrieve(workspaceId, id);
-        for (Binary b : e.getBinaries().values()) {
-            if (b.getPath() != null && !b.getPath().isEmpty()) {
-                backendBlobstoreService.delete(b.getPath());
-            }
+        // check if entity is published. If yes, throw error.
+        if (isPublished(id)) {
+            throw new InvalidParameterException("Entity with id " + id + " is already published");
         }
-        this.backendEntityService.delete(id);
+
+        // check if children are published. If yes, throw error.
+        if (hasPublishedChildren(workspaceId, id)) {
+            throw new InvalidParameterException("Entity with id " + id + " has published children.");
+        }
+
+        // delete
+        deleteRecursively(workspaceId, id);
     }
 
     @Override
     public InputStream getContent(String workspaceId, String id, String name) throws IOException {
         final Entity e = backendEntityService.retrieve(workspaceId, id);
         final Binary b = e.getBinaries().get(name);
-        return backendBlobstoreService.retrieve(b.getPath());
+        return this.backendBlobstoreService.retrieve(b.getPath());
     }
 
     @Override
@@ -258,7 +282,14 @@ public class DefaultEntityService implements EntityService {
     public void createBinary(String workspaceId, String entityId, String name, String contentType,
             InputStream inputStream)
             throws IOException {
+        if (StringUtils.isBlank(name)) {
+            throw new InvalidParameterException("name of binary may not be null or empty");
+        }
         final Entity e = backendEntityService.retrieve(workspaceId, entityId);
+        if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
+            throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
+                    e.getId());
+        }
         this.backendVersionService.addOldVersion(e);
         final MessageDigest digest;
         try {
@@ -365,6 +396,7 @@ public class DefaultEntityService implements EntityService {
         if (e.getBinaries().get(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
+        this.backendBlobstoreService.delete(e.getBinaries().get(name).getPath());
         e.getBinaries().remove(name);
         this.update(workspaceId, e);
     }
@@ -470,7 +502,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public List<AuditRecord> retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
+    public AuditRecords retrieveAuditRecords(String workspaceId, String entityId, int offset, int count)
             throws IOException {
         return backendAuditService.retrieve(entityId, offset, count);
     }
@@ -528,5 +560,77 @@ public class DefaultEntityService implements EntityService {
     @Override
     public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
         return backendEntityService.scanWorkspace(workspaceId, offset, numRecords);
+    }
+
+    /**
+     * checks if the entity with the given id has a published version.
+     * 
+     * @param id
+     * @return boolean true or false
+     * @throws IOException
+     */
+    private boolean isPublished(String id) throws IOException {
+        boolean isPublished = false;
+        try {
+            this.backendPublishService.retrievePublishedEntities(id);
+            isPublished = true;
+        } catch (NotFoundException e) {
+        }
+        return isPublished;
+    }
+
+    /**
+     * checks if some child or childchild.. is published.
+     * 
+     * @param id
+     * @return boolean true or false
+     * @throws IOException
+     */
+    private boolean hasPublishedChildren(String workspaceId, String id) throws IOException {
+        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        if (e.getChildren() == null) {
+            return false;
+        } else {
+            for (String childId : e.getChildren()) {
+                if (isPublished(childId)) {
+                    return true;
+                } else {
+                    return hasPublishedChildren(workspaceId, childId);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * delete entity, all children, childchilds....
+     * 
+     * @param id
+     * @throws IOException
+     */
+    private void deleteRecursively(String workspaceId, String id) throws IOException {
+        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        if (e.getChildren() != null) {
+            for (String childId : e.getChildren()) {
+                deleteRecursively(workspaceId, childId);
+            }
+        }
+        // delete binaries
+        if (e.getBinaries() != null) {
+            for (Binary b : e.getBinaries().values()) {
+                if (b.getPath() != null && !b.getPath().isEmpty()) {
+                    this.backendBlobstoreService.delete(b.getPath());
+                }
+            }
+        }
+
+        // delete audit-records
+        this.backendAuditService.deleteAll(id);
+
+        // delete Versions
+        this.backendVersionService.deleteOldVersions(id);
+
+        // delete entity
+        this.backendEntityService.delete(id);
     }
 }

@@ -16,7 +16,12 @@
 
 package net.objecthunter.larch.service.impl;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -27,6 +32,7 @@ import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendPublishService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -48,6 +54,8 @@ public class DefaultEntityServiceTest {
 
     private BackendVersionService mockVersionService;
 
+    private BackendPublishService mockPublishService;
+
     @Before
     public void setup() {
         entityService = new DefaultEntityService();
@@ -55,11 +63,13 @@ public class DefaultEntityServiceTest {
         mockBlobstoreService = createMock(BackendBlobstoreService.class);
         mockExportService = createMock(ExportService.class);
         mockVersionService = createMock(BackendVersionService.class);
+        mockPublishService = createMock(BackendPublishService.class);
         ReflectionTestUtils.setField(entityService, "mapper", new ObjectMapper());
         ReflectionTestUtils.setField(entityService, "backendEntityService", mockEntitiesService);
         ReflectionTestUtils.setField(entityService, "exportService", mockExportService);
         ReflectionTestUtils.setField(entityService, "backendBlobstoreService", mockBlobstoreService);
         ReflectionTestUtils.setField(entityService, "backendVersionService", mockVersionService);
+        ReflectionTestUtils.setField(entityService, "backendPublishService", mockPublishService);
     }
 
     @Test
@@ -95,21 +105,6 @@ public class DefaultEntityServiceTest {
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
         this.entityService.retrieve(Workspace.DEFAULT, e.getId());
-        verify(mockEntitiesService, mockExportService, mockBlobstoreService);
-    }
-
-    @Test
-    public void testDelete() throws Exception {
-        Entity e = Fixtures.createEntity();
-
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
-        mockEntitiesService.delete(e.getId());
-        expectLastCall();
-        mockBlobstoreService.delete(e.getBinaries().entrySet().iterator().next().getValue().getPath());
-        expectLastCall();
-
-        replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.delete(Workspace.DEFAULT, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 

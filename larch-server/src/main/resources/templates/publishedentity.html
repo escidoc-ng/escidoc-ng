@@ -14,9 +14,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div>
-            <h2>Published Entity</h2>
-        </div>
+        <div class="heading">Published Entity</div>
         <div class="panel">
             <p class="panel_title" th:text="${entity.publishId}"></p>
 
@@ -60,6 +58,10 @@
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
+
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Type</p>
 

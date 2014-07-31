@@ -26,6 +26,8 @@ import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -36,6 +38,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import net.objecthunter.larch.integration.helpers.TestMessageListener;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 
@@ -55,19 +58,19 @@ public class EntityControllerIT extends AbstractLarchIT {
     @Test
     public void testCreateAndUpdateEntity() throws Exception {
         HttpResponse resp =
-            this.execute(
-                Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
-                    ContentType.APPLICATION_JSON)).returnResponse();
+                this.execute(
+                        Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                ContentType.APPLICATION_JSON)).returnResponse();
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
         Entity update = createFixtureEntity();
         update.setLabel("My updated Label");
         resp =
-            this.execute(
-                Request.Put(entityUrl + id)
-                 .bodyString(mapper.writeValueAsString(update), ContentType.APPLICATION_JSON))
-                 .returnResponse();
+                this.execute(
+                        Request.Put(entityUrl + id)
+                                .bodyString(mapper.writeValueAsString(update), ContentType.APPLICATION_JSON))
+                        .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         resp = this.execute(Request.Get(entityUrl + id)).returnResponse();
@@ -80,7 +83,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         assertNotNull(oldVersion.getUtcCreated());
         assertNotNull(oldVersion.getUtcLastModified());
         assertTrue(Duration.between(ZonedDateTime.parse(oldVersion.getUtcLastModified()),
-            ZonedDateTime.parse(fetched.getUtcLastModified())).getNano() > 0);
+                ZonedDateTime.parse(fetched.getUtcLastModified())).getNano() > 0);
         assertEquals(ZonedDateTime.parse(oldVersion.getUtcCreated()), ZonedDateTime.parse(fetched.getUtcCreated()));
         oldVersion.getBinaries().values().forEach(b -> {
             assertNotNull(b.getUtcCreated());
@@ -260,8 +263,8 @@ public class EntityControllerIT extends AbstractLarchIT {
                 this.execute(
                         Request.Put(entityUrl + id)
                                 .bodyString(mapper.writeValueAsString(update),
-                                            ContentType.APPLICATION_JSON))
-                    .returnResponse();
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve
@@ -275,6 +278,125 @@ public class EntityControllerIT extends AbstractLarchIT {
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("published", fetched.getState());
         assertEquals(1, fetched.getVersion());
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+        // create hierarchy
+        String id = null;
+        List<String> ids = new ArrayList<String>();
+        String parentId = null;
+        for (int i = 0; i < 5; i++) {
+            Entity child = createFixtureEntity();
+            child.setParentId(id);
+            HttpResponse resp =
+                    this.execute(
+                            Request.Post(entityUrl)
+                                    .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON))
+                            .returnResponse();
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+            if (id == null) {
+                parentId = EntityUtils.toString(resp.getEntity());
+            }
+            id = EntityUtils.toString(resp.getEntity());
+            ids.add(EntityUtils.toString(resp.getEntity()));
+        }
+
+        // delete parent
+        HttpResponse resp =
+                this.execute(
+                        Request.Delete(entityUrl + parentId))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // Check Audit-Records
+        for (String checkId : ids) {
+            resp =
+                    this.execute(
+                            Request.Get(entityUrl + checkId + "/audit"))
+                            .returnResponse();
+            AuditRecords fetched = mapper.readValue(resp.getEntity().getContent(), AuditRecords.class);
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            assertNotNull(fetched);
+            assertEquals(0, fetched.getAuditRecords().size());
+        }
+        // Check Entities
+        for (String checkId : ids) {
+            resp =
+                    this.execute(
+                            Request.Get(entityUrl + checkId))
+                            .returnResponse();
+            assertEquals(404, resp.getStatusLine().getStatusCode());
+        }
+    }
+
+    @Test
+    public void testDeleteMetadata() throws Exception {
+        // create entity
+        HttpResponse resp =
+                this.execute(
+                        Request.Post(entityUrl)
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        final String newId = EntityUtils.toString(resp.getEntity());
+
+        // retrieve entity
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getMetadata());
+        assertEquals(1, fetched.getMetadata().size());
+        String name = fetched.getMetadata().keySet().iterator().next();
+
+        // delete metadata
+        resp =
+                this.execute(Request.Delete(entityUrl + newId + "/metadata/" + name))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // retrieve entity
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
+        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getMetadata());
+        assertEquals(0, fetched.getMetadata().size());
+    }
+
+    @Test
+    public void testDeleteBinaryMetadata() throws Exception {
+        // create entity
+        HttpResponse resp =
+                this.execute(
+                        Request.Post(entityUrl)
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                        ContentType.APPLICATION_JSON))
+                        .returnResponse();
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        final String newId = EntityUtils.toString(resp.getEntity());
+
+        // retrieve entity
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getBinaries());
+        assertEquals(2, fetched.getBinaries().size());
+        String name = fetched.getBinaries().keySet().iterator().next();
+        assertNotNull(fetched.getBinaries().get(name).getMetadata());
+        assertEquals(1, fetched.getBinaries().get(name).getMetadata().size());
+        String mdName = fetched.getBinaries().get(name).getMetadata().keySet().iterator().next();
+
+        // delete binary metadata
+        resp =
+                this.execute(
+                        Request.Delete(entityUrl + newId + "/binary/" + name + "/metadata/" +
+                                mdName))
+                        .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        // retrieve entity
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
+        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        assertNotNull(fetched.getBinaries().get(name).getMetadata());
+        assertEquals(0, fetched.getBinaries().get(name).getMetadata().size());
     }
 
 }

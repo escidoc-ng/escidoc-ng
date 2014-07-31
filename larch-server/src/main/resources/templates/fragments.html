@@ -6,7 +6,6 @@
     <meta charset="utf-8"/>
     <meta id="contextPath"
         th:src="${#httpServletRequest.getContextPath()}"/>
-    <!-- meta name="_csrf" th:content="${_csrf.token}"/ -->
     <title th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch repository</title>
     <title th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch published repository</title>
     <title th:if="${isErrorPage}">Error Page</title>
@@ -35,11 +34,6 @@
     });
 
     </script>
-    <!-- form th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" method="post"
-          th:action="@{/search} + '?_csrf=' + ${_csrf.token}" enctype="multipart/form-data"><input
-            type="text" id="search" name="term"/></form>
-    <form th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" method="post"
-          th:action="@{/search/published} + '?_csrf=' + ${_csrf.token}" enctype="multipart/form-data" -->
     <form th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" method="post"
           th:action="@{/search}" enctype="multipart/form-data"><input
             type="text" id="search" name="term"/></form>
@@ -88,6 +82,7 @@
 
 <div th:fragment="footer">
     <span>Larch</span><a href="https://github.com/fasseg/larch">Fork me on GitHub!</a>
+    <form id="errorform" th:action="@{/}" enctype="multipart/form-data" method="post" class="off"></form>
 </div>
 
 </body>

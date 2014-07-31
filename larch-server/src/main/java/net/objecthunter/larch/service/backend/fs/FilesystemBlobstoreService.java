@@ -20,6 +20,7 @@ import static net.objecthunter.larch.util.FileSystemUtil.checkAndCreate;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +85,11 @@ public class FilesystemBlobstoreService implements BackendBlobstoreService {
 
     @Override
     public InputStream retrieve(String path) throws IOException {
-        return new FileInputStream(new File(directory, path));
+        try {
+            return new FileInputStream(new File(directory, path));
+        } catch (FileNotFoundException e) {
+            throw new NotFoundException(e.getMessage());
+        }
     }
 
     @Override
