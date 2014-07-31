@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.objecthunter.larch.security.helpers.LarchAuthenticationEntryPoint;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openid4java.util.HttpClientFactory;
 import org.openid4java.util.ProxyProperties;
@@ -60,7 +62,11 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         configureProxy();
-        http.logout().logoutSuccessUrl("/").and()
+        http
+                .exceptionHandling()
+                .authenticationEntryPoint(new LarchAuthenticationEntryPoint()).and()
+                .logout().logoutSuccessUrl("/")
+                .and()
                 .requestMatchers()
                 .antMatchers("/**")
                 .and()
@@ -152,4 +158,5 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
             return false;
         }
     }
+
 }
