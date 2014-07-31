@@ -250,8 +250,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void delete(@PathVariable("id") final String id) throws IOException {
-        this.entityService.delete(id);
+    public void delete(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
+            throws IOException {
+        this.entityService.delete(workspaceId, id);
         this.messagingService.publishDeleteEntity(id);
     }
 
