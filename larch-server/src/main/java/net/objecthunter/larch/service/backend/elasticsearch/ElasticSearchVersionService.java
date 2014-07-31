@@ -19,6 +19,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
     public static final String INDEX_VERSIONS = "versions";
 
     public static final String TYPE_VERSIONS = "version";
+
+    public static final String ENTITY_ID_FIELD = "entityId";
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchVersionService.class);
 
@@ -102,8 +105,10 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
                             .prepareSearch(INDEX_VERSIONS)
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                            FilterBuilders.termFilter("entityId", id))).setSize(1000)
-                            .addSort("versionNumber", SortOrder.DESC).execute().actionGet();
+                                            FilterBuilders.termFilter(ENTITY_ID_FIELD, id))).setSize(1000)
+                            .addSort(
+                                    SortBuilders.fieldSort("versionNumber").ignoreUnmapped(true)
+                                            .order(SortOrder.DESC)).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -118,6 +123,20 @@ public class ElasticSearchVersionService extends AbstractElasticSearchService im
         Entities entit = new Entities();
         entit.setEntities(entities);
         return entit;
+    }
+
+    @Override
+    public void deleteOldVersions(String id) throws IOException {
+        log.debug("deleting all old versions for entity " + id);
+        try {
+            client.prepareDeleteByQuery(INDEX_VERSIONS).setQuery(
+                    QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                            FilterBuilders
+                                    .termFilter(ENTITY_ID_FIELD, id))).execute().actionGet();
+            refreshIndex(INDEX_VERSIONS);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
 }

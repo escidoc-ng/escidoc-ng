@@ -13,9 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div>
-            <h2>Result for Search in published Entities</h2>
-        </div>
+        <div class="heading">Result for Search in published Entities</div>
         <div class="resultstats">
             <p th:text="'Search for &quot;' + ${result.term} + '&quot; yielded ' + ${result.totalHits} + ' records in ' + ${result.duration} + ' ms'"></p>
         </div>

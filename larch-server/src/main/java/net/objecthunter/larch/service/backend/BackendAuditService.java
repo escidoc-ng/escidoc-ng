@@ -17,9 +17,9 @@
 package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
-import java.util.List;
 
 import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 
 /**
  * Service definition for interactions of {@link net.objecthunter.larch.model.AuditRecord} objects
@@ -35,7 +35,7 @@ public interface BackendAuditService {
      * @return A list of AuditRecords for the given Entity
      * @throws IOException
      */
-    List<AuditRecord> retrieve(String entityId, int offset, int numRecords) throws IOException;
+    AuditRecords retrieve(String entityId, int offset, int numRecords) throws IOException;
 
     /**
      * Create a new {@link net.objecthunter.larch.model.AuditRecord} and store it in the repository
@@ -45,4 +45,12 @@ public interface BackendAuditService {
      * @throws IOException
      */
     String create(AuditRecord rec) throws IOException;
+
+    /**
+     * Delete all AuditRecords of the Entity with the given entityId
+     * 
+     * @param entityId The entityId
+     * @throws IOException
+     */
+    void deleteAll(String entityId) throws IOException;
 }

@@ -33,7 +33,11 @@ public class AuditRecord {
 
     public static final String EVENT_CREATE_METADATA = "Create metadata";
 
+    public static final String EVENT_CREATE_BINARY_METADATA = "Create metadata for binary";
+
     public static final String EVENT_DELETE_METADATA = "Delete metadata";
+
+    public static final String EVENT_DELETE_BINARY_METADATA = "Delete metadata for binary";
 
     public static final String EVENT_CREATE_RELATION = "Add relation";
 
@@ -46,6 +50,8 @@ public class AuditRecord {
     public static final String EVENT_UPDATE_RELATION = "Update relation";
 
     public static final String EVENT_UPDATE_METADATA = "Update metadata";
+
+    public static final String EVENT_UPDATE_BINARY_METADATA = "Update metadata for binary";
 
     public static final String EVENT_CREATE_IDENTIFIER = "Create identifier";
 

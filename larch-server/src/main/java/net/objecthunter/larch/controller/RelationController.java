@@ -18,7 +18,7 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.helpers.AuditRecords;
+import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -57,10 +57,11 @@ public class RelationController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
+    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
+            @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
         this.entityService.createRelation(workspaceId, id, predicate, object);
-        this.entityService.createAuditRecord(AuditRecords.createRelationRecord(id));
+        this.entityService.createAuditRecord(AuditRecordHelper.createRelationRecord(id));
         this.messagingService.publishCreateRelation(id, predicate, object);
     }
 
@@ -77,7 +78,8 @@ public class RelationController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
+    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
         this.entityService.createRelation(workspaceId, id, predicate, object);
         this.messagingService.publishCreateRelation(id, predicate, object);

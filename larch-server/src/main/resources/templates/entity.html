@@ -13,8 +13,16 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
+        <div class="heading">Entity</div>
         <div class="panel">
-            <p class="panel_title" th:text="${entity.id}"></p>
+            <p class="panel_title" th:text="${entity.id}" />
+            <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
+                <form th:if="${entity.state != 'published'}" enctype="multipart/form-data" method="post"
+                      th:action="@{/entity/} + ${entity.id} + '/publish'">
+                    <input class="button_small" type="submit" value="Publish"/>
+                </form>
+                <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
+            <p th:if="${entity.state != 'published'}" class="panel_title" />
 
             <p class="property">Label</p>
 
@@ -30,7 +38,10 @@
 
             <p class="property">Parent</p>
 
-            <p class="value" th:text="${entity.parentId} ? ${entity.parentId} : 'None'"></p>
+            <p class="value" th:if="${entity.parentId} ? ${entity.parentId} : 'None'">
+                <a th:text="${entity.parentId}" th:href="@{/entity/} + ${entity.parentId}"></a>
+            </p>
+            <p class="value" th:if="!${entity.parentId}" th:text="'None'" />
 
             <p class="property">Tags</p>
 
@@ -62,6 +73,10 @@
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
+
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Type</p>
 
@@ -105,6 +120,10 @@
         <div class="panel clickable" th:each="bin : ${entity.binaries}">
             <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
 
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <p class="panel_title" />
+
             <p class="property">Mime type</p>
 
             <p class="value" th:text="${bin.value.mimetype}"></p>
@@ -131,6 +150,7 @@
 
             <p class="property">Binary</p>
             <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+
         </div>
         <div class="panel" th:if="${entity.relations != null}">
             <p class="panel_title">Relations</p>
@@ -192,9 +212,6 @@
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <!-- form th:action="@{/entity/} + ${entity.id} + '/binary' + '?_csrf=' + ${_csrf.token}"
-                      method="post"
-                      enctype="multipart/form-data" -->
                 <form th:action="@{/entity/} + ${entity.id} + '/binary'"
                       method="post"
                       enctype="multipart/form-data">
@@ -269,16 +286,6 @@
                     <input id="relObject" type="text" name="object"
                            title="Set the objet of the relation"/>
                     <input class="button" type="submit" value="Create relation"/>
-                </form>
-            </div>
-            <div class="panel">
-                <p class="panel_title">Publish entity</p>
-
-                <!-- form enctype="multipart/form-data" method="post"
-                      th:action="@{/entity/} + ${entity.id} + '/publish' + '?_csrf=' + ${_csrf.token}" -->
-                <form enctype="multipart/form-data" method="post"
-                      th:action="@{/entity/} + ${entity.id} + '/publish'">
-                    <input class="button" type="submit" value="publish"/>
                 </form>
             </div>
         </div>

@@ -13,9 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div>
-            <h2>Published Versions of one Entity</h2>
-        </div>
+        <div class="heading">Published Versions of one Entity</div>
         <a th:each="entity : ${entities.entities}"
            th:href="@{/entity/published/} + ${entity.publishId}">
             <div class="panel clickable">
