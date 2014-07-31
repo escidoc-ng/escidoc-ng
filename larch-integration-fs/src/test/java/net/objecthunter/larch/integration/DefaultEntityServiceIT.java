@@ -124,13 +124,13 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         for (int i = 0; i < 5; i++) {
             Entity child = createFixtureEntity();
             child.setParentId(id);
-            String newId = entityService.create(child);
+            String newId = entityService.create(Workspace.DEFAULT, child);
             if (id == null) {
                 parentId = newId;
             }
             id = newId;
             ids.add(newId);
-            child = entityService.retrieve(newId);
+            child = entityService.retrieve(Workspace.DEFAULT, newId);
             for (Binary binary : child.getBinaries().values()) {
                 binaryPaths.add(binary.getPath());
             }
@@ -143,17 +143,17 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         }
 
         // delete parent
-        entityService.delete(parentId);
+        entityService.delete(Workspace.DEFAULT, parentId);
 
         // Check Audit-Records
         for (String checkId : ids) {
-            AuditRecords auditRecords = entityService.retrieveAuditRecords(checkId, 0, 100);
+            AuditRecords auditRecords = entityService.retrieveAuditRecords(Workspace.DEFAULT, checkId, 0, 100);
             assertNotNull(auditRecords);
             assertEquals(0, auditRecords.getAuditRecords().size());
         }
         // Check Versions
         for (String checkId : ids) {
-            Entities entities = entityService.getOldVersions(checkId);
+            Entities entities = entityService.getOldVersions(Workspace.DEFAULT, checkId);
             assertNotNull(entities);
             assertEquals(0, entities.getEntities().size());
         }
@@ -169,7 +169,7 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         // Check Entities
         for (String checkId : ids) {
             try {
-                entityService.retrieve(checkId);
+                entityService.retrieve(Workspace.DEFAULT, checkId);
             } catch (NotFoundException e) {
                 continue;
             }
@@ -183,10 +183,10 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
         List<String> binaryPaths = new ArrayList<String>();
         // create entity
         Entity entity = createFixtureEntity();
-        String newId = entityService.create(entity);
+        String newId = entityService.create(Workspace.DEFAULT, entity);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getBinaries());
         assertEquals(2, entity.getBinaries().size());
         for (Binary binary : entity.getBinaries().values()) {
@@ -196,20 +196,20 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
 
         // delete binary
         assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
-        entityService.deleteBinary(newId, name);
+        entityService.deleteBinary(Workspace.DEFAULT, newId, name);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getBinaries());
         assertEquals(1, entity.getBinaries().size());
         name = entity.getBinaries().keySet().iterator().next();
 
         // delete binary
         assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
-        entityService.deleteBinary(newId, name);
+        entityService.deleteBinary(Workspace.DEFAULT, newId, name);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getBinaries());
         assertEquals(0, entity.getBinaries().size());
 
@@ -228,19 +228,19 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
     public void testDeleteMetadata() throws Exception {
         // create entity
         Entity entity = createFixtureEntity();
-        String newId = entityService.create(entity);
+        String newId = entityService.create(Workspace.DEFAULT, entity);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getMetadata());
         assertEquals(1, entity.getMetadata().size());
         String name = entity.getMetadata().keySet().iterator().next();
 
         // delete metadata
-        entityService.deleteMetadata(newId, name);
+        entityService.deleteMetadata(Workspace.DEFAULT, newId, name);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getMetadata());
         assertEquals(0, entity.getMetadata().size());
     }
@@ -249,10 +249,10 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
     public void testDeleteBinaryMetadata() throws Exception {
         // create entity
         Entity entity = createFixtureEntity();
-        String newId = entityService.create(entity);
+        String newId = entityService.create(Workspace.DEFAULT, entity);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getBinaries());
         assertEquals(2, entity.getBinaries().size());
         String name = entity.getBinaries().keySet().iterator().next();
@@ -262,10 +262,10 @@ public class DefaultEntityServiceIT extends AbstractLarchIT {
 
         // delete binary metadata
         assertNotNull(entityService.retrieveBinary(entity.getBinaries().get(name).getPath()));
-        entityService.deleteBinaryMetadata(newId, name, mdName);
+        entityService.deleteBinaryMetadata(Workspace.DEFAULT, newId, name, mdName);
 
         // retrieve entity
-        entity = entityService.retrieve(newId);
+        entity = entityService.retrieve(Workspace.DEFAULT, newId);
         assertNotNull(entity.getBinaries().get(name).getMetadata());
         assertEquals(0, entity.getBinaries().get(name).getMetadata().size());
     }

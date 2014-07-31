@@ -291,7 +291,7 @@ public class EntityControllerIT extends AbstractLarchIT {
             child.setParentId(id);
             HttpResponse resp =
                     this.execute(
-                            Request.Post("http://localhost:8080/entity")
+                            Request.Post(entityUrl)
                                     .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON))
                             .returnResponse();
             assertEquals(201, resp.getStatusLine().getStatusCode());
@@ -305,7 +305,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // delete parent
         HttpResponse resp =
                 this.execute(
-                        Request.Delete("http://localhost:8080/entity/" + parentId))
+                        Request.Delete(entityUrl + parentId))
                         .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
@@ -313,7 +313,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         for (String checkId : ids) {
             resp =
                     this.execute(
-                            Request.Get("http://localhost:8080/entity/" + checkId + "/audit"))
+                            Request.Get(entityUrl + checkId + "/audit"))
                             .returnResponse();
             AuditRecords fetched = mapper.readValue(resp.getEntity().getContent(), AuditRecords.class);
             assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -324,7 +324,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         for (String checkId : ids) {
             resp =
                     this.execute(
-                            Request.Get("http://localhost:8080/entity/" + checkId))
+                            Request.Get(entityUrl + checkId))
                             .returnResponse();
             assertEquals(404, resp.getStatusLine().getStatusCode());
         }
@@ -335,7 +335,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // create entity
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -343,7 +343,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         final String newId = EntityUtils.toString(resp.getEntity());
 
         // retrieve entity
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getMetadata());
         assertEquals(1, fetched.getMetadata().size());
@@ -351,12 +351,12 @@ public class EntityControllerIT extends AbstractLarchIT {
 
         // delete metadata
         resp =
-                this.execute(Request.Delete("http://localhost:8080/entity/" + newId + "/metadata/" + name))
+                this.execute(Request.Delete(entityUrl + newId + "/metadata/" + name))
                         .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve entity
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getMetadata());
         assertEquals(0, fetched.getMetadata().size());
@@ -367,7 +367,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // create entity
         HttpResponse resp =
                 this.execute(
-                        Request.Post("http://localhost:8080/entity")
+                        Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createFixtureEntity()),
                                         ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -375,7 +375,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         final String newId = EntityUtils.toString(resp.getEntity());
 
         // retrieve entity
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries());
         assertEquals(2, fetched.getBinaries().size());
@@ -387,13 +387,13 @@ public class EntityControllerIT extends AbstractLarchIT {
         // delete binary metadata
         resp =
                 this.execute(
-                        Request.Delete("http://localhost:8080/entity/" + newId + "/binary/" + name + "/metadata/" +
+                        Request.Delete(entityUrl + newId + "/binary/" + name + "/metadata/" +
                                 mdName))
                         .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve entity
-        resp = this.execute(Request.Get("http://localhost:8080/entity/" + newId)).returnResponse();
+        resp = this.execute(Request.Get(entityUrl + newId)).returnResponse();
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries().get(name).getMetadata());
         assertEquals(0, fetched.getBinaries().get(name).getMetadata().size());
