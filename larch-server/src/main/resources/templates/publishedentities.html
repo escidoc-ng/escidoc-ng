@@ -15,7 +15,7 @@
         </div>
         <div class="heading">Published Versions of one Entity</div>
         <a th:each="entity : ${entities.entities}"
-           th:href="@{/entity/published/} + ${entity.publishId}">
+           th:href="@{/workspace/} + ${entity.workspaceId} + '/published/' + ${entity.publishId}">
             <div class="panel clickable">
                 <p class="panel_title" th:text="${entity.publishId}"></p>
 

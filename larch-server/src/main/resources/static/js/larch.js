@@ -35,7 +35,7 @@ function createEntity(id, workspaceId, type, label, tags, parentId) {
         dataType: "text",
         contentType: "application/json; charset=utf-8",
         success: function(createdId){
-            document.location.href = ctx + 'workspace' + workspaceId + '/entity/' + createdId;
+            document.location.href = ctx + '/workspace/' + workspaceId + '/entity/' + createdId;
         },
         error : function(request, msg, error) {
             throwError(request);
@@ -89,7 +89,7 @@ function deleteUser(name) {
     });
 }
 
-function deleteEntity(id) {
+function deleteEntity(workspaceId, id) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -97,7 +97,7 @@ function deleteEntity(id) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/entity/" + id,
+	        url: ctx + "/workspace/" + workspaceId + "/entity/" + id,
 	        type: "DELETE",
 	        success: function(createdId){
 	        	if (ctx != '') {
@@ -112,7 +112,7 @@ function deleteEntity(id) {
 	    });
 	}
 
-function deleteBinary(entityId, name) {
+function deleteBinary(workspaceId, entityId, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -120,10 +120,10 @@ function deleteBinary(entityId, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/entity/" + entityId + "/binary/" + name,
+	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/entity/" + entityId;
+		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -131,7 +131,7 @@ function deleteBinary(entityId, name) {
 	    });
 	}
 
-function deleteMetadata(entityId, name) {
+function deleteMetadata(workspaceId, entityId, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -139,10 +139,10 @@ function deleteMetadata(entityId, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/entity/" + entityId + "/metadata/" + name,
+	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/metadata/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/entity/" + entityId;
+		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -150,7 +150,7 @@ function deleteMetadata(entityId, name) {
 	    });
 	}
 
-function deleteBinaryMetadata(entityId, binaryName, name) {
+function deleteBinaryMetadata(workspaceId, entityId, binaryName, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -158,10 +158,10 @@ function deleteBinaryMetadata(entityId, binaryName, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + name,
+	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/entity/" + entityId + "/binary/" + binaryName;
+		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + binaryName;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -211,7 +211,7 @@ function stopEdit(td, name) {
 
 function patchEntity() {
     $.ajax({
-        url : ctx + "/entity/" + $('#entityId').html(),
+        url : ctx + "/workspace/" + $('#workspaceId').html() + "/entity/" + $('#entityId').html(),
         type : "PATCH",
         data : JSON.stringify(patch),
         contentType : "application/json",

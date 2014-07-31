@@ -17,6 +17,7 @@
 package net.objecthunter.larch.service;
 
 import java.io.IOException;
+import java.util.List;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
@@ -26,7 +27,7 @@ import net.objecthunter.larch.model.security.User;
 public interface AuthorizationService {
 
     boolean hasPermission(User user, Workspace ws,
-                          WorkspacePermissions.Permission... permissionsToCheck) throws IOException;
+            WorkspacePermissions.Permission... permissionsToCheck) throws IOException;
 
     boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
             throws IOException;
@@ -42,4 +43,6 @@ public interface AuthorizationService {
     WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e);
 
     WorkspacePermissions.Permission metadataWritePermissions(Entity e);
+
+    List<Workspace> retrieveUserWorkspaces() throws IOException;
 }

@@ -50,17 +50,17 @@
 
             <p class="value" th:text="${entity.utcLastModified}"></p>
             <a sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" th:text="'Audit record'"
-               th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
+               th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/audit'"></a>
 
             <p/>
             <a sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" th:text="'Versions'"
-               th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
+               th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/versions'"></a>
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
@@ -84,11 +84,11 @@
             <p class="value" th:text="${md.value.utcLastModified}"></p>
 
             <p class="property">Validation</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
+            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
                th:text="'Validate'"></a>
 
             <p class="property">Content</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
+            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
@@ -126,11 +126,11 @@
             <p class="value" th:text="${bin.value.utcLastModified}"></p>
 
             <p class="property">Content</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
+            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
                th:text="'Download'"></a>
 
             <p class="property">Binary</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
         </div>
         <div class="panel" th:if="${entity.relations != null}">
             <p class="panel_title">Relations</p>
@@ -156,7 +156,7 @@
             <p class="panel_title">Children</p>
 
             <p th:each="child: ${entity.children}" class="value"><a
-                    th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
+                    th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${child}" th:text="${child}"></a></p>
         </div>
     </div>
 </div>

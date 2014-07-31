@@ -166,13 +166,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         try {
             do {
                 search = client.prepareSearch(INDEX_ENTITIES)
-                                .setTypes(INDEX_ENTITY_TYPE)
-                                .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                        FilterBuilders.termFilter("parentId", id)))
-                                .setFrom(offset)
-                                .setSize(max)
-                                .execute()
-                                .actionGet();
+                        .setTypes(INDEX_ENTITY_TYPE)
+                        .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                                FilterBuilders.termFilter("parentId", id)))
+                        .setFrom(offset)
+                        .setSize(max)
+                        .execute()
+                        .actionGet();
                 if (search.getHits().getHits().length > 0) {
                     for (SearchHit hit : search.getHits().getHits()) {
                         children.add(hit.getId());
@@ -196,7 +196,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         final Entity e = this.mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(), this.authorizationService.metadataWritePermissions(e));
+        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(), this.authorizationService
+                .metadataWritePermissions(e));
         try {
             client.prepareDelete(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
             refreshIndex(INDEX_ENTITIES);
@@ -251,7 +252,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
                                     QueryBuilders.matchAllQuery())
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "label", "type", "tags", "state").execute().actionGet();
+                            .addFields("id", "workspaceId", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -269,11 +270,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final List<Entity> entites = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
+            e.setWorkspaceId(workspaceId);
             e.setLabel(label);
             e.setType(type);
             e.setState(state);
@@ -318,7 +321,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
             resp =
                     this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "label",
+                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "workspaceId",
+                                    "label",
                                     "type",
                                     "tags")
                             .setQuery(queryBuilder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).execute()
@@ -332,10 +336,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
+            String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
+            e.setWorkspaceId(workspaceId);
             e.setType(type);
             e.setLabel(label);
 
@@ -376,7 +382,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             resp =
                     this.client
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                            QueryBuilders.matchQuery("workspaceId", workspaceId))
+                                    QueryBuilders.matchQuery("workspaceId", workspaceId))
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
                             .addFields("id", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
@@ -401,6 +407,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
+            e.setWorkspaceId(workspaceId);
             e.setLabel(label);
             e.setType(type);
             e.setState(state);

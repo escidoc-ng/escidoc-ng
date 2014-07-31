@@ -160,7 +160,8 @@ public class BinaryController extends AbstractLarchController {
      *         view
      * @throws IOException
      */
-    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.GET,
+            produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
@@ -168,6 +169,7 @@ public class BinaryController extends AbstractLarchController {
             @PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("binary", this.retrieve(workspaceId, entityId, name));
+        model.addAttribute("workspaceId", workspaceId);
         model.addAttribute("entityId", entityId);
         model.addAttribute("metadataTypes", schemaService.getSchemaTypes());
         return new ModelAndView("binary", model);

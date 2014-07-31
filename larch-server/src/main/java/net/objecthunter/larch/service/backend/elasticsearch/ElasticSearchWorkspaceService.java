@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
 public class ElasticSearchWorkspaceService extends AbstractElasticSearchService implements BackendWorkspaceService {
 
     public static final String INDEX_WORKSPACES = "workspaces";
@@ -101,7 +100,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         if (!get.isExists()) {
             throw new FileNotFoundException("The workspace with id '" + id + "' does not exist");
         }
-        final Workspace ws =this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        final Workspace ws = this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
         authorizationService.checkCurrentUserPermission(ws, WorkspacePermissions.Permission.READ_WORKSPACE);
         return ws;
     }
@@ -116,7 +115,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
             throw new FileNotFoundException("The workspace with id '" + workspace.getId() + "' does not exist");
         }
 
-        final Workspace ws =this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
+        final Workspace ws = this.mapper.readValue(get.getSourceAsBytes(), Workspace.class);
         authorizationService.checkCurrentUserPermission(ws, WorkspacePermissions.Permission.WRITE_WORKSPACE);
 
         final IndexResponse index =
@@ -155,7 +154,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
     }
 
     @Override
-    public List<Workspace> scanIndex(final String owner, final int offset, int numRecords) throws IOException{
+    public List<Workspace> scanIndex(final String owner, final int offset, int numRecords) throws IOException {
         if (numRecords < 1) {
             numRecords = maxRecords;
         }
@@ -164,19 +163,19 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         final SearchResponse resp;
         final QueryBuilder query;
         if (owner == null) {
-          query = QueryBuilders.matchAllQuery();
+            query = QueryBuilders.matchAllQuery();
         } else {
             query = QueryBuilders.matchQuery("owner", owner);
         }
         try {
             resp = this.client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
-                            .setQuery(query)
-                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                            .setFrom(offset)
-                            .setSize(numRecords)
-                            .addFields("_source")
-                            .execute()
-                            .actionGet();
+                    .setQuery(query)
+                    .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                    .setFrom(offset)
+                    .setSize(numRecords)
+                    .addFields("_source")
+                    .execute()
+                    .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -188,4 +187,5 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         }
         return workspaces;
     }
+
 }

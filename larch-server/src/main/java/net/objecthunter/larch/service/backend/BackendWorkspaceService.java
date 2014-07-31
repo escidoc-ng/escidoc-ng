@@ -32,4 +32,5 @@ public interface BackendWorkspaceService {
     void patchWorkSpace(Workspace workspace) throws IOException;
 
     List<Workspace> scanIndex(String owner, int offset, int numRecords) throws IOException;
+
 }

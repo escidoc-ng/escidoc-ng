@@ -18,7 +18,7 @@
             <p class="panel_title" th:text="${binary.name}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entityId} + '\', \'' + ${binary.name} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${workspaceId} + '\', \'' + ${entityId} + '\', \'' + ${binary.name} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Size</p>
@@ -57,7 +57,7 @@
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinaryMetadata(\'' + ${entityId} + '\', \'' + ${binary.name} + '\', \'' + ${md.key} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinaryMetadata(\'' + ${workspaceId} + '\', \'' + ${entityId} + '\', \'' + ${binary.name} + '\', \'' + ${md.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
