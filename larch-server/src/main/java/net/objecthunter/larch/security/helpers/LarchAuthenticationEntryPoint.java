@@ -26,9 +26,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 /**
- * @author mih 
- * 
- * Decide if error-response as JSON or redirect to login-page is sent.
+ * @author mih Decide if error-response as JSON or redirect to login-page is sent.
  */
 public class LarchAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
@@ -36,7 +34,7 @@ public class LarchAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {
         if (request.getHeader("Accept") != null && request.getHeader("Accept").contains("html")) {
-            response.sendRedirect("/login-page");
+            response.sendRedirect(request.getContextPath() + "/login-page");
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
         }
