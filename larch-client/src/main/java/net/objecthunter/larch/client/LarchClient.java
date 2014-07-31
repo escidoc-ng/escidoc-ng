@@ -382,6 +382,7 @@ public class LarchClient {
                 .useExpectContinue()
                 .addHeader("Accept", "application/json"))
                 .returnResponse();
+        System.out.println(EntityUtils.toString(resp.getEntity()));
         return mapper.readValue(resp.getEntity().getContent(), Entity.class);
     }
 

@@ -46,21 +46,24 @@ public class BenchToolRunner {
 
     private final URI larchUri;
 
+    private final String workspaceId;
+
     public BenchToolRunner(BenchTool.Action action, URI larchUri, String user, String password, int numActions,
-            int numThreads, long size) {
+            int numThreads, long size, String workspaceId) {
         this.size = size;
         this.numActions = numActions;
         this.action = action;
         this.larchUri = larchUri;
         this.larchClient = new LarchClient(larchUri, user, password);
         this.executor = Executors.newFixedThreadPool(numThreads);
+        this.workspaceId = workspaceId;
     }
 
     public List<BenchToolResult> run() throws IOException {
         final List<Future<BenchToolResult>> futures = new ArrayList<>();
         for (int i = 0; i < numActions; i++) {
             futures.add(executor.submit(new ActionWorker(this.action, this.size, this.larchClient, this.larchUri
-                    .toASCIIString())));
+                    .toASCIIString(), workspaceId)));
         }
 
         try {

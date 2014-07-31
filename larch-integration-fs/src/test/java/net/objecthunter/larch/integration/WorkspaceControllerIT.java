@@ -44,7 +44,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
         ws.setId(RandomStringUtils.randomAlphanumeric(16));
         ws.setOwner("foo");
         ws.setName("bar");
-        HttpResponse resp = Request.Post(workspaceUrl)
+        HttpResponse resp = Request.Post(hostUrl + "/workspace")
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()
                 .returnResponse();
@@ -59,9 +59,10 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
                 .returnResponse();
         assertEquals(200, resp.getStatusLine().getStatusCode());
         final Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
-        assertEquals(ws, fetched);
+        assertEquals(ws.getId(), fetched.getId());
+        assertEquals(ws.getName(), fetched.getName());
         assertTrue(ws.getPermissions().hasPermissions("admin", WorkspacePermissions.Permission.READ_PENDING_BINARY));
-        assertEquals(16, ws.getPermissions().getPermissions("admin").size());
+        assertEquals(18, ws.getPermissions().getPermissions("admin").size());
     }
 
     @Test

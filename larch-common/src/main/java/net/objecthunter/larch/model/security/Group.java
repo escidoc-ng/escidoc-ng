@@ -57,4 +57,12 @@ public class Group {
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
     }
+
+    public static final Group ADMINS = new Group();
+    public static final Group USERS = new Group();
+
+    static {
+        ADMINS.setName("ROLE_ADMIN");
+        USERS.setName("ROLE_USER");
+    }
 }

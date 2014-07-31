@@ -17,6 +17,12 @@
             <artifactId>larch-server</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.objecthunter.larch</groupId>
+            <artifactId>larch-server</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>

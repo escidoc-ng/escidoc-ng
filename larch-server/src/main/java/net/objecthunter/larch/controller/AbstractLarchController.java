@@ -40,7 +40,12 @@ public abstract class AbstractLarchController {
     }
 
     protected User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final Object o = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (o instanceof User) {
+            return (User) o;
+        } else {
+            return null;
+        }
     }
 
     /**

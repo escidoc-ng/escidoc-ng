@@ -34,8 +34,9 @@ import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendPublishService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
-import net.objecthunter.larch.test.util.Fixtures;
+import static net.objecthunter.larch.test.util.Fixtures.*;
 
+import net.objecthunter.larch.test.util.Fixtures;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -80,7 +81,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.create(e)).andReturn(e.getId());
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.create(Workspace.DEFAULT, e);
+        this.entityService.create(    WORKSPACE_ID, e);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -90,10 +91,10 @@ public class DefaultEntityServiceTest {
 
         mockEntitiesService.update(e);
         expectLastCall();
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.update(Workspace.DEFAULT, e);
+        this.entityService.update(    WORKSPACE_ID, e);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -101,10 +102,10 @@ public class DefaultEntityServiceTest {
     public void testRetrieve() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(Workspace.DEFAULT, e.getId());
+        this.entityService.retrieve(    WORKSPACE_ID, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -113,11 +114,11 @@ public class DefaultEntityServiceTest {
         Entity e = Fixtures.createEntity();
         Binary b = Fixtures.createBinary();
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
         expect(mockBlobstoreService.retrieve(b.getPath())).andReturn(new ByteArrayInputStream(new byte[3]));
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.getContent(Workspace.DEFAULT, e.getId(), "BINARY-1");
+        this.entityService.getContent(    WORKSPACE_ID, e.getId(), "BINARY-1");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -125,10 +126,10 @@ public class DefaultEntityServiceTest {
     public void testRetrieve1() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(Workspace.DEFAULT, e.getId());
+        this.entityService.retrieve(    WORKSPACE_ID, e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -138,13 +139,13 @@ public class DefaultEntityServiceTest {
         Binary b = Fixtures.createBinary();
         b.setName("BINARY_CREATE");
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
         expect(mockBlobstoreService.create(anyObject(InputStream.class))).andReturn("/path/to/bin");
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createBinary(Workspace.DEFAULT, e.getId(), b.getName(), "application/octet-stream",
+        this.entityService.createBinary(    WORKSPACE_ID, e.getId(), b.getName(), "application/octet-stream",
                 new ByteArrayInputStream(
                         new byte[3]));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
@@ -154,12 +155,12 @@ public class DefaultEntityServiceTest {
     public void testPatch() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e).times(2);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e).times(2);
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.patch(Workspace.DEFAULT, e.getId(), new ObjectMapper()
+        this.entityService.patch(    WORKSPACE_ID, e.getId(), new ObjectMapper()
                 .readTree("{\"label\": \"label update\"}"));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
@@ -169,12 +170,12 @@ public class DefaultEntityServiceTest {
     public void testCreateRelation() throws Exception {
         Entity e = Fixtures.createEntity();
 
-        expect(mockEntitiesService.retrieve(Workspace.DEFAULT, e.getId())).andReturn(e);
+        expect(mockEntitiesService.retrieve(    WORKSPACE_ID, e.getId())).andReturn(e);
         mockEntitiesService.update(e);
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createRelation(Workspace.DEFAULT, e.getId(), "<http://example.com/hasType>", "test");
+        this.entityService.createRelation(    WORKSPACE_ID, e.getId(), "<http://example.com/hasType>", "test");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
     }

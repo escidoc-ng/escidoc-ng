@@ -138,7 +138,7 @@ public class ElasticSearchIndexServiceTest {
         WorkspacePermissions.Permission[] permissions = new WorkspacePermissions.Permission[] { WorkspacePermissions.Permission.READ_PENDING_METADATA,
                 WorkspacePermissions.Permission.WRITE_PENDING_METADATA };
         expect(mockAuthorizationService.metadataReadWritePermissions(anyObject(Entity.class))).andReturn(permissions);
-        mockAuthorizationService.checkCurrentUserPermission("default", permissions);
+        mockAuthorizationService.checkCurrentUserPermission(anyObject(String.class), anyObject(WorkspacePermissions.Permission.class), anyObject(WorkspacePermissions.Permission.class));
         expectLastCall();
 
         /* indexing */
@@ -206,7 +206,7 @@ public class ElasticSearchIndexServiceTest {
         replay(mockClient, mockAuthorizationService, mockHits, mockSearchRequestBuilder, mockSearchResponse,
                 mockGetResponse,
                 mockGetRequestBuilder, mockFuture);
-        this.indexService.retrieve(Workspace.DEFAULT, e.getId());
+        this.indexService.retrieve(Fixtures.WORKSPACE_ID, e.getId());
         verify(mockClient, mockHits, mockSearchRequestBuilder, mockSearchResponse, mockGetRequestBuilder,
                 mockGetResponse, mockFuture);
     }

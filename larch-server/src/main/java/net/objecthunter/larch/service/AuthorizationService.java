@@ -21,11 +21,12 @@ import java.io.IOException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.model.security.User;
 
 public interface AuthorizationService {
 
-    boolean hasPermission(String username, Workspace ws,
-            WorkspacePermissions.Permission... permissionsToCheck) throws IOException;
+    boolean hasPermission(User user, Workspace ws,
+                          WorkspacePermissions.Permission... permissionsToCheck) throws IOException;
 
     boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
             throws IOException;

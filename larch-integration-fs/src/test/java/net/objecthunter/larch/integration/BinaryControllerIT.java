@@ -19,20 +19,21 @@ package net.objecthunter.larch.integration;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
 import net.objecthunter.larch.model.Entity;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class BinaryControllerIT extends AbstractLarchIT {
-
-    private static final String entityUrl = "http://localhost:8080/entity/";
 
     @Autowired
     private ObjectMapper mapper;

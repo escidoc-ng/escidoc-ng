@@ -136,9 +136,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             long count = client.prepareCount(INDEX_GROUPS).execute().actionGet().getCount();
             if (count == 0) {
                 // create default groups
-                final Group[] groups = new Group[] { new Group(), new Group() };
-                groups[0].setName("ROLE_ADMIN");
-                groups[1].setName("ROLE_USER");
+                final Group[] groups = new Group[] { Group.ADMINS, Group.USERS };
                 for (final Group g : groups) {
                     client
                             .prepareIndex(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).setSource(

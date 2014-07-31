@@ -43,11 +43,14 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String larchUri) {
+    private final String workspaceId;
+
+    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String larchUri, String workspaceId) {
         this.action = action;
         this.size = size;
         this.larchClient = larchClient;
         this.larchUri = larchUri;
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -69,29 +72,29 @@ public class ActionWorker implements Callable<BenchToolResult> {
     private BenchToolResult doDelete() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
+        final String entityId = this.larchClient.postEntity(workspaceId, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
+        this.larchClient.postBinary(workspaceId, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
 
         /* measure the deletion duration */
         long time = System.currentTimeMillis();
-        this.larchClient.deleteEntity(Workspace.DEFAULT, entityId);
+        this.larchClient.deleteEntity(workspaceId, entityId);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
     private BenchToolResult doUpdate() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
+        final String entityId = this.larchClient.postEntity(workspaceId, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
+        this.larchClient.postBinary(workspaceId, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
@@ -100,7 +103,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
         e.setLabel("updated label");
         e.setId(entityId);
         long time = System.currentTimeMillis();
-        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
+        this.larchClient.postBinary(workspaceId, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
@@ -110,18 +113,18 @@ public class ActionWorker implements Callable<BenchToolResult> {
     private BenchToolResult doRetrieve() throws IOException {
         /* create an entity */
         final Entity e = BenchToolEntities.createRandomEmptyEntity();
-        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
+        final String entityId = this.larchClient.postEntity(workspaceId, e);
 
         /* add a binary */
         final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
+        this.larchClient.postBinary(workspaceId, entityId,
                 binaryName,
                 "application/octet-stream",
                 new RandomInputStream(size));
 
         /* measure the retrieval duration */
         long time = System.currentTimeMillis();
-        this.larchClient.retrieveBinaryContent(Workspace.DEFAULT, entityId, binaryName);
+        this.larchClient.retrieveBinaryContent(workspaceId, entityId, binaryName);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
@@ -130,10 +133,10 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
         long time = System.currentTimeMillis();
         /* create an entity */
-        final String entityId = this.larchClient.postEntity(Workspace.DEFAULT, e);
+        final String entityId = this.larchClient.postEntity(workspaceId, e);
 
         /* add a binary */
-        this.larchClient.postBinary(Workspace.DEFAULT, entityId,
+        this.larchClient.postBinary(workspaceId, entityId,
                 RandomStringUtils.randomAlphabetic(16),
                 "application/octet-stream",
                 new RandomInputStream(size));

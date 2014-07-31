@@ -31,6 +31,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
 
+    public static final String WORKSPACE_ID = "ws-" + RandomStringUtils.randomAlphabetic(16);
+
     public static User createUser() {
         User u = new User();
         u.setGroups(Arrays.asList(createGroup()));
@@ -69,7 +71,7 @@ public abstract class Fixtures {
         e.setMetadata(createMetadataMap());
         e.setBinaries(createBinaryMap());
         e.setRelations(createRelations());
-        e.setWorkspaceId(Workspace.DEFAULT);
+        e.setWorkspaceId(WORKSPACE_ID);
         return e;
     }
 
@@ -149,7 +151,7 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
-        e.setWorkspaceId(Workspace.DEFAULT);
+        e.setWorkspaceId(WORKSPACE_ID);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Book");
@@ -187,7 +189,7 @@ public abstract class Fixtures {
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Image");
         e.setBinaries(binaries);
-        e.setWorkspaceId(Workspace.DEFAULT);
+        e.setWorkspaceId(WORKSPACE_ID);
         return e;
     }
 
@@ -196,14 +198,14 @@ public abstract class Fixtures {
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setType("Image");
-        e.setWorkspaceId(Workspace.DEFAULT);
+        e.setWorkspaceId(WORKSPACE_ID);
         return e;
     }
 
     public static Entity createFixtureCollectionEntity() throws Exception {
         Entity e = createSimpleFixtureEntity();
         e.setType("Collection");
-        e.setWorkspaceId(Workspace.DEFAULT);
+        e.setWorkspaceId(WORKSPACE_ID);
         return e;
     }
 

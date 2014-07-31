@@ -25,6 +25,7 @@ import java.util.Map;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
@@ -47,8 +48,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private ObjectMapper mapper;
 
     @Override
-    public boolean hasPermission(String username, Workspace ws,
+    public boolean hasPermission(User user, Workspace ws,
                                  WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
+        if (user.getGroups().contains(Group.ADMINS)) {
+            return true;
+        }
         final WorkspacePermissions wsp = ws.getPermissions();
         if (wsp == null) {
             return false;
@@ -57,7 +61,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         if (permissionMap == null) {
             return false;
         }
-        final EnumSet<WorkspacePermissions.Permission> currentPermissions = permissionMap.get(username);
+        final EnumSet<WorkspacePermissions.Permission> currentPermissions = permissionMap.get(user.getName());
         if (currentPermissions == null) {
             return false;
         }
@@ -66,12 +70,16 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Override
     public boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
-        return hasPermission(this.getCurrentUsername(), ws, permissionsToCheck);
+        return hasPermission(this.getCurrentUser(),  ws, permissionsToCheck);
     }
 
     @Override
     public void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
-        if (!hasPermission(this.getCurrentUsername(), ws, permissionsToCheck)) {
+        final User u = this.getCurrentUser();
+        if (u.getGroups().contains(Group.ADMINS)) {
+            return;
+        }
+        if (!hasPermission(u, ws, permissionsToCheck)) {
             throw new IOException("Access denied");
         }
     }
@@ -117,7 +125,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    public String getCurrentUsername() {
-        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getName();
+    public User getCurrentUser() {
+        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 }

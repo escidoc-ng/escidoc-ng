@@ -14,6 +14,7 @@
  * limitations under the License. 
  */
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -26,8 +27,13 @@ import net.objecthunter.larch.bench.BenchToolRunner;
 import net.objecthunter.larch.bench.ResultFormatter;
 
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Workspace;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.client.fluent.Response;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +51,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static net.objecthunter.larch.test.util.Fixtures.*;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
 @IntegrationTest
@@ -54,8 +62,18 @@ public class PerformanceIT {
 
     private static final Logger log = LoggerFactory.getLogger(PerformanceIT.class);
 
+    protected static final int port =8080;
+
+    protected static final String hostUrl = "http://localhost:" + port + "/";
+
+    private HttpHost localhost = new HttpHost("localhost", 8080, "http");
+
+    private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
+
     @Autowired
     private Environment env;
+
+    private boolean wsCreated = false;
 
     @PostConstruct
     public void waitForWeedFs() throws Exception {
@@ -86,6 +104,21 @@ public class PerformanceIT {
         if (!weedfsReady) {
             throw new Exception("WeedFS not ready after " + count * 150 + " ms");
         }
+        if (!wsCreated) {
+            // create default workspace
+            Workspace ws = new Workspace();
+            ws.setId(WORKSPACE_ID);
+            ws.setName("Test Workspace");
+            Request r = Request.Post(hostUrl + "workspace")
+                    .bodyString(mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON);
+            HttpResponse resp = this.execute(r)
+                    .returnResponse();
+            wsCreated = true;
+        }
+    }
+
+    protected Response execute(Request req) throws IOException {
+        return this.executor.execute(req);
     }
 
     @Test
@@ -99,7 +132,8 @@ public class PerformanceIT {
                 "admin",
                 num,
                 threads,
-                size);
+                size,
+                WORKSPACE_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);
@@ -116,7 +150,8 @@ public class PerformanceIT {
                 "admin",
                 num,
                 threads,
-                size);
+                size,
+                WORKSPACE_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);

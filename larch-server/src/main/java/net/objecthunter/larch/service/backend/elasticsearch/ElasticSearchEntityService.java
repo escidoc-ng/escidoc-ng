@@ -82,7 +82,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     private void verifyWorkspaceId(String workspaceId) throws IOException {
-        if (workspaceId == null || !StringUtils.isAlphanumeric(workspaceId)) {
+        if (workspaceId == null || !StringUtils.isAsciiPrintable(workspaceId)) {
             throw new IOException("Workspace id is not valid: " + workspaceId);
         }
     }

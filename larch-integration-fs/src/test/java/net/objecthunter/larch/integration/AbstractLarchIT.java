@@ -25,11 +25,13 @@ import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.Workspace;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.entity.ContentType;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static net.objecthunter.larch.test.util.Fixtures.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
@@ -49,25 +52,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ActiveProfiles("fs")
 public abstract class AbstractLarchIT {
     protected static final int port =8080;
-    
+
     protected static final String hostUrl = "http://localhost:" + port + "/";
 
     protected static final String workspaceUrl = hostUrl + "workspace/";
 
-    protected static final String defaultWorkspaceUrl = workspaceUrl + Workspace.DEFAULT + "/";
+    protected static final String defaultWorkspaceUrl = workspaceUrl + WORKSPACE_ID + "/";
 
     protected static final String entityUrl = defaultWorkspaceUrl + "entity/";
 
+    protected boolean wsCreated = false;
+
     final PrintStream sysOut = System.out;
+
     final PrintStream sysErr = System.err;
+
     @Autowired
     protected ObjectMapper mapper;
+
     private HttpHost localhost = new HttpHost("localhost", 8080, "http");
+
     private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
 
     @Before
-    public void resetSystOutErr() {
+    public void resetSystOutErr() throws Exception{
         this.showLog();
+        if (!wsCreated) {
+            // create default workspace
+            Workspace ws = new Workspace();
+            ws.setId(WORKSPACE_ID);
+            ws.setName("Test Workspace");
+            Request r = Request.Post(hostUrl + "workspace")
+                    .bodyString(mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON);
+            HttpResponse resp = this.execute(r)
+                    .returnResponse();
+            wsCreated = true;
+        }
     }
 
     protected Response execute(Request req) throws IOException {
