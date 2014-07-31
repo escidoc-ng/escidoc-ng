@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/fasseg/larch.svg?branch=master)](https://travis-ci.org/fasseg/larch)
+[![Build Status](https://travis-ci.org/escidoc-ng/escidoc-ng.svg?branch=master)](https://travis-ci.org/escidoc-ng/escidoc-ng)
 
 # Larch repository
 
