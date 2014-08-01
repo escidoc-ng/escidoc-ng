@@ -28,9 +28,9 @@ public class Entity {
 
     public static final String STATE_PUBLISHED = "published";
 
-    public static final String STATE_ARCHIVED = "archived";
-
     public static final String STATE_PENDING = "ingested";
+
+    public static final String STATE_SUBMITTED = "submitted";
 
     private int version;
 

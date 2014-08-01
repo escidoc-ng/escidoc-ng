@@ -83,6 +83,6 @@ public class RelationController extends AbstractLarchController {
             @RequestParam("object") final String object) throws IOException {
         this.entityService.createRelation(workspaceId, id, predicate, object);
         this.messagingService.publishCreateRelation(id, predicate, object);
-        return "redirect:/entity/" + id;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + id;
     }
 }

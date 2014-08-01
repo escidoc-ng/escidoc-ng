@@ -68,6 +68,8 @@ public interface EntityService {
 
     void deleteIdentifier(String workspaceId, String entityId, String type, String value) throws IOException;
 
+    void submit(String workspaceId, String id) throws IOException;
+
     String publish(String workspaceId, String id) throws IOException;
 
     AuditRecords retrieveAuditRecords(String workspaceId, String entityId, int offset, int count) throws IOException;

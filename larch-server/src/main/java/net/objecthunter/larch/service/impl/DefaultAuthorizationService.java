@@ -16,14 +16,16 @@
 
 package net.objecthunter.larch.service.impl;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
@@ -41,6 +43,7 @@ import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -57,40 +60,41 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Override
     public boolean hasPermission(User user, Workspace ws,
-            WorkspacePermissions.Permission... permissionsToCheck) throws IOException {
-        if (user.getGroups().contains(Group.ADMINS)) {
+            WorkspacePermissions.Permission... permissionsToCheck) {
+        // check for role ADMIN
+        if (user != null && user.getGroups() != null &&
+                user.getGroups().contains(Group.ADMINS)) {
             return true;
         }
-        final WorkspacePermissions wsp = ws.getPermissions();
-        if (wsp == null) {
-            return false;
+
+        // get Permissions for user and workspace
+        EnumSet<WorkspacePermissions.Permission> currentPermissions =
+                EnumSet.noneOf(WorkspacePermissions.Permission.class);
+        if (user != null && ws != null && ws.getPermissions() != null &&
+                ws.getPermissions().getPermissions() != null &&
+                ws.getPermissions().getPermissions().get(user.getName()) != null) {
+            currentPermissions = ws.getPermissions().getPermissions().get(user.getName());
         }
-        final Map<String, EnumSet<WorkspacePermissions.Permission>> permissionMap = wsp.getPermissions();
-        if (permissionMap == null) {
-            return false;
-        }
-        final EnumSet<WorkspacePermissions.Permission> currentPermissions = permissionMap.get(user.getName());
-        if (currentPermissions == null) {
-            return false;
-        }
+
+        // add default-permissions
+        currentPermissions.addAll(getDefaultPermissions());
+
         return currentPermissions.containsAll(Arrays.asList(permissionsToCheck));
     }
 
     @Override
-    public boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException {
+    public boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
         return hasPermission(this.getCurrentUser(), ws, permissionsToCheck);
     }
 
     @Override
-    public void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException {
+    public void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
         final User u = this.getCurrentUser();
-        if (u.getGroups().contains(Group.ADMINS)) {
+        if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
             return;
         }
         if (!hasPermission(u, ws, permissionsToCheck)) {
-            throw new IOException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
     }
 
@@ -105,54 +109,66 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
         /* check if the workspace does exist */
         if (!get.isExists()) {
-            throw new FileNotFoundException("The workspace with id '" + workspaceId + "' does not exist");
+            throw new NotFoundException("The workspace with id '" + workspaceId + "' does not exist");
         }
         final Workspace ws = this.mapper.readValue(get.getSourceAsString(), Workspace.class);
         this.checkCurrentUserPermission(ws, permissionsToCheck);
     }
 
     @Override
-    public WorkspacePermissions.Permission metadataReadPermissions(Entity e) {
-        if (e.getState() == null || e.getState().isEmpty() || e.getState().equals(Entity.STATE_PENDING)) {
-            return WorkspacePermissions.Permission.READ_PENDING_METADATA;
-        } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-            return WorkspacePermissions.Permission.READ_SUBMITTED_METADATA;
+    public WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException {
+        if (e.getState() != null) {
+            if (e.getState().equals(Entity.STATE_PENDING)) {
+                return WorkspacePermissions.Permission.READ_PENDING_METADATA;
+            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
+                return WorkspacePermissions.Permission.READ_SUBMITTED_METADATA;
+            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
+                return WorkspacePermissions.Permission.READ_PUBLISHED_METADATA;
+            } else {
+                throw new IOException("Entity has unknown state: " + e.getState());
+            }
         } else {
-            return WorkspacePermissions.Permission.READ_RELEASED_METADATA;
+            throw new IOException("State of Entity may not be null");
         }
     }
 
     @Override
-    public WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) {
+    public WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException {
         return new WorkspacePermissions.Permission[] { this.metadataReadPermissions(e),
             this.metadataWritePermissions(e) };
     }
 
     @Override
-    public WorkspacePermissions.Permission metadataWritePermissions(Entity e) {
-        if (e.getState() == null || e.getState().isEmpty() || e.getState().equals(Entity.STATE_PENDING)) {
-            return WorkspacePermissions.Permission.WRITE_PENDING_METADATA;
-        } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-            return WorkspacePermissions.Permission.WRITE_SUBMITTED_METADATA;
+    public WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException {
+        if (e.getState() != null) {
+            if (e.getState().equals(Entity.STATE_PENDING)) {
+                return WorkspacePermissions.Permission.WRITE_PENDING_METADATA;
+            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
+                return WorkspacePermissions.Permission.WRITE_SUBMITTED_METADATA;
+            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
+                return WorkspacePermissions.Permission.WRITE_PUBLISHED_METADATA;
+            } else {
+                throw new IOException("Entity has unknown state: " + e.getState());
+            }
         } else {
-            return WorkspacePermissions.Permission.WRITE_RELEASED_METADATA;
+            throw new IOException("State of Entity may not be null");
         }
     }
 
     @Override
     public List<Workspace> retrieveUserWorkspaces() throws IOException {
         final List<Workspace> userWorkspaces = new ArrayList<>();
-        if (!(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
             return userWorkspaces;
         }
-        String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getName();
         SearchResponse search;
         try {
             search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
                     .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
                     .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                            FilterBuilders.existsFilter("permissions.permissions." + username)))
-                    .addFields("id", "name", "owner", "permissions.permissions." + username)
+                            FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName())))
+                    .addFields("id", "name", "owner", "permissions.permissions." + currentUser.getName())
                     .execute()
                     .actionGet();
             if (search.getHits().getHits().length > 0) {
@@ -163,10 +179,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
                     workspace.setOwner(hit.field("owner").getValue());
 
                     WorkspacePermissions workspacePermissions = new WorkspacePermissions();
-                    if (hit.field("permissions.permissions." + username) != null) {
-                        for (Object o : hit.field("permissions.permissions." + username).values()) {
+                    if (hit.field("permissions.permissions." + currentUser.getName()) != null) {
+                        for (Object o : hit.field("permissions.permissions." + currentUser.getName()).values()) {
                             String permissionName = (String) o;
-                            workspacePermissions.addPermissions(username, Permission.valueOf(permissionName));
+                            workspacePermissions.addPermissions(currentUser.getName(), Permission
+                                    .valueOf(permissionName));
                         }
                     }
                     workspace.setPermissions(workspacePermissions);
@@ -179,7 +196,22 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return userWorkspaces;
     }
 
-    public User getCurrentUser() {
+    private User getCurrentUser() {
+        if (!(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
+            return null;
+        }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
+    /**
+     * Get the Permissions for everybody (also anonymous user).
+     * 
+     * @return Collection of default-permissions
+     */
+    private Collection<Permission> getDefaultPermissions() {
+        Set<Permission> defaultPermissions = new HashSet<Permission>();
+        defaultPermissions.add(Permission.READ_PUBLISHED_METADATA);
+        defaultPermissions.add(Permission.READ_PUBLISHED_BINARY);
+        return defaultPermissions;
     }
 }

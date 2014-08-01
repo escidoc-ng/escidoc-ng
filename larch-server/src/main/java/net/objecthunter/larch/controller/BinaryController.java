@@ -84,7 +84,7 @@ public class BinaryController extends AbstractLarchController {
         entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
-        return "redirect:/entity/" + entityId;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
     /**

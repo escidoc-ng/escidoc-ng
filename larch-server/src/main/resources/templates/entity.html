@@ -21,6 +21,10 @@
                       th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish'">
                     <input class="button_small" type="submit" value="Publish"/>
                 </form>
+                <form th:if="${entity.state != 'submitted' and entity.state != 'published'}" enctype="multipart/form-data" method="post"
+                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit'">
+                    <input class="button_small" type="submit" value="Submit"/>
+                </form>
                 <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
             <p th:if="${entity.state != 'published'}" class="panel_title" />
 
@@ -34,7 +38,9 @@
 
             <p class="property">WorkspaceId</p>
 
-            <p class="value" th:text="${entity.workspaceId}"></p>
+            <p class="value" th:if="${entity.workspaceId} ? ${entity.workspaceId} : 'None'">
+                <a th:text="${entity.workspaceId}" th:href="@{/workspace/} + ${entity.workspaceId}"></a>
+            </p>
 
             <p class="property">Parent</p>
 

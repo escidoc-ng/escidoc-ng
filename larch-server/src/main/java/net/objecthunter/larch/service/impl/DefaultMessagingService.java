@@ -165,4 +165,10 @@ public class DefaultMessagingService implements MessagingService {
     public void publishPublishEntity(String id) {
         this.publish("Published entity " + id);
     }
+
+    @Override
+    public void publishSubmitEntity(String id) {
+        this.publish("Submitted entity " + id);
+    }
+
 }

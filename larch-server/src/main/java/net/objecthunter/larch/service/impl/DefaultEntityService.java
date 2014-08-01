@@ -491,11 +491,15 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
+    public void submit(String workspaceId, String id) throws IOException {
+        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        e.setState(Entity.STATE_SUBMITTED);
+        this.backendEntityService.update(e);
+    }
+
+    @Override
     public String publish(String workspaceId, String id) throws IOException {
         final Entity e = this.backendEntityService.retrieve(workspaceId, id);
-        // if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-        // throw new IOException("The entity with the id " + id + " is already published");
-        // }
         e.setState(Entity.STATE_PUBLISHED);
         this.backendEntityService.update(e);
         return this.backendPublishService.publish(e);

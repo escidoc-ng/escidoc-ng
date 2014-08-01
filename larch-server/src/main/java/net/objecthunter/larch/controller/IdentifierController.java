@@ -83,7 +83,7 @@ public class IdentifierController extends AbstractLarchController {
         this.entityService.createIdentifier(workspaceId, entityId, type, value);
         this.entityService.createAuditRecord(AuditRecordHelper.createIdentifier(entityId));
         this.messagingService.publishCreateIdentifier(entityId, type, value);
-        return "redirect:/entity/" + entityId;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
     /**
@@ -125,7 +125,7 @@ public class IdentifierController extends AbstractLarchController {
         this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
         this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
-        return "redirect:/entity/" + entityId;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
 }

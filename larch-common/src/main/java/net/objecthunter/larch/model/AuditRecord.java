@@ -25,6 +25,8 @@ public class AuditRecord {
 
     public static final String EVENT_UPDATE_ENTITY = "Update entity";
 
+    public static final String EVENT_SUBMIT_ENTITY = "Submit entity";
+
     public static final String EVENT_PUBLISH_ENTITY = "Publish entity";
 
     public static final String EVENT_CREATE_BINARY = "Create binary";
@@ -169,6 +171,7 @@ public class AuditRecord {
 
     @Override
     public String toString() {
-        return "ID:" + this.id + ",WS: " + this.workspaceId + " TS:" + this.timestamp + ", EVENT:" + this.action + ", ENTITY:" + this.entityId;
+        return "ID:" + this.id + ",WS: " + this.workspaceId + " TS:" + this.timestamp + ", EVENT:" + this.action +
+                ", ENTITY:" + this.entityId;
     }
 }

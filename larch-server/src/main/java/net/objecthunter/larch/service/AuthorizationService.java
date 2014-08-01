@@ -38,11 +38,11 @@ public interface AuthorizationService {
     void checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck)
             throws IOException;
 
-    WorkspacePermissions.Permission metadataReadPermissions(Entity e);
+    WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException;
 
-    WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e);
+    WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException;
 
-    WorkspacePermissions.Permission metadataWritePermissions(Entity e);
+    WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException;
 
     List<Workspace> retrieveUserWorkspaces() throws IOException;
 }

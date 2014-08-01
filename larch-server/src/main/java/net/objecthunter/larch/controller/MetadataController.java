@@ -106,7 +106,7 @@ public class MetadataController extends AbstractLarchController {
         entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
-        return "redirect:/entity/" + entityId;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
     /**
@@ -221,7 +221,7 @@ public class MetadataController extends AbstractLarchController {
         this.entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
-        return "redirect:/entity/" + entityId + "/binary/" + binaryName;
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + binaryName;
     }
 
     /**

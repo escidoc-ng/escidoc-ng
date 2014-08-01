@@ -261,4 +261,10 @@ public abstract class AuditRecordHelper {
         rec.setAction(AuditRecord.EVENT_PUBLISH_ENTITY);
         return rec;
     }
+
+    public static AuditRecord submitEntityRecord(String id) {
+        final AuditRecord rec = skeletonRecord(id);
+        rec.setAction(AuditRecord.EVENT_SUBMIT_ENTITY);
+        return rec;
+    }
 }

@@ -276,4 +276,24 @@ public class EntityController extends AbstractLarchController {
         this.publish(workspaceId, id);
         return this.retrieveHtml(workspaceId, id);
     }
+
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    public void submit(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
+            throws IOException {
+        this.entityService.submit(workspaceId, id);
+        this.entityService.createAuditRecord(AuditRecordHelper.submitEntityRecord(id));
+        this.messagingService.publishPublishEntity(id);
+    }
+
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    public ModelAndView submitHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String id) throws IOException {
+        this.submit(workspaceId, id);
+        return this.retrieveHtml(workspaceId, id);
+    }
 }
