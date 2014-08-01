@@ -30,7 +30,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.state.IndexState;
-import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -70,9 +69,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     @Autowired
     private ObjectMapper mapper;
-
-    @Autowired
-    protected AuthorizationService authorizationService;
 
     @PostConstruct
     public void init() throws IOException {
@@ -310,6 +306,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 queryBuilder.must(childQueryBuilder);
             }
         }
+        queryBuilder.must(getUserRestrictionQuery());
 
         int numRecords = 20;
         final long time = System.currentTimeMillis();
@@ -322,6 +319,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             resp =
                     this.client
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "workspaceId",
+                                    "state",
                                     "label",
                                     "type",
                                     "tags")

@@ -196,7 +196,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return userWorkspaces;
     }
 
-    private User getCurrentUser() {
+    @Override
+    public User getCurrentUser() {
         if (!(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
             return null;
         }

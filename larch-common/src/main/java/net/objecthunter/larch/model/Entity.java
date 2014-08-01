@@ -32,6 +32,8 @@ public class Entity {
 
     public static final String STATE_SUBMITTED = "submitted";
 
+    public static final String STATE_WITHDRAWN = "withdrawn";
+
     private int version;
 
     private String id;
