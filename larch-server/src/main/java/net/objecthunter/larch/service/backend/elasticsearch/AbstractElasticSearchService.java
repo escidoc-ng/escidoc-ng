@@ -11,6 +11,7 @@ import java.util.Set;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 
@@ -116,6 +117,16 @@ public class AbstractElasticSearchService {
      * @return QueryBuilder with user-restriction query
      */
     protected QueryBuilder getUserRestrictionQuery(String workspaceId) throws IOException {
+        // get username and check for ADMIN-Role
+        User currentUser = authorizationService.getCurrentUser();
+        String username = null;
+        if (currentUser != null) {
+            username = currentUser.getName();
+            if (currentUser.getGroups() != null && currentUser.getGroups().contains(Group.ADMINS)) {
+                return QueryBuilders.matchAllQuery();
+            }
+        }
+
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
         // add default-allowed states (published)
@@ -123,13 +134,6 @@ public class AbstractElasticSearchService {
 
         // get user-workspaces
         List<Workspace> userWorkspaces = authorizationService.retrieveUserWorkspaces(workspaceId);
-
-        // get username
-        User currentUser = authorizationService.getCurrentUser();
-        String username = null;
-        if (currentUser != null) {
-            username = currentUser.getName();
-        }
 
         if (StringUtils.isNotBlank(username)) {
             for (Workspace userWorkspace : userWorkspaces) {

@@ -171,7 +171,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 filterBuilder = FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName());
             } else {
                 filterBuilder = FilterBuilders.andFilter(FilterBuilders.existsFilter("permissions.permissions." +
-                        currentUser.getName()), FilterBuilders.termFilter("workspaceId", workspaceId));
+                        currentUser.getName()), FilterBuilders.idsFilter().addIds(workspaceId));
             }
             search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
                     .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
