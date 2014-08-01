@@ -107,13 +107,22 @@ public class AbstractElasticSearchService {
      * @return QueryBuilder with user-restriction query
      */
     protected QueryBuilder getUserRestrictionQuery() throws IOException {
+        return getUserRestrictionQuery(null);
+    }
+
+    /**
+     * Get Query that restricts a search to entities the user may see.
+     * 
+     * @return QueryBuilder with user-restriction query
+     */
+    protected QueryBuilder getUserRestrictionQuery(String workspaceId) throws IOException {
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
         // add default-allowed states (published)
         restrictionQueryBuilder.should(QueryBuilders.termQuery("state", Entity.STATE_PUBLISHED));
 
         // get user-workspaces
-        List<Workspace> userWorkspaces = authorizationService.retrieveUserWorkspaces();
+        List<Workspace> userWorkspaces = authorizationService.retrieveUserWorkspaces(workspaceId);
 
         // get username
         User currentUser = authorizationService.getCurrentUser();

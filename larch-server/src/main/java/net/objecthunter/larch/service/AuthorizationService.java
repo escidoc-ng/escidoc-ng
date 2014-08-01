@@ -44,7 +44,7 @@ public interface AuthorizationService {
 
     WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException;
 
-    List<Workspace> retrieveUserWorkspaces() throws IOException;
+    List<Workspace> retrieveUserWorkspaces(String workspaceId) throws IOException;
 
     User getCurrentUser();
 }

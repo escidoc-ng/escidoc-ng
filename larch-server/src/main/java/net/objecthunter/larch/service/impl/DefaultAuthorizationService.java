@@ -35,10 +35,12 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -156,7 +158,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public List<Workspace> retrieveUserWorkspaces() throws IOException {
+    public List<Workspace> retrieveUserWorkspaces(String workspaceId) throws IOException {
         final List<Workspace> userWorkspaces = new ArrayList<>();
         User currentUser = getCurrentUser();
         if (currentUser == null) {
@@ -164,10 +166,17 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
         SearchResponse search;
         try {
+            FilterBuilder filterBuilder = null;
+            if (StringUtils.isEmpty(workspaceId)) {
+                filterBuilder = FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName());
+            } else {
+                filterBuilder = FilterBuilders.andFilter(FilterBuilders.existsFilter("permissions.permissions." +
+                        currentUser.getName()), FilterBuilders.termFilter("workspaceId", workspaceId));
+            }
             search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
                     .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
                     .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                            FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName())))
+                            filterBuilder))
                     .addFields("id", "name", "owner", "permissions.permissions." + currentUser.getName())
                     .execute()
                     .actionGet();

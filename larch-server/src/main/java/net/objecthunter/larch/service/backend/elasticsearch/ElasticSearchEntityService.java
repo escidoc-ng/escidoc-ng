@@ -242,11 +242,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(getUserRestrictionQuery());
         try {
             resp =
                     this.client
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                                    QueryBuilders.matchAllQuery())
+                                    queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
                             .addFields("id", "workspaceId", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
@@ -337,10 +339,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
+            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
             e.setWorkspaceId(workspaceId);
             e.setType(type);
+            e.setState(state);
             e.setLabel(label);
 
             final List<String> tags = new ArrayList<>();
@@ -376,11 +380,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords || numRecords < 1 ? maxRecords : numRecords;
         final SearchResponse resp;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.matchQuery("workspaceId", workspaceId));
+        queryBuilder.must(getUserRestrictionQuery(workspaceId));
         try {
             resp =
                     this.client
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                                    QueryBuilders.matchQuery("workspaceId", workspaceId))
+                                    queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
                             .addFields("id", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
