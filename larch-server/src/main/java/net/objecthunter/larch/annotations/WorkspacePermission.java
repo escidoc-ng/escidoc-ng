@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch;
+package net.objecthunter.larch.annotations;
 
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author mih
  */
-public class WebInitializer extends SpringBootServletInitializer {
+@Target({ ElementType.METHOD, ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface WorkspacePermission {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(LarchServerConfiguration.class, LarchServerSecurityConfiguration.class,
-                OAuth2ServerConfiguration.class);
-    }
+    String workspaceIdVariableName();
+
+    String[] workspacePermissions();
 
 }

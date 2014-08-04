@@ -21,14 +21,41 @@ import java.io.File;
 import javax.jms.Queue;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
-import net.objecthunter.larch.service.*;
-import net.objecthunter.larch.service.backend.*;
-import net.objecthunter.larch.service.backend.elasticsearch.*;
+import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
+import net.objecthunter.larch.service.AuthorizationService;
+import net.objecthunter.larch.service.EntityService;
+import net.objecthunter.larch.service.ExportService;
+import net.objecthunter.larch.service.MailService;
+import net.objecthunter.larch.service.MessagingService;
+import net.objecthunter.larch.service.PublishService;
+import net.objecthunter.larch.service.RepositoryService;
+import net.objecthunter.larch.service.SchemaService;
+import net.objecthunter.larch.service.backend.BackendAuditService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendPublishService;
+import net.objecthunter.larch.service.backend.BackendSchemaService;
+import net.objecthunter.larch.service.backend.BackendVersionService;
+import net.objecthunter.larch.service.backend.BackendWorkspaceService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchPublishService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
-import net.objecthunter.larch.service.impl.*;
+import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
+import net.objecthunter.larch.service.impl.DefaultEntityService;
+import net.objecthunter.larch.service.impl.DefaultExportService;
+import net.objecthunter.larch.service.impl.DefaultMailService;
+import net.objecthunter.larch.service.impl.DefaultMessagingService;
+import net.objecthunter.larch.service.impl.DefaultPublishService;
+import net.objecthunter.larch.service.impl.DefaultRepositoryService;
+import net.objecthunter.larch.service.impl.DefaultSchemaService;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
 
@@ -38,7 +65,12 @@ import org.apache.activemq.command.ActiveMQQueue;
 import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -53,10 +85,11 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 /**
  * General JavaConfig class for the larch repository containing all the necessary beans for a larch repository
  */
-@EnableAutoConfiguration
-@ComponentScan(basePackages = "net.objecthunter.larch.controller")
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
+@ComponentScan(basePackages = "net.objecthunter.larch.controller")
+@EnableAutoConfiguration
+@EnableAspectJAutoProxy
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class LarchServerConfiguration {
 
     @Autowired
@@ -151,7 +184,7 @@ public class LarchServerConfiguration {
      * Get a {@link net.objecthunter.larch.service.backend.BackendEntityService} implementation Spring bean
      *
      * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService}
-     * implementation
+     *         implementation
      */
     @Bean
     public BackendEntityService elasticSearchIndexService() {
@@ -203,7 +236,8 @@ public class LarchServerConfiguration {
      * Get {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService} Spring bean for
      * interaction with the workspace index
      *
-     * @return the {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService} singleton
+     * @return the {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService}
+     *         singleton
      */
     @Bean
     public BackendWorkspaceService backendWorkspaceService() {
@@ -279,7 +313,7 @@ public class LarchServerConfiguration {
      * {@link com.fasterxml.jackson.databind.ObjectMapper}
      *
      * @return the {@link com.fasterxml.jackson.databind.SerializationConfig} that should be used by the Jackson
-     * mapper
+     *         mapper
      */
     @Bean
     public SerializationConfig serializationConfig() {
@@ -295,6 +329,18 @@ public class LarchServerConfiguration {
     @Bean
     public CommonsMultipartResolver multipartResolver() {
         return new CommonsMultipartResolver();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.security.helpers.LarchSecurityInterceptor} implementation for use by the
+     * repository
+     *
+     * @return a {@link net.objecthunter.larch.security.helpers.LarchSecurityInterceptor} implementation
+     */
+    @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE - 7)
+    public LarchSecurityInterceptor larchSecurityInterceptor() {
+        return new LarchSecurityInterceptor();
     }
 
     /**
@@ -332,7 +378,7 @@ public class LarchServerConfiguration {
      * @return a {@link net.objecthunter.larch.util.LarchExceptionHandler} implementation
      */
     @Bean
-    @Order(Ordered.LOWEST_PRECEDENCE - 10)
+    @Order(Ordered.LOWEST_PRECEDENCE - 11)
     public LarchExceptionHandler larchExceptionHandler() {
         return new LarchExceptionHandler();
     }

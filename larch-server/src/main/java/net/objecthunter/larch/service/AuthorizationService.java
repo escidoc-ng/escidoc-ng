@@ -17,6 +17,7 @@
 package net.objecthunter.larch.service;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import net.objecthunter.larch.model.Entity;
@@ -47,4 +48,9 @@ public interface AuthorizationService {
     List<Workspace> retrieveUserWorkspaces(String workspaceId) throws IOException;
 
     User getCurrentUser();
+
+    void preauthorize(Method method) throws IOException;
+
+    void postauthorize(Method method, Object result) throws IOException;
+
 }

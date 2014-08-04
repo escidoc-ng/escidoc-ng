@@ -17,6 +17,7 @@
 package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
@@ -45,8 +48,13 @@ import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.Expression;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.expression.ExpressionUtils;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.util.MethodInvocationUtils;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -211,6 +219,37 @@ public class DefaultAuthorizationService implements AuthorizationService {
             return null;
         }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
+    @Override
+    public void preauthorize(Method method) throws IOException {
+        PreAuth preAuth = method
+                .getAnnotation(PreAuth.class);
+        if (preAuth != null && preAuth.springSecurityExpression() != null) {
+            Authentication a = SecurityContextHolder.getContext().getAuthentication();
+            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+            Expression accessExpression =
+                    handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
+            if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
+                    a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
+                            .getName())))) {
+                throw new AccessDeniedException("Access denied");
+            }
+        }
+        if (preAuth.workspacePermission() != null) {
+            WorkspacePermission workspacePermission = preAuth.workspacePermission();
+            String workspaceId = null;
+            try {
+                method.getDeclaringClass().getDeclaredField(workspacePermission.workspaceIdVariableName()).get(
+                        workspaceId);
+            } catch (Exception e) {
+                throw new IOException(e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void postauthorize(Method method, Object result) throws IOException {
     }
 
     /**

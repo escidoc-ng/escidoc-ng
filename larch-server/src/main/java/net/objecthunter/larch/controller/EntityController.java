@@ -19,6 +19,8 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
@@ -207,7 +209,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "text/plain")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
+            workspacePermission = @WorkspacePermission(workspaceIdVariableName = "workspaceId",
+                    workspacePermissions = { "WRITE_PENDING_METADATA" }))
     public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src)
             throws IOException {
         final String id = this.entityService.create(workspaceId, mapper.readValue(src, Entity.class));
