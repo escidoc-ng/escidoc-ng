@@ -222,28 +222,35 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public void preauthorize(Method method) throws IOException {
+    public void preauthorize(Method method, String workspaceId) throws IOException {
         PreAuth preAuth = method
                 .getAnnotation(PreAuth.class);
-        if (preAuth != null && preAuth.springSecurityExpression() != null) {
-            Authentication a = SecurityContextHolder.getContext().getAuthentication();
-            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-            Expression accessExpression =
-                    handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
-            if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
-                    a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
-                            .getName())))) {
-                throw new AccessDeniedException("Access denied");
+        if (preAuth != null) {
+            if (preAuth.springSecurityExpression() != null) {
+                Authentication a = SecurityContextHolder.getContext().getAuthentication();
+                DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+                Expression accessExpression =
+                        handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
+                if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
+                        a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
+                                .getName())))) {
+                    throw new AccessDeniedException("Access denied");
+                }
             }
-        }
-        if (preAuth.workspacePermission() != null) {
-            WorkspacePermission workspacePermission = preAuth.workspacePermission();
-            String workspaceId = null;
-            try {
-                method.getDeclaringClass().getDeclaredField(workspacePermission.workspaceIdVariableName()).get(
-                        workspaceId);
-            } catch (Exception e) {
-                throw new IOException(e.getMessage());
+            if (preAuth.workspacePermission() != null) {
+                WorkspacePermission workspacePermission = preAuth.workspacePermission();
+                if (workspacePermission.workspacePermissions() != null &&
+                        workspacePermission.workspacePermissions().length > 0) {
+                    if (StringUtils.isBlank(workspaceId)) {
+                        throw new AccessDeniedException("No WorkspaceId provided");
+                    }
+                    // convert Strings to Permissions
+                    Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
+                    for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
+                        ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
+                    }
+                    checkCurrentUserPermission(workspaceId, ps);
+                }
             }
         }
     }

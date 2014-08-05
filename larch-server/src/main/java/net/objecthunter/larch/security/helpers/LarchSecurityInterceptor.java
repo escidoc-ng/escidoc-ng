@@ -18,7 +18,8 @@ package net.objecthunter.larch.security.helpers;
 
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.LarchServerConfiguration;
+import net.objecthunter.larch.annotations.PostAuth;
+import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.service.AuthorizationService;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -27,6 +28,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
@@ -42,16 +44,13 @@ import org.springframework.stereotype.Component;
 @Aspect
 public class LarchSecurityInterceptor implements Ordered {
 
+    @Autowired
     protected AuthorizationService authorizationService;
 
     /**
      * The logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(LarchSecurityInterceptor.class);
-
-    public LarchSecurityInterceptor() {
-        authorizationService = new LarchServerConfiguration().authorizationService();
-    }
 
     /**
      * Around advice to perform the authorization of the current request.
@@ -66,10 +65,34 @@ public class LarchSecurityInterceptor implements Ordered {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final Method calledMethod = methodSignature.getMethod();
 
-        authorizationService.preauthorize(calledMethod);
+        PreAuth preAuth = calledMethod.getAnnotation(PreAuth.class);
+        PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
+        if (preAuth != null) {
+            authorizationService.preauthorize(calledMethod, getWorkspaceId(preAuth, joinPoint));
+        }
         Object obj = joinPoint.proceed();
-        authorizationService.postauthorize(calledMethod, obj);
+        if (postAuth != null) {
+            authorizationService.postauthorize(calledMethod, obj);
+        }
         return obj;
+    }
+
+    /**
+     * Get workspce-Id from method-parameters
+     * 
+     * @param preAuth Annotation
+     * @param joinPoint
+     * @return String workspaceId or null
+     */
+    private String getWorkspaceId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
+        if (preAuth != null && preAuth.workspacePermission() != null &&
+                preAuth.workspacePermission().workspaceIdIndex() >= 0 && joinPoint != null &&
+                joinPoint.getArgs() != null &&
+                joinPoint.getArgs().length > preAuth.workspacePermission().workspaceIdIndex() &&
+                joinPoint.getArgs()[preAuth.workspacePermission().workspaceIdIndex()] instanceof String) {
+            return (String) joinPoint.getArgs()[preAuth.workspacePermission().workspaceIdIndex()];
+        }
+        return null;
     }
 
     /**

@@ -62,6 +62,7 @@ import net.objecthunter.larch.util.LarchExceptionHandler;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.aspectj.lang.Aspects;
 import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -340,7 +341,7 @@ public class LarchServerConfiguration {
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE - 7)
     public LarchSecurityInterceptor larchSecurityInterceptor() {
-        return new LarchSecurityInterceptor();
+        return Aspects.aspectOf(LarchSecurityInterceptor.class);
     }
 
     /**

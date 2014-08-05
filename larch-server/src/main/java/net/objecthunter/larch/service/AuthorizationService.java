@@ -49,7 +49,7 @@ public interface AuthorizationService {
 
     User getCurrentUser();
 
-    void preauthorize(Method method) throws IOException;
+    void preauthorize(Method method, String workspaceId) throws IOException;
 
     void postauthorize(Method method, Object result) throws IOException;
 

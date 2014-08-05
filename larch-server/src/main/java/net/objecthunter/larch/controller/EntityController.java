@@ -210,7 +210,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
-            workspacePermission = @WorkspacePermission(workspaceIdVariableName = "workspaceId",
+            workspacePermission = @WorkspacePermission(workspaceIdIndex = 0,
                     workspacePermissions = { "WRITE_PENDING_METADATA" }))
     public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src)
             throws IOException {

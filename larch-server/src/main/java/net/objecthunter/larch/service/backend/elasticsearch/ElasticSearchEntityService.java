@@ -28,7 +28,6 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
@@ -86,8 +85,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public String create(Entity e) throws IOException {
         this.verifyWorkspaceId(e.getWorkspaceId());
-        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(),
-                WorkspacePermissions.Permission.WRITE_PENDING_METADATA);
+        // this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(),
+        // WorkspacePermissions.Permission.WRITE_PENDING_METADATA);
         log.debug("creating new entity");
         if (e.getId() != null) {
             final GetResponse resp =

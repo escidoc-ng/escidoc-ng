@@ -30,10 +30,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface WorkspacePermission {
+public @interface PostAuth {
 
-    int workspaceIdIndex();
+    String springSecurityExpression();
 
-    String[] workspacePermissions();
+    WorkspacePermission workspacePermission();
 
 }
