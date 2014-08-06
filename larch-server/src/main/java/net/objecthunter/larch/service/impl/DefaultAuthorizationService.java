@@ -26,8 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
+import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
@@ -36,6 +37,7 @@ import net.objecthunter.larch.model.WorkspacePermissions.Permission;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +54,6 @@ import org.springframework.expression.Expression;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -227,31 +228,170 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public void preauthorize(Method method, String workspaceId) throws IOException {
-        PreAuth preAuth = method
-                .getAnnotation(PreAuth.class);
-        if (preAuth != null) {
+    public void authorize(Method method, String id, Object result, String springSecurityExpression,
+            WorkspacePermission workspacePermission) throws IOException {
+        // Admin may do everything
+        final User u = this.getCurrentUser();
+        if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
+            return;
+        }
+        // Anonymous user may not access protected methods
+        if (u == null) {
+            throw new InsufficientAuthenticationException("No user logged in");
+        }
+        // handle securityExpression
+        handleSecurityExpression(method, springSecurityExpression);
+
+        // handle workspacePermission
+        handleWorkspacePermission(method, workspacePermission, id, result);
+    }
+
+    /**
+     * check if security-expression matches for logged in user
+     * 
+     * @param method
+     * @param springSecurityExpression
+     */
+    private void handleSecurityExpression(Method method, String springSecurityExpression) {
+        if (StringUtils.isNotBlank(springSecurityExpression)) {
             Authentication a = SecurityContextHolder.getContext().getAuthentication();
-            // Anonymous user may not access protected methods
-            if (a == null || a instanceof AnonymousAuthenticationToken) {
-                throw new InsufficientAuthenticationException("No user logged in");
-            }
-            // handle securityExpression
             DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
             Expression accessExpression =
-                    handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
+                    handler.getExpressionParser().parseExpression(springSecurityExpression);
             if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
                     a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
                             .getName())))) {
                 throw new AccessDeniedException("Access denied");
             }
+        }
+    }
 
-            // handle workspacePermission
-            WorkspacePermission workspacePermission = preAuth.workspacePermission();
-            if (workspacePermission.workspacePermissions().length > 0) {
-                if (StringUtils.isBlank(workspaceId)) {
-                    throw new AccessDeniedException("No WorkspaceId provided");
+    /**
+     * check if workspace-permission matches for logged in user
+     * 
+     * @param method
+     * @param workspacePermission
+     * @param workspaceId
+     * @param entityId
+     * @param result
+     */
+    private void handleWorkspacePermission(Method method, WorkspacePermission workspacePermission,
+            String id, Object result)
+            throws IOException {
+        Object checkObject = result;
+        if (checkObject == null) {
+            if (StringUtils.isBlank(id)) {
+                throw new AccessDeniedException("No id provided");
+            }
+            if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
+                // get entity
+                final GetResponse get =
+                        this.client.prepareGet(ElasticSearchEntityService.INDEX_ENTITIES,
+                                ElasticSearchEntityService.INDEX_ENTITY_TYPE, id)
+                                .execute()
+                                .actionGet();
+
+                // check if the entity does exist
+                if (!get.isExists()) {
+                    throw new AccessDeniedException("Wrong Parameters");
                 }
+                checkObject = this.mapper.readValue(get.getSourceAsString(), Entity.class);
+            } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE) ||
+                    workspacePermission.objectType().equals(ObjectType.NEW_ENTITY)) {
+                // get workspace
+                final GetResponse get =
+                        this.client.prepareGet(ElasticSearchWorkspaceService.INDEX_WORKSPACES,
+                                ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE, id)
+                                .execute()
+                                .actionGet();
+
+                // check if the workspace does exist
+                if (!get.isExists()) {
+                    throw new AccessDeniedException("Wrong Parameters");
+                }
+                checkObject = this.mapper.readValue(get.getSourceAsString(), Workspace.class);
+            }
+        }
+
+        if (workspacePermission.objectType().equals(ObjectType.NEW_ENTITY)) {
+            checkCurrentUserPermission((Workspace) checkObject, Permission.WRITE_PENDING_METADATA);
+            return;
+        }
+        if (checkObject != null && checkObject instanceof Entity) {
+            switch (workspacePermission.workspacePermissionType()) {
+            case READ:
+                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
+                        metadataReadPermissions(((Entity) checkObject)));
+                break;
+            case WRITE:
+                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
+                        metadataWritePermissions(((Entity) checkObject)));
+                break;
+            case READ_WRITE:
+                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
+                        metadataReadWritePermissions(((Entity) checkObject)));
+                break;
+            default:
+                break;
+            }
+        } else if (checkObject != null && checkObject instanceof Workspace) {
+
+        }
+
+        /**
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         */
+
+        if (workspacePermission.workspacePermissions().length > 0) {
+            if (StringUtils.isBlank(workspaceId)) {
+                throw new AccessDeniedException("No WorkspaceId provided");
+            }
+            if (!workspacePermission.type().equals(WorkspacePermissionType.PROVIDED)) {
+                // set workspace-permissions dependent on entity-state
+                if (StringUtils.isBlank(entityId)) {
+                    throw new AccessDeniedException("No EntityId provided");
+                }
+                // get entity
+                final GetResponse get =
+                        this.client.prepareGet(ElasticSearchEntityService.INDEX_ENTITIES,
+                                ElasticSearchEntityService.INDEX_ENTITY_TYPE, entityId)
+                                .execute()
+                                .actionGet();
+
+                // check if the entity does exist
+                if (!get.isExists()) {
+                    throw new NotFoundException("The entity with id '" + entityId + "' does not exist");
+                }
+                final Entity entity = this.mapper.readValue(get.getSourceAsString(), Entity.class);
+                // check workspace-permissions
+                switch (workspacePermission.type()) {
+                case READ:
+                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
+                    break;
+                case WRITE:
+                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataWritePermissions(entity));
+                    break;
+                case READ_WRITE:
+                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadWritePermissions(entity));
+                    break;
+                default:
+                    break;
+                }
+
+            } else {
                 // convert Strings to Permissions
                 Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
                 for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
@@ -262,9 +402,42 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    @Override
-    public void postauthorize(Method method, Object result) throws IOException {
-    }
+    // /**
+    // * check if user has permissions for result-object.
+    // *
+    // * @param method
+    // * @param result
+    // */
+    // private void handleWorkspacePermission(Method method, Object result)
+    // throws IOException {
+    // if (result instanceof Entity) {
+    // Entity entity = (Entity)result;
+    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
+    // // check workspace-permissions
+    // switch (workspacePermission.type()) {
+    // case READ:
+    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
+    // break;
+    // case WRITE:
+    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataWritePermissions(entity));
+    // break;
+    // case READ_WRITE:
+    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadWritePermissions(entity));
+    // break;
+    // default:
+    // break;
+    // }
+    //
+    // } else {
+    // // convert Strings to Permissions
+    // Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
+    // for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
+    // ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
+    // }
+    // checkCurrentUserPermission(workspaceId, ps);
+    // }
+    // }
+    // }
 
     /**
      * Get the Permissions for everybody (also anonymous user).

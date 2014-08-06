@@ -19,8 +19,11 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
+import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
@@ -94,6 +97,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
+    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 0,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Entity
             retrieve(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
                     throws IOException {
@@ -210,8 +215,8 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
-            workspacePermission = @WorkspacePermission(workspaceIdIndex = 0,
-                    workspacePermissions = { "WRITE_PENDING_METADATA" }))
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.NEW_ENTITY, idIndex = 0,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src)
             throws IOException {
         final String id = this.entityService.create(workspaceId, mapper.readValue(src, Entity.class));
@@ -230,7 +235,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
     public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);

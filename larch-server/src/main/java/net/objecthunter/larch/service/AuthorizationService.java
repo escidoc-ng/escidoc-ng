@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
@@ -49,8 +50,7 @@ public interface AuthorizationService {
 
     User getCurrentUser();
 
-    void preauthorize(Method method, String workspaceId) throws IOException;
-
-    void postauthorize(Method method, Object result) throws IOException;
+    void authorize(Method method, String id, Object result, String springSecurityExpression,
+            WorkspacePermission workspacePermission) throws IOException;
 
 }

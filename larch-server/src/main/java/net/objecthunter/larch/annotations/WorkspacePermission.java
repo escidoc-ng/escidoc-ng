@@ -32,8 +32,42 @@ import java.lang.annotation.Target;
 @Documented
 public @interface WorkspacePermission {
 
-    int workspaceIdIndex() default -1;
+    int idIndex() default -1;
 
-    String[] workspacePermissions() default {};
+    ObjectType objectType() default ObjectType.ENTITY;
+
+    WorkspacePermissionType workspacePermissionType() default WorkspacePermissionType.NULL;
+
+    /**
+     * Defines the type of the WorkspacePermission<br>
+     * <br>
+     * PROVIDED means that the desired workspace-permissions are provided in the Annotation <br>
+     * READ means that READ-Permissions are desired and the state gets generated dependent on the given entityId and
+     * its state.<br>
+     * WRITE means that WRITE-Permissions are desired and the state gets generated dependent on the given entityId and
+     * its state.<br>
+     * READ_WRITE means that READ and WRITE-Permissions are desired and the state gets generated dependent on the
+     * given entityId and its state.<br>
+     * 
+     * @author mih
+     */
+    public enum WorkspacePermissionType {
+        READ,
+        WRITE,
+        READ_WRITE,
+        NULL;
+    }
+
+    /**
+     * Defines the type of the Object to check against permissions<br>
+     * 
+     * @author mih
+     */
+    public enum ObjectType {
+        ENTITY,
+        WORKSPACE,
+        NEW_ENTITY,
+        NEW_WORKSPACE;
+    }
 
 }

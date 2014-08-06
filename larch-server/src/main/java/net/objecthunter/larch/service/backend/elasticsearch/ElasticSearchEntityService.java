@@ -85,8 +85,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public String create(Entity e) throws IOException {
         this.verifyWorkspaceId(e.getWorkspaceId());
-        // this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(),
-        // WorkspacePermissions.Permission.WRITE_PENDING_METADATA);
         log.debug("creating new entity");
         if (e.getId() != null) {
             final GetResponse resp =
@@ -116,9 +114,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        final Entity orig = this.mapper.readValue(resp.getSourceAsString(), Entity.class);
-        this.authorizationService.checkCurrentUserPermission(orig.getWorkspaceId(), authorizationService
-                .metadataReadWritePermissions(orig));
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         try {
@@ -147,8 +142,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
         final Entity parent = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        this.authorizationService.checkCurrentUserPermission(parent.getWorkspaceId(), authorizationService
-                .metadataReadPermissions(parent));
         parent.setChildren(fetchChildren(entityId));
         return parent;
     }

@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
 @Documented
 public @interface PostAuth {
 
-    String springSecurityExpression();
+    String springSecurityExpression() default "";
 
-    WorkspacePermission workspacePermission();
+    WorkspacePermission workspacePermission() default @WorkspacePermission;
 
 }

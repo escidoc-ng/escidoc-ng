@@ -69,29 +69,31 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.preauthorize(calledMethod, getWorkspaceId(preAuth, joinPoint));
+            authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), null, preAuth
+                    .springSecurityExpression(), preAuth.workspacePermission());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.postauthorize(calledMethod, obj);
+            authorizationService.authorize(calledMethod, null, obj, preAuth
+                    .springSecurityExpression(), preAuth.workspacePermission());
         }
         return obj;
     }
 
     /**
-     * Get workspce-Id from method-parameters
+     * Get workspace-Id from method-parameters
      * 
      * @param preAuth Annotation
      * @param joinPoint
      * @return String workspaceId or null
      */
-    private String getWorkspaceId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
+    private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null &&
-                preAuth.workspacePermission().workspaceIdIndex() >= 0 && joinPoint != null &&
+                preAuth.workspacePermission().idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.workspacePermission().workspaceIdIndex() &&
-                joinPoint.getArgs()[preAuth.workspacePermission().workspaceIdIndex()] instanceof String) {
-            return (String) joinPoint.getArgs()[preAuth.workspacePermission().workspaceIdIndex()];
+                joinPoint.getArgs().length > preAuth.workspacePermission().idIndex() &&
+                joinPoint.getArgs()[preAuth.workspacePermission().idIndex()] instanceof String) {
+            return (String) joinPoint.getArgs()[preAuth.workspacePermission().idIndex()];
         }
         return null;
     }

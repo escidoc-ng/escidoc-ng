@@ -47,6 +47,10 @@ public class AbstractElasticSearchService {
     @Autowired
     protected ObjectMapper mapper;
 
+    private static final String STATE_FIELD = "state";
+
+    private static final String WORKSPACE_ID_FIELD = "workspaceId";
+
     protected void refreshIndex(String... indices) throws IOException {
         try {
             client.admin().indices().refresh(new RefreshRequest(indices)).actionGet();
@@ -130,7 +134,7 @@ public class AbstractElasticSearchService {
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
         // add default-allowed states (published)
-        restrictionQueryBuilder.should(QueryBuilders.termQuery("state", Entity.STATE_PUBLISHED));
+        restrictionQueryBuilder.should(QueryBuilders.termQuery(STATE_FIELD, Entity.STATE_PUBLISHED));
 
         // get user-workspaces
         List<Workspace> userWorkspaces = authorizationService.retrieveUserWorkspaces(workspaceId);
@@ -174,8 +178,8 @@ public class AbstractElasticSearchService {
      */
     private BoolQueryBuilder getRestrictionQuery(String state, String workspaceId) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subRestrictionQueryBuilder.must(QueryBuilders.termQuery("state", state));
-        subRestrictionQueryBuilder.must(QueryBuilders.termQuery("workspaceId", workspaceId));
+        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(STATE_FIELD, state));
+        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, workspaceId));
         return subRestrictionQueryBuilder;
     }
 }
