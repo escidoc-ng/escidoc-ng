@@ -243,6 +243,15 @@ function throwError(request) {
         if (responseText.path != null && responseText.path.length > 0) {
         	$('#errorform').append('<input type="hidden" name="path" value="' + responseText.path + '">');
         }
+        if (responseText.error != null && responseText.error.length > 0) {
+        	$('#errorform').append('<input type="hidden" name="error" value="' + responseText.error + '">');
+        }
+        if (responseText.exception != null && responseText.exception.length > 0) {
+        	$('#errorform').append('<input type="hidden" name="exception" value="' + responseText.exception + '">');
+        }
+        if (responseText.timestamp != null && responseText.timestamp.length > 0) {
+        	$('#errorform').append('<input type="hidden" name="timestamp" value="' + responseText.timestamp + '">');
+        }
     }
     $('#errorform').submit();
 }

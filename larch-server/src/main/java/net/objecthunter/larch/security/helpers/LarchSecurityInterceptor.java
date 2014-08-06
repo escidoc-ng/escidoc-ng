@@ -67,6 +67,7 @@ public class LarchSecurityInterceptor implements Ordered {
 
         PreAuth preAuth = calledMethod.getAnnotation(PreAuth.class);
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
+
         if (preAuth != null) {
             authorizationService.preauthorize(calledMethod, getWorkspaceId(preAuth, joinPoint));
         }
@@ -85,7 +86,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return String workspaceId or null
      */
     private String getWorkspaceId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null && preAuth.workspacePermission() != null &&
+        if (preAuth != null &&
                 preAuth.workspacePermission().workspaceIdIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
                 joinPoint.getArgs().length > preAuth.workspacePermission().workspaceIdIndex() &&

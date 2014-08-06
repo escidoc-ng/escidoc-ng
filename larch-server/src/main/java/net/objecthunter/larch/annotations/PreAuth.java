@@ -34,6 +34,6 @@ public @interface PreAuth {
 
     String springSecurityExpression();
 
-    WorkspacePermission workspacePermission();
+    WorkspacePermission workspacePermission() default @WorkspacePermission;
 
 }

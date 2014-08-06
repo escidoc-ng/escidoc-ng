@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
 @Documented
 public @interface WorkspacePermission {
 
-    int workspaceIdIndex();
+    int workspaceIdIndex() default -1;
 
-    String[] workspacePermissions();
+    String[] workspacePermissions() default {};
 
 }

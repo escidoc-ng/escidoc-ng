@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
@@ -27,6 +28,8 @@ import net.objecthunter.larch.exceptions.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -81,6 +84,28 @@ public class LarchExceptionHandler {
         return handleException(req, e, HttpStatus.CONFLICT);
     }
 
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    @ExceptionHandler({ AccessDeniedException.class })
+    @ResponseBody
+    public Object accessDeniedRequestExceptionHandler(HttpServletRequest req, HttpServletResponse resp, Exception e)
+            throws Exception {
+        return handleException(req, e, HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler({ InsufficientAuthenticationException.class })
+    @ResponseBody
+    public Object insufficientAuthenticationRequestExceptionHandler(HttpServletRequest req, HttpServletResponse resp,
+            Exception e)
+            throws Exception {
+        if (req.getHeader("Accept") != null && req.getHeader("Accept").contains("html")) {
+            resp.sendRedirect(req.getContextPath() + "/login-page");
+        } else {
+            return handleException(req, e, HttpStatus.UNAUTHORIZED);
+        }
+        return null;
+    }
+
     /**
      * Convert Exception either to a JSON-String or to a ModelAndView, depending on Accept-Header of request.
      * 
@@ -94,7 +119,8 @@ public class LarchExceptionHandler {
         ModelAndView mav = new ModelAndView();
         mav.addObject("timestamp", new Date());
         mav.addObject("status", status.value());
-        mav.addObject("error", e.getClass().getName());
+        mav.addObject("error", status.getReasonPhrase());
+        mav.addObject("exception", e.getClass().getName());
         mav.addObject("message", e.getMessage());
         mav.addObject("path", req.getRequestURL());
         mav.setViewName(DEFAULT_ERROR_VIEW);

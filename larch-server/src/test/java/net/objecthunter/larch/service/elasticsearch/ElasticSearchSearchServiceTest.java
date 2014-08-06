@@ -29,6 +29,7 @@ import java.util.Map;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
+import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
 
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -49,6 +50,8 @@ public class ElasticSearchSearchServiceTest {
 
     private ElasticSearchEntityService entityService;
 
+    private DefaultAuthorizationService authorizationService;
+
     private Client mockClient;
 
     private AdminClient mockAdminClient;
@@ -58,10 +61,13 @@ public class ElasticSearchSearchServiceTest {
     @Before
     public void setup() {
         entityService = new ElasticSearchEntityService();
+        authorizationService = new DefaultAuthorizationService();
+        ReflectionTestUtils.setField(authorizationService, "client", mockClient);
         mockClient = createMock(Client.class);
         mockAdminClient = createMock(AdminClient.class);
         mockIndicesAdminClient = createMock(IndicesAdminClient.class);
         ReflectionTestUtils.setField(entityService, "client", mockClient);
+        ReflectionTestUtils.setField(entityService, "authorizationService", authorizationService);
     }
 
     @SuppressWarnings("unchecked")
@@ -133,7 +139,7 @@ public class ElasticSearchSearchServiceTest {
         expect(mockSearchRequestBuilder.setQuery(anyObject(QueryBuilder.class))).andReturn(mockSearchRequestBuilder);
         expect(mockSearchRequestBuilder.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)).andReturn(
                 mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.addFields("id", "workspaceId", "label", "type", "tags")).andReturn(
+        expect(mockSearchRequestBuilder.addFields("id", "workspaceId", "state", "label", "type", "tags")).andReturn(
                 mockSearchRequestBuilder);
         expect(mockSearchRequestBuilder.execute()).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(mockSearchResponse);
@@ -142,6 +148,8 @@ public class ElasticSearchSearchServiceTest {
         expect(mockHits.iterator()).andReturn(Arrays.asList(hitArray).iterator());
         expect(mockHit.field("workspaceId")).andReturn(mockField).times(2);
         expect(mockField.getValue()).andReturn("test label");
+        expect(mockHit.field("state")).andReturn(mockField).times(2);
+        expect(mockField.getValue()).andReturn("ingested");
         expect(mockHit.field("label")).andReturn(mockField).times(2);
         expect(mockField.getValue()).andReturn("test label");
         expect(mockHit.field("type")).andReturn(mockField).times(2);

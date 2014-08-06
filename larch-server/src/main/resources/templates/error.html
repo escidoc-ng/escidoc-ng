@@ -23,10 +23,12 @@
             <p class="value" th:text="${timestamp} ? ${timestamp} : ''"></p>
             <p class="property">Response Status</p>
             <p class="value" th:text="${status} ? ${status} : ''"></p>
+            <p class="property">Response Status Name</p>
+            <p class="value" th:text="${error} ? ${error} : ''"></p>
             <p class="property">Message</p>
             <p class="value" th:text="${message} ? ${message} : ''"></p>
             <p class="property">Cause</p>
-            <p class="value" th:text="${error} ? ${error} : ''"></p>
+            <p class="value" th:text="${exception} ? ${exception} : ''"></p>
         </div>
     </div>
 </div>

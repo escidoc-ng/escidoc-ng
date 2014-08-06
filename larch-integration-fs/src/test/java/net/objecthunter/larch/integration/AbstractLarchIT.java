@@ -16,6 +16,7 @@
 
 package net.objecthunter.larch.integration;
 
+import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.Workspace;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
@@ -43,7 +43,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import static net.objecthunter.larch.test.util.Fixtures.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
@@ -51,7 +50,8 @@ import static net.objecthunter.larch.test.util.Fixtures.*;
 @WebAppConfiguration
 @ActiveProfiles("fs")
 public abstract class AbstractLarchIT {
-    protected static final int port =8080;
+
+    protected static final int port = 8080;
 
     protected static final String hostUrl = "http://localhost:" + port + "/";
 
@@ -75,7 +75,7 @@ public abstract class AbstractLarchIT {
     private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
 
     @Before
-    public void resetSystOutErr() throws Exception{
+    public void resetSystOutErr() throws Exception {
         this.showLog();
         if (!wsCreated) {
             // create default workspace
@@ -101,7 +101,7 @@ public abstract class AbstractLarchIT {
         JsonNode error = mapper.readTree(response.getEntity().getContent());
         assertEquals(statusCode, response.getStatusLine().getStatusCode());
         assertEquals(statusCode, error.get("status").asInt());
-        assertEquals(expectedException.getName(), error.get("error").asText());
+        assertEquals(expectedException.getName(), error.get("exception").asText());
         assertEquals(message, error.get("message").asText());
     }
 

@@ -52,6 +52,8 @@ import org.springframework.expression.Expression;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.util.MethodInvocationUtils;
@@ -215,7 +217,10 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Override
     public User getCurrentUser() {
-        if (!(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
+        if (SecurityContextHolder.getContext() == null ||
+                SecurityContextHolder.getContext().getAuthentication() == null ||
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ||
+                !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
             return null;
         }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -226,31 +231,33 @@ public class DefaultAuthorizationService implements AuthorizationService {
         PreAuth preAuth = method
                 .getAnnotation(PreAuth.class);
         if (preAuth != null) {
-            if (preAuth.springSecurityExpression() != null) {
-                Authentication a = SecurityContextHolder.getContext().getAuthentication();
-                DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-                Expression accessExpression =
-                        handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
-                if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
-                        a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
-                                .getName())))) {
-                    throw new AccessDeniedException("Access denied");
-                }
+            Authentication a = SecurityContextHolder.getContext().getAuthentication();
+            // Anonymous user may not access protected methods
+            if (a == null || a instanceof AnonymousAuthenticationToken) {
+                throw new InsufficientAuthenticationException("No user logged in");
             }
-            if (preAuth.workspacePermission() != null) {
-                WorkspacePermission workspacePermission = preAuth.workspacePermission();
-                if (workspacePermission.workspacePermissions() != null &&
-                        workspacePermission.workspacePermissions().length > 0) {
-                    if (StringUtils.isBlank(workspaceId)) {
-                        throw new AccessDeniedException("No WorkspaceId provided");
-                    }
-                    // convert Strings to Permissions
-                    Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
-                    for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
-                        ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
-                    }
-                    checkCurrentUserPermission(workspaceId, ps);
+            // handle securityExpression
+            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+            Expression accessExpression =
+                    handler.getExpressionParser().parseExpression(preAuth.springSecurityExpression());
+            if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
+                    a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
+                            .getName())))) {
+                throw new AccessDeniedException("Access denied");
+            }
+
+            // handle workspacePermission
+            WorkspacePermission workspacePermission = preAuth.workspacePermission();
+            if (workspacePermission.workspacePermissions().length > 0) {
+                if (StringUtils.isBlank(workspaceId)) {
+                    throw new AccessDeniedException("No WorkspaceId provided");
                 }
+                // convert Strings to Permissions
+                Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
+                for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
+                    ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
+                }
+                checkCurrentUserPermission(workspaceId, ps);
             }
         }
     }
