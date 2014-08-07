@@ -33,7 +33,7 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
@@ -148,15 +148,17 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         }
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
-        final QueryBuilder query;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         if (owner == null) {
-            query = QueryBuilders.matchAllQuery();
+            queryBuilder.must(QueryBuilders.matchAllQuery());
         } else {
-            query = QueryBuilders.matchQuery("owner", owner);
+            queryBuilder.must(QueryBuilders.matchQuery("owner", owner));
         }
+        queryBuilder.must(getWorkspacesUserRestrictionQuery());
+
         try {
             resp = this.client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
-                    .setQuery(query)
+                    .setQuery(queryBuilder)
                     .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                     .setFrom(offset)
                     .setSize(numRecords)

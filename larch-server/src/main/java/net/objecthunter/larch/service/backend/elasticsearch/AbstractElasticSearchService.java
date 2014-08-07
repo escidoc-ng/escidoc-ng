@@ -114,8 +114,8 @@ public class AbstractElasticSearchService {
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getUserRestrictionQuery() throws IOException {
-        return getUserRestrictionQuery(null);
+    protected QueryBuilder getEntitesUserRestrictionQuery() throws IOException {
+        return getEntitiesUserRestrictionQuery(null);
     }
 
     /**
@@ -123,7 +123,7 @@ public class AbstractElasticSearchService {
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getUserRestrictionQuery(String workspaceId) throws IOException {
+    protected QueryBuilder getEntitiesUserRestrictionQuery(String workspaceId) throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
         String username = null;
@@ -150,16 +150,19 @@ public class AbstractElasticSearchService {
                     for (Permission userPermission : userPermissions) {
                         switch (userPermission) {
                         case READ_PENDING_METADATA:
-                            restrictionQueryBuilder.should(getRestrictionQuery(Entity.STATE_PENDING, userWorkspace
-                                    .getId()));
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_PENDING,
+                                    userWorkspace
+                                            .getId()));
                             break;
                         case READ_SUBMITTED_METADATA:
-                            restrictionQueryBuilder.should(getRestrictionQuery(Entity.STATE_SUBMITTED, userWorkspace
-                                    .getId()));
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_SUBMITTED,
+                                    userWorkspace
+                                            .getId()));
                             break;
                         case READ_WITHDRAWN_METADATA:
-                            restrictionQueryBuilder.should(getRestrictionQuery(Entity.STATE_WITHDRAWN, userWorkspace
-                                    .getId()));
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_WITHDRAWN,
+                                    userWorkspace
+                                            .getId()));
                             break;
                         default:
                             break;
@@ -167,6 +170,48 @@ public class AbstractElasticSearchService {
                     }
                 }
             }
+        }
+
+        return restrictionQueryBuilder;
+    }
+
+    /**
+     * Get Query that restricts a search to workspaces the user may see.
+     * 
+     * @return QueryBuilder with user-restriction query
+     */
+    protected QueryBuilder getWorkspacesUserRestrictionQuery() throws IOException {
+        // get username and check for ADMIN-Role
+        User currentUser = getCurrentUser();
+        String username = null;
+        if (currentUser != null) {
+            username = currentUser.getName();
+            if (currentUser.getGroups() != null && currentUser.getGroups().contains(Group.ADMINS)) {
+                return QueryBuilders.matchAllQuery();
+            }
+        }
+
+        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+
+        // get user-workspaces
+        List<Workspace> userWorkspaces = retrieveUserWorkspaces(currentUser, null);
+
+        if (StringUtils.isNotBlank(username)) {
+            for (Workspace userWorkspace : userWorkspaces) {
+                if (userWorkspace.getPermissions() != null &&
+                        userWorkspace.getPermissions().getPermissions(username) != null) {
+                    EnumSet<Permission> userPermissions = userWorkspace.getPermissions().getPermissions(username);
+                    if (userPermissions.contains(Permission.READ_WORKSPACE)) {
+                        restrictionQueryBuilder.should(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, userWorkspace
+                                .getId()));
+                    }
+                }
+            }
+        }
+
+        if (!restrictionQueryBuilder.hasClauses()) {
+            // add default-restriction to restrict to 0
+            restrictionQueryBuilder.should(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, "notprovided"));
         }
 
         return restrictionQueryBuilder;
@@ -232,7 +277,7 @@ public class AbstractElasticSearchService {
      * @param workspaceId
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getRestrictionQuery(String state, String workspaceId) {
+    private BoolQueryBuilder getEntitiesRestrictionQuery(String state, String workspaceId) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(STATE_FIELD, state));
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, workspaceId));

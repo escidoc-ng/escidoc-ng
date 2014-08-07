@@ -127,6 +127,7 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public List<Workspace> retrieveList(@PathVariable("offset") final int offset) throws IOException {
         return this.entityService.scanWorkspaces(null, offset, 0);
     }
@@ -134,6 +135,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public List<Workspace> retrieveList() throws IOException {
         return this.entityService.scanWorkspaces(null, 0, 0);
     }
@@ -141,6 +143,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public List<Workspace> retrieveList(@PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         return this.entityService.scanWorkspaces(null, offset, numRecords);
@@ -150,6 +153,7 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, numRecords));
@@ -159,6 +163,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, 0));
         return new ModelAndView("workspaces", model);
@@ -167,6 +172,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public ModelAndView retrieveListHtml() throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(0, 0));
         return new ModelAndView("workspaces", model);

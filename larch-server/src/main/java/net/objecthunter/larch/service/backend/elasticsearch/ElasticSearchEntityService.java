@@ -231,7 +231,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(getUserRestrictionQuery());
+        queryBuilder.must(getEntitesUserRestrictionQuery());
         try {
             resp =
                     this.client
@@ -296,7 +296,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 queryBuilder.must(childQueryBuilder);
             }
         }
-        queryBuilder.must(getUserRestrictionQuery());
+        queryBuilder.must(getEntitesUserRestrictionQuery());
 
         int numRecords = 20;
         final long time = System.currentTimeMillis();
@@ -370,7 +370,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         queryBuilder.must(QueryBuilders.matchQuery("workspaceId", workspaceId));
-        queryBuilder.must(getUserRestrictionQuery(workspaceId));
+        queryBuilder.must(getEntitiesUserRestrictionQuery(workspaceId));
         try {
             resp =
                     this.client
