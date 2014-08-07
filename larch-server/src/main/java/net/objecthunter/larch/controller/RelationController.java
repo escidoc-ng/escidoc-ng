@@ -18,13 +18,16 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
+import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
+import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +59,9 @@ public class RelationController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
@@ -77,12 +82,10 @@ public class RelationController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public String createHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
-        this.entityService.createRelation(workspaceId, id, predicate, object);
-        this.messagingService.publishCreateRelation(id, predicate, object);
+        create(workspaceId, id, predicate, object);
         return "redirect:/workspace/" + workspaceId + "/entity/" + id;
     }
 }

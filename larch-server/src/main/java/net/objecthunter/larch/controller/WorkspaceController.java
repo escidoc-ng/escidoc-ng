@@ -19,6 +19,7 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 import java.util.List;
 
+import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
@@ -29,7 +30,6 @@ import net.objecthunter.larch.service.EntityService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,7 +49,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace", method = RequestMethod.POST, consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public String create(@RequestBody final Workspace workspace) throws IOException {
         workspace.setOwner(this.getCurrentUser().getName());
         return this.entityService.createWorkspace(workspace);
@@ -66,7 +66,7 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{id}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
+    @PostAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 0,
                     objectType = ObjectType.WORKSPACE, workspacePermissionType = WorkspacePermissionType.READ))
     public Workspace retrieve(@PathVariable("id") final String id) throws IOException {
@@ -77,7 +77,6 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         return this.entityService.scanWorkspace(id, offset, numRecords);
@@ -87,7 +86,6 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
             throws IOException {
         return this.entityService.scanWorkspace(id, offset, 0);
@@ -96,7 +94,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("id") final String id) throws IOException {
         return this.entityService.scanWorkspace(id, 0, 0);
     }
@@ -105,7 +102,6 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap("result", this.entityService.scanWorkspace(id, offset, numRecords));
@@ -115,7 +111,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
             throws IOException {
         return this.browseHtml(id, offset, 0);
@@ -124,7 +119,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("id") final String id) throws IOException {
         return this.browseHtml(id, 0, 0);
     }
@@ -133,7 +127,6 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public List<Workspace> retrieveList(@PathVariable("offset") final int offset) throws IOException {
         return this.entityService.scanWorkspaces(null, offset, 0);
     }
@@ -141,7 +134,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public List<Workspace> retrieveList() throws IOException {
         return this.entityService.scanWorkspaces(null, 0, 0);
     }
@@ -149,7 +141,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public List<Workspace> retrieveList(@PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         return this.entityService.scanWorkspaces(null, offset, numRecords);
@@ -159,7 +150,6 @@ public class WorkspaceController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, numRecords));
@@ -169,7 +159,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, 0));
         return new ModelAndView("workspaces", model);
@@ -178,7 +167,6 @@ public class WorkspaceController extends AbstractLarchController {
     @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView retrieveListHtml() throws IOException {
         final ModelMap model = new ModelMap("workspaces", this.retrieveList(0, 0));
         return new ModelAndView("workspaces", model);
@@ -186,7 +174,7 @@ public class WorkspaceController extends AbstractLarchController {
 
     @RequestMapping(value = "/workspace/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 0,
                     objectType = ObjectType.WORKSPACE, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void update(@PathVariable("id") final String id, @RequestBody final Workspace workspace)
@@ -199,7 +187,7 @@ public class WorkspaceController extends AbstractLarchController {
 
     @RequestMapping(value = "/workspace/{id}", method = RequestMethod.PATCH, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 0,
                     objectType = ObjectType.WORKSPACE, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void patch(@PathVariable("id") final String id, @RequestBody final Workspace workspace) throws IOException {

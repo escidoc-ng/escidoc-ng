@@ -44,6 +44,7 @@ import org.springframework.expression.Expression;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.util.MethodInvocationUtils;
@@ -74,11 +75,22 @@ public class DefaultAuthorizationService implements AuthorizationService {
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
             return;
         }
-        // handle securityExpression
-        handleSecurityExpression(method, springSecurityExpression);
 
-        // handle workspacePermission
-        handleWorkspacePermission(method, workspacePermission, id, result);
+        try {
+            // handle securityExpression
+            handleSecurityExpression(method, springSecurityExpression);
+
+            // handle workspacePermission
+            handleWorkspacePermission(method, workspacePermission, id, result);
+        } catch (Throwable e) {
+            if (e instanceof AccessDeniedException) {
+                if (u != null) {
+                    throw e;
+                } else {
+                    throw new InsufficientAuthenticationException("No user logged in");
+                }
+            }
+        }
     }
 
     private boolean hasPermission(User user, Workspace ws,

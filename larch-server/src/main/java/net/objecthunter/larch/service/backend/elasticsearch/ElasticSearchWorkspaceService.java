@@ -146,7 +146,6 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
         if (numRecords < 1) {
             numRecords = maxRecords;
         }
-        final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         final QueryBuilder query;
@@ -170,7 +169,7 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
 
         final List<Workspace> workspaces = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
-            // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            // TODO: check if JSON document is prefetched or laziliy initialised
             workspaces.add(mapper.readValue(hit.getSourceAsString(), Workspace.class));
         }
         return workspaces;

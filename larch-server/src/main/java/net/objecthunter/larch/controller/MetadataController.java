@@ -24,6 +24,11 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
+import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
@@ -37,7 +42,6 @@ import net.objecthunter.larch.service.SchemaService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -84,7 +88,9 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
             consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public String addMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
@@ -121,7 +127,9 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void addMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Entity e = entityService.retrieve(workspaceId, entityId);
@@ -150,7 +158,9 @@ public class MetadataController extends AbstractLarchController {
             method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void addBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
@@ -190,7 +200,9 @@ public class MetadataController extends AbstractLarchController {
             method = RequestMethod.POST,
             consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public String addBinaryMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
@@ -239,6 +251,8 @@ public class MetadataController extends AbstractLarchController {
             value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}/content", produces = {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public void retrieveMetadataXml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName, @RequestHeader("Accept") final String accept,
@@ -267,6 +281,8 @@ public class MetadataController extends AbstractLarchController {
             produces = {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.READ))
     public void retrieveBinaryMetadataXml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
@@ -302,6 +318,8 @@ public class MetadataController extends AbstractLarchController {
             produces = { "application/json" })
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public MetadataValidationResult validate(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
@@ -323,6 +341,8 @@ public class MetadataController extends AbstractLarchController {
             produces = { "application/json" })
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public MetadataValidationResult validate(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
@@ -340,7 +360,7 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, value = "/metadatatype", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
     public List<MetadataType> retrieveTypes() throws IOException {
         return this.schemaService.getSchemaTypes();
     }
@@ -355,10 +375,9 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, value = "/metadatatype", produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView retrieveTypesHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("types", this.schemaService.getSchemaTypes());
+        model.addAttribute("types", this.retrieveTypes());
         return new ModelAndView("metadatatype", model);
     }
 
@@ -371,7 +390,7 @@ public class MetadataController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.POST, value = "/metadatatype", consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public void addSchemaType(final InputStream src) throws IOException {
         final MetadataType newType = mapper.readValue(src, MetadataType.class);
         this.schemaService.createSchemaType(newType);
@@ -387,7 +406,7 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, value = "/metadatatype", consumes = "multipart/form-data",
             produces = "text/html")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public String addSchemaType(@RequestParam("name") final String name,
             @RequestParam("schemaUrl") final String schemUrl) throws IOException {
         final MetadataType newType = new MetadataType();
@@ -402,13 +421,15 @@ public class MetadataController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Metadata retrieveMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         final Entity e = this.entityService.retrieve(workspaceId, entityId);
         Metadata md = e.getMetadata().get(mdName);
         if (md == null) {
-            throw new FileNotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
+            throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
         return md;
     }
@@ -421,11 +442,7 @@ public class MetadataController extends AbstractLarchController {
     public ModelAndView retrieveMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
-        final Entity e = this.entityService.retrieve(workspaceId, entityId);
-        final Metadata md = e.getMetadata().get(mdName);
-        if (md == null) {
-            throw new FileNotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
-        }
+        final Metadata md = retrieveMetadata(workspaceId, entityId, mdName);
         final ModelMap model = new ModelMap();
         model.addAttribute("metadata", md);
         return new ModelAndView("metadata", model);
@@ -436,6 +453,8 @@ public class MetadataController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.READ))
     public Metadata retrieveBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
@@ -443,11 +462,11 @@ public class MetadataController extends AbstractLarchController {
         final Entity e = this.entityService.retrieve(workspaceId, entityId);
         final Binary b = e.getBinaries().get(binaryName);
         if (b == null) {
-            throw new FileNotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
+            throw new NotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
         }
         final Metadata md = b.getMetadata().get(mdName);
         if (md == null) {
-            throw new FileNotFoundException("Meta data " + mdName + " does not exist on Binary " + binaryName
+            throw new NotFoundException("Meta data " + mdName + " does not exist on Binary " + binaryName
                     + " of entity " + entityId);
         }
         return md;
@@ -462,16 +481,7 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
-        final Entity e = this.entityService.retrieve(workspaceId, entityId);
-        final Binary b = e.getBinaries().get(binaryName);
-        if (b == null) {
-            throw new FileNotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
-        }
-        final Metadata md = b.getMetadata().get(mdName);
-        if (md == null) {
-            throw new FileNotFoundException("Meta data " + mdName + " does not exist on Binary " + binaryName
-                    + " of entity " + entityId);
-        }
+        final Metadata md = retrieveBinaryMetadata(workspaceId, entityId, binaryName, mdName);
         final ModelMap model = new ModelMap();
         model.addAttribute("metadata", md);
         return new ModelAndView("metadata", model);
@@ -480,7 +490,9 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/workspace/{workspaceId}/entity/{id}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void deleteMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
@@ -492,6 +504,9 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void deleteBinaryMetadata(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)

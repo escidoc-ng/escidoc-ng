@@ -77,8 +77,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.ENTITY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.ENTITY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public void patch(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
@@ -215,8 +216,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "text/plain")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.WORKSPACE, idIndex = 0,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.WORKSPACE, idIndex = 0,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src)
             throws IOException {
         final String id = this.entityService.create(workspaceId, mapper.readValue(src, Entity.class));
@@ -235,8 +237,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
-            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
     public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
@@ -259,8 +262,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
-            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void delete(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         this.entityService.delete(workspaceId, id);
@@ -270,8 +274,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
-            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public String publish(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         String publishId = this.entityService.publish(workspaceId, id);
@@ -291,8 +296,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
-            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void submit(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         this.entityService.submit(workspaceId, id);

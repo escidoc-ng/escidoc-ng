@@ -18,6 +18,7 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
+import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Settings;
 import net.objecthunter.larch.service.RepositoryService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
@@ -39,7 +40,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 @RequestMapping("/settings")
 @Controller
-public class SettingsController extends AbstractLarchController{
+public class SettingsController extends AbstractLarchController {
 
     @Autowired
     private RepositoryService repositoryService;
@@ -71,6 +72,7 @@ public class SettingsController extends AbstractLarchController{
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public Settings retrieve() throws IOException {
         return this.createSettings();
     }
@@ -87,7 +89,7 @@ public class SettingsController extends AbstractLarchController{
                 Boolean.parseBoolean(environment.getProperty("larch.export.auto")));
         settings.setLarchExportPath(environment.getProperty("larch.export.path"));
         settings.setLarchCsrfProtectionEnabled(
-            Boolean.parseBoolean(environment.getProperty("larch.security.csrf.enabled")));
+                Boolean.parseBoolean(environment.getProperty("larch.security.csrf.enabled")));
         settings.setLarchMessagingEnabled(
                 Boolean.parseBoolean(environment.getProperty("larch.messaging.enabled")));
         settings.setLarchMessagingBrokerUri(environment.getProperty("larch.messaging.broker.uri"));
@@ -123,7 +125,7 @@ public class SettingsController extends AbstractLarchController{
         settings.setTomcatAccessLogEnabled(
                 Boolean.parseBoolean(environment.getProperty("server.tomcat.access-log-enabled")));
         settings.setJsonPrettyPrintEnabled(
-            Boolean.parseBoolean(environment.getProperty("http.mappers.json-pretty-print")));
+                Boolean.parseBoolean(environment.getProperty("http.mappers.json-pretty-print")));
         settings.setThymeleafPrefix(environment.getProperty("spring.thymeleaf.prefix"));
         settings.setThymeleafSuffix(environment.getProperty("spring.thymeleaf.suffix"));
         settings.setThymeleafMode(environment.getProperty("spring.thymeleaf.mode"));
@@ -156,6 +158,6 @@ public class SettingsController extends AbstractLarchController{
         settings.setSpringEndpointJMXEnabled(Boolean.parseBoolean(environment.getProperty("endpoints.jmx.enabled")));
         settings.setSpringShellEnabled(Boolean.parseBoolean(environment.getProperty("shell.ssh.enabled")));
         settings.setSpringShellPathPatterns(environment.getProperty("shell.commandPathPatterns"));
-      return settings;
+        return settings;
     }
 }

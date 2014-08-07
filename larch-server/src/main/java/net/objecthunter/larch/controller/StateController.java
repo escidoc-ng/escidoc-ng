@@ -18,12 +18,12 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
+import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.state.LarchState;
 import net.objecthunter.larch.service.RepositoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,7 +52,7 @@ public class StateController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public LarchState state() throws IOException {
         return repositoryService.status();
     }
@@ -67,10 +67,9 @@ public class StateController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView stateHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("state", repositoryService.status());
+        model.addAttribute("state", state());
         return new ModelAndView("state", model);
     }
 }

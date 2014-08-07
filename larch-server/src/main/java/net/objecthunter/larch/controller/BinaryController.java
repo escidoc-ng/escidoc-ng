@@ -80,8 +80,10 @@ public class BinaryController extends AbstractLarchController {
         "multipart/form-data",
         "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(
+                    objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public String create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
@@ -102,8 +104,9 @@ public class BinaryController extends AbstractLarchController {
      */
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public void create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
@@ -123,8 +126,9 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public void create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
@@ -222,8 +226,9 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
     public void delete(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
