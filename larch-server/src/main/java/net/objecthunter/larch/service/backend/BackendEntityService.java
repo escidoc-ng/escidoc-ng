@@ -22,7 +22,6 @@ import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
@@ -35,13 +34,15 @@ public interface BackendEntityService {
 
     void update(Entity e) throws IOException;
 
-    Entity retrieve(String workspaceId, String entityId) throws IOException;
+    Entity retrieve(String entityId) throws IOException;
 
     void delete(String id) throws IOException;
 
     IndexState status() throws IOException;
 
     boolean exists(String id) throws IOException;
+
+    List<String> fetchChildren(String id) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all

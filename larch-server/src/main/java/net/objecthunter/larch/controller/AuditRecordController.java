@@ -77,7 +77,6 @@ public class AuditRecordController extends AbstractLarchController {
      */
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET,
             produces = "text/html")
     public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,

@@ -18,18 +18,15 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
 import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
-import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
@@ -37,24 +34,16 @@ import net.objecthunter.larch.model.WorkspacePermissions.Permission;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.util.MethodInvocationUtils;
@@ -71,8 +60,28 @@ public class DefaultAuthorizationService implements AuthorizationService {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private BackendEntityService backendEntityService;
+
+    @Autowired
+    private BackendWorkspaceService backendWorkspaceService;
+
     @Override
-    public boolean hasPermission(User user, Workspace ws,
+    public void authorize(Method method, String id, Object result, String springSecurityExpression,
+            WorkspacePermission workspacePermission) throws IOException {
+        // Admin may do everything
+        final User u = this.getCurrentUser();
+        if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
+            return;
+        }
+        // handle securityExpression
+        handleSecurityExpression(method, springSecurityExpression);
+
+        // handle workspacePermission
+        handleWorkspacePermission(method, workspacePermission, id, result);
+    }
+
+    private boolean hasPermission(User user, Workspace ws,
             WorkspacePermissions.Permission... permissionsToCheck) {
         // check for role ADMIN
         if (user != null && user.getGroups() != null &&
@@ -95,13 +104,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return currentPermissions.containsAll(Arrays.asList(permissionsToCheck));
     }
 
-    @Override
-    public boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
-        return hasPermission(this.getCurrentUser(), ws, permissionsToCheck);
-    }
-
-    @Override
-    public void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
+    private void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
         final User u = this.getCurrentUser();
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
             return;
@@ -111,25 +114,14 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    @Override
-    public void checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException {
-        final GetResponse get =
-                this.client.prepareGet(ElasticSearchWorkspaceService.INDEX_WORKSPACES,
-                        ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE, workspaceId)
-                        .execute()
-                        .actionGet();
-
-        /* check if the workspace does exist */
-        if (!get.isExists()) {
-            throw new NotFoundException("The workspace with id '" + workspaceId + "' does not exist");
-        }
-        final Workspace ws = this.mapper.readValue(get.getSourceAsString(), Workspace.class);
+    private void
+            checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck)
+                    throws IOException {
+        final Workspace ws = backendWorkspaceService.retrieve(workspaceId);
         this.checkCurrentUserPermission(ws, permissionsToCheck);
     }
 
-    @Override
-    public WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException {
+    private WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException {
         if (e.getState() != null) {
             if (e.getState().equals(Entity.STATE_PENDING)) {
                 return WorkspacePermissions.Permission.READ_PENDING_METADATA;
@@ -137,6 +129,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 return WorkspacePermissions.Permission.READ_SUBMITTED_METADATA;
             } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
                 return WorkspacePermissions.Permission.READ_PUBLISHED_METADATA;
+            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
+                return WorkspacePermissions.Permission.READ_WITHDRAWN_METADATA;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -145,14 +139,12 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    @Override
-    public WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException {
+    private WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException {
         return new WorkspacePermissions.Permission[] { this.metadataReadPermissions(e),
             this.metadataWritePermissions(e) };
     }
 
-    @Override
-    public WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException {
+    private WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException {
         if (e.getState() != null) {
             if (e.getState().equals(Entity.STATE_PENDING)) {
                 return WorkspacePermissions.Permission.WRITE_PENDING_METADATA;
@@ -160,6 +152,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 return WorkspacePermissions.Permission.WRITE_SUBMITTED_METADATA;
             } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
                 return WorkspacePermissions.Permission.WRITE_PUBLISHED_METADATA;
+            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
+                return WorkspacePermissions.Permission.WRITE_WITHDRAWN_METADATA;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -168,56 +162,48 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    @Override
-    public List<Workspace> retrieveUserWorkspaces(String workspaceId) throws IOException {
-        final List<Workspace> userWorkspaces = new ArrayList<>();
-        User currentUser = getCurrentUser();
-        if (currentUser == null) {
-            return userWorkspaces;
-        }
-        SearchResponse search;
-        try {
-            FilterBuilder filterBuilder = null;
-            if (StringUtils.isEmpty(workspaceId)) {
-                filterBuilder = FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName());
+    private WorkspacePermissions.Permission binaryReadPermissions(Entity e) throws IOException {
+        if (e.getState() != null) {
+            if (e.getState().equals(Entity.STATE_PENDING)) {
+                return WorkspacePermissions.Permission.READ_PENDING_BINARY;
+            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
+                return WorkspacePermissions.Permission.READ_SUBMITTED_BINARY;
+            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
+                return WorkspacePermissions.Permission.READ_PUBLISHED_BINARY;
+            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
+                return WorkspacePermissions.Permission.READ_WITHDRAWN_BINARY;
             } else {
-                filterBuilder = FilterBuilders.andFilter(FilterBuilders.existsFilter("permissions.permissions." +
-                        currentUser.getName()), FilterBuilders.idsFilter().addIds(workspaceId));
+                throw new IOException("Entity has unknown state: " + e.getState());
             }
-            search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
-                    .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
-                    .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                            filterBuilder))
-                    .addFields("id", "name", "owner", "permissions.permissions." + currentUser.getName())
-                    .execute()
-                    .actionGet();
-            if (search.getHits().getHits().length > 0) {
-                for (SearchHit hit : search.getHits().getHits()) {
-                    final Workspace workspace = new Workspace();
-                    workspace.setId(hit.field("id").getValue());
-                    workspace.setName(hit.field("name").getValue());
-                    workspace.setOwner(hit.field("owner").getValue());
-
-                    WorkspacePermissions workspacePermissions = new WorkspacePermissions();
-                    if (hit.field("permissions.permissions." + currentUser.getName()) != null) {
-                        for (Object o : hit.field("permissions.permissions." + currentUser.getName()).values()) {
-                            String permissionName = (String) o;
-                            workspacePermissions.addPermissions(currentUser.getName(), Permission
-                                    .valueOf(permissionName));
-                        }
-                    }
-                    workspace.setPermissions(workspacePermissions);
-                    userWorkspaces.add(workspace);
-                }
-            }
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
+        } else {
+            throw new IOException("State of Entity may not be null");
         }
-        return userWorkspaces;
     }
 
-    @Override
-    public User getCurrentUser() {
+    private WorkspacePermissions.Permission[] binaryReadWritePermissions(Entity e) throws IOException {
+        return new WorkspacePermissions.Permission[] { this.binaryReadPermissions(e),
+            this.binaryWritePermissions(e) };
+    }
+
+    private WorkspacePermissions.Permission binaryWritePermissions(Entity e) throws IOException {
+        if (e.getState() != null) {
+            if (e.getState().equals(Entity.STATE_PENDING)) {
+                return WorkspacePermissions.Permission.WRITE_PENDING_BINARY;
+            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
+                return WorkspacePermissions.Permission.WRITE_SUBMITTED_BINARY;
+            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
+                return WorkspacePermissions.Permission.WRITE_PUBLISHED_BINARY;
+            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
+                return WorkspacePermissions.Permission.WRITE_WITHDRAWN_BINARY;
+            } else {
+                throw new IOException("Entity has unknown state: " + e.getState());
+            }
+        } else {
+            throw new IOException("State of Entity may not be null");
+        }
+    }
+
+    private User getCurrentUser() {
         if (SecurityContextHolder.getContext() == null ||
                 SecurityContextHolder.getContext().getAuthentication() == null ||
                 SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ||
@@ -225,25 +211,6 @@ public class DefaultAuthorizationService implements AuthorizationService {
             return null;
         }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-    }
-
-    @Override
-    public void authorize(Method method, String id, Object result, String springSecurityExpression,
-            WorkspacePermission workspacePermission) throws IOException {
-        // Admin may do everything
-        final User u = this.getCurrentUser();
-        if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
-            return;
-        }
-        // Anonymous user may not access protected methods
-        if (u == null) {
-            throw new InsufficientAuthenticationException("No user logged in");
-        }
-        // handle securityExpression
-        handleSecurityExpression(method, springSecurityExpression);
-
-        // handle workspacePermission
-        handleWorkspacePermission(method, workspacePermission, id, result);
     }
 
     /**
@@ -278,166 +245,119 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private void handleWorkspacePermission(Method method, WorkspacePermission workspacePermission,
             String id, Object result)
             throws IOException {
+        if (workspacePermission.workspacePermissionType().equals(WorkspacePermissionType.NULL)) {
+            return;
+        }
         Object checkObject = result;
         if (checkObject == null) {
+            // get object to check
             if (StringUtils.isBlank(id)) {
                 throw new AccessDeniedException("No id provided");
             }
-            if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
+            if (workspacePermission.objectType().equals(ObjectType.ENTITY) ||
+                    workspacePermission.objectType().equals(ObjectType.BINARY)) {
                 // get entity
-                final GetResponse get =
-                        this.client.prepareGet(ElasticSearchEntityService.INDEX_ENTITIES,
-                                ElasticSearchEntityService.INDEX_ENTITY_TYPE, id)
-                                .execute()
-                                .actionGet();
-
-                // check if the entity does exist
-                if (!get.isExists()) {
-                    throw new AccessDeniedException("Wrong Parameters");
-                }
-                checkObject = this.mapper.readValue(get.getSourceAsString(), Entity.class);
-            } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE) ||
-                    workspacePermission.objectType().equals(ObjectType.NEW_ENTITY)) {
+                checkObject = backendEntityService.retrieve(id);
+            } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE)) {
                 // get workspace
-                final GetResponse get =
-                        this.client.prepareGet(ElasticSearchWorkspaceService.INDEX_WORKSPACES,
-                                ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE, id)
-                                .execute()
-                                .actionGet();
-
-                // check if the workspace does exist
-                if (!get.isExists()) {
-                    throw new AccessDeniedException("Wrong Parameters");
-                }
-                checkObject = this.mapper.readValue(get.getSourceAsString(), Workspace.class);
+                checkObject = backendWorkspaceService.retrieve(id);
             }
         }
 
-        if (workspacePermission.objectType().equals(ObjectType.NEW_ENTITY)) {
-            checkCurrentUserPermission((Workspace) checkObject, Permission.WRITE_PENDING_METADATA);
-            return;
+        if (checkObject == null) {
+            throw new AccessDeniedException("Object to check not found");
         }
-        if (checkObject != null && checkObject instanceof Entity) {
-            switch (workspacePermission.workspacePermissionType()) {
-            case READ:
-                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
-                        metadataReadPermissions(((Entity) checkObject)));
-                break;
-            case WRITE:
-                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
-                        metadataWritePermissions(((Entity) checkObject)));
-                break;
-            case READ_WRITE:
-                checkCurrentUserPermission(((Entity) checkObject).getWorkspaceId(),
-                        metadataReadWritePermissions(((Entity) checkObject)));
-                break;
-            default:
-                break;
-            }
-        } else if (checkObject != null && checkObject instanceof Workspace) {
-
-        }
-
-        /**
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         */
-
-        if (workspacePermission.workspacePermissions().length > 0) {
-            if (StringUtils.isBlank(workspaceId)) {
-                throw new AccessDeniedException("No WorkspaceId provided");
-            }
-            if (!workspacePermission.type().equals(WorkspacePermissionType.PROVIDED)) {
-                // set workspace-permissions dependent on entity-state
-                if (StringUtils.isBlank(entityId)) {
-                    throw new AccessDeniedException("No EntityId provided");
-                }
-                // get entity
-                final GetResponse get =
-                        this.client.prepareGet(ElasticSearchEntityService.INDEX_ENTITIES,
-                                ElasticSearchEntityService.INDEX_ENTITY_TYPE, entityId)
-                                .execute()
-                                .actionGet();
-
-                // check if the entity does exist
-                if (!get.isExists()) {
-                    throw new NotFoundException("The entity with id '" + entityId + "' does not exist");
-                }
-                final Entity entity = this.mapper.readValue(get.getSourceAsString(), Entity.class);
-                // check workspace-permissions
-                switch (workspacePermission.type()) {
-                case READ:
-                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
-                    break;
-                case WRITE:
-                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataWritePermissions(entity));
-                    break;
-                case READ_WRITE:
-                    checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadWritePermissions(entity));
-                    break;
-                default:
-                    break;
-                }
-
+        if (checkObject instanceof Entity) {
+            if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
+                checkEntityPermissions(((Entity) checkObject), workspacePermission.workspacePermissionType());
+            } else if (workspacePermission.objectType().equals(ObjectType.BINARY)) {
+                checkBinaryPermissions(((Entity) checkObject), workspacePermission.workspacePermissionType());
             } else {
-                // convert Strings to Permissions
-                Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
-                for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
-                    ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
-                }
-                checkCurrentUserPermission(workspaceId, ps);
+                throw new AccessDeniedException("wrong workspace-permission provided");
             }
+        } else if (checkObject instanceof Workspace) {
+            checkWorkspacePermissions(((Workspace) checkObject), workspacePermission.workspacePermissionType());
+        } else {
+            throw new AccessDeniedException("Object has wrong type");
+        }
+
+    }
+
+    /**
+     * Trigger check-method for entity dependent on workspacePermissionType.
+     * 
+     * @param entity Entity
+     * @param workspacePermissionType
+     */
+    private void checkEntityPermissions(Entity entity, WorkspacePermissionType workspacePermissionType)
+            throws IOException {
+        switch (workspacePermissionType) {
+        case READ:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    metadataReadPermissions(entity));
+            break;
+        case WRITE:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    metadataWritePermissions(entity));
+            break;
+        case READ_WRITE:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    metadataReadWritePermissions(entity));
+            break;
+        default:
+            break;
         }
     }
 
-    // /**
-    // * check if user has permissions for result-object.
-    // *
-    // * @param method
-    // * @param result
-    // */
-    // private void handleWorkspacePermission(Method method, Object result)
-    // throws IOException {
-    // if (result instanceof Entity) {
-    // Entity entity = (Entity)result;
-    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
-    // // check workspace-permissions
-    // switch (workspacePermission.type()) {
-    // case READ:
-    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadPermissions(entity));
-    // break;
-    // case WRITE:
-    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataWritePermissions(entity));
-    // break;
-    // case READ_WRITE:
-    // checkCurrentUserPermission(entity.getWorkspaceId(), metadataReadWritePermissions(entity));
-    // break;
-    // default:
-    // break;
-    // }
-    //
-    // } else {
-    // // convert Strings to Permissions
-    // Permission[] ps = new Permission[workspacePermission.workspacePermissions().length];
-    // for (int i = 0; i < workspacePermission.workspacePermissions().length; i++) {
-    // ps[i] = Permission.valueOf(workspacePermission.workspacePermissions()[i]);
-    // }
-    // checkCurrentUserPermission(workspaceId, ps);
-    // }
-    // }
-    // }
+    /**
+     * Trigger check-method for binary dependent on workspacePermissionType.
+     * 
+     * @param entity Entity
+     * @param workspacePermissionType
+     */
+    private void checkBinaryPermissions(Entity entity, WorkspacePermissionType workspacePermissionType)
+            throws IOException {
+        switch (workspacePermissionType) {
+        case READ:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    binaryReadPermissions(entity));
+            break;
+        case WRITE:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    binaryWritePermissions(entity));
+            break;
+        case READ_WRITE:
+            checkCurrentUserPermission(entity.getWorkspaceId(),
+                    binaryReadWritePermissions(entity));
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Trigger check-method for workspace dependent on workspacePermissionType.
+     * 
+     * @param workspace Workspace
+     * @param workspacePermissionType
+     */
+    private void checkWorkspacePermissions(Workspace workspace, WorkspacePermissionType workspacePermissionType)
+            throws IOException {
+        switch (workspacePermissionType) {
+        case READ:
+            checkCurrentUserPermission(workspace, Permission.READ_WORKSPACE);
+            break;
+        case WRITE:
+            checkCurrentUserPermission(workspace, Permission.WRITE_WORKSPACE);
+            break;
+        case READ_WRITE:
+            checkCurrentUserPermission(workspace, Permission.READ_WORKSPACE);
+            checkCurrentUserPermission(workspace, Permission.WRITE_WORKSPACE);
+            break;
+        default:
+            break;
+        }
+    }
 
     /**
      * Get the Permissions for everybody (also anonymous user).

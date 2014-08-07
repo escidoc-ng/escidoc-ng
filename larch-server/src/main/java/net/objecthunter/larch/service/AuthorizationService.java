@@ -18,37 +18,10 @@ package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 import net.objecthunter.larch.annotations.WorkspacePermission;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.security.User;
 
 public interface AuthorizationService {
-
-    boolean hasPermission(User user, Workspace ws,
-            WorkspacePermissions.Permission... permissionsToCheck) throws IOException;
-
-    boolean hasCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException;
-
-    void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException;
-
-    void checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck)
-            throws IOException;
-
-    WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException;
-
-    WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException;
-
-    WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException;
-
-    List<Workspace> retrieveUserWorkspaces(String workspaceId) throws IOException;
-
-    User getCurrentUser();
 
     void authorize(Method method, String id, Object result, String springSecurityExpression,
             WorkspacePermission workspacePermission) throws IOException;

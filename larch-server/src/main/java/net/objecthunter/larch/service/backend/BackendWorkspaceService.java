@@ -23,13 +23,13 @@ import net.objecthunter.larch.model.Workspace;
 
 public interface BackendWorkspaceService {
 
-    String createWorkspace(Workspace workspace) throws IOException;
+    String create(Workspace workspace) throws IOException;
 
-    Workspace retrieveWorkspace(String id) throws IOException;
+    Workspace retrieve(String id) throws IOException;
 
-    void updateWorkspace(Workspace workspace) throws IOException;
+    void update(Workspace workspace) throws IOException;
 
-    void patchWorkSpace(Workspace workspace) throws IOException;
+    void patch(Workspace workspace) throws IOException;
 
     List<Workspace> scanIndex(String owner, int offset, int numRecords) throws IOException;
 

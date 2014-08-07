@@ -16,23 +16,29 @@
 
 package net.objecthunter.larch.service.elasticsearch;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.state.IndexState;
-import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
-import org.elasticsearch.action.admin.indices.status.*;
+import org.elasticsearch.action.admin.indices.status.DocsStatus;
+import org.elasticsearch.action.admin.indices.status.IndexShardStatus;
+import org.elasticsearch.action.admin.indices.status.IndexStatus;
+import org.elasticsearch.action.admin.indices.status.IndicesStatusRequest;
+import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -46,9 +52,7 @@ import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.index.flush.FlushStats;
 import org.elasticsearch.index.merge.MergeStats;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.refresh.RefreshStats;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,18 +72,14 @@ public class ElasticSearchIndexServiceTest {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    private AuthorizationService mockAuthorizationService;
-
     @Before
     public void setup() {
         mockClient = createMock(Client.class);
         mockAdminClient = createMock(AdminClient.class);
         mockIndicesAdminClient = createMock(IndicesAdminClient.class);
-        mockAuthorizationService = createMock(AuthorizationService.class);
         indexService = new ElasticSearchEntityService();
         ReflectionTestUtils.setField(indexService, "mapper", mapper);
         ReflectionTestUtils.setField(indexService, "client", mockClient);
-        ReflectionTestUtils.setField(indexService, "authorizationService", mockAuthorizationService);
     }
 
     @SuppressWarnings("unchecked")
@@ -134,11 +134,6 @@ public class ElasticSearchIndexServiceTest {
                 ElasticSearchEntityService.INDEX_ENTITY_TYPE, e.getId())).andReturn(mockGetRequestBuilder);
         expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.getSourceAsString()).andReturn(mapper.writeValueAsString(e));
-        WorkspacePermissions.Permission[] permissions = new WorkspacePermissions.Permission[] { WorkspacePermissions.Permission.READ_PENDING_METADATA,
-                WorkspacePermissions.Permission.WRITE_PENDING_METADATA };
-        expect(mockAuthorizationService.metadataReadWritePermissions(anyObject(Entity.class))).andReturn(permissions);
-        mockAuthorizationService.checkCurrentUserPermission(anyObject(String.class), anyObject(WorkspacePermissions.Permission.class), anyObject(WorkspacePermissions.Permission.class));
         expectLastCall();
 
         /* indexing */
@@ -155,7 +150,7 @@ public class ElasticSearchIndexServiceTest {
         expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(null);
 
-        replay(mockIndicesAdminClient, mockAuthorizationService, mockAdminClient, mockClient, mockGetRequestBuilder,
+        replay(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder,
                 mockFuture, mockGetResponse, mockIndexRequestBuilder);
         this.indexService.update(e);
         verify(mockIndicesAdminClient, mockAdminClient, mockClient, mockGetRequestBuilder, mockFuture,
@@ -172,7 +167,6 @@ public class ElasticSearchIndexServiceTest {
         ListenableActionFuture mockFuture = createMock(ListenableActionFuture.class);
         SearchResponse mockSearchResponse = createMock(SearchResponse.class);
         SearchRequestBuilder mockSearchRequestBuilder = createMock(SearchRequestBuilder.class);
-        SearchHit[] hitArray = new SearchHit[0];
         SearchHits mockHits = createMock(SearchHits.class);
 
         /* retrieve */
@@ -183,30 +177,12 @@ public class ElasticSearchIndexServiceTest {
         expect(mockGetResponse.isSourceEmpty()).andReturn(false);
         expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(e));
 
-        /* retrieve children */
-        expect(mockClient.prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES)).andReturn(
-                mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.setTypes(ElasticSearchEntityService.INDEX_ENTITY_TYPE)).andReturn(
-                mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.setQuery(anyObject(QueryBuilder.class))).andReturn(mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.setFrom(0)).andReturn(mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.setSize(anyInt())).andReturn(mockSearchRequestBuilder);
-        expect(mockSearchRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockSearchResponse);
-        expect(mockSearchResponse.getHits()).andReturn(mockHits);
-        expect(mockHits.getHits()).andReturn(hitArray);
-        expect(mockSearchResponse.getHits()).andReturn(mockHits);
-        expect(mockHits.getTotalHits()).andReturn(0l);
-        expect(mockAuthorizationService.metadataReadPermissions(anyObject(Entity.class))).andReturn(
-                WorkspacePermissions.Permission.READ_PENDING_METADATA);
-        mockAuthorizationService.checkCurrentUserPermission(anyObject(String.class),
-                anyObject(WorkspacePermissions.Permission.class));
         expectLastCall();
 
-        replay(mockClient, mockAuthorizationService, mockHits, mockSearchRequestBuilder, mockSearchResponse,
+        replay(mockClient, mockHits, mockSearchRequestBuilder, mockSearchResponse,
                 mockGetResponse,
                 mockGetRequestBuilder, mockFuture);
-        this.indexService.retrieve(Fixtures.WORKSPACE_ID, e.getId());
+        this.indexService.retrieve(e.getId());
         verify(mockClient, mockHits, mockSearchRequestBuilder, mockSearchResponse, mockGetRequestBuilder,
                 mockGetResponse, mockFuture);
     }
@@ -229,12 +205,6 @@ public class ElasticSearchIndexServiceTest {
         expect(mockGetResponse.isSourceEmpty()).andReturn(false);
         expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(e));
 
-        expect(mockAuthorizationService.metadataReadPermissions(anyObject(Entity.class))).andReturn(
-                WorkspacePermissions.Permission.READ_PENDING_METADATA);
-        expect(mockAuthorizationService.metadataWritePermissions(anyObject(Entity.class))).andReturn(
-                WorkspacePermissions.Permission.WRITE_PENDING_METADATA);
-        mockAuthorizationService.checkCurrentUserPermission(anyObject(String.class),
-                anyObject(WorkspacePermissions.Permission.class));
         expectLastCall();
 
         expect(mockClient.prepareDelete(ElasticSearchEntityService.INDEX_ENTITIES,
@@ -248,7 +218,7 @@ public class ElasticSearchIndexServiceTest {
         expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(null);
 
-        replay(mockClient, mockAuthorizationService, mockAdminClient, mockIndicesAdminClient, mockDeleteRequest,
+        replay(mockClient, mockAdminClient, mockIndicesAdminClient, mockDeleteRequest,
                 mockDeleteResponse, mockFuture, mockGetRequestBuilder, mockGetResponse);
         this.indexService.delete(e.getId());
         verify(mockClient, mockAdminClient, mockIndicesAdminClient, mockDeleteRequest, mockDeleteResponse, mockFuture);

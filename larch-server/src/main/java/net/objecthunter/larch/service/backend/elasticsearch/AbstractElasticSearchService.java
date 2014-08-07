@@ -3,6 +3,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +11,10 @@ import java.util.Set;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.WorkspacePermissions.Permission;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
-import net.objecthunter.larch.service.AuthorizationService;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +22,17 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilder;
+import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,9 +43,6 @@ public class AbstractElasticSearchService {
 
     @Autowired
     protected Environment env;
-
-    @Autowired
-    protected AuthorizationService authorizationService;
 
     @Autowired
     protected Client client;
@@ -122,7 +125,7 @@ public class AbstractElasticSearchService {
      */
     protected QueryBuilder getUserRestrictionQuery(String workspaceId) throws IOException {
         // get username and check for ADMIN-Role
-        User currentUser = authorizationService.getCurrentUser();
+        User currentUser = getCurrentUser();
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
@@ -137,7 +140,7 @@ public class AbstractElasticSearchService {
         restrictionQueryBuilder.should(QueryBuilders.termQuery(STATE_FIELD, Entity.STATE_PUBLISHED));
 
         // get user-workspaces
-        List<Workspace> userWorkspaces = authorizationService.retrieveUserWorkspaces(workspaceId);
+        List<Workspace> userWorkspaces = retrieveUserWorkspaces(currentUser, workspaceId);
 
         if (StringUtils.isNotBlank(username)) {
             for (Workspace userWorkspace : userWorkspaces) {
@@ -170,6 +173,59 @@ public class AbstractElasticSearchService {
     }
 
     /**
+     * Retrieve all Workspaces where given user has rights for.
+     * 
+     * @param workspaceId
+     * @return List<Workspace>
+     * @throws IOException
+     */
+    private List<Workspace> retrieveUserWorkspaces(User currentUser, String workspaceId) throws IOException {
+        final List<Workspace> userWorkspaces = new ArrayList<>();
+        if (currentUser == null) {
+            return userWorkspaces;
+        }
+        SearchResponse search;
+        try {
+            FilterBuilder filterBuilder = null;
+            if (StringUtils.isEmpty(workspaceId)) {
+                filterBuilder = FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName());
+            } else {
+                filterBuilder = FilterBuilders.andFilter(FilterBuilders.existsFilter("permissions.permissions." +
+                        currentUser.getName()), FilterBuilders.idsFilter().addIds(workspaceId));
+            }
+            search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
+                    .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
+                    .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
+                            filterBuilder))
+                    .addFields("id", "name", "owner", "permissions.permissions." + currentUser.getName())
+                    .execute()
+                    .actionGet();
+            if (search.getHits().getHits().length > 0) {
+                for (SearchHit hit : search.getHits().getHits()) {
+                    final Workspace workspace = new Workspace();
+                    workspace.setId(hit.field("id").getValue());
+                    workspace.setName(hit.field("name").getValue());
+                    workspace.setOwner(hit.field("owner").getValue());
+
+                    WorkspacePermissions workspacePermissions = new WorkspacePermissions();
+                    if (hit.field("permissions.permissions." + currentUser.getName()) != null) {
+                        for (Object o : hit.field("permissions.permissions." + currentUser.getName()).values()) {
+                            String permissionName = (String) o;
+                            workspacePermissions.addPermissions(currentUser.getName(), Permission
+                                    .valueOf(permissionName));
+                        }
+                    }
+                    workspace.setPermissions(workspacePermissions);
+                    userWorkspaces.add(workspace);
+                }
+            }
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        return userWorkspaces;
+    }
+
+    /**
      * Generate a subquery that restrict to a certain workspace and entities with certain state
      * 
      * @param state
@@ -182,4 +238,20 @@ public class AbstractElasticSearchService {
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, workspaceId));
         return subRestrictionQueryBuilder;
     }
+
+    /**
+     * Get currently logged in User or null if no user is logged in.
+     * 
+     * @return User loggen id user
+     */
+    private User getCurrentUser() {
+        if (SecurityContextHolder.getContext() == null ||
+                SecurityContextHolder.getContext().getAuthentication() == null ||
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ||
+                !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
+            return null;
+        }
+        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
 }

@@ -29,7 +29,6 @@ import java.util.Map;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
-import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
 
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -50,8 +49,6 @@ public class ElasticSearchSearchServiceTest {
 
     private ElasticSearchEntityService entityService;
 
-    private DefaultAuthorizationService authorizationService;
-
     private Client mockClient;
 
     private AdminClient mockAdminClient;
@@ -61,13 +58,10 @@ public class ElasticSearchSearchServiceTest {
     @Before
     public void setup() {
         entityService = new ElasticSearchEntityService();
-        authorizationService = new DefaultAuthorizationService();
-        ReflectionTestUtils.setField(authorizationService, "client", mockClient);
         mockClient = createMock(Client.class);
         mockAdminClient = createMock(AdminClient.class);
         mockIndicesAdminClient = createMock(IndicesAdminClient.class);
         ReflectionTestUtils.setField(entityService, "client", mockClient);
-        ReflectionTestUtils.setField(entityService, "authorizationService", authorizationService);
     }
 
     @SuppressWarnings("unchecked")

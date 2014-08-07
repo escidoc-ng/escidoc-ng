@@ -202,7 +202,7 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void update(String workspaceId, Entity e) throws IOException {
-        final Entity oldVersion = this.backendEntityService.retrieve(workspaceId, e.getId());
+        final Entity oldVersion = retrieve(workspaceId, e.getId());
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         e.setVersionAndResetState(oldVersion.getVersion() + 1);
@@ -243,7 +243,9 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public Entity retrieve(String workspaceId, String id) throws IOException {
-        return backendEntityService.retrieve(workspaceId, id);
+        Entity e = backendEntityService.retrieve(id);
+        e.setChildren(backendEntityService.fetchChildren(id));
+        return e;
     }
 
     @Override
@@ -264,14 +266,14 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public InputStream getContent(String workspaceId, String id, String name) throws IOException {
-        final Entity e = backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         final Binary b = e.getBinaries().get(name);
         return this.backendBlobstoreService.retrieve(b.getPath());
     }
 
     @Override
     public Entity retrieve(String workspaceId, String id, int i) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         if (i == e.getVersion()) {
             return e; // the current version
         }
@@ -285,7 +287,7 @@ public class DefaultEntityService implements EntityService {
         if (StringUtils.isBlank(name)) {
             throw new InvalidParameterException("name of binary may not be null or empty");
         }
-        final Entity e = backendEntityService.retrieve(workspaceId, entityId);
+        final Entity e = retrieve(workspaceId, entityId);
         if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
             throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
                     e.getId());
@@ -329,7 +331,7 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void patch(String workspaceId, final String id, final JsonNode node) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         final Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
         while (fields.hasNext()) {
             final Map.Entry<String, JsonNode> field = fields.next();
@@ -374,7 +376,7 @@ public class DefaultEntityService implements EntityService {
                         + " referenced in the object of the relation does not exist in the repository");
             }
         }
-        final Entity oldVersion = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity oldVersion = retrieve(workspaceId, id);
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
@@ -392,7 +394,7 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void deleteBinary(String workspaceId, String entityId, String name) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, entityId);
+        final Entity e = retrieve(workspaceId, entityId);
         if (e.getBinaries().get(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
@@ -408,7 +410,7 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void deleteMetadata(String workspaceId, String entityId, String mdName) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, entityId);
+        final Entity e = retrieve(workspaceId, entityId);
         if (e.getMetadata().get(mdName) == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
@@ -419,7 +421,7 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void deleteBinaryMetadata(String workspaceId, String entityId, String binaryName, String mdName)
             throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, entityId);
+        final Entity e = retrieve(workspaceId, entityId);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new NotFoundException("The binary " + binaryName + " does not exist in the entity " + entityId);
         }
@@ -445,7 +447,7 @@ public class DefaultEntityService implements EntityService {
         } catch (IllegalArgumentException e) {
             throw new InvalidParameterException("wrong type given");
         }
-        final Entity oldVersion = this.backendEntityService.retrieve(workspaceId, entityId);
+        final Entity oldVersion = retrieve(workspaceId, entityId);
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
@@ -469,7 +471,7 @@ public class DefaultEntityService implements EntityService {
         } catch (IllegalArgumentException e) {
             throw new InvalidParameterException("wrong type given");
         }
-        final Entity oldVersion = this.backendEntityService.retrieve(workspaceId, entityId);
+        final Entity oldVersion = retrieve(workspaceId, entityId);
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
@@ -492,14 +494,14 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void submit(String workspaceId, String id) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         e.setState(Entity.STATE_SUBMITTED);
         this.backendEntityService.update(e);
     }
 
     @Override
     public String publish(String workspaceId, String id) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         e.setState(Entity.STATE_PUBLISHED);
         this.backendEntityService.update(e);
         return this.backendPublishService.publish(e);
@@ -538,12 +540,12 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public String createWorkspace(Workspace workspace) throws IOException {
-        return this.backendWorkspaceService.createWorkspace(workspace);
+        return this.backendWorkspaceService.create(workspace);
     }
 
     @Override
     public Workspace retrieveWorkspace(String id) throws IOException {
-        return this.backendWorkspaceService.retrieveWorkspace(id);
+        return this.backendWorkspaceService.retrieve(id);
     }
 
     @Override
@@ -553,12 +555,12 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void updateWorkspace(Workspace workspace) throws IOException {
-        this.backendWorkspaceService.updateWorkspace(workspace);
+        this.backendWorkspaceService.update(workspace);
     }
 
     @Override
     public void patchWorkspace(Workspace workspace) throws IOException {
-        this.backendWorkspaceService.patchWorkSpace(workspace);
+        this.backendWorkspaceService.patch(workspace);
     }
 
     @Override
@@ -591,7 +593,7 @@ public class DefaultEntityService implements EntityService {
      * @throws IOException
      */
     private boolean hasPublishedChildren(String workspaceId, String id) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         if (e.getChildren() == null) {
             return false;
         } else {
@@ -613,7 +615,7 @@ public class DefaultEntityService implements EntityService {
      * @throws IOException
      */
     private void deleteRecursively(String workspaceId, String id) throws IOException {
-        final Entity e = this.backendEntityService.retrieve(workspaceId, id);
+        final Entity e = retrieve(workspaceId, id);
         if (e.getChildren() != null) {
             for (String childId : e.getChildren()) {
                 deleteRecursively(workspaceId, childId);

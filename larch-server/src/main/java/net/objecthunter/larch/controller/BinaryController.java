@@ -21,6 +21,10 @@ import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
+import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
@@ -31,7 +35,6 @@ import net.objecthunter.larch.service.SchemaService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +80,8 @@ public class BinaryController extends AbstractLarchController {
         "multipart/form-data",
         "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public String create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
@@ -98,7 +102,8 @@ public class BinaryController extends AbstractLarchController {
      */
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public void create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
@@ -118,7 +123,8 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public void create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
@@ -141,6 +147,8 @@ public class BinaryController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.READ))
     public Binary retrieve(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
@@ -189,6 +197,8 @@ public class BinaryController extends AbstractLarchController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.READ))
     public void download(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {
@@ -212,7 +222,8 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public void delete(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {

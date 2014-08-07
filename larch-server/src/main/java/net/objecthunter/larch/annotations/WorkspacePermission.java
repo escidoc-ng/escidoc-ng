@@ -66,8 +66,7 @@ public @interface WorkspacePermission {
     public enum ObjectType {
         ENTITY,
         WORKSPACE,
-        NEW_ENTITY,
-        NEW_WORKSPACE;
+        BINARY;
     }
 
 }

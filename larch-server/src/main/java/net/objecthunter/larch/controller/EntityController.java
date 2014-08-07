@@ -77,7 +77,8 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.ENTITY, idIndex = 1,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public void patch(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
@@ -97,7 +98,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 0,
+    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
             objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Entity
             retrieve(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
@@ -137,6 +138,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/version/{version}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
+    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Entity retrieve(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
@@ -174,7 +177,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/versions")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public Entities retrieveVersions(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         Entities entities = entityService.getOldVersions(workspaceId, id);
@@ -193,12 +196,10 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/versions", produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView retrieveVersionsHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        Entities entities = entityService.getOldVersions(workspaceId, id);
-        entities.getEntities().add(0, entityService.retrieve(workspaceId, id));
+        Entities entities = retrieveVersions(workspaceId, id);
         model.addAttribute("entities", entities);
         return new ModelAndView("versions", model);
     }
@@ -214,9 +215,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "text/plain")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.NEW_ENTITY, idIndex = 0,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
+    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.WORKSPACE, idIndex = 0,
+            workspacePermissionType = WorkspacePermissionType.WRITE))
     public String create(@PathVariable("workspaceId") final String workspaceId, final InputStream src)
             throws IOException {
         final String id = this.entityService.create(workspaceId, mapper.readValue(src, Entity.class));
@@ -235,9 +235,8 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_USER', 'ROLE_ADMIN')",
-            workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
     public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
@@ -260,7 +259,8 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void delete(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         this.entityService.delete(workspaceId, id);
@@ -270,7 +270,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public String publish(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         String publishId = this.entityService.publish(workspaceId, id);
@@ -281,7 +282,6 @@ public class EntityController extends AbstractLarchController {
 
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView publishHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         this.publish(workspaceId, id);
@@ -291,7 +291,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void submit(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id)
             throws IOException {
         this.entityService.submit(workspaceId, id);
@@ -301,7 +302,6 @@ public class EntityController extends AbstractLarchController {
 
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView submitHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         this.submit(workspaceId, id);

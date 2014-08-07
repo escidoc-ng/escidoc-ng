@@ -129,8 +129,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public Entity retrieve(String workspaceId, String entityId) throws IOException {
-        this.verifyWorkspaceId(workspaceId);
+    public Entity retrieve(String entityId) throws IOException {
         log.debug("fetching entity " + entityId);
         final GetResponse resp;
         try {
@@ -141,12 +140,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         if (resp.isSourceEmpty()) {
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
-        final Entity parent = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        parent.setChildren(fetchChildren(entityId));
-        return parent;
+        return mapper.readValue(resp.getSourceAsBytes(), Entity.class);
     }
 
-    private List<String> fetchChildren(String id) throws IOException {
+    @Override
+    public List<String> fetchChildren(String id) throws IOException {
         final List<String> children = new ArrayList<>();
         SearchResponse search;
         int offset = 0;
@@ -184,8 +182,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         final Entity e = this.mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        this.authorizationService.checkCurrentUserPermission(e.getWorkspaceId(), this.authorizationService
-                .metadataWritePermissions(e));
         try {
             client.prepareDelete(INDEX_ENTITIES, INDEX_ENTITY_TYPE, id).execute().actionGet();
             refreshIndex(INDEX_ENTITIES);

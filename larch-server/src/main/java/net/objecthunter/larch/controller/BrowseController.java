@@ -23,7 +23,6 @@ import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.PublishService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,7 +53,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse() throws IOException {
         return this.entityService.scanEntities(0);
     }
@@ -69,7 +67,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{offset}", method = RequestMethod.GET)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("offset") final int offset) throws IOException {
         return this.entityService.scanEntities(offset);
     }
@@ -85,7 +82,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{offset}/{numrecords}", method = RequestMethod.GET)
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public SearchResult browse(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
         return this.entityService.scanEntities(offset, numRecords);
@@ -100,7 +96,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("result", this.entityService.scanEntities(0));
@@ -117,7 +112,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("result", this.entityService.scanEntities(offset));
@@ -135,7 +129,6 @@ public class BrowseController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{offset}/{numrecords}", method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ModelAndView browseHtml(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap();

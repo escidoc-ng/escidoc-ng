@@ -74,8 +74,8 @@ public class LarchSecurityInterceptor implements Ordered {
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.authorize(calledMethod, null, obj, preAuth
-                    .springSecurityExpression(), preAuth.workspacePermission());
+            authorizationService.authorize(calledMethod, null, obj, postAuth
+                    .springSecurityExpression(), postAuth.workspacePermission());
         }
         return obj;
     }
