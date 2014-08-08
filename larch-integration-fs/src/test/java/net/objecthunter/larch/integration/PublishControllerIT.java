@@ -19,7 +19,6 @@ package net.objecthunter.larch.integration;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 
@@ -45,22 +44,21 @@ public class PublishControllerIT extends AbstractLarchIT {
     public void testRetrievePublishedEntity() throws Exception {
         // create
         HttpResponse resp =
-                this.execute(
+                this.executeAsAdmin(
                         Request.Post(entityUrl)
                                 .bodyString(mapper.writeValueAsString(createFixtureEntity()),
-                                            ContentType.APPLICATION_JSON))
-                        .returnResponse();
+                                        ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
         System.out.println(entityUrl + id + "/publish");
-        resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
+        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
         final String publishId = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // retrieve published
-        resp = this.execute(Request.Get(publishedUrl + publishId)).returnResponse();
+        resp = this.executeAsAdmin(Request.Get(publishedUrl + publishId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals("published", fetched.getState());
@@ -72,32 +70,31 @@ public class PublishControllerIT extends AbstractLarchIT {
     public void testRetrievePublishedEntities() throws Exception {
         // create
         HttpResponse resp =
-                this.execute(
+                this.executeAsAdmin(
                         Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
-                                ContentType.APPLICATION_JSON)).returnResponse();
+                                ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
-        resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
-        // resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
+        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
+        // resp = this.execute(Request.Post(entityUrl + id + "/publish"));
         String publishId = EntityUtils.toString(resp.getEntity());
 
         // create new identifier
         resp =
-                this.execute(
+                this.executeAsAdmin(
                         Request.Post(identifierUrl.replaceFirst("\\{id\\}", id))
                                 .bodyString("type=DOI&value=123",
-                                            ContentType.APPLICATION_FORM_URLENCODED))
-                        .returnResponse();
+                                        ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(201, resp.getStatusLine().getStatusCode());
 
         // publish
-        resp = this.execute(Request.Post(entityUrl + id + "/publish")).returnResponse();
+        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
         String publishId1 = EntityUtils.toString(resp.getEntity());
 
         // retrieve published
-        resp = this.execute(Request.Get(publishedForEntityUrl.replaceFirst("\\{id\\}", id))).returnResponse();
+        resp = this.executeAsAdmin(Request.Get(publishedForEntityUrl.replaceFirst("\\{id\\}", id)));
         Entities fetched = mapper.readValue(resp.getEntity().getContent(), Entities.class);
         assertEquals(2, fetched.getEntities().size());
         Entity e1 = fetched.getEntities().get(0);
