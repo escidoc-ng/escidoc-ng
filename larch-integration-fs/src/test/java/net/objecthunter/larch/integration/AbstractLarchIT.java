@@ -21,22 +21,37 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.model.WorkspacePermissions.Permission;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -61,6 +76,10 @@ public abstract class AbstractLarchIT {
 
     protected static final String entityUrl = defaultWorkspaceUrl + "entity/";
 
+    protected static final String userUrl = hostUrl + "user/";
+
+    protected static final String confirmUrl = hostUrl + "confirm/";
+
     protected boolean wsCreated = false;
 
     final PrintStream sysOut = System.out;
@@ -72,7 +91,10 @@ public abstract class AbstractLarchIT {
 
     private HttpHost localhost = new HttpHost("localhost", 8080, "http");
 
-    private Executor executor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(localhost);
+    private Executor adminExecutor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(
+            localhost);
+
+    private HttpClient httpClient = HttpClients.createDefault();
 
     @Before
     public void resetSystOutErr() throws Exception {
@@ -84,14 +106,134 @@ public abstract class AbstractLarchIT {
             ws.setName("Test Workspace");
             Request r = Request.Post(hostUrl + "workspace")
                     .bodyString(mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON);
-            HttpResponse resp = this.execute(r)
-                    .returnResponse();
+            this.executeAsAdmin(r);
             wsCreated = true;
         }
     }
 
-    protected Response execute(Request req) throws IOException {
-        return this.executor.execute(req);
+    protected String createUser(String password) throws IOException {
+        String name = RandomStringUtils.randomAlphabetic(5);
+        HttpResponse resp =
+                executeAsAdmin(
+                Request.Post(userUrl)
+                        .body(MultipartEntityBuilder.create()
+                                .addTextBody("name", name)
+                                .addTextBody("first_name", "test")
+                                .addTextBody("last_name", "test")
+                                .addTextBody("email", name + "@fiz.de")
+                                .addTextBody("groups", "ROLE_USER")
+                                .build()
+                        ));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final String token = EntityUtils.toString(resp.getEntity());
+        resp =
+                executeAsAdmin(
+                Request.Post(confirmUrl + token)
+                        .body(MultipartEntityBuilder.create()
+                                .addTextBody("password", password)
+                                .addTextBody("passwordRepeat", password)
+                                .build()
+                        ));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        return name;
+    }
+
+    /**
+     * Create Workspace where users with provided usernames have all rights.
+     * 
+     * @param usernames
+     * @return String workspaceId
+     * @throws Exception
+     */
+    private String createWorkspaceFor(List<String> usernames, EnumSet<Permission> permissionSet) throws Exception {
+        final Workspace ws = new Workspace();
+        if (usernames != null && !usernames.isEmpty() && permissionSet != null && !permissionSet.isEmpty()) {
+            final WorkspacePermissions permissions = new WorkspacePermissions();
+            for (String username : usernames) {
+                permissions.setPermissions(username, permissionSet);
+            }
+            ws.setPermissions(permissions);
+        }
+        ws.setId(RandomStringUtils.randomAlphanumeric(16));
+        ws.setOwner("foo");
+        ws.setName("bar");
+        HttpResponse resp = executeAsAdmin(Request.Post(hostUrl + "/workspace")
+                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON));
+
+        return EntityUtils.toString(resp.getEntity());
+    }
+
+    /**
+     * Create Workspace where user with provided username has all rights.
+     * 
+     * @param username
+     * @return String workspaceId
+     * @throws Exception
+     */
+    protected String createAllPermissionWorkspaceForUser(String username) throws Exception {
+        if (username == null) {
+            return createWorkspaceFor(null, null);
+        } else {
+            return createWorkspaceFor(new ArrayList<String>() {
+
+                {
+                    add(username);
+                }
+            }, EnumSet.allOf(WorkspacePermissions.Permission.class));
+        }
+    }
+
+    /**
+     * Create Workspace where user with provided username has provided rights.
+     * 
+     * @param username
+     * @param permission permission
+     * @return String workspaceId
+     * @throws Exception
+     */
+    protected String createPermissionWorkspaceForUser(String username, Permission... permission) throws Exception {
+        if (username == null) {
+            return createWorkspaceFor(null, null);
+        } else {
+            return createWorkspaceFor(new ArrayList<String>() {
+
+                {
+                    add(username);
+                }
+            }, EnumSet.copyOf(new ArrayList<Permission>() {
+
+                {
+                    for (int i = 0; i < permission.length; i++) {
+                        add(permission[i]);
+                    }
+                }
+            }));
+        }
+    }
+
+    protected HttpResponse executeAsAdmin(Request req) throws IOException {
+        return this.adminExecutor.execute(req).returnResponse();
+    }
+
+    protected HttpResponse executeAsUser(HttpMethod method, String url, String body, String username,
+            String password)
+            throws IOException {
+        HttpUriRequest request = getRequest(method, url, body);
+        if (request != null) {
+            byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
+            String authorization = "Basic " + new String(encodedBytes);
+            request.setHeader("Authorization", authorization);
+            return httpClient.execute(request);
+        }
+        return null;
+    }
+
+    protected HttpResponse executeAsAnonymous(HttpMethod method, String url, String body) throws IOException {
+        HttpUriRequest request = getRequest(method, url, body);
+        if (request != null) {
+            return httpClient.execute(request);
+        }
+        return null;
     }
 
     protected void checkResponseError(HttpResponse response, int statusCode,
@@ -114,4 +256,18 @@ public abstract class AbstractLarchIT {
         System.setOut(sysOut);
         System.setErr(sysErr);
     }
+
+    private HttpUriRequest getRequest(HttpMethod method, String url, String body) throws IOException {
+        if (method.equals(HttpMethod.POST)) {
+            HttpPost httpPost =
+                    new HttpPost(url);
+            if (StringUtils.isNotBlank(body)) {
+                httpPost.setEntity(new StringEntity(body));
+                httpPost.setHeader("Content-type", "application/json; charset=UTF-8");
+            }
+            return httpPost;
+        }
+        return null;
+    }
+
 }

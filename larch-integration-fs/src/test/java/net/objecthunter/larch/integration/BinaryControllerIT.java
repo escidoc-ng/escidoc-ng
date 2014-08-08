@@ -19,15 +19,12 @@ package net.objecthunter.larch.integration;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import net.objecthunter.larch.model.Entity;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,18 +40,16 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create entity
         Entity child = createFixtureEntity();
         HttpResponse resp =
-                this.execute(
+                this.executeAsAdmin(
                         Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON))
-                        .returnResponse();
+                                .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         String id = EntityUtils.toString(resp.getEntity());
 
         // get entity
         resp =
-                this.execute(
-                        Request.Get(entityUrl + id))
-                        .returnResponse();
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + id));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries());
@@ -63,16 +58,14 @@ public class BinaryControllerIT extends AbstractLarchIT {
 
         // delete binary
         resp =
-                this.execute(
-                        Request.Delete(entityUrl + id + "/binary/" + name))
-                        .returnResponse();
+                this.executeAsAdmin(
+                        Request.Delete(entityUrl + id + "/binary/" + name));
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // get entity
         resp =
-                this.execute(
-                        Request.Get(entityUrl + id))
-                        .returnResponse();
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + id));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries());
@@ -81,16 +74,14 @@ public class BinaryControllerIT extends AbstractLarchIT {
 
         // delete binary
         resp =
-                this.execute(
-                        Request.Delete(entityUrl + id + "/binary/" + name))
-                        .returnResponse();
+                this.executeAsAdmin(
+                        Request.Delete(entityUrl + id + "/binary/" + name));
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // get entity
         resp =
-                this.execute(
-                        Request.Get(entityUrl + id))
-                        .returnResponse();
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + id));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries());
