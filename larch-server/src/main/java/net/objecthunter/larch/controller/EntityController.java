@@ -238,7 +238,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);

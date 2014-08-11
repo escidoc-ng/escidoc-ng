@@ -20,7 +20,6 @@ import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,6 +39,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 
 public class AuthorizeEntityControllerIT extends AbstractLarchIT {
 
@@ -191,27 +191,67 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
                 true);
     }
 
+    @Test
+    public void testUpdateEntity() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        entity.setLabel("otherLabel");
+        testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
+                .writeValueAsString(entity),
+                MissingPermission.WRITE_PENDING_METADATA);
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        entity.setLabel("otherLabel");
+        testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
+                .writeValueAsString(entity),
+                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        entity.setLabel("otherLabel");
+        testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
+                .writeValueAsString(entity),
+                MissingPermission.WRITE_PUBLISHED_METADATA, Entity.STATE_PUBLISHED, entity.getId());
+    }
+
+    @Test
+    public void testDeleteEntity() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId(), null,
+                MissingPermission.WRITE_PENDING_METADATA, Entity.STATE_PENDING, entity.getId());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
+                .writeValueAsString(entity),
+                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
+                .writeValueAsString(entity),
+                MissingPermission.WRITE_PUBLISHED_METADATA, Entity.STATE_PUBLISHED, entity.getId());
+    }
+
     private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission)
-            throws IOException {
+            throws Exception {
         testAuth(method, url, object, neededPermission, null, null, false);
     }
 
     private void testAuth(HttpMethod method, String url, String object, boolean adminOnly)
-            throws IOException {
+            throws Exception {
         testAuth(method, url, object, null, null, null, adminOnly);
     }
 
     private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
             String resetState, String resetStateEntityId)
-            throws IOException {
+            throws Exception {
         testAuth(method, url, object, neededPermission, resetState, resetStateEntityId, false);
     }
 
     private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
             String resetState, String resetStateEntityId, boolean adminOnly)
-            throws IOException {
+            throws Exception {
         int okStatus = 200;
-        if (HttpMethod.PUT.equals(method) || HttpMethod.POST.equals(method)) {
+        if (HttpMethod.POST.equals(method)) {
             okStatus = 201;
         }
         // try as admin
@@ -279,17 +319,35 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
         }
     }
 
-    private void resetState(String resetState, String resetStateEntityId) throws IOException {
+    private void resetState(String resetState, String resetStateEntityId) throws Exception {
         if (StringUtils.isNotBlank(resetState) && StringUtils.isNotBlank(resetStateEntityId)) {
+            // check if entity is there
+            HttpResponse resp =
+                    this.executeAsAdmin(
+                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId));
+            if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
+                // recreate entity
+                Entity e = createFixtureEntity();
+                e.setWorkspaceId(workspaceId);
+                e.setId(resetStateEntityId);
+                resp =
+                        this.executeAsAdmin(
+                                Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
+                                        mapper.writeValueAsString(e),
+                                        ContentType.APPLICATION_JSON));
+                assertEquals(201, resp.getStatusLine().getStatusCode());
+            } else {
+                assertEquals(200, resp.getStatusLine().getStatusCode());
+            }
             String urlSuffix = null;
             if (resetState.equals(Entity.STATE_SUBMITTED)) {
                 urlSuffix = "submit";
             } else if (resetState.equals(Entity.STATE_PUBLISHED)) {
                 urlSuffix = "publish";
             } else {
-                throw new IOException("unknown state to reset");
+                return;
             }
-            HttpResponse resp =
+            resp =
                     this.executeAsAdmin(
                             Request.Post(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId + "/" +
                                     urlSuffix));
