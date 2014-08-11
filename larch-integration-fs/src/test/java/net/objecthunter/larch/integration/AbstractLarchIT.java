@@ -40,6 +40,7 @@ import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -251,6 +252,14 @@ public abstract class AbstractLarchIT {
                 httpPut.setHeader("Content-type", "application/json; charset=UTF-8");
             }
             return httpPut;
+        } else if (method.equals(HttpMethod.PATCH)) {
+            HttpPatch httpPatch =
+                    new HttpPatch(url);
+            if (StringUtils.isNotBlank(body)) {
+                httpPatch.setEntity(new StringEntity(body));
+                httpPatch.setHeader("Content-type", "application/json; charset=UTF-8");
+            }
+            return httpPatch;
         } else if (method.equals(HttpMethod.GET)) {
             return new HttpGet(url);
         } else if (method.equals(HttpMethod.DELETE)) {

@@ -35,6 +35,7 @@ import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +66,14 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private BackendEntityService backendEntityService;
 
     @Autowired
+    private BackendVersionService backendVersionService;
+
+    @Autowired
     private BackendWorkspaceService backendWorkspaceService;
 
     @Override
-    public void authorize(Method method, String id, Object result, String springSecurityExpression,
+    public void authorize(Method method, String id, Integer versionId, Object result,
+            String springSecurityExpression,
             WorkspacePermission workspacePermission) throws IOException {
         // Admin may do everything
         final User u = this.getCurrentUser();
@@ -81,7 +86,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             handleSecurityExpression(method, springSecurityExpression);
 
             // handle workspacePermission
-            handleWorkspacePermission(method, workspacePermission, id, result);
+            handleWorkspacePermission(method, workspacePermission, id, versionId, result);
         } catch (Throwable e) {
             if (e instanceof AccessDeniedException) {
                 if (u != null) {
@@ -255,7 +260,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param result
      */
     private void handleWorkspacePermission(Method method, WorkspacePermission workspacePermission,
-            String id, Object result)
+            String id, Integer versionId, Object result)
             throws IOException {
         if (workspacePermission.workspacePermissionType().equals(WorkspacePermissionType.NULL)) {
             return;
@@ -269,6 +274,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (workspacePermission.objectType().equals(ObjectType.ENTITY) ||
                     workspacePermission.objectType().equals(ObjectType.BINARY)) {
                 // get entity
+                if (versionId != null) {
+                    checkObject = backendVersionService.getOldVersion(id, versionId);
+                }
                 checkObject = backendEntityService.retrieve(id);
             } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE)) {
                 // get workspace

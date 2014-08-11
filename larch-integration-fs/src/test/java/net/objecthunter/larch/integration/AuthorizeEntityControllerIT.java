@@ -119,6 +119,23 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
     }
 
     @Test
+    public void testPatchEntity() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        String patchData = "{\"label\":\"otherLabel\"}";
+        testAuth(HttpMethod.PATCH, workspaceUrl + workspaceId + "/entity/" + entity.getId(), patchData,
+                MissingPermission.WRITE_PENDING_METADATA);
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.PATCH, workspaceUrl + workspaceId + "/entity/" + entity.getId(), patchData,
+                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.PATCH, workspaceUrl + workspaceId + "/entity/" + entity.getId(), patchData,
+                MissingPermission.WRITE_PUBLISHED_METADATA, Entity.STATE_PUBLISHED, entity.getId());
+    }
+
+    @Test
     public void testCreateEntity() throws Exception {
         Entity e = createFixtureEntity();
         e.setWorkspaceId(workspaceId);
@@ -127,14 +144,71 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
     }
 
     @Test
-    public void testRetrievePendingEntity() throws Exception {
+    public void testRetrieveEntity() throws Exception {
         // create pending entity
-        String entityId = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entityId, null,
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId(), null,
                 MissingPermission.READ_PENDING_METADATA);
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId(), null,
+                MissingPermission.READ_SUBMITTED_METADATA);
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId(), null,
+                null);
+    }
+
+    @Test
+    public void testRetrieveVersion() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2", null,
+                MissingPermission.READ_PENDING_METADATA);
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2", null,
+                MissingPermission.READ_SUBMITTED_METADATA);
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2", null,
+                null);
+    }
+
+    @Test
+    public void testRetrieveVersions() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions", null,
+                true);
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions", null,
+                true);
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions", null,
+                true);
     }
 
     private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission)
+            throws IOException {
+        testAuth(method, url, object, neededPermission, null, null, false);
+    }
+
+    private void testAuth(HttpMethod method, String url, String object, boolean adminOnly)
+            throws IOException {
+        testAuth(method, url, object, null, null, null, adminOnly);
+    }
+
+    private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
+            String resetState, String resetStateEntityId)
+            throws IOException {
+        testAuth(method, url, object, neededPermission, resetState, resetStateEntityId, false);
+    }
+
+    private void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
+            String resetState, String resetStateEntityId, boolean adminOnly)
             throws IOException {
         int okStatus = 200;
         if (HttpMethod.PUT.equals(method) || HttpMethod.POST.equals(method)) {
@@ -145,31 +219,40 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
                 this.executeAsUser(method, url, object, adminUsername, adminPassword);
         assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         EntityUtils.toString(resp.getEntity());
+        resetState(resetState, resetStateEntityId);
         // try as user with all rights
         resp =
                 this.executeAsUser(method, url, object, usernames.get(MissingPermission.NONE)[0], usernames
                         .get(MissingPermission.NONE)[1]);
-        assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+        if (adminOnly) {
+            assertEquals(403, resp.getStatusLine().getStatusCode());
+        } else {
+            assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+        }
         EntityUtils.toString(resp.getEntity());
         // try as user with no rights
         resp =
                 this.executeAsUser(method, url, object, usernames.get(MissingPermission.ALL)[0], usernames
                         .get(MissingPermission.ALL)[1]);
-        if (neededPermission == null) {
+        if (adminOnly) {
+            assertEquals(403, resp.getStatusLine().getStatusCode());
+        } else if (neededPermission == null) {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
         EntityUtils.toString(resp.getEntity());
+        resetState(resetState, resetStateEntityId);
         // try as anonymous user
         resp =
                 this.executeAsAnonymous(method, url, object);
-        if (neededPermission == null) {
+        if (neededPermission == null && !adminOnly) {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(401, resp.getStatusLine().getStatusCode());
         }
         EntityUtils.toString(resp.getEntity());
+        resetState(resetState, resetStateEntityId);
         // try as user with wrong workspace rights
         if (neededPermission != null) {
             resp =
@@ -177,6 +260,7 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
                             .get(neededPermission)[1]);
             assertEquals(403, resp.getStatusLine().getStatusCode());
             EntityUtils.toString(resp.getEntity());
+            resetState(resetState, resetStateEntityId);
         }
         // try as user with correct workspace rights
         for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
@@ -184,9 +268,32 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
                     !e.getKey().equals(neededPermission))) {
                 resp =
                         this.executeAsUser(method, url, object, e.getValue()[0], e.getValue()[1]);
-                assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+                if (adminOnly) {
+                    assertEquals(403, resp.getStatusLine().getStatusCode());
+                } else {
+                    assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+                }
                 EntityUtils.toString(resp.getEntity());
+                resetState(resetState, resetStateEntityId);
             }
+        }
+    }
+
+    private void resetState(String resetState, String resetStateEntityId) throws IOException {
+        if (StringUtils.isNotBlank(resetState) && StringUtils.isNotBlank(resetStateEntityId)) {
+            String urlSuffix = null;
+            if (resetState.equals(Entity.STATE_SUBMITTED)) {
+                urlSuffix = "submit";
+            } else if (resetState.equals(Entity.STATE_PUBLISHED)) {
+                urlSuffix = "publish";
+            } else {
+                throw new IOException("unknown state to reset");
+            }
+            HttpResponse resp =
+                    this.executeAsAdmin(
+                            Request.Post(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId + "/" +
+                                    urlSuffix));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
         }
     }
 
@@ -194,7 +301,7 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
      * @param status
      * @return String entityId
      */
-    private String createEntity(String status, String workspaceId) throws Exception {
+    private Entity createEntity(String status, String workspaceId) throws Exception {
         if (StringUtils.isBlank(status) ||
                 (!status.equals(Entity.STATE_PENDING) && !status.equals(Entity.STATE_SUBMITTED) &&
                         !status.equals(Entity.STATE_PUBLISHED) && !status.equals(Entity.STATE_WITHDRAWN))) {
@@ -205,29 +312,45 @@ public class AuthorizeEntityControllerIT extends AbstractLarchIT {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
-                                mapper.writeValueAsString(createFixtureEntity()),
+                                mapper.writeValueAsString(e),
                                 ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         String entityId = EntityUtils.toString(resp.getEntity());
+        e.setLabel("other");
+        resp =
+                this.executeAsAdmin(
+                        Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId).bodyString(
+                                mapper.writeValueAsString(e),
+                                ContentType.APPLICATION_JSON));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
         if (!status.equals(Entity.STATE_PENDING)) {
             // submit
             resp =
                     this.executeAsAdmin(
-                            Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/submit"));
+                            Request.Post(workspaceUrl + workspaceId + "/entity/" + entityId + "/submit"));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            if (!status.equals(Entity.STATE_SUBMITTED)) {
+                // publish
+                resp =
+                        this.executeAsAdmin(
+                                Request.Post(workspaceUrl + workspaceId + "/entity/" + entityId + "/publish"));
+                assertEquals(200, resp.getStatusLine().getStatusCode());
+                if (!status.equals(Entity.STATE_PUBLISHED)) {
+                    // // withdraw
+                    // resp =
+                    // this.executeAsAdmin(
+                    // Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/withdraw"));
+                    // assertEquals(200, resp.getStatusLine().getStatusCode());
+                }
+            }
         }
-        if (!status.equals(Entity.STATE_SUBMITTED)) {
-            // publish
-            resp =
-                    this.executeAsAdmin(
-                            Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/publish"));
-        }
-        if (!status.equals(Entity.STATE_PUBLISHED)) {
-            // // withdraw
-            // resp =
-            // this.executeAsAdmin(
-            // Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/withdraw"));
-        }
-        return entityId;
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(workspaceUrl + workspaceId + "/entity/" + entityId));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
     }
 
     public enum MissingPermission {

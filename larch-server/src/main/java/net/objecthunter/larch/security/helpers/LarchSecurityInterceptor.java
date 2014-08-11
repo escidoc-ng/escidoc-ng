@@ -69,19 +69,20 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), null, preAuth
-                    .springSecurityExpression(), preAuth.workspacePermission());
+            authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
+                    null, preAuth
+                            .springSecurityExpression(), preAuth.workspacePermission());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.authorize(calledMethod, null, obj, postAuth
+            authorizationService.authorize(calledMethod, null, null, obj, postAuth
                     .springSecurityExpression(), postAuth.workspacePermission());
         }
         return obj;
     }
 
     /**
-     * Get workspace-Id from method-parameters
+     * Get id from method-parameters
      * 
      * @param preAuth Annotation
      * @param joinPoint
@@ -94,6 +95,24 @@ public class LarchSecurityInterceptor implements Ordered {
                 joinPoint.getArgs().length > preAuth.workspacePermission().idIndex() &&
                 joinPoint.getArgs()[preAuth.workspacePermission().idIndex()] instanceof String) {
             return (String) joinPoint.getArgs()[preAuth.workspacePermission().idIndex()];
+        }
+        return null;
+    }
+
+    /**
+     * Get version-Id from method-parameters
+     * 
+     * @param preAuth Annotation
+     * @param joinPoint
+     * @return String workspaceId or null
+     */
+    private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
+        if (preAuth != null &&
+                preAuth.workspacePermission().versionIndex() >= 0 && joinPoint != null &&
+                joinPoint.getArgs() != null &&
+                joinPoint.getArgs().length > preAuth.workspacePermission().versionIndex() &&
+                joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()] instanceof Integer) {
+            return (Integer) joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()];
         }
         return null;
     }

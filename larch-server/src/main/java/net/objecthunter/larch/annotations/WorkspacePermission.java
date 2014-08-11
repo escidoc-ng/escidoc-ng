@@ -34,6 +34,8 @@ public @interface WorkspacePermission {
 
     int idIndex() default -1;
 
+    int versionIndex() default -1;
+
     ObjectType objectType() default ObjectType.ENTITY;
 
     WorkspacePermissionType workspacePermissionType() default WorkspacePermissionType.NULL;

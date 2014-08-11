@@ -34,7 +34,6 @@ import net.objecthunter.larch.service.SchemaService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -139,7 +138,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/version/{version}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1, versionIndex = 2,
             objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Entity retrieve(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id, @PathVariable("version") final int version)
@@ -178,7 +177,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/versions")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public Entities retrieveVersions(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         Entities entities = entityService.getOldVersions(workspaceId, id);
