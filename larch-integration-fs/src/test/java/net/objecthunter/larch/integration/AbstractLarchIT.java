@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
@@ -39,7 +38,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -80,6 +82,10 @@ public abstract class AbstractLarchIT {
 
     protected static final String confirmUrl = hostUrl + "confirm/";
 
+    protected static final String adminUsername = "admin";
+
+    protected static final String adminPassword = "admin";
+
     protected boolean wsCreated = false;
 
     final PrintStream sysOut = System.out;
@@ -91,10 +97,9 @@ public abstract class AbstractLarchIT {
 
     private HttpHost localhost = new HttpHost("localhost", 8080, "http");
 
-    private Executor adminExecutor = Executor.newInstance().auth(localhost, "admin", "admin").authPreemptive(
-            localhost);
-
-    private HttpClient httpClient = HttpClients.createDefault();
+    private Executor adminExecutor = Executor.newInstance().auth(localhost, adminUsername, adminPassword)
+            .authPreemptive(
+                    localhost);
 
     @Before
     public void resetSystOutErr() throws Exception {
@@ -139,76 +144,46 @@ public abstract class AbstractLarchIT {
     }
 
     /**
-     * Create Workspace where users with provided usernames have all rights.
-     * 
-     * @param usernames
-     * @return String workspaceId
-     * @throws Exception
-     */
-    private String createWorkspaceFor(List<String> usernames, EnumSet<Permission> permissionSet) throws Exception {
-        final Workspace ws = new Workspace();
-        if (usernames != null && !usernames.isEmpty() && permissionSet != null && !permissionSet.isEmpty()) {
-            final WorkspacePermissions permissions = new WorkspacePermissions();
-            for (String username : usernames) {
-                permissions.setPermissions(username, permissionSet);
-            }
-            ws.setPermissions(permissions);
-        }
-        ws.setId(RandomStringUtils.randomAlphanumeric(16));
-        ws.setOwner("foo");
-        ws.setName("bar");
-        HttpResponse resp = executeAsAdmin(Request.Post(hostUrl + "/workspace")
-                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON));
-
-        return EntityUtils.toString(resp.getEntity());
-    }
-
-    /**
-     * Create Workspace where user with provided username has all rights.
-     * 
-     * @param username
-     * @return String workspaceId
-     * @throws Exception
-     */
-    protected String createAllPermissionWorkspaceForUser(String username) throws Exception {
-        if (username == null) {
-            return createWorkspaceFor(null, null);
-        } else {
-            return createWorkspaceFor(new ArrayList<String>() {
-
-                {
-                    add(username);
-                }
-            }, EnumSet.allOf(WorkspacePermissions.Permission.class));
-        }
-    }
-
-    /**
-     * Create Workspace where user with provided username has provided rights.
+     * Create Workspace-Rights where user with provided username has all rights exept for provided permission.
      * 
      * @param username
      * @param permission permission
      * @return String workspaceId
      * @throws Exception
      */
-    protected String createPermissionWorkspaceForUser(String username, Permission... permission) throws Exception {
-        if (username == null) {
-            return createWorkspaceFor(null, null);
-        } else {
-            return createWorkspaceFor(new ArrayList<String>() {
+    protected void createMissingPermissionRightsForUser(String workspaceId, String username, Permission permission)
+            throws Exception {
+        // try to retrieve workspace
+        HttpResponse resp = Request.Get(workspaceUrl + workspaceId)
+                .execute()
+                .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
 
-                {
-                    add(username);
-                }
-            }, EnumSet.copyOf(new ArrayList<Permission>() {
+        // Set permissions for user
+        WorkspacePermissions permissions = fetched.getPermissions();
+        if (permissions == null) {
+            permissions = new WorkspacePermissions();
+        }
+        permissions.setPermissions(username, EnumSet.copyOf(new ArrayList<Permission>() {
 
-                {
-                    for (int i = 0; i < permission.length; i++) {
-                        add(permission[i]);
+            {
+                for (Permission perm : Permission.values()) {
+                    if (permission == null || !permission.equals(perm)) {
+                        add(perm);
                     }
                 }
-            }));
-        }
+            }
+        }));
+        fetched.setPermissions(permissions);
+
+        // update workspace
+        resp = Request.Put(workspaceUrl + workspaceId)
+                .bodyString(this.mapper.writeValueAsString(fetched), ContentType.APPLICATION_JSON)
+                .execute()
+                .returnResponse();
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
     }
 
     protected HttpResponse executeAsAdmin(Request req) throws IOException {
@@ -218,6 +193,7 @@ public abstract class AbstractLarchIT {
     protected HttpResponse executeAsUser(HttpMethod method, String url, String body, String username,
             String password)
             throws IOException {
+        HttpClient httpClient = HttpClients.createDefault();
         HttpUriRequest request = getRequest(method, url, body);
         if (request != null) {
             byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
@@ -229,6 +205,7 @@ public abstract class AbstractLarchIT {
     }
 
     protected HttpResponse executeAsAnonymous(HttpMethod method, String url, String body) throws IOException {
+        HttpClient httpClient = HttpClients.createDefault();
         HttpUriRequest request = getRequest(method, url, body);
         if (request != null) {
             return httpClient.execute(request);
@@ -266,6 +243,18 @@ public abstract class AbstractLarchIT {
                 httpPost.setHeader("Content-type", "application/json; charset=UTF-8");
             }
             return httpPost;
+        } else if (method.equals(HttpMethod.PUT)) {
+            HttpPut httpPut =
+                    new HttpPut(url);
+            if (StringUtils.isNotBlank(body)) {
+                httpPut.setEntity(new StringEntity(body));
+                httpPut.setHeader("Content-type", "application/json; charset=UTF-8");
+            }
+            return httpPut;
+        } else if (method.equals(HttpMethod.GET)) {
+            return new HttpGet(url);
+        } else if (method.equals(HttpMethod.DELETE)) {
+            return new HttpDelete(url);
         }
         return null;
     }
