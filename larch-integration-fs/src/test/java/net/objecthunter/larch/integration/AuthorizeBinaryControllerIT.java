@@ -38,7 +38,83 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
+                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_PENDING_BINARY, true, entity.getId());
 
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
+                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_SUBMITTED_BINARY, true, entity
+                        .getId());
+
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
+                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_PUBLISHED_BINARY, true, entity
+                        .getId());
+    }
+
+    @Test
+    public void testRetrieveBinary() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, MissingPermission.READ_PENDING_BINARY);
+
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, MissingPermission.READ_SUBMITTED_BINARY);
+
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, null);
+    }
+
+    @Test
+    public void testDeleteBinary() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, MissingPermission.WRITE_PENDING_BINARY, true, entity
+                        .getId());
+
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, MissingPermission.WRITE_SUBMITTED_BINARY, true, entity
+                        .getId());
+
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
+                null, MissingPermission.WRITE_PUBLISHED_BINARY, true, entity
+                        .getId());
+    }
+
+    @Test
+    public void testDownloadBinary() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.GET,
+                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
+                null, MissingPermission.READ_PENDING_BINARY);
+
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.GET,
+                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
+                null, MissingPermission.READ_SUBMITTED_BINARY);
+
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.GET,
+                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
+                null, null);
+    }
+
+    private Binary getBinary() throws Exception {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("test.png");
@@ -46,9 +122,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         bin1.setName("test");
         Map<String, Metadata> bin1Md = new HashMap<>();
         bin1.setMetadata(bin1Md);
-
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
-                mapper.writeValueAsString(bin1), MissingPermission.WRITE_PENDING_BINARY, true, entity.getId());
+        return bin1;
     }
 
 }

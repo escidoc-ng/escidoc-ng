@@ -56,6 +56,9 @@ import org.junit.Before;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+
 /**
  * Class holds methods used by auth-tests.<br>
  * <br>
@@ -293,7 +296,11 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 String bodyString = (String) body;
                 if (StringUtils.isNotBlank(bodyString)) {
                     request.setEntity(new StringEntity(bodyString));
-                    request.setHeader("Content-type", "application/json; charset=UTF-8");
+                    if (isJson(bodyString)) {
+                        request.setHeader("Content-type", "application/json; charset=UTF-8");
+                    } else {
+                        request.setHeader("Content-type", ContentType.APPLICATION_FORM_URLENCODED.toString());
+                    }
                 }
             } else if (body instanceof HttpEntity) {
                 request.setEntity((HttpEntity) body);
@@ -504,6 +511,19 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             response = EntityUtils.toString(resp.getEntity());
             assertEquals(200, resp.getStatusLine().getStatusCode());
         }
+    }
+
+    private boolean isJson(String text) {
+        boolean isJson = false;
+        JsonFactory f = new JsonFactory();
+        try {
+            JsonParser parser = f.createParser(text);
+            while (parser.nextToken() != null) {
+            }
+            isJson = true;
+        } catch (Exception e) {
+        }
+        return isJson;
     }
 
     protected enum MissingPermission {

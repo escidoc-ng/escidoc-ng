@@ -1,0 +1,64 @@
+/*
+ * Copyright 2014 Frank Asseg
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.objecthunter.larch.integration;
+
+import net.objecthunter.larch.model.Entity;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
+
+public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeIdentifierControllerIT.class);
+
+    @Test
+    public void testCreateIdentifier() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
+                "type=DOI&value=123", MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
+                "type=DOI&value=123", MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
+                "type=DOI&value=123", MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
+    }
+
+    @Test
+    public void testDeleteIdentifier() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                "/identifier/DOI/testdoi",
+                null, MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                "/identifier/DOI/testdoi",
+                null, MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                "/identifier/DOI/testdoi",
+                null, MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
+    }
+}

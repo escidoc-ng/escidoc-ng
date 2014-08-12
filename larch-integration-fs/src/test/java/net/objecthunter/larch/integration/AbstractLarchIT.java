@@ -22,9 +22,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
+import net.objecthunter.larch.model.AlternativeIdentifier;
+import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 
@@ -143,6 +147,12 @@ public abstract class AbstractLarchIT {
         }
         Entity e = createFixtureEntity();
         e.setWorkspaceId(workspaceId);
+        AlternativeIdentifier identifier = new AlternativeIdentifier();
+        identifier.setType(IdentifierType.DOI.name);
+        identifier.setValue("testdoi");
+        List<AlternativeIdentifier> identifiers = new ArrayList<AlternativeIdentifier>();
+        identifiers.add(identifier);
+        e.setAlternativeIdentifiers(identifiers);
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
