@@ -270,7 +270,7 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishDeleteEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
@@ -284,7 +284,7 @@ public class EntityController extends AbstractLarchController {
         return publishId;
     }
 
-    @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView publishHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
@@ -292,7 +292,7 @@ public class EntityController extends AbstractLarchController {
         return this.retrieveHtml(workspaceId, id);
     }
 
-    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
@@ -305,7 +305,7 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView submitHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {

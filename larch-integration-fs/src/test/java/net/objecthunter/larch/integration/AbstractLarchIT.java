@@ -17,44 +17,31 @@
 package net.objecthunter.larch.integration;
 
 import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
+import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.WorkspacePermissions.Permission;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -145,73 +132,63 @@ public abstract class AbstractLarchIT {
     }
 
     /**
-     * Create Workspace-Rights where user with provided username has all rights exept for provided permission.
-     * 
-     * @param username
-     * @param permission permission
-     * @return String workspaceId
-     * @throws Exception
+     * @param status
+     * @return String entityId
      */
-    protected void createMissingPermissionRightsForUser(String workspaceId, String username, Permission permission)
-            throws Exception {
-        // try to retrieve workspace
-        HttpResponse resp = Request.Get(workspaceUrl + workspaceId)
-                .execute()
-                .returnResponse();
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
-
-        // Set permissions for user
-        WorkspacePermissions permissions = fetched.getPermissions();
-        if (permissions == null) {
-            permissions = new WorkspacePermissions();
+    protected Entity createEntity(String status, String workspaceId) throws Exception {
+        if (StringUtils.isBlank(status) ||
+                (!status.equals(Entity.STATE_PENDING) && !status.equals(Entity.STATE_SUBMITTED) &&
+                        !status.equals(Entity.STATE_PUBLISHED) && !status.equals(Entity.STATE_WITHDRAWN))) {
+            throw new Exception("given status not valid");
         }
-        permissions.setPermissions(username, EnumSet.copyOf(new ArrayList<Permission>() {
-
-            {
-                for (Permission perm : Permission.values()) {
-                    if (permission == null || !permission.equals(perm)) {
-                        add(perm);
-                    }
+        Entity e = createFixtureEntity();
+        e.setWorkspaceId(workspaceId);
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
+                                mapper.writeValueAsString(e),
+                                ContentType.APPLICATION_JSON));
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        String entityId = EntityUtils.toString(resp.getEntity());
+        e.setLabel("other");
+        resp =
+                this.executeAsAdmin(
+                        Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId).bodyString(
+                                mapper.writeValueAsString(e),
+                                ContentType.APPLICATION_JSON));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        if (!status.equals(Entity.STATE_PENDING)) {
+            // submit
+            resp =
+                    this.executeAsAdmin(
+                            Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId + "/submit"));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            if (!status.equals(Entity.STATE_SUBMITTED)) {
+                // publish
+                resp =
+                        this.executeAsAdmin(
+                                Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId + "/publish"));
+                assertEquals(200, resp.getStatusLine().getStatusCode());
+                if (!status.equals(Entity.STATE_PUBLISHED)) {
+                    // // withdraw
+                    // resp =
+                    // this.executeAsAdmin(
+                    // Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/withdraw"));
+                    // assertEquals(200, resp.getStatusLine().getStatusCode());
                 }
             }
-        }));
-        fetched.setPermissions(permissions);
-
-        // update workspace
-        resp = Request.Put(workspaceUrl + workspaceId)
-                .bodyString(this.mapper.writeValueAsString(fetched), ContentType.APPLICATION_JSON)
-                .execute()
-                .returnResponse();
+        }
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(workspaceUrl + workspaceId + "/entity/" + entityId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
-
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
     }
 
     protected HttpResponse executeAsAdmin(Request req) throws IOException {
         return this.adminExecutor.execute(req).returnResponse();
-    }
-
-    protected HttpResponse executeAsUser(HttpMethod method, String url, String body, String username,
-            String password)
-            throws IOException {
-        HttpClient httpClient = HttpClients.createDefault();
-        HttpUriRequest request = getRequest(method, url, body);
-        if (request != null) {
-            byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
-            String authorization = "Basic " + new String(encodedBytes);
-            request.setHeader("Authorization", authorization);
-            return httpClient.execute(request);
-        }
-        return null;
-    }
-
-    protected HttpResponse executeAsAnonymous(HttpMethod method, String url, String body) throws IOException {
-        HttpClient httpClient = HttpClients.createDefault();
-        HttpUriRequest request = getRequest(method, url, body);
-        if (request != null) {
-            return httpClient.execute(request);
-        }
-        return null;
     }
 
     protected void checkResponseError(HttpResponse response, int statusCode,
@@ -233,39 +210,6 @@ public abstract class AbstractLarchIT {
     protected void showLog() {
         System.setOut(sysOut);
         System.setErr(sysErr);
-    }
-
-    private HttpUriRequest getRequest(HttpMethod method, String url, String body) throws IOException {
-        if (method.equals(HttpMethod.POST)) {
-            HttpPost httpPost =
-                    new HttpPost(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPost.setEntity(new StringEntity(body));
-                httpPost.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
-            return httpPost;
-        } else if (method.equals(HttpMethod.PUT)) {
-            HttpPut httpPut =
-                    new HttpPut(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPut.setEntity(new StringEntity(body));
-                httpPut.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
-            return httpPut;
-        } else if (method.equals(HttpMethod.PATCH)) {
-            HttpPatch httpPatch =
-                    new HttpPatch(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPatch.setEntity(new StringEntity(body));
-                httpPatch.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
-            return httpPatch;
-        } else if (method.equals(HttpMethod.GET)) {
-            return new HttpGet(url);
-        } else if (method.equals(HttpMethod.DELETE)) {
-            return new HttpDelete(url);
-        }
-        return null;
     }
 
 }

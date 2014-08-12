@@ -17,11 +17,11 @@
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
-                <form th:if="${entity.state != 'published'}" enctype="multipart/form-data" method="post"
+                <form th:if="${entity.state != 'published'}" enctype="multipart/form-data" method="put"
                       th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish'">
                     <input class="button_small" type="submit" value="Publish"/>
                 </form>
-                <form th:if="${entity.state != 'submitted' and entity.state != 'published'}" enctype="multipart/form-data" method="post"
+                <form th:if="${entity.state != 'submitted' and entity.state != 'published'}" enctype="multipart/form-data" method="put"
                       th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit'">
                     <input class="button_small" type="submit" value="Submit"/>
                 </form>

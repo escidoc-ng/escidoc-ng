@@ -53,7 +53,7 @@ public class PublishControllerIT extends AbstractLarchIT {
 
         // publish
         System.out.println(entityUrl + id + "/publish");
-        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
+        resp = this.executeAsAdmin(Request.Put(entityUrl + id + "/publish"));
         final String publishId = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
@@ -77,8 +77,7 @@ public class PublishControllerIT extends AbstractLarchIT {
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
-        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
-        // resp = this.execute(Request.Post(entityUrl + id + "/publish"));
+        resp = this.executeAsAdmin(Request.Put(entityUrl + id + "/publish"));
         String publishId = EntityUtils.toString(resp.getEntity());
 
         // create new identifier
@@ -90,7 +89,7 @@ public class PublishControllerIT extends AbstractLarchIT {
         assertEquals(201, resp.getStatusLine().getStatusCode());
 
         // publish
-        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
+        resp = this.executeAsAdmin(Request.Put(entityUrl + id + "/publish"));
         String publishId1 = EntityUtils.toString(resp.getEntity());
 
         // retrieve published

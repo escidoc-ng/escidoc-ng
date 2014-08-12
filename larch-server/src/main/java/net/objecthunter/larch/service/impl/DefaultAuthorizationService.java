@@ -276,8 +276,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 // get entity
                 if (versionId != null) {
                     checkObject = backendVersionService.getOldVersion(id, versionId);
+                } else {
+                    checkObject = backendEntityService.retrieve(id);
                 }
-                checkObject = backendEntityService.retrieve(id);
             } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE)) {
                 // get workspace
                 checkObject = backendWorkspaceService.retrieve(id);
