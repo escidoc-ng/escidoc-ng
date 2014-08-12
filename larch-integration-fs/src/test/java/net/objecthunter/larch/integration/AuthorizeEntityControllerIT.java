@@ -38,11 +38,11 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
         testAuth(HttpMethod.PATCH, workspaceUrl + workspaceId + "/entity/" + entity.getId(), patchData,
-                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+                MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         testAuth(HttpMethod.PATCH, workspaceUrl + workspaceId + "/entity/" + entity.getId(), patchData,
-                MissingPermission.WRITE_PUBLISHED_METADATA, Entity.STATE_PUBLISHED, entity.getId());
+                MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
     }
 
     @Test
@@ -114,13 +114,13 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity.setLabel("otherLabel");
         testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
                 .writeValueAsString(entity),
-                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+                MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         entity.setLabel("otherLabel");
         testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
                 .writeValueAsString(entity),
-                MissingPermission.WRITE_PUBLISHED_METADATA, Entity.STATE_PUBLISHED, entity.getId());
+                MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
     }
 
     @Test
@@ -128,12 +128,12 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId(), null,
-                MissingPermission.WRITE_PENDING_METADATA, Entity.STATE_PENDING, entity.getId());
+                MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
         testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId(), mapper
                 .writeValueAsString(entity),
-                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+                MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
     }
 
     @Test
@@ -141,7 +141,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/submit", null,
-                MissingPermission.WRITE_PENDING_METADATA, Entity.STATE_PENDING, entity.getId());
+                MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         // create submitted entity
         Entity entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
         testAuth(HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/publish", null,
-                MissingPermission.WRITE_SUBMITTED_METADATA, Entity.STATE_SUBMITTED, entity.getId());
+                MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
     }
 
 }

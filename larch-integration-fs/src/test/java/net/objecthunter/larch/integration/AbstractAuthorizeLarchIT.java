@@ -16,7 +16,6 @@
 
 package net.objecthunter.larch.integration;
 
-import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -27,19 +26,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.objecthunter.larch.LarchServerConfiguration;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.source.UrlSource;
+import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
@@ -50,14 +53,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
  * Class holds methods used by auth-tests.<br>
@@ -68,11 +65,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * 
  * @author mih
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
-@IntegrationTest
-@WebAppConfiguration
-@ActiveProfiles("fs")
 public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
     protected static String workspaceId = null;
@@ -178,7 +170,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return HttpResponse
      * @throws IOException
      */
-    protected HttpResponse executeAsUser(HttpMethod method, String url, String body, String username,
+    private HttpResponse executeAsUser(HttpMethod method, String url, Object body, String username,
             String password)
             throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
@@ -201,7 +193,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return
      * @throws IOException
      */
-    protected HttpResponse executeAsAnonymous(HttpMethod method, String url, String body) throws IOException {
+    private HttpResponse executeAsAnonymous(HttpMethod method, String url, Object body) throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
         HttpUriRequest request = getRequest(method, url, body);
         if (request != null) {
@@ -262,30 +254,21 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return
      * @throws IOException
      */
-    private HttpUriRequest getRequest(HttpMethod method, String url, String body) throws IOException {
+    private HttpUriRequest getRequest(HttpMethod method, String url, Object body) throws IOException {
         if (method.equals(HttpMethod.POST)) {
             HttpPost httpPost =
                     new HttpPost(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPost.setEntity(new StringEntity(body));
-                httpPost.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
+            setBody(httpPost, body);
             return httpPost;
         } else if (method.equals(HttpMethod.PUT)) {
             HttpPut httpPut =
                     new HttpPut(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPut.setEntity(new StringEntity(body));
-                httpPut.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
+            setBody(httpPut, body);
             return httpPut;
         } else if (method.equals(HttpMethod.PATCH)) {
             HttpPatch httpPatch =
                     new HttpPatch(url);
-            if (StringUtils.isNotBlank(body)) {
-                httpPatch.setEntity(new StringEntity(body));
-                httpPatch.setHeader("Content-type", "application/json; charset=UTF-8");
-            }
+            setBody(httpPatch, body);
             return httpPatch;
         } else if (method.equals(HttpMethod.GET)) {
             return new HttpGet(url);
@@ -296,22 +279,31 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     }
 
     /**
-     * See testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission, String
-     * resetState, String resetStateEntityId, boolean adminOnly)
+     * Sets the body of the request.
      * 
-     * @param method
-     * @param url
-     * @param object
-     * @param neededPermission
-     * @throws Exception
+     * @param request
+     * @param body
+     * @return HttpEntityEnclosingRequestBase
+     * @throws IOException
      */
-    protected void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission)
-            throws Exception {
-        testAuth(method, url, object, neededPermission, null, null, false);
+    private HttpEntityEnclosingRequestBase setBody(HttpEntityEnclosingRequestBase request, Object body)
+            throws IOException {
+        if (body != null) {
+            if (body instanceof String) {
+                String bodyString = (String) body;
+                if (StringUtils.isNotBlank(bodyString)) {
+                    request.setEntity(new StringEntity(bodyString));
+                    request.setHeader("Content-type", "application/json; charset=UTF-8");
+                }
+            } else if (body instanceof HttpEntity) {
+                request.setEntity((HttpEntity) body);
+            }
+        }
+        return request;
     }
 
     /**
-     * See testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission, String
+     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
      * resetState, String resetStateEntityId, boolean adminOnly)
      * 
      * @param method
@@ -320,13 +312,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param neededPermission
      * @throws Exception
      */
-    protected void testAuth(HttpMethod method, String url, String object, boolean adminOnly)
+    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission)
             throws Exception {
-        testAuth(method, url, object, null, null, null, adminOnly);
+        testAuth(method, url, object, neededPermission, false, null, false);
     }
 
     /**
-     * See testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission, String
+     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
      * resetState, String resetStateEntityId, boolean adminOnly)
      * 
      * @param method
@@ -335,8 +327,23 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param neededPermission
      * @throws Exception
      */
-    protected void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
-            String resetState, String resetStateEntityId)
+    protected void testAuth(HttpMethod method, String url, Object object, boolean adminOnly)
+            throws Exception {
+        testAuth(method, url, object, null, false, null, adminOnly);
+    }
+
+    /**
+     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
+     * resetState, String resetStateEntityId, boolean adminOnly)
+     * 
+     * @param method
+     * @param url
+     * @param object
+     * @param neededPermission
+     * @throws Exception
+     */
+    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission,
+            boolean resetState, String resetStateEntityId)
             throws Exception {
         testAuth(method, url, object, neededPermission, resetState, resetStateEntityId, false);
     }
@@ -349,26 +356,36 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * 
      * @param method
      * @param url
-     * @param object
+     * @param object body
      * @param neededPermission
      * @param resetState to with state the entity should get reset after url was called
      * @param resetStateEntityId id of the entity to reset the state
      * @param adminOnly
      * @throws Exception
      */
-    protected void testAuth(HttpMethod method, String url, String object, MissingPermission neededPermission,
-            String resetState, String resetStateEntityId, boolean adminOnly)
+    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission,
+            boolean resetState, String resetStateEntityId, boolean adminOnly)
             throws Exception {
         int okStatus = 200;
         if (HttpMethod.POST.equals(method)) {
             okStatus = 201;
         }
+        // get entity for reset
+        Entity resetEntity = null;
+        if (resetState) {
+            HttpResponse resp =
+                    this.executeAsAdmin(
+                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            resetEntity = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        }
+
         // try as admin
         HttpResponse resp =
                 this.executeAsUser(method, url, object, adminUsername, adminPassword);
         String response = EntityUtils.toString(resp.getEntity());
         assertEquals(okStatus, resp.getStatusLine().getStatusCode());
-        resetState(resetState, resetStateEntityId);
+        resetState(resetState, resetEntity);
         // try as user with all rights
         resp =
                 this.executeAsUser(method, url, object, usernames.get(MissingPermission.NONE)[0], usernames
@@ -379,7 +396,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetStateEntityId);
+        resetState(resetState, resetEntity);
         // try as user with no rights
         resp =
                 this.executeAsUser(method, url, object, usernames.get(MissingPermission.ALL)[0], usernames
@@ -392,7 +409,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetStateEntityId);
+        resetState(resetState, resetEntity);
         // try as anonymous user
         resp =
                 this.executeAsAnonymous(method, url, object);
@@ -402,7 +419,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(401, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetStateEntityId);
+        resetState(resetState, resetEntity);
         // try as user with wrong workspace rights
         if (neededPermission != null) {
             resp =
@@ -410,7 +427,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                             .get(neededPermission)[1]);
             response = EntityUtils.toString(resp.getEntity());
             assertEquals(403, resp.getStatusLine().getStatusCode());
-            resetState(resetState, resetStateEntityId);
+            resetState(resetState, resetEntity);
         }
         // try as user with correct workspace rights
         for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
@@ -424,7 +441,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 } else {
                     assertEquals(okStatus, resp.getStatusLine().getStatusCode());
                 }
-                resetState(resetState, resetStateEntityId);
+                resetState(resetState, resetEntity);
             }
         }
     }
@@ -436,51 +453,55 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param resetStateEntityId
      * @throws Exception
      */
-    private void resetState(String resetState, String resetStateEntityId) throws Exception {
-        if (StringUtils.isNotBlank(resetState) && StringUtils.isNotBlank(resetStateEntityId)) {
+    private void resetState(boolean resetState, Entity resetEntity) throws Exception {
+        if (resetState && resetEntity != null) {
             // check if entity is there
-            Entity e = null;
             HttpResponse resp =
                     this.executeAsAdmin(
-                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId));
+                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId()));
+            String response = EntityUtils.toString(resp.getEntity());
+            if (resetEntity.getBinaries() != null) {
+                for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
+                    binary.getValue()
+                            .setSource(
+                                    new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png")
+                                            .toURI()));
+                }
+            }
             if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
                 // recreate entity
-                e = createFixtureEntity();
-                e.setWorkspaceId(workspaceId);
-                e.setId(resetStateEntityId);
                 resp =
                         this.executeAsAdmin(
                                 Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
-                                        mapper.writeValueAsString(e),
+                                        mapper.writeValueAsString(resetEntity),
                                         ContentType.APPLICATION_JSON));
+                response = EntityUtils.toString(resp.getEntity());
                 assertEquals(201, resp.getStatusLine().getStatusCode());
             } else {
                 assertEquals(200, resp.getStatusLine().getStatusCode());
-                e = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+                // update
+                resp =
+                        this.executeAsAdmin(
+                                Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId())
+                                        .bodyString(
+                                                mapper.writeValueAsString(resetEntity),
+                                                ContentType.APPLICATION_JSON));
+                response = EntityUtils.toString(resp.getEntity());
+                assertEquals(200, resp.getStatusLine().getStatusCode());
             }
             String urlSuffix = null;
-            if (resetState.equals(Entity.STATE_SUBMITTED)) {
+            if (resetEntity.getState().equals(Entity.STATE_SUBMITTED)) {
                 urlSuffix = "submit";
-            } else if (resetState.equals(Entity.STATE_PUBLISHED)) {
+            } else if (resetEntity.getState().equals(Entity.STATE_PUBLISHED)) {
                 urlSuffix = "publish";
-            } else if (resetState.equals(Entity.STATE_PENDING)) {
-                if (!Entity.STATE_PENDING.equals(e.getState())) {
-                    e.setLabel("changed");
-                    resp =
-                            this.executeAsAdmin(
-                                    Request.Put(workspaceUrl + workspaceId + "/entity/" + e.getId()).bodyString(
-                                            mapper.writeValueAsString(e),
-                                            ContentType.APPLICATION_JSON));
-                    assertEquals(200, resp.getStatusLine().getStatusCode());
-                }
-                return;
             } else {
                 return;
             }
             resp =
                     this.executeAsAdmin(
-                            Request.Put(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId + "/" +
+                            Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId() + "/" +
                                     urlSuffix));
+            response = EntityUtils.toString(resp.getEntity());
             assertEquals(200, resp.getStatusLine().getStatusCode());
         }
     }

@@ -94,6 +94,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 } else {
                     throw new InsufficientAuthenticationException("No user logged in");
                 }
+            } else {
+                throw e;
             }
         }
     }
@@ -243,8 +245,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
             Expression accessExpression =
                     handler.getExpressionParser().parseExpression(springSecurityExpression);
             if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
-                    a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
-                            .getName())))) {
+                    a, MethodInvocationUtils.createFromClass(method, method.getDeclaringClass(), method
+                            .getName(), method.getParameterTypes(), method.getParameters())))) {
                 throw new AccessDeniedException("Access denied");
             }
         }
