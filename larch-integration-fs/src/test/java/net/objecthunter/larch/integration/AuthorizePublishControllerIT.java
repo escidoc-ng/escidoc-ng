@@ -43,6 +43,7 @@ public class AuthorizePublishControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, workspaceUrl + workspaceId + "/published/" + entity.getPublishId())
+                .html(true)
                 .build());
     }
 
@@ -52,6 +53,16 @@ public class AuthorizePublishControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, workspaceUrl + workspaceId + "/published/" + entity.getId() + "/list")
+                .build());
+    }
+
+    @Test
+    public void testRetrievePublishedByEntityIdHtml() throws Exception {
+        // create published entity
+        Entity entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/published/" + entity.getId() + "/list")
+                .html(true)
                 .build());
     }
 

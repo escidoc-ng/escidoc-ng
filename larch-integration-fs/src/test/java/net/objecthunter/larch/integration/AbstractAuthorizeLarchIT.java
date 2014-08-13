@@ -18,6 +18,7 @@ package net.objecthunter.larch.integration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import net.objecthunter.larch.test.util.Fixtures;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -177,10 +179,10 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @throws IOException
      */
     private HttpResponse executeAsUser(HttpMethod method, String url, Object body, String username,
-            String password)
+            String password, boolean isHtml)
             throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
-        HttpUriRequest request = getRequest(method, url, body);
+        HttpUriRequest request = getRequest(method, url, body, isHtml);
         if (request != null) {
             byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
             String authorization = "Basic " + new String(encodedBytes);
@@ -199,9 +201,10 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return
      * @throws IOException
      */
-    private HttpResponse executeAsAnonymous(HttpMethod method, String url, Object body) throws IOException {
+    private HttpResponse executeAsAnonymous(HttpMethod method, String url, Object body, boolean isHtml)
+            throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
-        HttpUriRequest request = getRequest(method, url, body);
+        HttpUriRequest request = getRequest(method, url, body, isHtml);
         if (request != null) {
             return httpClient.execute(request);
         }
@@ -260,28 +263,49 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return
      * @throws IOException
      */
-    private HttpUriRequest getRequest(HttpMethod method, String url, Object body) throws IOException {
+    private HttpUriRequest getRequest(HttpMethod method, String url, Object body, boolean isHtml) throws IOException {
         if (method.equals(HttpMethod.POST)) {
             HttpPost httpPost =
                     new HttpPost(url);
             setBody(httpPost, body);
+            setAcceptHeader(httpPost, isHtml);
             return httpPost;
         } else if (method.equals(HttpMethod.PUT)) {
             HttpPut httpPut =
                     new HttpPut(url);
             setBody(httpPut, body);
+            setAcceptHeader(httpPut, isHtml);
             return httpPut;
         } else if (method.equals(HttpMethod.PATCH)) {
             HttpPatch httpPatch =
                     new HttpPatch(url);
             setBody(httpPatch, body);
+            setAcceptHeader(httpPatch, isHtml);
             return httpPatch;
         } else if (method.equals(HttpMethod.GET)) {
-            return new HttpGet(url);
+            HttpGet httpGet = new HttpGet(url);
+            setAcceptHeader(httpGet, isHtml);
+            return httpGet;
         } else if (method.equals(HttpMethod.DELETE)) {
-            return new HttpDelete(url);
+            HttpDelete httpDelete = new HttpDelete(url);
+            setAcceptHeader(httpDelete, isHtml);
+            return httpDelete;
         }
         return null;
+    }
+
+    /**
+     * Sets the Accept- header to text/html if isHtml = true.
+     * 
+     * @param request
+     * @param isHtml
+     * @throws IOException
+     */
+    private void setAcceptHeader(HttpUriRequest request, boolean isHtml)
+            throws IOException {
+        if (isHtml) {
+            request.setHeader("Accept", "text/html");
+        }
     }
 
     /**
@@ -292,7 +316,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return HttpEntityEnclosingRequestBase
      * @throws IOException
      */
-    private HttpEntityEnclosingRequestBase setBody(HttpEntityEnclosingRequestBase request, Object body)
+    private void setBody(HttpEntityEnclosingRequestBase request, Object body)
             throws IOException {
         if (body != null) {
             if (body instanceof String) {
@@ -309,7 +333,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 request.setEntity((HttpEntity) body);
             }
         }
-        return request;
     }
 
     /**
@@ -329,10 +352,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      */
     protected void testAuth(AuthConfigurer authConfigurer)
             throws Exception {
-        int okStatus = 200;
-        if (HttpMethod.POST.equals(authConfigurer.getMethod())) {
-            okStatus = 201;
-        }
         // get entity for reset
         Entity resetEntity = null;
         if (authConfigurer.isResetState()) {
@@ -347,28 +366,28 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // try as admin
         HttpResponse resp =
                 this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
-                        adminUsername, adminPassword);
+                        adminUsername, adminPassword, authConfigurer.isHtml());
         String response = EntityUtils.toString(resp.getEntity());
-        assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
         resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with all rights
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
                         usernames.get(MissingPermission.NONE)[0], usernames
-                                .get(MissingPermission.NONE)[1]);
+                                .get(MissingPermission.NONE)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
                 authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         } else {
-            assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+            assertTrue(resp.getStatusLine().getStatusCode() < 400);
         }
         resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with no rights
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
                         usernames.get(MissingPermission.ALL)[0], usernames
-                                .get(MissingPermission.ALL)[1]);
+                                .get(MissingPermission.ALL)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
                 authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
@@ -376,19 +395,28 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else if ((authConfigurer.getRoleRestriction() == null || !authConfigurer.getRoleRestriction().equals(
                 RoleRestriction.ADMIN)) &&
                 authConfigurer.getNeededPermission() == null) {
-            assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+            assertTrue(resp.getStatusLine().getStatusCode() < 400);
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
         resetState(authConfigurer.isResetState(), resetEntity);
         // try as anonymous user
         resp =
-                this.executeAsAnonymous(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody());
+                this.executeAsAnonymous(authConfigurer.getMethod(), authConfigurer.getUrl(),
+                        authConfigurer.getBody(), authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getNeededPermission() == null && authConfigurer.getRoleRestriction() == null) {
-            assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+            assertTrue(resp.getStatusLine().getStatusCode() < 400);
         } else {
-            assertEquals(401, resp.getStatusLine().getStatusCode());
+            if (!authConfigurer.isHtml()) {
+                assertEquals(401, resp.getStatusLine().getStatusCode());
+            } else {
+                assertEquals(302, resp.getStatusLine().getStatusCode());
+                Header[] headers = resp.getHeaders("location");
+                assertNotNull(headers);
+                assertTrue(headers.length > 0);
+                assertEquals(true, headers[0].getValue().matches(".*login-page.*"));
+            }
         }
         resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with wrong workspace rights
@@ -396,7 +424,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             resp =
                     this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
                             usernames.get(authConfigurer.getNeededPermission())[0], usernames
-                                    .get(authConfigurer.getNeededPermission())[1]);
+                                    .get(authConfigurer.getNeededPermission())[1], authConfigurer.isHtml());
             response = EntityUtils.toString(resp.getEntity());
             assertEquals(403, resp.getStatusLine().getStatusCode());
             resetState(authConfigurer.isResetState(), resetEntity);
@@ -407,13 +435,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                     !e.getKey().equals(authConfigurer.getNeededPermission()))) {
                 resp =
                         this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer
-                                .getBody(), e.getValue()[0], e.getValue()[1]);
+                                .getBody(), e.getValue()[0], e.getValue()[1], authConfigurer.isHtml());
                 response = EntityUtils.toString(resp.getEntity());
                 if (authConfigurer.getRoleRestriction() != null &&
                         authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
                     assertEquals(403, resp.getStatusLine().getStatusCode());
                 } else {
-                    assertEquals(okStatus, resp.getStatusLine().getStatusCode());
+                    assertTrue(resp.getStatusLine().getStatusCode() < 400);
                 }
                 resetState(authConfigurer.isResetState(), resetEntity);
             }

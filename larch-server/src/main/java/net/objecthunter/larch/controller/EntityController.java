@@ -120,7 +120,7 @@ public class EntityController extends AbstractLarchController {
     public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(workspaceId, id));
+        model.addAttribute("entity", retrieve(workspaceId, id));
         model.addAttribute("metadataTypes", this.schemaService.getSchemaTypes());
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
