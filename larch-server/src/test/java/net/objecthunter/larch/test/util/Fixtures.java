@@ -22,7 +22,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.objecthunter.larch.model.*;
+import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -171,7 +174,7 @@ public abstract class Fixtures {
                                 + ".org/dc/elements/1.1/\">").append("\n\t<dc:title>Test Object</dc:title>")
                 .append("\n\t<dc:creator>fasseg</dc:creator>").append("\n\t<dc:subject>Testing Groven</dc:subject>")
                 .append("\n\t<dc:description>Test Object to implement integration Tests</dc:description>")
-                .append("\n<metadata>");
+                .append("\n</metadata>");
         md.setData(dcBuilder.toString());
         return md;
     }

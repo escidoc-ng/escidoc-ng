@@ -19,6 +19,8 @@ package net.objecthunter.larch.integration;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
@@ -38,80 +40,113 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
-                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_PENDING_BINARY, true, entity.getId());
+
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                .body(mapper.writeValueAsString(getBinary()))
+                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
 
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
-                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_SUBMITTED_BINARY, true, entity
-                        .getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                .body(mapper.writeValueAsString(getBinary()))
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
 
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary",
-                mapper.writeValueAsString(getBinary()), MissingPermission.WRITE_PUBLISHED_BINARY, true, entity
-                        .getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                .body(mapper.writeValueAsString(getBinary()))
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
     }
 
     @Test
     public void testRetrieveBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, MissingPermission.READ_PENDING_BINARY);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1")
+                .neededPermission(MissingPermission.READ_PENDING_BINARY)
+                .build());
 
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, MissingPermission.READ_SUBMITTED_BINARY);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1")
+                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
+                .build());
 
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, null);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1")
+                .build());
     }
 
     @Test
     public void testDeleteBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, MissingPermission.WRITE_PENDING_BINARY, true, entity
-                        .getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1")
+                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
 
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, MissingPermission.WRITE_SUBMITTED_BINARY, true, entity
-                        .getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1")
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
 
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1",
-                null, MissingPermission.WRITE_PUBLISHED_BINARY, true, entity
-                        .getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1")
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
     }
 
     @Test
     public void testDownloadBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.GET,
-                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
-                null, MissingPermission.READ_PENDING_BINARY);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content")
+                .neededPermission(MissingPermission.READ_PENDING_BINARY)
+                .build());
 
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.GET,
-                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
-                null, MissingPermission.READ_SUBMITTED_BINARY);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content")
+                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
+                .build());
 
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.GET,
-                workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content",
-                null, null);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/image-1/content")
+                .build());
     }
 
     private Binary getBinary() throws Exception {

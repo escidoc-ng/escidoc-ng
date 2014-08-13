@@ -45,7 +45,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -255,7 +254,7 @@ public class MetadataController extends AbstractLarchController {
             objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public void retrieveMetadataXml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
-            @PathVariable("metadata-name") final String metadataName, @RequestHeader("Accept") final String accept,
+            @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/xml");
         resp.setHeader("Content-Disposition", "inline");
@@ -286,7 +285,7 @@ public class MetadataController extends AbstractLarchController {
     public void retrieveBinaryMetadataXml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
-            @PathVariable("metadata-name") final String metadataName, @RequestHeader("Accept") final String accept,
+            @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/xml");
         resp.setHeader("Content-Disposition", "inline");
@@ -342,7 +341,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
-            objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
+            objectType = ObjectType.BINARY, workspacePermissionType = WorkspacePermissionType.READ))
     public MetadataValidationResult validate(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,

@@ -145,6 +145,7 @@ public abstract class AbstractLarchIT {
                         !status.equals(Entity.STATE_PUBLISHED) && !status.equals(Entity.STATE_WITHDRAWN))) {
             throw new Exception("given status not valid");
         }
+        String publishId = null;
         Entity e = createFixtureEntity();
         e.setWorkspaceId(workspaceId);
         AlternativeIdentifier identifier = new AlternativeIdentifier();
@@ -179,6 +180,7 @@ public abstract class AbstractLarchIT {
                         this.executeAsAdmin(
                                 Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId + "/publish"));
                 assertEquals(200, resp.getStatusLine().getStatusCode());
+                publishId = EntityUtils.toString(resp.getEntity());
                 if (!status.equals(Entity.STATE_PUBLISHED)) {
                     // // withdraw
                     // resp =
@@ -194,6 +196,7 @@ public abstract class AbstractLarchIT {
                         Request.Get(workspaceUrl + workspaceId + "/entity/" + entityId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        fetched.setPublishId(publishId);
         return fetched;
     }
 

@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
@@ -310,52 +313,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     }
 
     /**
-     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
-     * resetState, String resetStateEntityId, boolean adminOnly)
-     * 
-     * @param method
-     * @param url
-     * @param object
-     * @param neededPermission
-     * @throws Exception
-     */
-    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission)
-            throws Exception {
-        testAuth(method, url, object, neededPermission, false, null, false);
-    }
-
-    /**
-     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
-     * resetState, String resetStateEntityId, boolean adminOnly)
-     * 
-     * @param method
-     * @param url
-     * @param object
-     * @param neededPermission
-     * @throws Exception
-     */
-    protected void testAuth(HttpMethod method, String url, Object object, boolean adminOnly)
-            throws Exception {
-        testAuth(method, url, object, null, false, null, adminOnly);
-    }
-
-    /**
-     * See testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission, String
-     * resetState, String resetStateEntityId, boolean adminOnly)
-     * 
-     * @param method
-     * @param url
-     * @param object
-     * @param neededPermission
-     * @throws Exception
-     */
-    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission,
-            boolean resetState, String resetStateEntityId)
-            throws Exception {
-        testAuth(method, url, object, neededPermission, resetState, resetStateEntityId, false);
-    }
-
-    /**
      * Tests calling the given url with different user-permissions.<br>
      * neededPermission indicates the permission that is needed to be allowed to call the request.<br>
      * If neededPermission is null, everybody may call the url. If adminOnly is true, only admin may call the url,
@@ -370,85 +327,95 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param adminOnly
      * @throws Exception
      */
-    protected void testAuth(HttpMethod method, String url, Object object, MissingPermission neededPermission,
-            boolean resetState, String resetStateEntityId, boolean adminOnly)
+    protected void testAuth(AuthConfigurer authConfigurer)
             throws Exception {
         int okStatus = 200;
-        if (HttpMethod.POST.equals(method)) {
+        if (HttpMethod.POST.equals(authConfigurer.getMethod())) {
             okStatus = 201;
         }
         // get entity for reset
         Entity resetEntity = null;
-        if (resetState) {
+        if (authConfigurer.isResetState()) {
             HttpResponse resp =
                     this.executeAsAdmin(
-                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetStateEntityId));
+                            Request.Get(workspaceUrl + workspaceId + "/entity/" +
+                                    authConfigurer.getResetStateEntityId()));
             assertEquals(200, resp.getStatusLine().getStatusCode());
             resetEntity = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         }
 
         // try as admin
         HttpResponse resp =
-                this.executeAsUser(method, url, object, adminUsername, adminPassword);
+                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                        adminUsername, adminPassword);
         String response = EntityUtils.toString(resp.getEntity());
         assertEquals(okStatus, resp.getStatusLine().getStatusCode());
-        resetState(resetState, resetEntity);
+        resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with all rights
         resp =
-                this.executeAsUser(method, url, object, usernames.get(MissingPermission.NONE)[0], usernames
-                        .get(MissingPermission.NONE)[1]);
+                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                        usernames.get(MissingPermission.NONE)[0], usernames
+                                .get(MissingPermission.NONE)[1]);
         response = EntityUtils.toString(resp.getEntity());
-        if (adminOnly) {
+        if (authConfigurer.getRoleRestriction() != null &&
+                authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetEntity);
+        resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with no rights
         resp =
-                this.executeAsUser(method, url, object, usernames.get(MissingPermission.ALL)[0], usernames
-                        .get(MissingPermission.ALL)[1]);
+                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                        usernames.get(MissingPermission.ALL)[0], usernames
+                                .get(MissingPermission.ALL)[1]);
         response = EntityUtils.toString(resp.getEntity());
-        if (adminOnly) {
+        if (authConfigurer.getRoleRestriction() != null &&
+                authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
             assertEquals(403, resp.getStatusLine().getStatusCode());
-        } else if (neededPermission == null) {
+        } else if ((authConfigurer.getRoleRestriction() == null || !authConfigurer.getRoleRestriction().equals(
+                RoleRestriction.ADMIN)) &&
+                authConfigurer.getNeededPermission() == null) {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetEntity);
+        resetState(authConfigurer.isResetState(), resetEntity);
         // try as anonymous user
         resp =
-                this.executeAsAnonymous(method, url, object);
+                this.executeAsAnonymous(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody());
         response = EntityUtils.toString(resp.getEntity());
-        if (neededPermission == null && !adminOnly) {
+        if (authConfigurer.getNeededPermission() == null && authConfigurer.getRoleRestriction() == null) {
             assertEquals(okStatus, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(401, resp.getStatusLine().getStatusCode());
         }
-        resetState(resetState, resetEntity);
+        resetState(authConfigurer.isResetState(), resetEntity);
         // try as user with wrong workspace rights
-        if (neededPermission != null) {
+        if (authConfigurer.getNeededPermission() != null) {
             resp =
-                    this.executeAsUser(method, url, object, usernames.get(neededPermission)[0], usernames
-                            .get(neededPermission)[1]);
+                    this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                            usernames.get(authConfigurer.getNeededPermission())[0], usernames
+                                    .get(authConfigurer.getNeededPermission())[1]);
             response = EntityUtils.toString(resp.getEntity());
             assertEquals(403, resp.getStatusLine().getStatusCode());
-            resetState(resetState, resetEntity);
+            resetState(authConfigurer.isResetState(), resetEntity);
         }
         // try as user with correct workspace rights
         for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
-            if (neededPermission == null || (!e.getKey().equals(MissingPermission.ALL) &&
-                    !e.getKey().equals(neededPermission))) {
+            if (authConfigurer.getNeededPermission() == null || (!e.getKey().equals(MissingPermission.ALL) &&
+                    !e.getKey().equals(authConfigurer.getNeededPermission()))) {
                 resp =
-                        this.executeAsUser(method, url, object, e.getValue()[0], e.getValue()[1]);
+                        this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer
+                                .getBody(), e.getValue()[0], e.getValue()[1]);
                 response = EntityUtils.toString(resp.getEntity());
-                if (adminOnly) {
+                if (authConfigurer.getRoleRestriction() != null &&
+                        authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
                     assertEquals(403, resp.getStatusLine().getStatusCode());
                 } else {
                     assertEquals(okStatus, resp.getStatusLine().getStatusCode());
                 }
-                resetState(resetState, resetEntity);
+                resetState(authConfigurer.isResetState(), resetEntity);
             }
         }
     }
@@ -524,29 +491,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } catch (Exception e) {
         }
         return isJson;
-    }
-
-    protected enum MissingPermission {
-        READ_PENDING_METADATA,
-        READ_SUBMITTED_METADATA,
-        READ_PUBLISHED_METADATA,
-        READ_WITHDRAWN_METADATA,
-        WRITE_PENDING_METADATA,
-        WRITE_SUBMITTED_METADATA,
-        WRITE_PUBLISHED_METADATA,
-        WRITE_WITHDRAWN_METADATA,
-        READ_PENDING_BINARY,
-        READ_SUBMITTED_BINARY,
-        READ_PUBLISHED_BINARY,
-        READ_WITHDRAWN_BINARY,
-        WRITE_PENDING_BINARY,
-        WRITE_SUBMITTED_BINARY,
-        WRITE_PUBLISHED_BINARY,
-        WRITE_WITHDRAWN_BINARY,
-        READ_WORKSPACE,
-        WRITE_WORKSPACE,
-        ALL,
-        NONE;
     }
 
 }

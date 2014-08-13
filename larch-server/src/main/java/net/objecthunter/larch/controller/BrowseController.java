@@ -98,7 +98,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     public ModelAndView browseHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanEntities(0));
+        model.addAttribute("result", this.browse());
         return new ModelAndView("browse", model);
     }
 
@@ -114,7 +114,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     public ModelAndView browseHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanEntities(offset));
+        model.addAttribute("result", this.browse(offset));
         return new ModelAndView("browse", model);
     }
 
@@ -132,7 +132,7 @@ public class BrowseController extends AbstractLarchController {
     public ModelAndView browseHtml(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.entityService.scanEntities(offset, numRecords));
+        model.addAttribute("result", this.browse(offset, numRecords));
         return new ModelAndView("browse", model);
     }
 
@@ -190,7 +190,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     public ModelAndView browsePublishedHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.publishService.scanIndex(0));
+        model.addAttribute("result", this.browsePublished());
         return new ModelAndView("browsepublished", model);
     }
 
@@ -206,7 +206,7 @@ public class BrowseController extends AbstractLarchController {
     @ResponseBody
     public ModelAndView browsePublishedHtml(@PathVariable("offset") final int offset) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.publishService.scanIndex(offset));
+        model.addAttribute("result", this.browsePublished(offset));
         return new ModelAndView("browsepublished", model);
     }
 
@@ -224,7 +224,7 @@ public class BrowseController extends AbstractLarchController {
     public ModelAndView browsePublishedHtml(@PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", this.publishService.scanIndex(offset, numRecords));
+        model.addAttribute("result", this.browsePublished(offset, numRecords));
         return new ModelAndView("browsepublished", model);
     }
 }

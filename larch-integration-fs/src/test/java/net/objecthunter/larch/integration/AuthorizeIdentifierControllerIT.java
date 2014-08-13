@@ -16,6 +16,8 @@
 
 package net.objecthunter.larch.integration;
 
+import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Entity;
 
 import org.junit.Test;
@@ -31,34 +33,61 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateIdentifier() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
-                "type=DOI&value=123", MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                .body("type=DOI&value=123")
+                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
-                "type=DOI&value=123", MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                .body("type=DOI&value=123")
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier",
-                "type=DOI&value=123", MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                .body("type=DOI&value=123")
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
     }
 
     @Test
     public void testDeleteIdentifier() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                "/identifier/DOI/testdoi",
-                null, MissingPermission.WRITE_PENDING_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/identifier/DOI/testdoi")
+                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                "/identifier/DOI/testdoi",
-                null, MissingPermission.WRITE_SUBMITTED_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/identifier/DOI/testdoi")
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                "/identifier/DOI/testdoi",
-                null, MissingPermission.WRITE_PUBLISHED_METADATA, true, entity.getId());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/identifier/DOI/testdoi")
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
+                .resetState(true)
+                .resetStateEntityId(entity.getId())
+                .build());
     }
 }

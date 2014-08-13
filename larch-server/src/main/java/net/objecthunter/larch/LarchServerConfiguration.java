@@ -18,6 +18,7 @@ package net.objecthunter.larch;
 
 import java.io.File;
 
+import javax.annotation.PostConstruct;
 import javax.jms.Queue;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
@@ -62,6 +63,7 @@ import net.objecthunter.larch.util.LarchExceptionHandler;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.Aspects;
 import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +97,22 @@ public class LarchServerConfiguration {
 
     @Autowired
     public Environment env;
+
+    @PostConstruct
+    public void init() {
+        if (StringUtils.isNotBlank(env.getProperty("larch.proxy.name"))) {
+            System.setProperty("http.proxyHost", env.getProperty("larch.proxy.name"));
+            System.setProperty("https.proxyHost", env.getProperty("larch.proxy.name"));
+            if (StringUtils.isNotBlank(env.getProperty("larch.proxy.port"))) {
+                System.setProperty("http.proxyPort", env.getProperty("larch.proxy.port"));
+                System.setProperty("https.proxyPort", env.getProperty("larch.proxy.port"));
+            }
+            if (StringUtils.isNotBlank(env.getProperty("larch.proxy.none"))) {
+                System.setProperty("http.nonProxyHosts", env.getProperty("larch.proxy.none"));
+                System.setProperty("https.nonProxyHosts", env.getProperty("larch.proxy.none"));
+            }
+        }
+    }
 
     /**
      * Get a {@link net.objecthunter.larch.service.impl.DefaultEntityService} Spring bean

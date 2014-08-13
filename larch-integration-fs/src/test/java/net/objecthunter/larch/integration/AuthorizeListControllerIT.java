@@ -17,25 +17,27 @@
 package net.objecthunter.larch.integration;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
-import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
-import net.objecthunter.larch.model.Entity;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-public class AuthorizeAuditRecordControllerIT extends AbstractAuthorizeLarchIT {
+public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthorizeAuditRecordControllerIT.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeListControllerIT.class);
 
     @Test
-    public void testRetrieveAuditRecords() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+    public void testList() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/audit")
-                .roleRestriction(RoleRestriction.ADMIN)
+                HttpMethod.GET, hostUrl + "/list")
+                .build());
+    }
+
+    @Test
+    public void testListPublished() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/list/published")
                 .build());
     }
 
