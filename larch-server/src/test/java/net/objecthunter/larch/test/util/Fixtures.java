@@ -18,6 +18,7 @@ package net.objecthunter.larch.test.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
+import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -161,6 +164,17 @@ public abstract class Fixtures {
         e.setBinaries(binaries);
         e.setMetadata(metadata);
         return e;
+    }
+
+    public static Workspace createFixtureWorkspace() {
+        Workspace workspace = new Workspace();
+        final WorkspacePermissions permissions = new WorkspacePermissions();
+        permissions.setPermissions("admin", EnumSet.allOf(WorkspacePermissions.Permission.class));
+        workspace.setPermissions(permissions);
+        workspace.setId(RandomStringUtils.randomAlphanumeric(16));
+        workspace.setOwner("foo");
+        workspace.setName("bar");
+        return workspace;
     }
 
     public static Metadata createRandomDCMetadata() {

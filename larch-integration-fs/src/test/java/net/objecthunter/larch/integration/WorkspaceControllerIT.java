@@ -16,12 +16,10 @@
 
 package net.objecthunter.larch.integration;
 
+import static net.objecthunter.larch.test.util.Fixtures.createFixtureWorkspace;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.EnumSet;
-
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
 
@@ -37,13 +35,7 @@ public class WorkspaceControllerIT extends AbstractLarchIT {
 
     @Test
     public void testCreateAndRetrieve() throws Exception {
-        final Workspace ws = new Workspace();
-        final WorkspacePermissions permissions = new WorkspacePermissions();
-        permissions.setPermissions("admin", EnumSet.allOf(WorkspacePermissions.Permission.class));
-        ws.setPermissions(permissions);
-        ws.setId(RandomStringUtils.randomAlphanumeric(16));
-        ws.setOwner("foo");
-        ws.setName("bar");
+        final Workspace ws = createFixtureWorkspace();
         HttpResponse resp = Request.Post(hostUrl + "/workspace")
                 .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
                 .execute()

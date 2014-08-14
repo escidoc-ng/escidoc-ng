@@ -59,7 +59,7 @@ public class WorkspaceController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
-        final ModelMap model = new ModelMap("workspace", this.entityService.retrieveWorkspace(id));
+        final ModelMap model = new ModelMap("workspace", retrieve(id));
         return new ModelAndView("workspace", model);
     }
 
@@ -73,13 +73,11 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.retrieveWorkspace(id);
     }
 
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "application/json")
+    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        return this.entityService.scanWorkspace(id, offset, numRecords);
+    public SearchResult browse(@PathVariable("id") final String id) throws IOException {
+        return this.entityService.scanWorkspace(id, 0, 0);
     }
 
     @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET,
@@ -91,11 +89,28 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.scanWorkspace(id, offset, 0);
     }
 
-    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/workspace/{id}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
+            produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public SearchResult browse(@PathVariable("id") final String id) throws IOException {
-        return this.entityService.scanWorkspace(id, 0, 0);
+    public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
+            @PathVariable("numRecords") final int numRecords) throws IOException {
+        return this.entityService.scanWorkspace(id, offset, numRecords);
+    }
+
+    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ModelAndView browseHtml(@PathVariable("id") final String id) throws IOException {
+        return this.browseHtml(id, 0, 0);
+    }
+
+    @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
+            throws IOException {
+        return this.browseHtml(id, offset, 0);
     }
 
     @RequestMapping(value = "/workspace/{id}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
@@ -108,30 +123,6 @@ public class WorkspaceController extends AbstractLarchController {
         return new ModelAndView("browse", model);
     }
 
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
-            throws IOException {
-        return this.browseHtml(id, offset, 0);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView browseHtml(@PathVariable("id") final String id) throws IOException {
-        return this.browseHtml(id, 0, 0);
-    }
-
-    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public List<Workspace> retrieveList(@PathVariable("offset") final int offset) throws IOException {
-        return this.entityService.scanWorkspaces(null, offset, 0);
-    }
-
     @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -140,7 +131,17 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.scanWorkspaces(null, 0, 0);
     }
 
-    @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET,
+            produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()")
+    public List<Workspace> retrieveList(@PathVariable("offset") final int offset) throws IOException {
+        return this.entityService.scanWorkspaces(null, offset, 0);
+    }
+
+    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
+            produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()")
@@ -149,14 +150,12 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.scanWorkspaces(null, offset, numRecords);
     }
 
-    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "text/html")
+    @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, numRecords));
+    public ModelAndView retrieveListHtml() throws IOException {
+        final ModelMap model = new ModelMap("workspaces", this.retrieveList(0, 0));
         return new ModelAndView("workspaces", model);
     }
 
@@ -169,12 +168,14 @@ public class WorkspaceController extends AbstractLarchController {
         return new ModelAndView("workspaces", model);
     }
 
-    @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
+            produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public ModelAndView retrieveListHtml() throws IOException {
-        final ModelMap model = new ModelMap("workspaces", this.retrieveList(0, 0));
+    public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset,
+            @PathVariable("numRecords") final int numRecords) throws IOException {
+        final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, numRecords));
         return new ModelAndView("workspaces", model);
     }
 

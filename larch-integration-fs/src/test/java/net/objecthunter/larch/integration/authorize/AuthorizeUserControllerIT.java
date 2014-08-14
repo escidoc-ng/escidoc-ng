@@ -87,6 +87,16 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testCreateUserRequest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void testCreateUserHtml() throws Exception {
+        // TODO
+    }
+
+    @Test
     public void testDeleteUser() throws Exception {
         // create user
         String username = createUser(null, userPassword);
@@ -140,6 +150,39 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                         username, userPassword, true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
+    }
+
+    @Test
+    public void testRetrieveCredentials() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "credentials")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .html(true)
+                .build());
+    }
+
+    @Test
+    public void testRetrieveGroups() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "group")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .build());
+    }
+
+    @Test
+    public void testUpdateUserDetails() throws Exception {
+        // create user
+        String username = createUser(null, userPassword);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, hostUrl + "user/" + username)
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("first_name", "test")
+                        .addTextBody("last_name", "test")
+                        .addTextBody("email", username + "@fiz.de")
+                        .addTextBody("groups", "ROLE_USER")
+                        .build())
+                .roleRestriction(RoleRestriction.ADMIN)
+                .build());
     }
 
 }
