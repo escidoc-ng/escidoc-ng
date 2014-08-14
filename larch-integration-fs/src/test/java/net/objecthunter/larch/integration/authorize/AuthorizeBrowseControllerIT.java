@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.integration;
+package net.objecthunter.larch.integration.authorize;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 

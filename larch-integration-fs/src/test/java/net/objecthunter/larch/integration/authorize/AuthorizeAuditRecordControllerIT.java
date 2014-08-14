@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.integration;
+package net.objecthunter.larch.integration.authorize;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
+import net.objecthunter.larch.model.Entity;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
+public class AuthorizeAuditRecordControllerIT extends AbstractAuthorizeLarchIT {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthorizeListControllerIT.class);
-
-    @Test
-    public void testList() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list")
-                .build());
-    }
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeAuditRecordControllerIT.class);
 
     @Test
-    public void testListPublished() throws Exception {
+    public void testRetrieveAuditRecords() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published")
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/audit")
+                .roleRestriction(RoleRestriction.ADMIN)
                 .build());
     }
 

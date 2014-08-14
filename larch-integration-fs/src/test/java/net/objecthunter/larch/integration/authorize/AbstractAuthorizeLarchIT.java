@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.integration;
+package net.objecthunter.larch.integration.authorize;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.objecthunter.larch.integration.AbstractLarchIT;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
