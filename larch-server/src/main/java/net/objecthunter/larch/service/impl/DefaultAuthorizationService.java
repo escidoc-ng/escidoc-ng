@@ -74,7 +74,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     @Override
     public void authorize(Method method, String id, Integer versionId, Object result,
             String springSecurityExpression,
-            WorkspacePermission workspacePermission) throws IOException {
+            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException {
         // Admin may do everything
         final User u = this.getCurrentUser();
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
@@ -83,7 +83,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
         try {
             // handle securityExpression
-            handleSecurityExpression(method, springSecurityExpression);
+            handleSecurityExpression(method, springSecurityExpression, methodArgs);
 
             // handle workspacePermission
             handleWorkspacePermission(method, workspacePermission, id, versionId, result);
@@ -238,7 +238,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param method
      * @param springSecurityExpression
      */
-    private void handleSecurityExpression(Method method, String springSecurityExpression) {
+    private void handleSecurityExpression(Method method, String springSecurityExpression, Object[] methodArgs) {
         if (StringUtils.isNotBlank(springSecurityExpression)) {
             Authentication a = SecurityContextHolder.getContext().getAuthentication();
             DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
@@ -246,7 +246,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                     handler.getExpressionParser().parseExpression(springSecurityExpression);
             if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
                     a, MethodInvocationUtils.createFromClass(method, method.getDeclaringClass(), method
-                            .getName(), method.getParameterTypes(), method.getParameters())))) {
+                            .getName(), method.getParameterTypes(), methodArgs)))) {
                 throw new AccessDeniedException("Access denied");
             }
         }

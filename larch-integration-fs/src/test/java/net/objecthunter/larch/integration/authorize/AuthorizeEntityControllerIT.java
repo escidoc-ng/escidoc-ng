@@ -48,7 +48,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .body(patchData)
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
@@ -57,7 +57,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .body(patchData)
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -154,7 +154,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .body(mapper.writeValueAsString(entity))
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
@@ -164,7 +164,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .body(mapper.writeValueAsString(entity))
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -176,7 +176,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId())
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
@@ -184,7 +184,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId())
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -196,7 +196,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/submit")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -208,7 +208,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/publish")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 

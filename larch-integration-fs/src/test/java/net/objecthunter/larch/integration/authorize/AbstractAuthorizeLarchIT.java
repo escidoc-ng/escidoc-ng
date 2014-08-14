@@ -30,12 +30,15 @@ import java.util.Map.Entry;
 import net.objecthunter.larch.integration.AbstractLarchIT;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.ObjectType;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -56,6 +59,8 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
@@ -82,6 +87,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
      */
     protected static Map<MissingPermission, String[]> usernames = new HashMap<MissingPermission, String[]>();
+
+    protected static String userPassword = "ttestt";
 
     private static int methodCounter = 0;
 
@@ -118,7 +125,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
         // create users
         for (MissingPermission missingPermission : MissingPermission.values()) {
-            usernames.put(missingPermission, new String[] { createUser("ttestt"), "ttestt" });
+            usernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
 
         // create permissions for users in workspace
@@ -179,7 +186,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return HttpResponse
      * @throws IOException
      */
-    private HttpResponse executeAsUser(HttpMethod method, String url, Object body, String username,
+    protected HttpResponse executeAsUser(HttpMethod method, String url, Object body, String username,
             String password, boolean isHtml)
             throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
@@ -202,9 +209,10 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return
      * @throws IOException
      */
-    private HttpResponse executeAsAnonymous(HttpMethod method, String url, Object body, boolean isHtml)
+    protected HttpResponse executeAsAnonymous(HttpMethod method, String url, Object body, boolean isHtml)
             throws IOException {
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = HttpClientBuilder.create()
+                .disableRedirectHandling().build();
         HttpUriRequest request = getRequest(method, url, body, isHtml);
         if (request != null) {
             return httpClient.execute(request);
@@ -354,26 +362,20 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     protected void testAuth(AuthConfigurer authConfigurer)
             throws Exception {
         // get entity for reset
-        Entity resetEntity = null;
-        if (authConfigurer.isResetState()) {
-            HttpResponse resp =
-                    this.executeAsAdmin(
-                            Request.Get(workspaceUrl + workspaceId + "/entity/" +
-                                    authConfigurer.getResetStateEntityId()));
-            assertEquals(200, resp.getStatusLine().getStatusCode());
-            resetEntity = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        }
+        Object resetObject = getResetObject(authConfigurer);
 
         // try as admin
+        String url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         HttpResponse resp =
-                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
                         adminUsername, adminPassword, authConfigurer.isHtml());
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
-        resetState(authConfigurer.isResetState(), resetEntity);
+        resetState(authConfigurer.isResetState(), resetObject);
         // try as user with all rights
+        url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
-                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
                         usernames.get(MissingPermission.NONE)[0], usernames
                                 .get(MissingPermission.NONE)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
@@ -383,10 +385,11 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertTrue(resp.getStatusLine().getStatusCode() < 400);
         }
-        resetState(authConfigurer.isResetState(), resetEntity);
+        resetState(authConfigurer.isResetState(), resetObject);
         // try as user with no rights
+        url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
-                this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
+                this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
@@ -400,10 +403,11 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
-        resetState(authConfigurer.isResetState(), resetEntity);
+        resetState(authConfigurer.isResetState(), resetObject);
         // try as anonymous user
+        url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
-                this.executeAsAnonymous(authConfigurer.getMethod(), authConfigurer.getUrl(),
+                this.executeAsAnonymous(authConfigurer.getMethod(), url,
                         authConfigurer.getBody(), authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getNeededPermission() == null && authConfigurer.getRoleRestriction() == null) {
@@ -419,24 +423,35 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 assertEquals(true, headers[0].getValue().matches(".*login-page.*"));
             }
         }
-        resetState(authConfigurer.isResetState(), resetEntity);
+        resetState(authConfigurer.isResetState(), resetObject);
         // try as user with wrong workspace rights
+        String[] userparams = null;
         if (authConfigurer.getNeededPermission() != null) {
-            resp =
-                    this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer.getBody(),
-                            usernames.get(authConfigurer.getNeededPermission())[0], usernames
-                                    .get(authConfigurer.getNeededPermission())[1], authConfigurer.isHtml());
-            response = EntityUtils.toString(resp.getEntity());
-            assertEquals(403, resp.getStatusLine().getStatusCode());
-            resetState(authConfigurer.isResetState(), resetEntity);
+            userparams = usernames.get(authConfigurer.getNeededPermission());
+        } else {
+            userparams = usernames.get(MissingPermission.ALL);
         }
+        url = manipulateUrl(authConfigurer.getUrl(), resetObject);
+        resp =
+                this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
+                        userparams[0], userparams[1], authConfigurer.isHtml());
+        response = EntityUtils.toString(resp.getEntity());
+        if ((authConfigurer.getRoleRestriction() == null ||
+                !authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) &&
+                authConfigurer.getNeededPermission() == null) {
+            assertTrue(resp.getStatusLine().getStatusCode() < 400);
+        } else {
+            assertEquals(403, resp.getStatusLine().getStatusCode());
+        }
+        resetState(authConfigurer.isResetState(), resetObject);
         // try as user with correct workspace rights
-        for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
-            if (authConfigurer.getNeededPermission() == null || (!e.getKey().equals(MissingPermission.ALL) &&
-                    !e.getKey().equals(authConfigurer.getNeededPermission()))) {
+        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+            if (authConfigurer.getNeededPermission() == null || (!entry.getKey().equals(MissingPermission.ALL) &&
+                    !entry.getKey().equals(authConfigurer.getNeededPermission()))) {
+                url = manipulateUrl(authConfigurer.getUrl(), resetObject);
                 resp =
-                        this.executeAsUser(authConfigurer.getMethod(), authConfigurer.getUrl(), authConfigurer
-                                .getBody(), e.getValue()[0], e.getValue()[1], authConfigurer.isHtml());
+                        this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer
+                                .getBody(), entry.getValue()[0], entry.getValue()[1], authConfigurer.isHtml());
                 response = EntityUtils.toString(resp.getEntity());
                 if (authConfigurer.getRoleRestriction() != null &&
                         authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
@@ -444,9 +459,41 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 } else {
                     assertTrue(resp.getStatusLine().getStatusCode() < 400);
                 }
-                resetState(authConfigurer.isResetState(), resetEntity);
+                resetState(authConfigurer.isResetState(), resetObject);
             }
         }
+    }
+
+    private Object getResetObject(AuthConfigurer authConfigurer) throws Exception {
+        Object resetObject = null;
+        if (authConfigurer.isResetState()) {
+            String url = null;
+            if (authConfigurer.getResetStateObjectType().equals(ObjectType.ENTITY)) {
+                url = workspaceUrl + workspaceId + "/entity/" +
+                        authConfigurer.getResetStateId();
+            } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER)) {
+                url = hostUrl + "user/" + authConfigurer.getResetStateId();
+            } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER_REQUEST)) {
+                if (StringUtils.isNotBlank(authConfigurer.getResetStateId())) {
+                    UserRequest userRequest = new UserRequest();
+                    User user = new User();
+                    userRequest.setToken(authConfigurer.getResetStateId().replaceFirst(".*?\\|", ""));
+                    user.setName(authConfigurer.getResetStateId().replaceFirst("(.*?)\\|.*", "$1"));
+                    userRequest.setUser(user);
+                    return userRequest;
+                }
+            } else {
+                throw new IOException("objectType not correct");
+            }
+            HttpResponse resp = this.executeAsAdmin(Request.Get(url));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            if (authConfigurer.getResetStateObjectType().equals(ObjectType.ENTITY)) {
+                resetObject = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER)) {
+                resetObject = mapper.readValue(resp.getEntity().getContent(), User.class);
+            }
+        }
+        return resetObject;
     }
 
     /**
@@ -456,57 +503,125 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param resetStateEntityId
      * @throws Exception
      */
-    private void resetState(boolean resetState, Entity resetEntity) throws Exception {
-        if (resetState && resetEntity != null) {
-            // check if entity is there
-            HttpResponse resp =
-                    this.executeAsAdmin(
-                            Request.Get(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId()));
-            String response = EntityUtils.toString(resp.getEntity());
-            if (resetEntity.getBinaries() != null) {
-                for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
-                    binary.getValue()
-                            .setSource(
-                                    new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png")
-                                            .toURI()));
-                }
+    private void resetState(boolean resetState, Object resetObject) throws Exception {
+        if (resetState && resetObject != null) {
+            if (resetObject instanceof Entity) {
+                resetEntity((Entity) resetObject);
+            } else if (resetObject instanceof User) {
+                resetUser((User) resetObject);
+            } else if (resetObject instanceof UserRequest) {
+                resetUserRequest((UserRequest) resetObject);
             }
-            if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
-                // recreate entity
-                resp =
-                        this.executeAsAdmin(
-                                Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
-                                        mapper.writeValueAsString(resetEntity),
-                                        ContentType.APPLICATION_JSON));
-                response = EntityUtils.toString(resp.getEntity());
-                assertEquals(201, resp.getStatusLine().getStatusCode());
-            } else {
-                assertEquals(200, resp.getStatusLine().getStatusCode());
-                // update
-                resp =
-                        this.executeAsAdmin(
-                                Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId())
-                                        .bodyString(
-                                                mapper.writeValueAsString(resetEntity),
-                                                ContentType.APPLICATION_JSON));
-                response = EntityUtils.toString(resp.getEntity());
-                assertEquals(200, resp.getStatusLine().getStatusCode());
+        }
+    }
+
+    private void resetEntity(Entity resetEntity) throws Exception {
+        // check if entity is there
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId()));
+        String response = EntityUtils.toString(resp.getEntity());
+        if (resetEntity.getBinaries() != null) {
+            for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
+                binary.getValue()
+                        .setSource(
+                                new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png")
+                                        .toURI()));
             }
-            String urlSuffix = null;
-            if (resetEntity.getState().equals(Entity.STATE_SUBMITTED)) {
-                urlSuffix = "submit";
-            } else if (resetEntity.getState().equals(Entity.STATE_PUBLISHED)) {
-                urlSuffix = "publish";
-            } else {
-                return;
-            }
+        }
+        if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
+            // recreate entity
             resp =
                     this.executeAsAdmin(
-                            Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId() + "/" +
-                                    urlSuffix));
+                            Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
+                                    mapper.writeValueAsString(resetEntity),
+                                    ContentType.APPLICATION_JSON));
+            response = EntityUtils.toString(resp.getEntity());
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+        } else {
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            // update
+            resp =
+                    this.executeAsAdmin(
+                            Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId())
+                                    .bodyString(
+                                            mapper.writeValueAsString(resetEntity),
+                                            ContentType.APPLICATION_JSON));
             response = EntityUtils.toString(resp.getEntity());
             assertEquals(200, resp.getStatusLine().getStatusCode());
         }
+        String urlSuffix = null;
+        if (resetEntity.getState().equals(Entity.STATE_SUBMITTED)) {
+            urlSuffix = "submit";
+        } else if (resetEntity.getState().equals(Entity.STATE_PUBLISHED)) {
+            urlSuffix = "publish";
+        } else {
+            return;
+        }
+        resp =
+                this.executeAsAdmin(
+                        Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId() + "/" +
+                                urlSuffix));
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+    }
+
+    private void resetUser(User resetUser) throws Exception {
+        // check if user is there
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(hostUrl + "user/" + resetUser.getName()));
+        String response = EntityUtils.toString(resp.getEntity());
+        if (resp.getStatusLine().getStatusCode() == HttpStatus.OK.value()) {
+            // delete user
+            resp =
+                    this.executeAsAdmin(
+                            Request.Delete(hostUrl + "user/" + resetUser.getName()));
+            response = EntityUtils.toString(resp.getEntity());
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+        }
+        // recreate user
+        createUser(resetUser.getName(), userPassword);
+    }
+
+    private void resetUserRequest(UserRequest resetUserRequest) throws Exception {
+        // check if user-request exists
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(hostUrl + "confirm/" + resetUserRequest.getToken()));
+        String response = EntityUtils.toString(resp.getEntity());
+        if (resp.getStatusLine().getStatusCode() == HttpStatus.OK.value()) {
+            // delete user-request
+            resp =
+                    executeAsAdmin(
+                    Request.Post(confirmUrl + resetUserRequest.getToken())
+                            .body(MultipartEntityBuilder.create()
+                                    .addTextBody("password", userPassword)
+                                    .addTextBody("passwordRepeat", userPassword)
+                                    .build()
+                            ));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+        }
+        resp =
+                executeAsAdmin(
+                Request.Get(hostUrl + "user/" + resetUserRequest.getUser().getName()));
+        if (resp.getStatusLine().getStatusCode() == HttpStatus.OK.value()) {
+            // delete user
+            resp =
+                    executeAsAdmin(
+                    Request.Delete(hostUrl + "user/" + resetUserRequest.getUser().getName()));
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+        }
+        // recreate user request
+        UserRequest newRequest = createUserRequest(resetUserRequest.getUser().getName(), userPassword);
+        resetUserRequest.setToken(newRequest.getToken());
+    }
+
+    private String manipulateUrl(String url, Object resetObject) {
+        if (url.contains("{token}") && resetObject != null && resetObject instanceof UserRequest) {
+            return url.replaceAll("\\{token\\}", ((UserRequest) resetObject).getToken());
+        }
+        return url;
     }
 
     private boolean isJson(String text) {

@@ -35,7 +35,9 @@ public class AuthConfigurer {
 
     private final boolean resetState;
 
-    private final String resetStateEntityId;
+    private final String resetStateId;
+
+    private final ObjectType resetStateObjectType;
 
     private final RoleRestriction roleRestriction;
 
@@ -47,7 +49,8 @@ public class AuthConfigurer {
         this.body = builder.body;
         this.neededPermission = builder.neededPermission;
         this.resetState = builder.resetState;
-        this.resetStateEntityId = builder.resetStateEntityId;
+        this.resetStateId = builder.resetStateId;
+        this.resetStateObjectType = builder.resetStateObjectType;
         this.roleRestriction = builder.roleRestriction;
     }
 
@@ -75,8 +78,12 @@ public class AuthConfigurer {
         return resetState;
     }
 
-    public String getResetStateEntityId() {
-        return resetStateEntityId;
+    public String getResetStateId() {
+        return resetStateId;
+    }
+
+    public ObjectType getResetStateObjectType() {
+        return resetStateObjectType;
     }
 
     public RoleRestriction getRoleRestriction() {
@@ -99,7 +106,9 @@ public class AuthConfigurer {
 
         private boolean resetState = false;
 
-        private String resetStateEntityId = null;
+        private String resetStateId = null;
+
+        private ObjectType resetStateObjectType = ObjectType.ENTITY;
 
         private RoleRestriction roleRestriction = null;
 
@@ -128,8 +137,13 @@ public class AuthConfigurer {
             return this;
         }
 
-        public AuthConfigurerBuilder resetStateEntityId(String resetStateEntityId) {
-            this.resetStateEntityId = resetStateEntityId;
+        public AuthConfigurerBuilder resetStateId(String resetStateId) {
+            this.resetStateId = resetStateId;
+            return this;
+        }
+
+        public AuthConfigurerBuilder resetStateObjectType(ObjectType resetStateObjectType) {
+            this.resetStateObjectType = resetStateObjectType;
             return this;
         }
 
@@ -170,6 +184,13 @@ public class AuthConfigurer {
         ADMIN,
         USER,
         LOGGED_IN;
+    }
+
+    public enum ObjectType {
+        WORKSPACE,
+        ENTITY,
+        USER,
+        USER_REQUEST;
     }
 
 }

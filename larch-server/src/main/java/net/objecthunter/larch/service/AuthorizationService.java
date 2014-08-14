@@ -24,6 +24,6 @@ import net.objecthunter.larch.annotations.WorkspacePermission;
 public interface AuthorizationService {
 
     void authorize(Method method, String id, Integer versionId, Object result, String springSecurityExpression,
-            WorkspacePermission workspacePermission) throws IOException;
+            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException;
 
 }

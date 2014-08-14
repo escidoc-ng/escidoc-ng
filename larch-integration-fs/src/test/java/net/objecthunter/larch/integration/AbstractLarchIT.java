@@ -31,6 +31,8 @@ import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.UserRequest;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -108,8 +110,10 @@ public abstract class AbstractLarchIT {
         }
     }
 
-    protected String createUser(String password) throws IOException {
-        String name = RandomStringUtils.randomAlphabetic(5);
+    protected String createUser(String name, String password) throws IOException {
+        if (StringUtils.isBlank(name)) {
+            name = RandomStringUtils.randomAlphabetic(5);
+        }
         HttpResponse resp =
                 executeAsAdmin(
                 Request.Post(userUrl)
@@ -133,6 +137,31 @@ public abstract class AbstractLarchIT {
                         ));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         return name;
+    }
+
+    protected UserRequest createUserRequest(String name, String password) throws IOException {
+        if (StringUtils.isBlank(name)) {
+            name = RandomStringUtils.randomAlphabetic(5);
+        }
+        HttpResponse resp =
+                executeAsAdmin(
+                Request.Post(userUrl)
+                        .body(MultipartEntityBuilder.create()
+                                .addTextBody("name", name)
+                                .addTextBody("first_name", "test")
+                                .addTextBody("last_name", "test")
+                                .addTextBody("email", name + "@fiz.de")
+                                .addTextBody("groups", "ROLE_USER")
+                                .build()
+                        ));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final String token = EntityUtils.toString(resp.getEntity());
+        UserRequest userRequest = new UserRequest();
+        userRequest.setToken(token);
+        User user = new User();
+        user.setName(name);
+        userRequest.setUser(user);
+        return userRequest;
     }
 
     /**

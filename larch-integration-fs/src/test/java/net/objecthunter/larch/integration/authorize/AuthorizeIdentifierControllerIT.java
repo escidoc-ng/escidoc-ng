@@ -38,7 +38,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
@@ -47,7 +47,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
@@ -56,7 +56,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -69,7 +69,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
@@ -78,7 +78,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
@@ -87,7 +87,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 }

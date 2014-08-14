@@ -52,6 +52,7 @@ public class UserController extends AbstractLarchController {
      */
     @RequestMapping(value = "/confirm/{token}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public String confirmUserRequest(@PathVariable("token") final String token) throws IOException {
         this.backendCredentialsService.retrieveUserRequest(token);
         return token;

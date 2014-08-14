@@ -46,7 +46,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .body(mapper.writeValueAsString(getBinary()))
                 .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
 
         // create submitted entity
@@ -56,7 +56,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .body(mapper.writeValueAsString(getBinary()))
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
 
         // create published entity
@@ -66,7 +66,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .body(mapper.writeValueAsString(getBinary()))
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -102,7 +102,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                         "/binary/image-1")
                 .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
 
         // create submitted entity
@@ -112,7 +112,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                         "/binary/image-1")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
 
         // create published entity
@@ -122,7 +122,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                         "/binary/image-1")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 

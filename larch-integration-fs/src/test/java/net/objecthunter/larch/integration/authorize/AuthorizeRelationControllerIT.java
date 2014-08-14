@@ -38,7 +38,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
@@ -47,7 +47,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
@@ -56,7 +56,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .build());
     }
 
@@ -69,7 +69,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .html(true)
                 .build());
         // create submitted entity
@@ -79,7 +79,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .html(true)
                 .build());
         // create published entity
@@ -89,7 +89,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
-                .resetStateEntityId(entity.getId())
+                .resetStateId(entity.getId())
                 .html(true)
                 .build());
     }
