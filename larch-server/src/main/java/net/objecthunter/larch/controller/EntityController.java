@@ -162,7 +162,7 @@ public class EntityController extends AbstractLarchController {
             @PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(workspaceId, id, version));
+        model.addAttribute("entity", retrieve(workspaceId, id, version));
         return new ModelAndView("entity", model);
     }
 

@@ -35,9 +35,25 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testListHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/list")
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testListPublished() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "/list/published")
+                .build());
+    }
+
+    @Test
+    public void testListPublishedHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/list/published")
+                .html(true)
                 .build());
     }
 

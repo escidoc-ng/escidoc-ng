@@ -16,6 +16,8 @@
 
 package net.objecthunter.larch.integration.authorize;
 
+import java.io.File;
+
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
@@ -25,6 +27,8 @@ import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +70,61 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testCreateMetadataHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testCreateBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
@@ -96,6 +155,64 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
                 .resetState(true)
                 .resetStateId(entity.getId())
+                .build());
+    }
+
+    @Test
+    public void testCreateBinaryMetadataHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/image-1/metadata")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("type", "DC")
+                        .addPart(
+                                "metadata",
+                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                                        "fixtures/dc.xml").getFile())))
+                        .build())
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
                 .build());
     }
 
@@ -152,59 +269,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveMetadata() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PENDING_METADATA)
-                .build());
-        // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
-                .build());
-        // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .build());
-    }
-
-    @Test
-    public void testRetrieveBinaryMetadata() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PENDING_BINARY)
-                .build());
-        // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
-                .build());
-        // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .build());
-    }
-
-    @Test
-    public void testValidateMetadataXml() throws Exception {
+    public void testValidateMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
@@ -228,7 +293,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testValidateBinaryMetadataXml() throws Exception {
+    public void testValidateBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         String binaryName = entity.getBinaries().keySet().iterator().next();
@@ -264,11 +329,142 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testRetrieveTypesHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "metadatatype")
+                .roleRestriction(RoleRestriction.LOGGED_IN)
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testAddType() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, hostUrl + "metadatatype")
                 .body(mapper.writeValueAsString(getMetadataType()))
                 .roleRestriction(RoleRestriction.ADMIN)
+                .build());
+    }
+
+    @Test
+    public void testAddTypeHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, hostUrl + "metadatatype")
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", RandomStringUtils.randomAlphabetic(16))
+                        .addTextBody("schemaUrl", "http://www.somewhat.org")
+                        .build())
+                .roleRestriction(RoleRestriction.ADMIN)
+                .build());
+    }
+
+    @Test
+    public void testRetrieveMetadata() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PENDING_METADATA)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .build());
+    }
+
+    @Test
+    public void testRetrieveMetadataHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PENDING_METADATA)
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .html(true)
+                .build());
+    }
+
+    @Test
+    public void testRetrieveBinaryMetadata() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        String binaryName = entity.getBinaries().keySet().iterator().next();
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PENDING_BINARY)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .build());
+    }
+
+    @Test
+    public void testRetrieveBinaryMetadataHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        String binaryName = entity.getBinaries().keySet().iterator().next();
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PENDING_BINARY)
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                        "/binary/" + binaryName + "/metadata/" +
+                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .html(true)
                 .build());
     }
 

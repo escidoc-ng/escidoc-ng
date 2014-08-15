@@ -87,16 +87,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateUserRequest() throws Exception {
-        // TODO
-    }
-
-    @Test
-    public void testCreateUserHtml() throws Exception {
-        // TODO
-    }
-
-    @Test
     public void testDeleteUser() throws Exception {
         // create user
         String username = createUser(null, userPassword);
@@ -115,6 +105,16 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, hostUrl + "user")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+    }
+
+    @Test
+    public void testCreateUserRequest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void testCreateUserHtml() throws Exception {
+        // TODO
     }
 
     @Test

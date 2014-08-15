@@ -127,13 +127,13 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/file", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
-                "application/x-www-form-urlencoded" })
+                "application/x-www-form-urlencoded" }, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(
                     objectType = ObjectType.BINARY, idIndex = 1,
                     workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String create(@PathVariable("workspaceId") final String workspaceId,
+    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
         entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());

@@ -75,47 +75,6 @@ public class MetadataController extends AbstractLarchController {
 
     /**
      * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
-     * {@link net .objecthunter.larch.model.Entity} using a HTTP POST with multipart/form-data
-     * 
-     * @param entityId The is of the Entity to which the Metadata should be added
-     * @param mdName The name of the Metadata
-     * @param type The type of the Metadata
-     * @param file The Spring MVC injected MutlipartFile containing the actual data from a html form submission
-     * @return a redirection to the Entity to which the Metadata was added
-     * @throws IOException
-     */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
-            consumes = "multipart/form-data")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String addMetadata(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
-            throws IOException {
-        final Entity e = entityService.retrieve(workspaceId, entityId);
-        if (e.getMetadata() == null) {
-            e.setMetadata(new HashMap<>());
-        }
-        else if (e.getMetadata().get(mdName) != null) {
-            throw new IOException("Meta data " + mdName + " already exists on Entity " + entityId);
-        }
-        final Metadata md = new Metadata();
-        md.setName(mdName);
-        md.setData(IOUtils.toString(file.getInputStream()));
-        md.setMimetype(file.getContentType());
-        md.setType(type);
-        md.setOriginalFilename(file.getOriginalFilename());
-        e.getMetadata().put(mdName, md);
-        entityService.update(workspaceId, e);
-        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
-        this.messagingService.publishCreateMetadata(entityId, mdName);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
-    }
-
-    /**
-     * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
      * {@link net .objecthunter.larch.model.Entity} using a HTTP POST with application/json
      * 
      * @param entityId The is of the Entity to which the Metadata should be added
@@ -143,6 +102,47 @@ public class MetadataController extends AbstractLarchController {
         entityService.update(workspaceId, e);
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
+    }
+
+    /**
+     * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
+     * {@link net .objecthunter.larch.model.Entity} using a HTTP POST with multipart/form-data
+     * 
+     * @param entityId The is of the Entity to which the Metadata should be added
+     * @param mdName The name of the Metadata
+     * @param type The type of the Metadata
+     * @param file The Spring MVC injected MutlipartFile containing the actual data from a html form submission
+     * @return a redirection to the Entity to which the Metadata was added
+     * @throws IOException
+     */
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/metadata", method = RequestMethod.POST,
+            consumes = "multipart/form-data")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 1,
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
+    public String addMetadataHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
+            @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
+            throws IOException {
+        final Entity e = entityService.retrieve(workspaceId, entityId);
+        if (e.getMetadata() == null) {
+            e.setMetadata(new HashMap<>());
+        }
+        else if (e.getMetadata().get(mdName) != null) {
+            throw new IOException("Meta data " + mdName + " already exists on Entity " + entityId);
+        }
+        final Metadata md = new Metadata();
+        md.setName(mdName);
+        md.setData(IOUtils.toString(file.getInputStream()));
+        md.setMimetype(file.getContentType());
+        md.setType(type);
+        md.setOriginalFilename(file.getOriginalFilename());
+        e.getMetadata().put(mdName, md);
+        entityService.update(workspaceId, e);
+        this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
+        this.messagingService.publishCreateMetadata(entityId, mdName);
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
     /**
@@ -443,7 +443,9 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("metadata-name") final String mdName) throws IOException {
         final Metadata md = retrieveMetadata(workspaceId, entityId, mdName);
         final ModelMap model = new ModelMap();
-        model.addAttribute("metadata", md);
+        model.addAttribute("workspaceId", workspaceId);
+        model.addAttribute("entityId", entityId);
+        model.addAttribute("md", md);
         return new ModelAndView("metadata", model);
     }
 
@@ -482,8 +484,11 @@ public class MetadataController extends AbstractLarchController {
             throws IOException {
         final Metadata md = retrieveBinaryMetadata(workspaceId, entityId, binaryName, mdName);
         final ModelMap model = new ModelMap();
-        model.addAttribute("metadata", md);
-        return new ModelAndView("metadata", model);
+        model.addAttribute("workspaceId", workspaceId);
+        model.addAttribute("entityId", entityId);
+        model.addAttribute("binaryName", entityId);
+        model.addAttribute("md", md);
+        return new ModelAndView("binarymetadata", model);
     }
 
     @RequestMapping(method = RequestMethod.DELETE,

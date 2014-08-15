@@ -62,17 +62,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateEntity() throws Exception {
-        Entity e = createFixtureEntity();
-        e.setWorkspaceId(workspaceId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity")
-                .body(mapper.writeValueAsString(e))
-                .neededPermission(MissingPermission.WRITE_WORKSPACE)
-                .build());
-    }
-
-    @Test
     public void testRetrieveEntity() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
@@ -90,6 +79,30 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId())
+                .build());
+    }
+
+    @Test
+    public void testRetrieveEntityHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId())
+                .neededPermission(MissingPermission.READ_PENDING_METADATA)
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId())
+                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId())
+                .html(true)
                 .build());
     }
 
@@ -115,6 +128,30 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testRetrieveVersionHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2")
+                .neededPermission(MissingPermission.READ_PENDING_METADATA)
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2")
+                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/version/2")
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testRetrieveVersions() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
@@ -133,6 +170,42 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
+                .build());
+    }
+
+    @Test
+    public void testRetrieveVersionsHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .html(true)
+                .build());
+        // create submitted entity
+        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .html(true)
+                .build());
+        // create published entity
+        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/versions")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .html(true)
+                .build());
+    }
+
+    @Test
+    public void testCreateEntity() throws Exception {
+        Entity e = createFixtureEntity();
+        e.setWorkspaceId(workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity")
+                .body(mapper.writeValueAsString(e))
+                .neededPermission(MissingPermission.WRITE_WORKSPACE)
                 .build());
     }
 
@@ -189,6 +262,31 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testPublishEntity() throws Exception {
+        // create submitted entity
+        Entity entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/publish")
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .build());
+    }
+
+    @Test
+    public void testPublishEntityHtml() throws Exception {
+        // create submitted entity
+        Entity entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/publish")
+                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testSubmitEntity() throws Exception {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
@@ -201,15 +299,15 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testPublishEntity() throws Exception {
-        // create submitted entity
-        Entity entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+    public void testSubmitEntityHtml() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/publish")
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
+                HttpMethod.PUT, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/submit")
+                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
+                .html(true)
                 .build());
     }
-
 }

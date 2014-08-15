@@ -445,23 +445,23 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         resetState(authConfigurer.isResetState(), resetObject);
         // try as user with correct workspace rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
-            if (authConfigurer.getNeededPermission() == null || (!entry.getKey().equals(MissingPermission.ALL) &&
-                    !entry.getKey().equals(authConfigurer.getNeededPermission()))) {
-                url = manipulateUrl(authConfigurer.getUrl(), resetObject);
-                resp =
-                        this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer
-                                .getBody(), entry.getValue()[0], entry.getValue()[1], authConfigurer.isHtml());
-                response = EntityUtils.toString(resp.getEntity());
-                if (authConfigurer.getRoleRestriction() != null &&
-                        authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
-                    assertEquals(403, resp.getStatusLine().getStatusCode());
-                } else {
-                    assertTrue(resp.getStatusLine().getStatusCode() < 400);
-                }
-                resetState(authConfigurer.isResetState(), resetObject);
-            }
-        }
+        // for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        // if (authConfigurer.getNeededPermission() == null || (!entry.getKey().equals(MissingPermission.ALL) &&
+        // !entry.getKey().equals(authConfigurer.getNeededPermission()))) {
+        // url = manipulateUrl(authConfigurer.getUrl(), resetObject);
+        // resp =
+        // this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer
+        // .getBody(), entry.getValue()[0], entry.getValue()[1], authConfigurer.isHtml());
+        // response = EntityUtils.toString(resp.getEntity());
+        // if (authConfigurer.getRoleRestriction() != null &&
+        // authConfigurer.getRoleRestriction().equals(RoleRestriction.ADMIN)) {
+        // assertEquals(403, resp.getStatusLine().getStatusCode());
+        // } else {
+        // assertTrue(resp.getStatusLine().getStatusCode() < 400);
+        // }
+        // resetState(authConfigurer.isResetState(), resetObject);
+        // }
+        // }
     }
 
     private Object getResetObject(AuthConfigurer authConfigurer) throws Exception {

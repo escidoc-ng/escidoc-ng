@@ -35,9 +35,25 @@ public class AuthorizeBrowseControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testBrowseHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse")
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testBrowseOffset() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "/browse/1")
+                .build());
+    }
+
+    @Test
+    public void testBrowseOffsetHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse/1")
+                .html(true)
                 .build());
     }
 
@@ -49,9 +65,25 @@ public class AuthorizeBrowseControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testBrowseOffsetNumRecordsHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse/1/2")
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testBrowsePublished() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "/browse/published")
+                .build());
+    }
+
+    @Test
+    public void testBrowsePublishedHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse/published")
+                .html(true)
                 .build());
     }
 
@@ -63,9 +95,25 @@ public class AuthorizeBrowseControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
+    public void testBrowsePublishedOffsetHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse/published/1")
+                .html(true)
+                .build());
+    }
+
+    @Test
     public void testBrowsePublishedOffsetNumRecords() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "/browse/published/1/2")
+                .build());
+    }
+
+    @Test
+    public void testBrowsePublishedOffsetNumRecordsHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + "/browse/published/1/2")
+                .html(true)
                 .build());
     }
 
