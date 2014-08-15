@@ -99,10 +99,9 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         // create pending entity
         Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
-                        .addTextBody("mimetype", "image/png")
                         .addPart(
                                 "binary",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -117,10 +116,9 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         // create submitted entity
         entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
-                        .addTextBody("mimetype", "image/png")
                         .addPart(
                                 "binary",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -135,10 +133,9 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         // create published entity
         entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary")
+                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
-                        .addTextBody("mimetype", "image/png")
                         .addPart(
                                 "binary",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(

@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -119,21 +120,23 @@ public class BinaryController extends AbstractLarchController {
      * 
      * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
      * @param name The name of the Binary
-     * @param src The request body containing the actual data
+     * @param file A {@link org.springframework.web.multipart.MultipartFile} containing the multipart encoded file
+     * @return The redirect address to view the updated Entity
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/file", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
-                "application/x-www-form-urlencoded" }, produces = "text/html")
-    @ResponseStatus(HttpStatus.CREATED)
+                "application/x-www-form-urlencoded" })
+    @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+            workspacePermission = @WorkspacePermission(
+                    objectType = ObjectType.BINARY, idIndex = 1,
                     workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
+    public String create(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String entityId, @RequestParam("name") final String name,
-            @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
-        entityService.createBinary(workspaceId, entityId, name, mimeType, src);
+            @RequestParam("binary") final MultipartFile file) throws IOException {
+        entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
         return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;

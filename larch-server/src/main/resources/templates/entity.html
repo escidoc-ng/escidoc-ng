@@ -208,17 +208,15 @@
                 <script>
                 $(document).ready(function() {
                     $('#binName').watermark('Name', {className: 'inactive'});
-                    $('#binMimetype').watermark('Mimetype', {className: 'inactive'});
                  });
 
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <form th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary'"
+                <form th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/file'"
                       method="post"
                       enctype="multipart/form-data">
                     <input id="binName" type="text" name="name" title="Set the name of the binary"/>
-                    <input id="binMimetype" type="text" name="mimetype" title="Set the mimetype of the binary"/>
                     <input id="binFile" type="file" name="binary" title="Select a file for upload"/>
                     <input class="button" type="submit" value="Create new binary"/>
                 </form>
