@@ -17,14 +17,12 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
-import java.util.List;
 
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.WorkspacePermission;
 import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
 import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
-import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.service.EntityService;
 
@@ -71,112 +69,6 @@ public class WorkspaceController extends AbstractLarchController {
                     objectType = ObjectType.WORKSPACE, workspacePermissionType = WorkspacePermissionType.READ))
     public Workspace retrieve(@PathVariable("id") final String id) throws IOException {
         return this.entityService.retrieveWorkspace(id);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public SearchResult browse(@PathVariable("id") final String id) throws IOException {
-        return this.entityService.scanWorkspace(id, 0, 0);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET,
-            produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
-            throws IOException {
-        return this.entityService.scanWorkspace(id, offset, 0);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public SearchResult browse(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        return this.entityService.scanWorkspace(id, offset, numRecords);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView browseHtml(@PathVariable("id") final String id) throws IOException {
-        return this.browseHtml(id, 0, 0);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset)
-            throws IOException {
-        return this.browseHtml(id, offset, 0);
-    }
-
-    @RequestMapping(value = "/workspace/{id}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView browseHtml(@PathVariable("id") final String id, @PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("result", this.entityService.scanWorkspace(id, offset, numRecords));
-        return new ModelAndView("browse", model);
-    }
-
-    @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public List<Workspace> retrieveList() throws IOException {
-        return this.entityService.scanWorkspaces(null, 0, 0);
-    }
-
-    @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET,
-            produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public List<Workspace> retrieveList(@PathVariable("offset") final int offset) throws IOException {
-        return this.entityService.scanWorkspaces(null, offset, 0);
-    }
-
-    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public List<Workspace> retrieveList(@PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        return this.entityService.scanWorkspaces(null, offset, numRecords);
-    }
-
-    @RequestMapping(value = "/workspace-list", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public ModelAndView retrieveListHtml() throws IOException {
-        final ModelMap model = new ModelMap("workspaces", this.retrieveList(0, 0));
-        return new ModelAndView("workspaces", model);
-    }
-
-    @RequestMapping(value = "/workspace-list/{offset}", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset) throws IOException {
-        final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, 0));
-        return new ModelAndView("workspaces", model);
-    }
-
-    @RequestMapping(value = "/workspace-list/{offset}/{numRecords}", method = RequestMethod.GET,
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
-    public ModelAndView retrieveListHtml(@PathVariable("offset") final int offset,
-            @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("workspaces", this.retrieveList(offset, numRecords));
-        return new ModelAndView("workspaces", model);
     }
 
     @RequestMapping(value = "/workspace/{id}", method = RequestMethod.PUT, consumes = "application/json")

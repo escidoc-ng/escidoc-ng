@@ -34,6 +34,16 @@ public interface BackendPublishService {
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
+     * {@link net.objecthunter.larch.model .Entity}s from the published index from a given offset with the default
+     * number of {@link net.objecthunter.larch.model.Entity}s returned
+     * 
+     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
+     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the published repository
+     */
+    SearchResult scanIndex(int offset) throws IOException;
+
+    /**
+     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
      * {@link net.objecthunter.larch.model .Entity}s from the published index from a given offset with a given maximum
      * number of {@link net.objecthunter.larch.model.Entity}s returned
      * 
@@ -44,21 +54,32 @@ public interface BackendPublishService {
     SearchResult scanIndex(int offset, int numRecords) throws IOException;
 
     /**
+     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
+     * {@link net.objecthunter.larch.model .Entity}s belonging to the given Workspace from the published index from a
+     * given offset with the default number of {@link net.objecthunter.larch.model.Entity}s returned
+     * 
+     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
+     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the published repository
+     */
+    SearchResult scanWorkspace(String workspaceId, int offset) throws IOException;
+
+    /**
+     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
+     * {@link net.objecthunter.larch.model .Entity}s belonging to the given Workspace from the published index from a
+     * given offset with a given maximum number of {@link net.objecthunter.larch.model.Entity}s returned
+     * 
+     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
+     * @param numRecords the number of {@link net.objecthunter.larch.model.Entity}s to return
+     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the published repository
+     */
+    SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
+
+    /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the published repository.
      * 
      * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the search hits
      */
     SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException;
-
-    /**
-     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
-     * {@link net.objecthunter.larch.model .Entity}s from the published index from a given offset with the default
-     * number of {@link net.objecthunter.larch.model.Entity}s returned
-     * 
-     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
-     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the published repository
-     */
-    SearchResult scanIndex(int offset) throws IOException;
 
 }

@@ -74,4 +74,7 @@ public interface BackendEntityService {
     SearchResult scanIndex(int offset) throws IOException;
 
     SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
+
+    SearchResult scanWorkspace(String workspaceId, int offset) throws IOException;
+
 }

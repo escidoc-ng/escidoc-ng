@@ -18,7 +18,6 @@ package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.AuditRecord;
@@ -97,6 +96,14 @@ public interface EntityService {
      */
     SearchResult scanEntities(int offset, int numRecords) throws IOException;
 
+    SearchResult scanWorkspaceEntities(String workspaceId, int offset) throws IOException;
+
+    SearchResult scanWorkspaceEntities(String workspaceId, int offset, int numRecords) throws IOException;
+
+    SearchResult scanWorkspaces(int offset) throws IOException;
+
+    SearchResult scanWorkspaces(int offset, int numRecords) throws IOException;
+
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
@@ -117,11 +124,8 @@ public interface EntityService {
 
     Workspace retrieveWorkspace(String id) throws IOException;
 
-    List<Workspace> scanWorkspaces(String owner, int offset, int numRecords) throws IOException;
-
     void updateWorkspace(Workspace workspace) throws IOException;
 
     void patchWorkspace(Workspace workspace) throws IOException;
 
-    SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
 }
