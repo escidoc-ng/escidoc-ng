@@ -296,8 +296,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
+                        String value = searchField.getValue()[i].toLowerCase();
+                        if (searchField.getKey().getFieldName().equals("workspaceId") ||
+                                searchField.getKey().getFieldName().equals("parentId")) {
+                            value = searchField.getValue()[i];
+                        }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                searchField.getValue()[i].toLowerCase()));
+                                value));
                     }
                 }
                 queryBuilder.must(childQueryBuilder);
@@ -435,9 +440,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
      * @author mih
      */
     public static enum EntitiesSearchField {
-        ID("id", "id"), LABEL("label", "label"), TYPE("type", "type"), PARENT("parent", "parentId"), TAG("tag",
-                "tags"), STATE(
-                "state", "state"), VERSION("version", "version"), ALL("term", "_all");
+        ID("id", "id"),
+        WORKSPACE("workspace", "workspaceId"),
+        LABEL("label", "label"),
+        TYPE("type", "type"),
+        PARENT("parent", "parentId"),
+        TAG("tag", "tags"),
+        STATE("state", "state"),
+        VERSION("version", "version"),
+        ALL("term", "_all");
 
         private final String requestParameterName;
 

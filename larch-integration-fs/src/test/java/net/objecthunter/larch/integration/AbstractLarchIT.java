@@ -196,6 +196,7 @@ public abstract class AbstractLarchIT {
                         Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId).bodyString(
                                 mapper.writeValueAsString(e),
                                 ContentType.APPLICATION_JSON));
+        String response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         if (!status.equals(Entity.STATE_PENDING)) {
             // submit

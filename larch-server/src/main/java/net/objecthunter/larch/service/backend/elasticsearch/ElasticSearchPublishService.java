@@ -267,8 +267,13 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
                 BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
+                        String value = searchField.getValue()[i].toLowerCase();
+                        if (searchField.getKey().getFieldName().equals("workspaceId") ||
+                                searchField.getKey().getFieldName().equals("parentId")) {
+                            value = searchField.getValue()[i];
+                        }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                searchField.getValue()[i].toLowerCase()));
+                                value));
                     }
                 }
                 queryBuilder.must(childQueryBuilder);
