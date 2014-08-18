@@ -135,6 +135,11 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
     }
 
     @Override
+    public SearchResult scanIndex(int offset) throws IOException {
+        return scanIndex(offset, maxRecords);
+    }
+
+    @Override
     public SearchResult scanIndex(int offset, int numRecords) throws IOException {
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
@@ -144,7 +149,72 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
                     this.client
                             .prepareSearch(INDEX_PUBLISHED).setQuery(QueryBuilders.matchAllQuery())
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "publishId", "version", "label", "type", "tags").execute().actionGet();
+                            .addFields("id", "workspaceId", "publishId", "version", "label", "type", "tags")
+                            .execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+
+        final SearchResult result = new SearchResult();
+        result.setOffset(offset);
+        result.setNumRecords(numRecords);
+        result.setHits(resp.getHits().getHits().length);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setOffset(offset);
+        result.setNextOffset(offset + numRecords);
+        result.setPrevOffset(Math.max(offset - numRecords, 0));
+        result.setMaxRecords(maxRecords);
+
+        final List<Entity> entites = new ArrayList<>(numRecords);
+        for (final SearchHit hit : resp.getHits()) {
+            // TODO: check if JSON document is prefetched or laziliy initialised
+            int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
+            String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
+            String label = hit.field("label") != null ? hit.field("label").getValue() : "";
+            String type = hit.field("type") != null ? hit.field("type").getValue() : "";
+            final Entity e = new Entity();
+            e.setId(hit.field("id").getValue());
+            e.setWorkspaceId(workspaceId);
+            e.setPublishId(hit.field("publishId").getValue());
+            e.setVersion(version);
+            e.setLabel(label);
+            e.setType(type);
+            List<String> tags = new ArrayList<>();
+            if (hit.field("tags") != null) {
+                for (Object o : hit.field("tags").values()) {
+                    tags.add((String) o);
+                }
+            }
+            e.setTags(tags);
+            entites.add(e);
+        }
+
+        result.setData(entites);
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
+    }
+
+    @Override
+    public SearchResult scanWorkspace(String workspaceId, int offset) throws IOException {
+        return scanWorkspace(workspaceId, offset, maxRecords);
+    }
+
+    @Override
+    public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
+        final long time = System.currentTimeMillis();
+        numRecords = numRecords > maxRecords || numRecords < 1 ? maxRecords : numRecords;
+        final SearchResponse resp;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.matchQuery("workspaceId", workspaceId));
+        queryBuilder.must(getEntitiesUserRestrictionQuery(workspaceId));
+        try {
+            resp =
+                    this.client
+                            .prepareSearch(INDEX_PUBLISHED).setQuery(
+                                    queryBuilder)
+                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
+                            .addFields("id", "publishId", "version", "label", "type", "tags", "state").execute()
+                            .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -165,12 +235,15 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
             int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
+            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
+            e.setWorkspaceId(workspaceId);
             e.setPublishId(hit.field("publishId").getValue());
             e.setVersion(version);
             e.setLabel(label);
             e.setType(type);
+            e.setState(state);
             List<String> tags = new ArrayList<>();
             if (hit.field("tags") != null) {
                 for (Object o : hit.field("tags").values()) {
@@ -194,8 +267,13 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
                 BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
+                        String value = searchField.getValue()[i].toLowerCase();
+                        if (searchField.getKey().getFieldName().equals("workspaceId") ||
+                                searchField.getKey().getFieldName().equals("parentId")) {
+                            value = searchField.getValue()[i];
+                        }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                searchField.getValue()[i].toLowerCase()));
+                                value));
                     }
                 }
                 queryBuilder.must(childQueryBuilder);
@@ -255,11 +333,6 @@ public class ElasticSearchPublishService extends AbstractElasticSearchService im
         result.setTotalHits(resp.getHits().getTotalHits());
         result.setDuration(System.currentTimeMillis() - time);
         return result;
-    }
-
-    @Override
-    public SearchResult scanIndex(int offset) throws IOException {
-        return scanIndex(offset, maxRecords);
     }
 
 }

@@ -35,6 +35,7 @@ import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,11 +66,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private BackendEntityService backendEntityService;
 
     @Autowired
+    private BackendVersionService backendVersionService;
+
+    @Autowired
     private BackendWorkspaceService backendWorkspaceService;
 
     @Override
-    public void authorize(Method method, String id, Object result, String springSecurityExpression,
-            WorkspacePermission workspacePermission) throws IOException {
+    public void authorize(Method method, String id, Integer versionId, Object result,
+            String springSecurityExpression,
+            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException {
         // Admin may do everything
         final User u = this.getCurrentUser();
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
@@ -78,10 +83,10 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
         try {
             // handle securityExpression
-            handleSecurityExpression(method, springSecurityExpression);
+            handleSecurityExpression(method, springSecurityExpression, methodArgs);
 
             // handle workspacePermission
-            handleWorkspacePermission(method, workspacePermission, id, result);
+            handleWorkspacePermission(method, workspacePermission, id, versionId, result);
         } catch (Throwable e) {
             if (e instanceof AccessDeniedException) {
                 if (u != null) {
@@ -89,6 +94,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 } else {
                     throw new InsufficientAuthenticationException("No user logged in");
                 }
+            } else {
+                throw e;
             }
         }
     }
@@ -231,15 +238,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param method
      * @param springSecurityExpression
      */
-    private void handleSecurityExpression(Method method, String springSecurityExpression) {
+    private void handleSecurityExpression(Method method, String springSecurityExpression, Object[] methodArgs) {
         if (StringUtils.isNotBlank(springSecurityExpression)) {
             Authentication a = SecurityContextHolder.getContext().getAuthentication();
             DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
             Expression accessExpression =
                     handler.getExpressionParser().parseExpression(springSecurityExpression);
             if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
-                    a, MethodInvocationUtils.createFromClass(method.getDeclaringClass(), method
-                            .getName())))) {
+                    a, MethodInvocationUtils.createFromClass(method, method.getDeclaringClass(), method
+                            .getName(), method.getParameterTypes(), methodArgs)))) {
                 throw new AccessDeniedException("Access denied");
             }
         }
@@ -255,7 +262,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param result
      */
     private void handleWorkspacePermission(Method method, WorkspacePermission workspacePermission,
-            String id, Object result)
+            String id, Integer versionId, Object result)
             throws IOException {
         if (workspacePermission.workspacePermissionType().equals(WorkspacePermissionType.NULL)) {
             return;
@@ -269,7 +276,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (workspacePermission.objectType().equals(ObjectType.ENTITY) ||
                     workspacePermission.objectType().equals(ObjectType.BINARY)) {
                 // get entity
-                checkObject = backendEntityService.retrieve(id);
+                if (versionId != null) {
+                    checkObject = backendVersionService.getOldVersion(id, versionId);
+                } else {
+                    checkObject = backendEntityService.retrieve(id);
+                }
             } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE)) {
                 // get workspace
                 checkObject = backendWorkspaceService.retrieve(id);

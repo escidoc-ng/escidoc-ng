@@ -239,7 +239,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         final String id = EntityUtils.toString(resp.getEntity());
 
         // publish
-        resp = this.executeAsAdmin(Request.Post(entityUrl + id + "/publish"));
+        resp = this.executeAsAdmin(Request.Put(entityUrl + id + "/publish"));
 
         // retrieve
         resp = this.executeAsAdmin(Request.Get(entityUrl + id));

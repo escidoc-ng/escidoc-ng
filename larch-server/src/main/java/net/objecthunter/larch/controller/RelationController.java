@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Web controller responsible for interactions on the relation level
  */
 @Controller
-@RequestMapping("//workspace/{workspaceId}/entity/{id}/relation")
+@RequestMapping("/workspace/{workspaceId}/entity/{id}/relation")
 public class RelationController extends AbstractLarchController {
 
     @Autowired

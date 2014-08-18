@@ -13,13 +13,13 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <a th:each="workspace : ${workspaces}"  th:href="@{'/workspace/'} + ${workspace.id}">
+        <a th:each="record,iterStat : ${result.data}" th:class="${iterStat.odd}? 'odd'"  th:href="@{'/workspace/'} + ${record.id}">
         <div class="panel clickable">
-            <p class="panel_title" th:text="${workspace.name}"></p>
+            <p class="panel_title" th:text="${record.name}"></p>
 
             <p class="property">Owner</p>
 
-            <p class="value" th:text="${workspace.owner}"></p>
+            <p class="value" th:text="${record.owner}"></p>
 
         </div>
         </a>

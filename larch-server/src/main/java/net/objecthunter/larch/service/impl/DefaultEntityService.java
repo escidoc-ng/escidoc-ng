@@ -27,7 +27,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -549,8 +548,13 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public List<Workspace> scanWorkspaces(String owner, int offset, int numRecords) throws IOException {
-        return backendWorkspaceService.scanIndex(owner, offset, numRecords);
+    public SearchResult scanWorkspaces(int offset) throws IOException {
+        return backendWorkspaceService.scanIndex(offset);
+    }
+
+    @Override
+    public SearchResult scanWorkspaces(int offset, int numRecords) throws IOException {
+        return backendWorkspaceService.scanIndex(offset, numRecords);
     }
 
     @Override
@@ -564,7 +568,12 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
+    public SearchResult scanWorkspaceEntities(String workspaceId, int offset) throws IOException {
+        return backendEntityService.scanWorkspace(workspaceId, offset);
+    }
+
+    @Override
+    public SearchResult scanWorkspaceEntities(String workspaceId, int offset, int numRecords) throws IOException {
         return backendEntityService.scanWorkspace(workspaceId, offset, numRecords);
     }
 

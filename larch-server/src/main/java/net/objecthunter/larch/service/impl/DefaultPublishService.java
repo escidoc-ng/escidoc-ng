@@ -66,13 +66,23 @@ public class DefaultPublishService implements PublishService {
     }
 
     @Override
-    public SearchResult scanIndex(int offset) throws IOException {
+    public SearchResult scanEntities(int offset) throws IOException {
         return backendPublishService.scanIndex(offset);
     }
 
     @Override
-    public SearchResult scanIndex(int offset, int numRecords) throws IOException {
+    public SearchResult scanEntities(int offset, int numRecords) throws IOException {
         return backendPublishService.scanIndex(offset, numRecords);
+    }
+
+    @Override
+    public SearchResult scanWorkspaceEntities(String workspaceId, int offset) throws IOException {
+        return backendPublishService.scanWorkspace(workspaceId, offset);
+    }
+
+    @Override
+    public SearchResult scanWorkspaceEntities(String workspaceId, int offset, int numRecords) throws IOException {
+        return backendPublishService.scanWorkspace(workspaceId, offset, numRecords);
     }
 
     @Override

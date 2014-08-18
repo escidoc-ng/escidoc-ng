@@ -17,14 +17,8 @@
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
-                <form th:if="${entity.state != 'published'}" enctype="multipart/form-data" method="post"
-                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish'">
-                    <input class="button_small" type="submit" value="Publish"/>
-                </form>
-                <form th:if="${entity.state != 'submitted' and entity.state != 'published'}" enctype="multipart/form-data" method="post"
-                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit'">
-                    <input class="button_small" type="submit" value="Submit"/>
-                </form>
+                <input th:if="${entity.state != 'submitted' and entity.state != 'published'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
+                <input th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
                 <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
             <p th:if="${entity.state != 'published'}" class="panel_title" />
 
@@ -219,7 +213,7 @@
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <form th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary'"
+                <form th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/file'"
                       method="post"
                       enctype="multipart/form-data">
                     <input id="binName" type="text" name="name" title="Set the name of the binary"/>

@@ -72,37 +72,13 @@ public class BinaryController extends AbstractLarchController {
      * 
      * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
      * @param name The name of the Binary
-     * @param file A {@link org.springframework.web.multipart.MultipartFile} containing the multipart encoded file
-     * @return The redirect address to view the updated Entity
-     * @throws IOException
-     */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST, consumes = {
-        "multipart/form-data",
-        "application/x-www-form-urlencoded" })
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(
-                    objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String create(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("name") final String name,
-            @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
-        entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
-        this.messagingService.publishCreateBinary(entityId, name);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
-    }
-
-    /**
-     * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
-     * {@link net .objecthunter.larch.model.Entity} using a multipart/form-data encoded HTTP POST
-     * 
-     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
-     * @param name The name of the Binary
      * @param src The request body containing the actual data
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST)
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+            consumes = {
+                "multipart/form-data",
+                "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
@@ -136,6 +112,58 @@ public class BinaryController extends AbstractLarchController {
                 .getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
+    }
+
+    /**
+     * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
+     * {@link net .objecthunter.larch.model.Entity} using a multipart/form-data encoded HTTP POST
+     * 
+     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
+     * @param name The name of the Binary
+     * @param file A {@link org.springframework.web.multipart.MultipartFile} containing the multipart encoded file
+     * @return The redirect address to view the updated Entity
+     * @throws IOException
+     */
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/file", method = RequestMethod.POST,
+            consumes = {
+                "multipart/form-data",
+                "application/x-www-form-urlencoded" }, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(
+                    objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
+    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, @RequestParam("name") final String name,
+            @RequestParam("binary") final MultipartFile file) throws IOException {
+        entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
+        entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
+        this.messagingService.publishCreateBinary(entityId, name);
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
+    }
+
+    /**
+     * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
+     * {@link net .objecthunter.larch.model.Entity} using a application/json POST
+     * 
+     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
+     * @param src An Inputstream holding the request body's content
+     * @throws IOException
+     */
+    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+            consumes = "application/json", produces = "text/html")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
+                    workspacePermissionType = WorkspacePermissionType.WRITE))
+    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
+            @PathVariable("id") final String entityId, final InputStream src) throws IOException {
+        final Binary b = this.mapper.readValue(src, Binary.class);
+        this.entityService.createBinary(workspaceId, entityId, b.getName(), b.getMimetype(), b.getSource()
+                .getInputStream());
+        entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
+        this.messagingService.publishCreateBinary(entityId, b.getName());
+        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
     }
 
     /**

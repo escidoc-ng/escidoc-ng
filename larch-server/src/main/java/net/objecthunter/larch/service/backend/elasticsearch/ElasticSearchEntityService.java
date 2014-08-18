@@ -226,6 +226,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
+    public SearchResult scanIndex(int offset) throws IOException {
+        return scanIndex(offset, maxRecords);
+    }
+
+    @Override
     public SearchResult scanIndex(int offset, int numRecords) throws IOException {
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
@@ -238,7 +243,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
                                     queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "workspaceId", "label", "type", "tags", "state").execute().actionGet();
+                            .addFields("id", "workspaceId", "version", "label", "type", "tags", "state").execute()
+                            .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -248,7 +254,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         result.setNumRecords(numRecords);
         result.setHits(resp.getHits().getHits().length);
         result.setTotalHits(resp.getHits().getTotalHits());
-        result.setOffset(offset);
         result.setNextOffset(offset + numRecords);
         result.setPrevOffset(Math.max(offset - numRecords, 0));
         result.setMaxRecords(maxRecords);
@@ -256,6 +261,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final List<Entity> entites = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
             String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
@@ -263,6 +269,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
             e.setWorkspaceId(workspaceId);
+            e.setVersion(version);
             e.setLabel(label);
             e.setType(type);
             e.setState(state);
@@ -289,8 +296,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
+                        String value = searchField.getValue()[i].toLowerCase();
+                        if (searchField.getKey().getFieldName().equals("workspaceId") ||
+                                searchField.getKey().getFieldName().equals("parentId")) {
+                            value = searchField.getValue()[i];
+                        }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                searchField.getValue()[i].toLowerCase()));
+                                value));
                     }
                 }
                 queryBuilder.must(childQueryBuilder);
@@ -359,8 +371,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult scanIndex(int offset) throws IOException {
-        return scanIndex(offset, maxRecords);
+    public SearchResult scanWorkspace(String workspaceId, int offset) throws IOException {
+        return scanWorkspace(workspaceId, offset, maxRecords);
     }
 
     @Override
@@ -377,7 +389,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
                                     queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "label", "type", "tags", "state").execute().actionGet();
+                            .addFields("id", "version", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -395,12 +407,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final List<Entity> entites = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
             e.setWorkspaceId(workspaceId);
+            e.setVersion(version);
             e.setLabel(label);
             e.setType(type);
             e.setState(state);
@@ -426,9 +440,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
      * @author mih
      */
     public static enum EntitiesSearchField {
-        ID("id", "id"), LABEL("label", "label"), TYPE("type", "type"), PARENT("parent", "parentId"), TAG("tag",
-                "tags"), STATE(
-                "state", "state"), VERSION("version", "version"), ALL("term", "_all");
+        ID("id", "id"),
+        WORKSPACE("workspace", "workspaceId"),
+        LABEL("label", "label"),
+        TYPE("type", "type"),
+        PARENT("parent", "parentId"),
+        TAG("tag", "tags"),
+        STATE("state", "state"),
+        VERSION("version", "version"),
+        ALL("term", "_all");
 
         private final String requestParameterName;
 

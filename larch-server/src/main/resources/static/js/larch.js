@@ -8,6 +8,16 @@ $(document).ready(function() {
   }
 });
 
+function submitPut(url, redirectUrl) {
+	$.ajax({
+		  type: 'PUT',
+		  accepts: 'text/html',
+		  url: url,
+		  success: function(data){
+			  document.location.href = redirectUrl;
+		  }
+		});}
+
 function createEntity(id, workspaceId, type, label, tags, parentId) {
     var tagList = tags.split(',');
     for (var i = 0; i< tagList.length;i++) {

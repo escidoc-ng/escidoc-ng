@@ -34,7 +34,6 @@ import net.objecthunter.larch.service.SchemaService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -121,7 +120,7 @@ public class EntityController extends AbstractLarchController {
     public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(workspaceId, id));
+        model.addAttribute("entity", retrieve(workspaceId, id));
         model.addAttribute("metadataTypes", this.schemaService.getSchemaTypes());
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
@@ -139,7 +138,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/version/{version}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1,
+    @PostAuth(workspacePermission = @WorkspacePermission(idIndex = 1, versionIndex = 2,
             objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ))
     public Entity retrieve(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id, @PathVariable("version") final int version)
@@ -163,7 +162,7 @@ public class EntityController extends AbstractLarchController {
             @PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", entityService.retrieve(workspaceId, id, version));
+        model.addAttribute("entity", retrieve(workspaceId, id, version));
         return new ModelAndView("entity", model);
     }
 
@@ -178,7 +177,7 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/versions")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public Entities retrieveVersions(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
         Entities entities = entityService.getOldVersions(workspaceId, id);
@@ -239,7 +238,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.READ_WRITE))
+                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
     public void update(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
@@ -271,7 +270,7 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishDeleteEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
@@ -285,7 +284,7 @@ public class EntityController extends AbstractLarchController {
         return publishId;
     }
 
-    @RequestMapping(value = "/{id}/publish", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView publishHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {
@@ -293,7 +292,7 @@ public class EntityController extends AbstractLarchController {
         return this.retrieveHtml(workspaceId, id);
     }
 
-    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
@@ -306,7 +305,7 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/submit", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView submitHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("id") final String id) throws IOException {

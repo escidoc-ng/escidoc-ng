@@ -1,5 +1,5 @@
-/* 
- * Copyright 2014 Frank Asseg
+/*
+ * Copyright 2014 Michael Hoppe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,19 +11,12 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
-package net.objecthunter.larch.service;
+/**
+ * @author mih
+ *
+ */
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-
-import net.objecthunter.larch.annotations.WorkspacePermission;
-
-public interface AuthorizationService {
-
-    void authorize(Method method, String id, Integer versionId, Object result, String springSecurityExpression,
-            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException;
-
-}
+package net.objecthunter.larch.integration.authorize;

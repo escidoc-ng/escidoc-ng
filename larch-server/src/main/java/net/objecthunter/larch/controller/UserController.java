@@ -52,6 +52,7 @@ public class UserController extends AbstractLarchController {
      */
     @RequestMapping(value = "/confirm/{token}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public String confirmUserRequest(@PathVariable("token") final String token) throws IOException {
         this.backendCredentialsService.retrieveUserRequest(token);
         return token;
@@ -249,8 +250,8 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
-            @RequestParam("firstName") final String firstName,
-            @RequestParam("lastName") final String lastName,
+            @RequestParam("first_name") final String firstName,
+            @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email,
             @RequestParam("groups") final List<String> groupNames) throws IOException {
         final User u = this.backendCredentialsService.retrieveUser(username);

@@ -96,9 +96,7 @@ public class OAuth2ServerConfiguration {
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints)
                 throws Exception {
-            // @formatter:off
             endpoints.tokenStore(tokenStore);
-            // @formatter:on
         }
 
     }

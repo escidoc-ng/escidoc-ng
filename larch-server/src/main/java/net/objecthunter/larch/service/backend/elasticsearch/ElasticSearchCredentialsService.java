@@ -462,6 +462,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        if (!resp.isExists()) {
+            throw new NotFoundException("User-Request with token " + token + " not found");
+        }
         return mapper.readValue(resp.getSourceAsBytes(), UserRequest.class);
     }
 

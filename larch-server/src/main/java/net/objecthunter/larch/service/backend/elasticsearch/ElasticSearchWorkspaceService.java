@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
 import net.objecthunter.larch.service.backend.BackendWorkspaceService;
@@ -142,18 +143,20 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
     }
 
     @Override
-    public List<Workspace> scanIndex(final String owner, final int offset, int numRecords) throws IOException {
+    public SearchResult scanIndex(final int offset) throws IOException {
+        return scanIndex(offset, 0);
+    }
+
+    @Override
+    public SearchResult scanIndex(final int offset, int numRecords) throws IOException {
+        final long time = System.currentTimeMillis();
         if (numRecords < 1) {
             numRecords = maxRecords;
         }
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        if (owner == null) {
-            queryBuilder.must(QueryBuilders.matchAllQuery());
-        } else {
-            queryBuilder.must(QueryBuilders.matchQuery("owner", owner));
-        }
+        queryBuilder.must(QueryBuilders.matchAllQuery());
         queryBuilder.must(getWorkspacesUserRestrictionQuery());
 
         try {
@@ -169,12 +172,23 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
 
+        final SearchResult result = new SearchResult();
+        result.setOffset(offset);
+        result.setNumRecords(numRecords);
+        result.setHits(resp.getHits().getHits().length);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setNextOffset(offset + numRecords);
+        result.setPrevOffset(Math.max(offset - numRecords, 0));
+        result.setMaxRecords(maxRecords);
+
         final List<Workspace> workspaces = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON document is prefetched or laziliy initialised
             workspaces.add(mapper.readValue(hit.getSourceAsString(), Workspace.class));
         }
-        return workspaces;
+        result.setData(workspaces);
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
     }
 
 }

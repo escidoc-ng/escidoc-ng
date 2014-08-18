@@ -40,7 +40,7 @@ public class SearchResult {
 
     private String term;
 
-    private List<Entity> data;
+    private List<?> data;
 
     /**
      * Get the total hot number
@@ -227,7 +227,7 @@ public class SearchResult {
      * 
      * @return the list of entities found and contained in this search result
      */
-    public List<Entity> getData() {
+    public List<?> getData() {
         return data;
     }
 
@@ -236,7 +236,7 @@ public class SearchResult {
      * 
      * @param data the entities to set
      */
-    public void setData(List<Entity> data) {
+    public void setData(List<?> data) {
         this.data = data;
     }
 }

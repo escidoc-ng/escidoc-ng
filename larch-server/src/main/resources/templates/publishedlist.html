@@ -29,7 +29,7 @@
                 </tr>
                 </thead>
                 <tr th:each="record,iterStat : ${result.data}" th:class="${iterStat.odd}? 'odd'">
-                    <td><a th:href="@{/workspace/} + ${entity.workspaceId} + '/published/' + ${record.publishId}"
+                    <td><a th:href="@{/workspace/} + ${record.workspaceId} + '/published/' + ${record.publishId}"
                            th:text="${record.publishId}"></a></td>
                     <td th:text="${record.label}"></td>
                     <td th:if="${#strings.isEmpty(record.type)}" th:text="'No Type'"></td>

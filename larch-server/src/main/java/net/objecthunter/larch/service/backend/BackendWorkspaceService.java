@@ -17,8 +17,8 @@
 package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
-import java.util.List;
 
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.Workspace;
 
 public interface BackendWorkspaceService {
@@ -31,6 +31,8 @@ public interface BackendWorkspaceService {
 
     void patch(Workspace workspace) throws IOException;
 
-    List<Workspace> scanIndex(String owner, int offset, int numRecords) throws IOException;
+    SearchResult scanIndex(int offset) throws IOException;
+
+    SearchResult scanIndex(int offset, int numRecords) throws IOException;
 
 }
