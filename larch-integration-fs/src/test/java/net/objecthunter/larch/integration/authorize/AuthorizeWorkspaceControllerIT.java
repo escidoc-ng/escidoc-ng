@@ -22,7 +22,9 @@ import java.io.IOException;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.ObjectType;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Workspace;
 
 import org.apache.http.HttpResponse;
@@ -81,6 +83,19 @@ public class AuthorizeWorkspaceControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.PATCH, workspaceUrl + workspaceId)
                 .body(mapper.writeValueAsString(workspace))
                 .neededPermission(MissingPermission.WRITE_WORKSPACE)
+                .build());
+    }
+
+    @Test
+    public void testDeleteWorkspace() throws Exception {
+        // create workspace
+        Workspace workspace = createWorkspace();
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.DELETE, workspaceUrl + workspace.getId())
+                .neededPermission(MissingPermission.WRITE_WORKSPACE)
+                .resetState(true)
+                .resetStateObjectType(ObjectType.WORKSPACE)
+                .resetStateId(workspace.getId())
                 .build());
     }
 

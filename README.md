@@ -41,6 +41,7 @@ Settings can be found in
  * `src/main/resources/application.properties`
  * `src/main/resources/application-fs.properties`
  * `src/main/resources/application-weedfs.properties`
+ * `src/main/resources/application-sftp.properties`
 
 All settings can be overwritten on the command line using spring-boot's property substitution e.g.:
 The property `elasticsearch.http.enabled` can be passed on the commandline in the following way:

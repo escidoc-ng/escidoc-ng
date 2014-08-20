@@ -18,6 +18,7 @@ package net.objecthunter.larch.integration;
 
 import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
+import static net.objecthunter.larch.test.util.Fixtures.createFixtureWorkspace;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -227,6 +228,29 @@ public abstract class AbstractLarchIT {
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         fetched.setPublishId(publishId);
+        return fetched;
+    }
+
+    /**
+     * Create new Workspace.
+     * 
+     * @return
+     * @throws IOException
+     */
+    protected Workspace createWorkspace() throws IOException {
+        HttpResponse resp =
+                executeAsAdmin(
+                Request.Post(workspaceUrl)
+                        .bodyString(mapper.writeValueAsString(createFixtureWorkspace()),ContentType.APPLICATION_JSON
+                        ));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final String workspaceId = EntityUtils.toString(resp.getEntity());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(workspaceUrl + workspaceId));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Workspace fetched = mapper.readValue(resp.getEntity().getContent(), Workspace.class);
         return fetched;
     }
 

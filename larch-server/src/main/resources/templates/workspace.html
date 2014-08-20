@@ -16,6 +16,10 @@
         <div class="panel">
             <p class="panel_title" th:text="${workspace.id}"></p>
 
+            <p class="property" th:text="Actions" />
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteWorkspace(\'' + ${workspace.id} + '\')'"/>
+            <p class="panel_title" />
+
             <p class="property">Name</p>
 
             <p class="value" th:text="${workspace.name}"></p>

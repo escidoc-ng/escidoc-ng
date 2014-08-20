@@ -39,12 +39,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
+@RequestMapping("/workspace")
 public class WorkspaceController extends AbstractLarchController {
 
     @Autowired
     private EntityService entityService;
 
-    @RequestMapping(value = "/workspace", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()")
@@ -53,7 +54,7 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.createWorkspace(workspace);
     }
 
-    @RequestMapping(value = "/workspace/{id}", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
@@ -61,7 +62,7 @@ public class WorkspaceController extends AbstractLarchController {
         return new ModelAndView("workspace", model);
     }
 
-    @RequestMapping(value = "/workspace/{id}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PostAuth(springSecurityExpression = "!isAnonymous()",
@@ -71,7 +72,7 @@ public class WorkspaceController extends AbstractLarchController {
         return this.entityService.retrieveWorkspace(id);
     }
 
-    @RequestMapping(value = "/workspace/{id}", method = RequestMethod.PUT, consumes = "application/json")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 0,
@@ -84,7 +85,7 @@ public class WorkspaceController extends AbstractLarchController {
         this.entityService.updateWorkspace(workspace);
     }
 
-    @RequestMapping(value = "/workspace/{id}", method = RequestMethod.PATCH, consumes = "application/json")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             workspacePermission = @WorkspacePermission(idIndex = 0,
@@ -95,4 +96,21 @@ public class WorkspaceController extends AbstractLarchController {
         }
         this.entityService.patchWorkspace(workspace);
     }
+
+    /**
+     * Controller method for deleting an {@link net.objecthunter.larch.model.Workspace} using a HTTP DELETE request.
+     * 
+     * @param id The id of the Workspace to delete
+     * @throws IOException
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            workspacePermission = @WorkspacePermission(idIndex = 0,
+                    objectType = ObjectType.WORKSPACE, workspacePermissionType = WorkspacePermissionType.WRITE))
+    public void delete(@PathVariable("id") final String id)
+            throws IOException {
+        this.entityService.deleteWorkspace(id);
+    }
+
 }

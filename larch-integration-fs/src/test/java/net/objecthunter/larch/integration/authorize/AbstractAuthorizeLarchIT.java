@@ -471,6 +471,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             if (authConfigurer.getResetStateObjectType().equals(ObjectType.ENTITY)) {
                 url = workspaceUrl + workspaceId + "/entity/" +
                         authConfigurer.getResetStateId();
+            } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.WORKSPACE)) {
+                url = workspaceUrl + authConfigurer.getResetStateId();
             } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER)) {
                 url = hostUrl + "user/" + authConfigurer.getResetStateId();
             } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER_REQUEST)) {
@@ -489,6 +491,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             assertEquals(200, resp.getStatusLine().getStatusCode());
             if (authConfigurer.getResetStateObjectType().equals(ObjectType.ENTITY)) {
                 resetObject = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.WORKSPACE)) {
+                resetObject = mapper.readValue(resp.getEntity().getContent(), Workspace.class);
             } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER)) {
                 resetObject = mapper.readValue(resp.getEntity().getContent(), User.class);
             }
@@ -507,7 +511,9 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         if (resetState && resetObject != null) {
             if (resetObject instanceof Entity) {
                 resetEntity((Entity) resetObject);
-            } else if (resetObject instanceof User) {
+            } else if (resetObject instanceof Workspace) {
+                resetWorkspace((Workspace) resetObject);
+            }  else if (resetObject instanceof User) {
                 resetUser((User) resetObject);
             } else if (resetObject instanceof UserRequest) {
                 resetUserRequest((UserRequest) resetObject);
@@ -564,6 +570,24 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                                 urlSuffix));
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
+    }
+
+    private void resetWorkspace(Workspace resetWorkspace) throws Exception {
+        // check if workspace is there
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(workspaceUrl + resetWorkspace.getId()));
+        String response = EntityUtils.toString(resp.getEntity());
+        if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
+            // recreate workspace
+            resp =
+                    this.executeAsAdmin(
+                            Request.Post(workspaceUrl).bodyString(
+                                    mapper.writeValueAsString(resetWorkspace),
+                                    ContentType.APPLICATION_JSON));
+            response = EntityUtils.toString(resp.getEntity());
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+        }
     }
 
     private void resetUser(User resetUser) throws Exception {

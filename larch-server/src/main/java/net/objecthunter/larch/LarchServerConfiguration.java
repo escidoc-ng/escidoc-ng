@@ -46,6 +46,7 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaS
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
+import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
@@ -79,6 +80,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -270,6 +272,18 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation
      */
     @Bean
+    @Profile("sftp")
+    public SftpBlobstoreService sftpBlobstoreService() {
+        return new SftpBlobstoreService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation for usage as
+     * a {@link net.objecthunter.larch.service.backend.BackendBlobstoreService} in the repository
+     *
+     * @return the {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation
+     */
+    @Bean
     @Profile("fs")
     public FilesystemBlobstoreService filesystemBlobstoreService() {
         return new FilesystemBlobstoreService();
@@ -346,8 +360,10 @@ public class LarchServerConfiguration {
      * @return a {@link org.springframework.web.multipart.commons.CommonsMultipartResolver} object used by Spring MVC
      */
     @Bean
-    public CommonsMultipartResolver multipartResolver() {
-        return new CommonsMultipartResolver();
+    public MultipartResolver multipartResolver() {
+        CommonsMultipartResolver mr = new CommonsMultipartResolver();
+        mr.setMaxUploadSize(1000000000);
+        return mr;
     }
 
     /**
@@ -442,4 +458,5 @@ public class LarchServerConfiguration {
     public MessagingService messagingService() {
         return new DefaultMessagingService();
     }
+
 }

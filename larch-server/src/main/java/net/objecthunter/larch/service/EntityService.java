@@ -128,4 +128,6 @@ public interface EntityService {
 
     void patchWorkspace(Workspace workspace) throws IOException;
 
+    void deleteWorkspace(String id) throws IOException;
+
 }

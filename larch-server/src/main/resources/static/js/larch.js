@@ -99,6 +99,31 @@ function deleteUser(name) {
     });
 }
 
+function deleteWorkspace(workspaceId) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/workspace/" + workspaceId,
+	        type: "DELETE",
+	        success: function(createdId){
+	        	console.log("success");
+	        	if (ctx != '') {
+		            document.location.href = ctx;
+	        	} else {
+		            document.location.href = "/";
+	        	}
+	        },
+	        error : function(request, msg, error) {
+	        	console.log("error");
+	            throwError(request);
+	        }
+	    });
+	}
+
 function deleteEntity(workspaceId, id) {
 	   $.ajax ({
 	        xhrFields: {

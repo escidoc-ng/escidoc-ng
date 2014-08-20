@@ -31,6 +31,8 @@ public interface BackendWorkspaceService {
 
     void patch(Workspace workspace) throws IOException;
 
+    void delete(String id) throws IOException;
+
     SearchResult scanIndex(int offset) throws IOException;
 
     SearchResult scanIndex(int offset, int numRecords) throws IOException;

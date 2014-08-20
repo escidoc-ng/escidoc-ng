@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.model.WorkspacePermissions;
@@ -140,6 +141,24 @@ public class ElasticSearchWorkspaceService extends AbstractElasticSearchService 
                 .actionGet();
 
         this.refreshIndex(INDEX_WORKSPACES);
+    }
+
+    @Override
+    public void delete(String id) throws IOException {
+        log.debug("deleting workspace " + id);
+        final GetResponse resp;
+        try {
+            resp = client.prepareGet(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, id).execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        final Workspace workspace = this.mapper.readValue(resp.getSourceAsBytes(), Workspace.class);
+        try {
+            client.prepareDelete(INDEX_WORKSPACES, INDEX_WORKSPACE_TYPE, id).execute().actionGet();
+            refreshIndex(INDEX_WORKSPACES);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
     @Override

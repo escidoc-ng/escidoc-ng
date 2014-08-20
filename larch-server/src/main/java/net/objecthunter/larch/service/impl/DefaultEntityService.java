@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -566,6 +567,27 @@ public class DefaultEntityService implements EntityService {
     public void patchWorkspace(Workspace workspace) throws IOException {
         this.backendWorkspaceService.patch(workspace);
     }
+    
+    @Override
+    public void deleteWorkspace(String id) throws IOException {
+        // check if children are published. If yes, throw error.
+        Map<EntitiesSearchField, String[]> searchFields = new HashMap<EntitiesSearchField, String[]>();
+        searchFields.put(EntitiesSearchField.WORKSPACE, new String[]{id});
+        searchFields.put(EntitiesSearchField.STATE, new String[]{Entity.STATE_PUBLISHED});
+        SearchResult result = searchEntities(searchFields);
+        if (result.getTotalHits() > 0) {
+            throw new InvalidParameterException("Workspace with id " + id + " has published entities.");
+        }
+
+        // delete entities
+        for (Entity entity : (List<Entity>)result.getData()) {
+            deleteEntity(entity);
+        }
+        
+        // delete workspace
+        this.backendWorkspaceService.delete(id);
+    }
+
 
     @Override
     public SearchResult scanWorkspaceEntities(String workspaceId, int offset) throws IOException {
@@ -630,6 +652,16 @@ public class DefaultEntityService implements EntityService {
                 deleteRecursively(workspaceId, childId);
             }
         }
+        deleteEntity(e);
+    }
+    
+    /** 
+     * Delete an Entity with all dependencies (audit-records, binaries...)
+     * 
+     * @param e
+     * @throws IOException
+     */
+    private void deleteEntity(Entity e) throws IOException {
         // delete binaries
         if (e.getBinaries() != null) {
             for (Binary b : e.getBinaries().values()) {
@@ -640,12 +672,12 @@ public class DefaultEntityService implements EntityService {
         }
 
         // delete audit-records
-        this.backendAuditService.deleteAll(id);
+        this.backendAuditService.deleteAll(e.getId());
 
         // delete Versions
-        this.backendVersionService.deleteOldVersions(id);
+        this.backendVersionService.deleteOldVersions(e.getId());
 
         // delete entity
-        this.backendEntityService.delete(id);
+        this.backendEntityService.delete(e.getId());
     }
 }

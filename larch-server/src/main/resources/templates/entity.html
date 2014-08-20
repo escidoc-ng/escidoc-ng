@@ -17,9 +17,9 @@
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
-                <input th:if="${entity.state != 'submitted' and entity.state != 'published'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
+            <input th:if="${entity.state != 'submitted' and entity.state != 'published'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
+            <input th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
+            <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
             <p th:if="${entity.state != 'published'}" class="panel_title" />
 
             <p class="property">Label</p>
