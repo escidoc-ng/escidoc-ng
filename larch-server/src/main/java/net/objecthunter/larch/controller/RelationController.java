@@ -19,9 +19,9 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 
 import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.annotations.WorkspacePermission;
-import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
-import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
+import net.objecthunter.larch.annotations.Permission;
+import net.objecthunter.larch.annotations.Permission.ObjectType;
+import net.objecthunter.larch.annotations.Permission.PermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Web controller responsible for interactions on the relation level
  */
 @Controller
-@RequestMapping("/workspace/{workspaceId}/entity/{id}/relation")
+@RequestMapping("/entity/{id}/relation")
 public class RelationController extends AbstractLarchController {
 
     @Autowired
@@ -60,12 +60,12 @@ public class RelationController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void create(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
+            permission = @Permission(idIndex = 0,
+                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+    public void create(@PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
-        this.entityService.createRelation(workspaceId, id, predicate, object);
+        this.entityService.createRelation(id, predicate, object);
         this.entityService.createAuditRecord(AuditRecordHelper.createRelationRecord(id));
         this.messagingService.publishCreateRelation(id, predicate, object);
     }
@@ -82,10 +82,9 @@ public class RelationController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
+    public String createHtml(@PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {
-        create(workspaceId, id, predicate, object);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + id;
+        create(id, predicate, object);
+        return "redirect:/entity/" + id;
     }
 }

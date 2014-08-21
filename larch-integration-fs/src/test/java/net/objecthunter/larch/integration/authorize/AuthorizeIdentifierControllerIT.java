@@ -19,6 +19,7 @@ package net.objecthunter.larch.integration.authorize;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,27 +33,27 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateIdentifier() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        entity = createEntity(EntityState.SUBMITTED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
         // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        entity = createEntity(EntityState.PUBLISHED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
@@ -63,9 +64,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateIdentifierHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
@@ -73,9 +74,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        entity = createEntity(EntityState.SUBMITTED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
@@ -83,9 +84,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        entity = createEntity(EntityState.PUBLISHED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/identifier")
+                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
@@ -97,27 +98,27 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteIdentifier() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        entity = createEntity(EntityState.SUBMITTED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
         // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        entity = createEntity(EntityState.PUBLISHED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
@@ -128,9 +129,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteIdentifierHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
@@ -138,9 +139,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create submitted entity
-        entity = createEntity(Entity.STATE_SUBMITTED, workspaceId);
+        entity = createEntity(EntityState.SUBMITTED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
@@ -148,9 +149,9 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create published entity
-        entity = createEntity(Entity.STATE_PUBLISHED, workspaceId);
+        entity = createEntity(EntityState.PUBLISHED, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, workspaceUrl + workspaceId + "/entity/" + entity.getId() +
+                HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)

@@ -28,23 +28,18 @@ import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.MessagingService;
-import net.objecthunter.larch.service.PublishService;
 import net.objecthunter.larch.service.RepositoryService;
 import net.objecthunter.larch.service.SchemaService;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendPublishService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
-import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchPublishService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
@@ -54,7 +49,6 @@ import net.objecthunter.larch.service.impl.DefaultEntityService;
 import net.objecthunter.larch.service.impl.DefaultExportService;
 import net.objecthunter.larch.service.impl.DefaultMailService;
 import net.objecthunter.larch.service.impl.DefaultMessagingService;
-import net.objecthunter.larch.service.impl.DefaultPublishService;
 import net.objecthunter.larch.service.impl.DefaultRepositoryService;
 import net.objecthunter.larch.service.impl.DefaultSchemaService;
 import net.objecthunter.larch.util.FileSystemUtil;
@@ -122,16 +116,6 @@ public class LarchServerConfiguration {
     @Bean
     public EntityService defaultEntityService() {
         return new DefaultEntityService();
-    }
-
-    /**
-     * Get a {@link net.objecthunter.larch.service.impl.DefaultPublishService} Spring bean
-     *
-     * @return the {@link net.objecthunter.larch.service.impl.DefaultPublishService} implementation
-     */
-    @Bean
-    public PublishService defaultPublishService() {
-        return new DefaultPublishService();
     }
 
     /**
@@ -211,16 +195,6 @@ public class LarchServerConfiguration {
     }
 
     /**
-     * Get a {@link net.objecthunter.larch.service.backend.BackendPublishService} implementation Spring bean
-     *
-     * @return a {@link net.objecthunter.larch.service.backend.BackendPublishService} implementation
-     */
-    @Bean
-    public BackendPublishService backendPublishService() {
-        return new ElasticSearchPublishService();
-    }
-
-    /**
      * Get a {@link net.objecthunter.larch.service.backend.BackendVersionService} Spring bean
      *
      * @return a BackendVersionService implementation
@@ -249,18 +223,6 @@ public class LarchServerConfiguration {
     @Bean
     public ElasticSearchNode elasticSearchNode() {
         return new ElasticSearchNode();
-    }
-
-    /**
-     * Get {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService} Spring bean for
-     * interaction with the workspace index
-     *
-     * @return the {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchWorkspaceService}
-     *         singleton
-     */
-    @Bean
-    public BackendWorkspaceService backendWorkspaceService() {
-        return new ElasticSearchWorkspaceService();
     }
 
     /**

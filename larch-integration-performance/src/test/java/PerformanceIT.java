@@ -14,6 +14,9 @@
  * limitations under the License. 
  */
 
+import static net.objecthunter.larch.test.util.Fixtures.PERMISSION_ID;
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -25,9 +28,9 @@ import net.objecthunter.larch.bench.BenchTool;
 import net.objecthunter.larch.bench.BenchToolResult;
 import net.objecthunter.larch.bench.BenchToolRunner;
 import net.objecthunter.larch.bench.ResultFormatter;
-
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.Entity.EntityType;
+
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
@@ -50,8 +53,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static net.objecthunter.larch.test.util.Fixtures.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
@@ -105,14 +106,22 @@ public class PerformanceIT {
             throw new Exception("WeedFS not ready after " + count * 150 + " ms");
         }
         if (!wsCreated) {
+            // create default area
+            Entity area = new Entity();
+            area.setType(EntityType.AREA);
+            Request r = Request.Post(hostUrl + "entity")
+                    .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
+            HttpResponse resp = this.execute(r).returnResponse();
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+            String areaId = EntityUtils.toString(resp.getEntity());
             // create default workspace
-            Workspace ws = new Workspace();
-            ws.setId(WORKSPACE_ID);
-            ws.setName("Test Workspace");
-            Request r = Request.Post(hostUrl + "workspace")
-                    .bodyString(mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON);
-            HttpResponse resp = this.execute(r)
-                    .returnResponse();
+            Entity permission = new Entity();
+            permission.setId(PERMISSION_ID);
+            permission.setLabel("Test Workspace");
+            permission.setParentId(areaId);
+            r = Request.Post(hostUrl + "entity")
+                    .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
+            resp = this.execute(r).returnResponse();
             wsCreated = true;
         }
     }
@@ -133,7 +142,7 @@ public class PerformanceIT {
                 num,
                 threads,
                 size,
-                WORKSPACE_ID);
+                PERMISSION_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);
@@ -151,7 +160,7 @@ public class PerformanceIT {
                 num,
                 threads,
                 size,
-                WORKSPACE_ID);
+                PERMISSION_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);

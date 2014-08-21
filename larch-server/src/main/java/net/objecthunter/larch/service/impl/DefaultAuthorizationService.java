@@ -24,19 +24,21 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.objecthunter.larch.annotations.WorkspacePermission;
-import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
-import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
+import net.objecthunter.larch.annotations.Concat;
+import net.objecthunter.larch.annotations.Permission;
+import net.objecthunter.larch.annotations.Permission.ObjectType;
+import net.objecthunter.larch.annotations.Permission.PermissionType;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.Rights;
+import net.objecthunter.larch.model.Rights.Right;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
-import net.objecthunter.larch.service.backend.BackendWorkspaceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.client.Client;
@@ -68,31 +70,46 @@ public class DefaultAuthorizationService implements AuthorizationService {
     @Autowired
     private BackendVersionService backendVersionService;
 
-    @Autowired
-    private BackendWorkspaceService backendWorkspaceService;
-
     @Override
     public void authorize(Method method, String id, Integer versionId, Object result,
             String springSecurityExpression,
-            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException {
+            Permission workspacePermission, Concat concat, Object[] methodArgs) throws IOException {
         // Admin may do everything
         final User u = this.getCurrentUser();
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
             return;
         }
 
+        boolean securityExpressionDenied = false;
+        // handle securityExpression
         try {
-            // handle securityExpression
             handleSecurityExpression(method, springSecurityExpression, methodArgs);
+        } catch (Throwable e) {
+            if (e instanceof AccessDeniedException) {
+                securityExpressionDenied = true;
+                if (Concat.AND.equals(concat)) {
+                    if (u != null) {
+                        throw e;
+                    } else {
+                        throw new InsufficientAuthenticationException("No user logged in");
+                    }
+                }
+            } else {
+                throw e;
+            }
+        }
 
-            // handle workspacePermission
+        // handle workspacePermission
+        try {
             handleWorkspacePermission(method, workspacePermission, id, versionId, result);
         } catch (Throwable e) {
             if (e instanceof AccessDeniedException) {
-                if (u != null) {
-                    throw e;
-                } else {
-                    throw new InsufficientAuthenticationException("No user logged in");
+                if (Concat.AND.equals(concat) || (Concat.OR.equals(concat)) && securityExpressionDenied) {
+                    if (u != null) {
+                        throw e;
+                    } else {
+                        throw new InsufficientAuthenticationException("No user logged in");
+                    }
                 }
             } else {
                 throw e;
@@ -100,8 +117,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    private boolean hasPermission(User user, Workspace ws,
-            WorkspacePermissions.Permission... permissionsToCheck) {
+    private boolean hasPermission(User user, Entity permission,
+            Rights.Right... permissionsToCheck) {
         // check for role ADMIN
         if (user != null && user.getGroups() != null &&
                 user.getGroups().contains(Group.ADMINS)) {
@@ -109,12 +126,12 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
 
         // get Permissions for user and workspace
-        EnumSet<WorkspacePermissions.Permission> currentPermissions =
-                EnumSet.noneOf(WorkspacePermissions.Permission.class);
-        if (user != null && ws != null && ws.getPermissions() != null &&
-                ws.getPermissions().getPermissions() != null &&
-                ws.getPermissions().getPermissions().get(user.getName()) != null) {
-            currentPermissions = ws.getPermissions().getPermissions().get(user.getName());
+        EnumSet<Rights.Right> currentPermissions =
+                EnumSet.noneOf(Rights.Right.class);
+        if (user != null && permission != null && permission.getRights() != null &&
+                permission.getRights().getRights() != null &&
+                        permission.getRights().getRights().get(user.getName()) != null) {
+            currentPermissions = permission.getRights().getRights().get(user.getName());
         }
 
         // add default-permissions
@@ -123,33 +140,32 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return currentPermissions.containsAll(Arrays.asList(permissionsToCheck));
     }
 
-    private void checkCurrentUserPermission(Workspace ws, WorkspacePermissions.Permission... permissionsToCheck) {
+    private void checkCurrentUserPermission(Entity permission, Rights.Right... permissionsToCheck) {
         final User u = this.getCurrentUser();
         if (u != null && u.getGroups() != null && u.getGroups().contains(Group.ADMINS)) {
             return;
         }
-        if (!hasPermission(u, ws, permissionsToCheck)) {
+        if (!hasPermission(u, permission, permissionsToCheck)) {
             throw new AccessDeniedException("Access denied");
         }
     }
 
-    private void
-            checkCurrentUserPermission(String workspaceId, WorkspacePermissions.Permission... permissionsToCheck)
-                    throws IOException {
-        final Workspace ws = backendWorkspaceService.retrieve(workspaceId);
-        this.checkCurrentUserPermission(ws, permissionsToCheck);
+    private void checkCurrentUserPermission(String permissionId, Rights.Right... permissionsToCheck)
+            throws IOException {
+        final Entity permission = backendEntityService.retrieve(permissionId);
+        this.checkCurrentUserPermission(permission, permissionsToCheck);
     }
 
-    private WorkspacePermissions.Permission metadataReadPermissions(Entity e) throws IOException {
+    private Rights.Right metadataReadPermissions(Entity e) throws IOException {
         if (e.getState() != null) {
-            if (e.getState().equals(Entity.STATE_PENDING)) {
-                return WorkspacePermissions.Permission.READ_PENDING_METADATA;
-            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
-                return WorkspacePermissions.Permission.READ_SUBMITTED_METADATA;
-            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-                return WorkspacePermissions.Permission.READ_PUBLISHED_METADATA;
-            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
-                return WorkspacePermissions.Permission.READ_WITHDRAWN_METADATA;
+            if (e.getState().equals(EntityState.PENDING)) {
+                return Rights.Right.READ_PENDING_METADATA;
+            } else if (e.getState().equals(EntityState.SUBMITTED)) {
+                return Rights.Right.READ_SUBMITTED_METADATA;
+            } else if (e.getState().equals(EntityState.PUBLISHED)) {
+                return Rights.Right.READ_PUBLISHED_METADATA;
+            } else if (e.getState().equals(EntityState.WITHDRAWN)) {
+                return Rights.Right.READ_WITHDRAWN_METADATA;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -158,21 +174,21 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    private WorkspacePermissions.Permission[] metadataReadWritePermissions(Entity e) throws IOException {
-        return new WorkspacePermissions.Permission[] { this.metadataReadPermissions(e),
+    private Rights.Right[] metadataReadWritePermissions(Entity e) throws IOException {
+        return new Rights.Right[] { this.metadataReadPermissions(e),
             this.metadataWritePermissions(e) };
     }
 
-    private WorkspacePermissions.Permission metadataWritePermissions(Entity e) throws IOException {
+    private Rights.Right metadataWritePermissions(Entity e) throws IOException {
         if (e.getState() != null) {
-            if (e.getState().equals(Entity.STATE_PENDING)) {
-                return WorkspacePermissions.Permission.WRITE_PENDING_METADATA;
-            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
-                return WorkspacePermissions.Permission.WRITE_SUBMITTED_METADATA;
-            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-                return WorkspacePermissions.Permission.WRITE_PUBLISHED_METADATA;
-            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
-                return WorkspacePermissions.Permission.WRITE_WITHDRAWN_METADATA;
+            if (e.getState().equals(EntityState.PENDING)) {
+                return Rights.Right.WRITE_PENDING_METADATA;
+            } else if (e.getState().equals(EntityState.SUBMITTED)) {
+                return Rights.Right.WRITE_SUBMITTED_METADATA;
+            } else if (e.getState().equals(EntityState.PUBLISHED)) {
+                return Rights.Right.WRITE_PUBLISHED_METADATA;
+            } else if (e.getState().equals(EntityState.WITHDRAWN)) {
+                return Rights.Right.WRITE_WITHDRAWN_METADATA;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -181,16 +197,16 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    private WorkspacePermissions.Permission binaryReadPermissions(Entity e) throws IOException {
+    private Rights.Right binaryReadPermissions(Entity e) throws IOException {
         if (e.getState() != null) {
-            if (e.getState().equals(Entity.STATE_PENDING)) {
-                return WorkspacePermissions.Permission.READ_PENDING_BINARY;
-            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
-                return WorkspacePermissions.Permission.READ_SUBMITTED_BINARY;
-            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-                return WorkspacePermissions.Permission.READ_PUBLISHED_BINARY;
-            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
-                return WorkspacePermissions.Permission.READ_WITHDRAWN_BINARY;
+            if (e.getState().equals(EntityState.PENDING)) {
+                return Rights.Right.READ_PENDING_BINARY;
+            } else if (e.getState().equals(EntityState.SUBMITTED)) {
+                return Rights.Right.READ_SUBMITTED_BINARY;
+            } else if (e.getState().equals(EntityState.PUBLISHED)) {
+                return Rights.Right.READ_PUBLISHED_BINARY;
+            } else if (e.getState().equals(EntityState.WITHDRAWN)) {
+                return Rights.Right.READ_WITHDRAWN_BINARY;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -199,21 +215,21 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    private WorkspacePermissions.Permission[] binaryReadWritePermissions(Entity e) throws IOException {
-        return new WorkspacePermissions.Permission[] { this.binaryReadPermissions(e),
+    private Rights.Right[] binaryReadWritePermissions(Entity e) throws IOException {
+        return new Rights.Right[] { this.binaryReadPermissions(e),
             this.binaryWritePermissions(e) };
     }
 
-    private WorkspacePermissions.Permission binaryWritePermissions(Entity e) throws IOException {
+    private Rights.Right binaryWritePermissions(Entity e) throws IOException {
         if (e.getState() != null) {
-            if (e.getState().equals(Entity.STATE_PENDING)) {
-                return WorkspacePermissions.Permission.WRITE_PENDING_BINARY;
-            } else if (e.getState().equals(Entity.STATE_SUBMITTED)) {
-                return WorkspacePermissions.Permission.WRITE_SUBMITTED_BINARY;
-            } else if (e.getState().equals(Entity.STATE_PUBLISHED)) {
-                return WorkspacePermissions.Permission.WRITE_PUBLISHED_BINARY;
-            } else if (e.getState().equals(Entity.STATE_WITHDRAWN)) {
-                return WorkspacePermissions.Permission.WRITE_WITHDRAWN_BINARY;
+            if (e.getState().equals(EntityState.PENDING)) {
+                return Rights.Right.WRITE_PENDING_BINARY;
+            } else if (e.getState().equals(EntityState.SUBMITTED)) {
+                return Rights.Right.WRITE_SUBMITTED_BINARY;
+            } else if (e.getState().equals(EntityState.PUBLISHED)) {
+                return Rights.Right.WRITE_PUBLISHED_BINARY;
+            } else if (e.getState().equals(EntityState.WITHDRAWN)) {
+                return Rights.Right.WRITE_WITHDRAWN_BINARY;
             } else {
                 throw new IOException("Entity has unknown state: " + e.getState());
             }
@@ -261,10 +277,10 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param entityId
      * @param result
      */
-    private void handleWorkspacePermission(Method method, WorkspacePermission workspacePermission,
+    private void handleWorkspacePermission(Method method, Permission workspacePermission,
             String id, Integer versionId, Object result)
             throws IOException {
-        if (workspacePermission.workspacePermissionType().equals(WorkspacePermissionType.NULL)) {
+        if (workspacePermission.permissionType().equals(PermissionType.NULL)) {
             return;
         }
         Object checkObject = result;
@@ -281,9 +297,6 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 } else {
                     checkObject = backendEntityService.retrieve(id);
                 }
-            } else if (workspacePermission.objectType().equals(ObjectType.WORKSPACE)) {
-                // get workspace
-                checkObject = backendWorkspaceService.retrieve(id);
             }
         }
 
@@ -291,19 +304,37 @@ public class DefaultAuthorizationService implements AuthorizationService {
             throw new AccessDeniedException("Object to check not found");
         }
         if (checkObject instanceof Entity) {
-            if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
-                checkEntityPermissions(((Entity) checkObject), workspacePermission.workspacePermissionType());
-            } else if (workspacePermission.objectType().equals(ObjectType.BINARY)) {
-                checkBinaryPermissions(((Entity) checkObject), workspacePermission.workspacePermissionType());
-            } else {
-                throw new AccessDeniedException("wrong workspace-permission provided");
+            String permissionId = getPermissionId((Entity) checkObject);
+            if (permissionId == null) {
+                throw new AccessDeniedException("Object is not below permission");
             }
-        } else if (checkObject instanceof Workspace) {
-            checkWorkspacePermissions(((Workspace) checkObject), workspacePermission.workspacePermissionType());
+            if (EntityType.PERMISSION.equals(((Entity) checkObject).getType())) {
+                checkPermissionPermissions((Entity) checkObject, workspacePermission.permissionType());
+            } else {
+                if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
+                    checkEntityPermissions(((Entity) checkObject), permissionId, workspacePermission.permissionType());
+                } else if (workspacePermission.objectType().equals(ObjectType.BINARY)) {
+                    checkBinaryPermissions(((Entity) checkObject), permissionId, workspacePermission.permissionType());
+                } else {
+                    throw new AccessDeniedException("wrong workspace-permission provided");
+                }
+            }
         } else {
             throw new AccessDeniedException("Object has wrong type");
         }
 
+    }
+
+    private String getPermissionId(Entity entity) throws IOException {
+        EntityHierarchy hierarchy = null;
+        if (StringUtils.isNotBlank(entity.getId())) {
+            hierarchy = backendEntityService.getHierarchy(entity.getId());
+        } else if (StringUtils.isNotBlank(entity.getParentId())) {
+            hierarchy = backendEntityService.getHierarchy(entity.getParentId());
+        } else {
+            return null;
+        }
+        return hierarchy.getPermissionId();
     }
 
     /**
@@ -312,19 +343,19 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param entity Entity
      * @param workspacePermissionType
      */
-    private void checkEntityPermissions(Entity entity, WorkspacePermissionType workspacePermissionType)
+    private void checkEntityPermissions(Entity entity, String permissionId, PermissionType workspacePermissionType)
             throws IOException {
         switch (workspacePermissionType) {
         case READ:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     metadataReadPermissions(entity));
             break;
         case WRITE:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     metadataWritePermissions(entity));
             break;
         case READ_WRITE:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     metadataReadWritePermissions(entity));
             break;
         default:
@@ -338,19 +369,19 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param entity Entity
      * @param workspacePermissionType
      */
-    private void checkBinaryPermissions(Entity entity, WorkspacePermissionType workspacePermissionType)
+    private void checkBinaryPermissions(Entity entity, String permissionId, PermissionType workspacePermissionType)
             throws IOException {
         switch (workspacePermissionType) {
         case READ:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     binaryReadPermissions(entity));
             break;
         case WRITE:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     binaryWritePermissions(entity));
             break;
         case READ_WRITE:
-            checkCurrentUserPermission(entity.getWorkspaceId(),
+            checkCurrentUserPermission(permissionId,
                     binaryReadWritePermissions(entity));
             break;
         default:
@@ -361,21 +392,21 @@ public class DefaultAuthorizationService implements AuthorizationService {
     /**
      * Trigger check-method for workspace dependent on workspacePermissionType.
      * 
-     * @param workspace Workspace
+     * @param permission Workspace
      * @param workspacePermissionType
      */
-    private void checkWorkspacePermissions(Workspace workspace, WorkspacePermissionType workspacePermissionType)
+    private void checkPermissionPermissions(Entity permission, PermissionType workspacePermissionType)
             throws IOException {
         switch (workspacePermissionType) {
         case READ:
-            checkCurrentUserPermission(workspace, Permission.READ_WORKSPACE);
+            checkCurrentUserPermission(permission, Right.READ_PERMISSION_PERMISSION);
             break;
         case WRITE:
-            checkCurrentUserPermission(workspace, Permission.WRITE_WORKSPACE);
+            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION_PERMISSION);
             break;
         case READ_WRITE:
-            checkCurrentUserPermission(workspace, Permission.READ_WORKSPACE);
-            checkCurrentUserPermission(workspace, Permission.WRITE_WORKSPACE);
+            checkCurrentUserPermission(permission, Right.READ_PERMISSION_PERMISSION);
+            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION_PERMISSION);
             break;
         default:
             break;
@@ -387,10 +418,10 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * 
      * @return Collection of default-permissions
      */
-    private Collection<Permission> getDefaultPermissions() {
-        Set<Permission> defaultPermissions = new HashSet<Permission>();
-        defaultPermissions.add(Permission.READ_PUBLISHED_METADATA);
-        defaultPermissions.add(Permission.READ_PUBLISHED_BINARY);
+    private Collection<Right> getDefaultPermissions() {
+        Set<Right> defaultPermissions = new HashSet<Right>();
+        defaultPermissions.add(Right.READ_PUBLISHED_METADATA);
+        defaultPermissions.add(Right.READ_PUBLISHED_BINARY);
         return defaultPermissions;
     }
 }

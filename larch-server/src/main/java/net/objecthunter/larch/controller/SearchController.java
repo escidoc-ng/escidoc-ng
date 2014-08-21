@@ -25,9 +25,9 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.EntityService;
-import net.objecthunter.larch.service.PublishService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -45,14 +46,11 @@ import org.springframework.web.servlet.ModelAndView;
  * Web controller responsible for search views
  */
 @Controller
-@RequestMapping("/search")
+@RequestMapping("/search/{entityType}")
 public class SearchController extends AbstractLarchController {
 
     @Autowired
     private EntityService entityService;
-
-    @Autowired
-    private PublishService publishService;
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
@@ -65,23 +63,8 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = { "application/json" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
-        return entityService.searchEntities(fillSearchFields(request));
-    }
-
-    /**
-     * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the publish repository using an
-     * HTTP POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}
-     * 
-     * @param query The search query
-     * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
-     *         {@link net.objecthunter.larch .model.Entity}s as s JSON representation
-     */
-    @RequestMapping(value = "/published", method = RequestMethod.POST, produces = { "application/json" })
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public SearchResult searchPublishedMatchFields(final HttpServletRequest request) throws IOException {
-        return publishService.searchEntities(fillSearchFields(request));
+    public SearchResult searchMatchFields(@PathVariable("entityType") final String entityType, final HttpServletRequest request) throws IOException {
+        return entityService.searchEntities(EntityType.valueOf(entityType), fillSearchFields(request));
     }
 
     /**
@@ -92,7 +75,7 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchHtml() {
+    public ModelAndView searchHtml(@PathVariable("entityType") final String entityType) {
         final ModelMap model = new ModelMap();
         return new ModelAndView("search", model);
     }
@@ -107,26 +90,10 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = { "text/html" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchMatchFieldsHtml(final HttpServletRequest request) throws IOException {
+    public ModelAndView searchMatchFieldsHtml(@PathVariable("entityType") final String entityType, final HttpServletRequest request) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", searchMatchFields(request));
+        model.addAttribute("result", searchMatchFields(entityType, request));
         return new ModelAndView("searchresult", model);
-    }
-
-    /**
-     * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
-     * POST which returns a HTML view of the {@link net.objecthunter.larch.model.SearchResult}
-     * 
-     * @param query The search query
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     */
-    @RequestMapping(value = "/published", method = RequestMethod.POST, produces = { "text/html" })
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchPublishedMatchFieldsHtml(final HttpServletRequest request) throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("result", searchPublishedMatchFields(request));
-        return new ModelAndView("searchresultpublished", model);
     }
 
     /**

@@ -10,11 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.Rights;
+import net.objecthunter.larch.model.Rights.Right;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -123,7 +125,7 @@ public class AbstractElasticSearchService {
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getEntitiesUserRestrictionQuery(String workspaceId) throws IOException {
+    protected QueryBuilder getEntitiesUserRestrictionQuery(String permissionId) throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
         String username = null;
@@ -137,31 +139,31 @@ public class AbstractElasticSearchService {
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
         // add default-allowed states (published)
-        restrictionQueryBuilder.should(QueryBuilders.termQuery(STATE_FIELD, Entity.STATE_PUBLISHED));
+        restrictionQueryBuilder.should(QueryBuilders.termQuery(STATE_FIELD, EntityState.PUBLISHED.name().toLowerCase()));
 
         // get user-workspaces
-        List<Workspace> userWorkspaces = retrieveUserWorkspaces(currentUser, workspaceId);
+        List<Entity> userPermissions = retrieveUserPermissions(currentUser, permissionId);
 
         if (StringUtils.isNotBlank(username)) {
-            for (Workspace userWorkspace : userWorkspaces) {
-                if (userWorkspace.getPermissions() != null &&
-                        userWorkspace.getPermissions().getPermissions(username) != null) {
-                    EnumSet<Permission> userPermissions = userWorkspace.getPermissions().getPermissions(username);
-                    for (Permission userPermission : userPermissions) {
-                        switch (userPermission) {
+            for (Entity userPermission : userPermissions) {
+                if (userPermission.getRights() != null &&
+                        userPermission.getRights().getRights(username) != null) {
+                    EnumSet<Right> userRights = userPermission.getRights().getRights(username);
+                    for (Right userRight : userRights) {
+                        switch (userRight) {
                         case READ_PENDING_METADATA:
-                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_PENDING,
-                                    userWorkspace
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(EntityState.PENDING,
+                                    userPermission
                                             .getId()));
                             break;
                         case READ_SUBMITTED_METADATA:
-                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_SUBMITTED,
-                                    userWorkspace
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(EntityState.SUBMITTED,
+                                    userPermission
                                             .getId()));
                             break;
                         case READ_WITHDRAWN_METADATA:
-                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(Entity.STATE_WITHDRAWN,
-                                    userWorkspace
+                            restrictionQueryBuilder.should(getEntitiesRestrictionQuery(EntityState.WITHDRAWN,
+                                    userPermission
                                             .getId()));
                             break;
                         default:
@@ -176,11 +178,11 @@ public class AbstractElasticSearchService {
     }
 
     /**
-     * Get Query that restricts a search to workspaces the user may see.
+     * Get Query that restricts a search to permissions the user may see.
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getWorkspacesUserRestrictionQuery() throws IOException {
+    protected QueryBuilder getPermissionsUserRestrictionQuery() throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
         String username = null;
@@ -194,15 +196,15 @@ public class AbstractElasticSearchService {
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
         // get user-workspaces
-        List<Workspace> userWorkspaces = retrieveUserWorkspaces(currentUser, null);
+        List<Entity> userPermissions = retrieveUserPermissions(currentUser, null);
 
         if (StringUtils.isNotBlank(username)) {
-            for (Workspace userWorkspace : userWorkspaces) {
-                if (userWorkspace.getPermissions() != null &&
-                        userWorkspace.getPermissions().getPermissions(username) != null) {
-                    EnumSet<Permission> userPermissions = userWorkspace.getPermissions().getPermissions(username);
-                    if (userPermissions.contains(Permission.READ_WORKSPACE)) {
-                        restrictionQueryBuilder.should(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, userWorkspace
+            for (Entity userPermission : userPermissions) {
+                if (userPermission.getRights() != null &&
+                        userPermission.getRights().getRights(username) != null) {
+                    EnumSet<Right> userRights = userPermission.getRights().getRights(username);
+                    if (userRights.contains(Right.READ_PERMISSION_PERMISSION)) {
+                        restrictionQueryBuilder.should(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, userPermission
                                 .getId()));
                     }
                 }
@@ -220,54 +222,53 @@ public class AbstractElasticSearchService {
     /**
      * Retrieve all Workspaces where given user has rights for.
      * 
-     * @param workspaceId
+     * @param permissionId
      * @return List<Workspace>
      * @throws IOException
      */
-    private List<Workspace> retrieveUserWorkspaces(User currentUser, String workspaceId) throws IOException {
-        final List<Workspace> userWorkspaces = new ArrayList<>();
+    private List<Entity> retrieveUserPermissions(User currentUser, String permissionId) throws IOException {
+        final List<Entity> userPermissions = new ArrayList<>();
         if (currentUser == null) {
-            return userWorkspaces;
+            return userPermissions;
         }
         SearchResponse search;
         try {
             FilterBuilder filterBuilder = null;
-            if (StringUtils.isEmpty(workspaceId)) {
+            if (StringUtils.isEmpty(permissionId)) {
                 filterBuilder = FilterBuilders.existsFilter("permissions.permissions." + currentUser.getName());
             } else {
                 filterBuilder = FilterBuilders.andFilter(FilterBuilders.existsFilter("permissions.permissions." +
-                        currentUser.getName()), FilterBuilders.idsFilter().addIds(workspaceId));
+                        currentUser.getName()), FilterBuilders.idsFilter().addIds(permissionId), FilterBuilders.termFilter(EntitiesSearchField.TYPE.getFieldName(), EntityType.PERMISSION.name()));
             }
-            search = client.prepareSearch(ElasticSearchWorkspaceService.INDEX_WORKSPACES)
-                    .setTypes(ElasticSearchWorkspaceService.INDEX_WORKSPACE_TYPE)
+            search = client.prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES)
+                    .setTypes(ElasticSearchEntityService.INDEX_ENTITY_TYPE)
                     .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                             filterBuilder))
-                    .addFields("id", "name", "owner", "permissions.permissions." + currentUser.getName())
+                    .addFields("id", "owner", "permissions.permissions." + currentUser.getName())
                     .execute()
                     .actionGet();
             if (search.getHits().getHits().length > 0) {
                 for (SearchHit hit : search.getHits().getHits()) {
-                    final Workspace workspace = new Workspace();
-                    workspace.setId(hit.field("id").getValue());
-                    workspace.setName(hit.field("name").getValue());
-                    workspace.setOwner(hit.field("owner").getValue());
+                    final Entity entity = new Entity();
+                    entity.setId(hit.field("id").getValue());
+                    entity.setOwner(hit.field("owner").getValue());
 
-                    WorkspacePermissions workspacePermissions = new WorkspacePermissions();
+                    Rights rights = new Rights();
                     if (hit.field("permissions.permissions." + currentUser.getName()) != null) {
                         for (Object o : hit.field("permissions.permissions." + currentUser.getName()).values()) {
                             String permissionName = (String) o;
-                            workspacePermissions.addPermissions(currentUser.getName(), Permission
+                            rights.addRights(currentUser.getName(), Right
                                     .valueOf(permissionName));
                         }
                     }
-                    workspace.setPermissions(workspacePermissions);
-                    userWorkspaces.add(workspace);
+                    entity.setRights(rights);
+                    userPermissions.add(entity);
                 }
             }
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        return userWorkspaces;
+        return userPermissions;
     }
 
     /**
@@ -277,9 +278,9 @@ public class AbstractElasticSearchService {
      * @param workspaceId
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getEntitiesRestrictionQuery(String state, String workspaceId) {
+    private BoolQueryBuilder getEntitiesRestrictionQuery(EntityState state, String workspaceId) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(STATE_FIELD, state));
+        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(STATE_FIELD, state.name().toLowerCase()));
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(WORKSPACE_ID_FIELD, workspaceId));
         return subRestrictionQueryBuilder;
     }

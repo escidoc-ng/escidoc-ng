@@ -34,6 +34,8 @@ public @interface PostAuth {
 
     String springSecurityExpression() default "";
 
-    WorkspacePermission workspacePermission() default @WorkspacePermission;
+    Concat concat() default Concat.AND;
+
+    Permission permission() default @Permission;
 
 }

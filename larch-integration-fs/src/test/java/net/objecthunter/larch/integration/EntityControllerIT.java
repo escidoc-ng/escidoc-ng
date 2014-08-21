@@ -41,6 +41,8 @@ import net.objecthunter.larch.integration.helpers.TestMessageListener;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.http.HttpResponse;
@@ -148,7 +150,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         log.debug("fetching an entity with 100 children took {} ms", System.currentTimeMillis() - time);
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertEquals(100, fetched.getChildren().size());
-        assertEquals("Collection", fetched.getType());
+        assertEquals(EntityType.DATA, fetched.getType());
     }
 
     @Test
@@ -244,7 +246,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         // retrieve
         resp = this.executeAsAdmin(Request.Get(entityUrl + id));
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertEquals("published", fetched.getState());
+        assertEquals(EntityState.PUBLISHED, fetched.getState());
         assertEquals(1, fetched.getVersion());
 
         // update
@@ -260,14 +262,8 @@ public class EntityControllerIT extends AbstractLarchIT {
         // retrieve
         resp = this.executeAsAdmin(Request.Get(entityUrl + id));
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertEquals("ingested", fetched.getState());
+        assertEquals(EntityState.PENDING, fetched.getState());
         assertEquals(2, fetched.getVersion());
-
-        // retrieve published
-        resp = this.executeAsAdmin(Request.Get(defaultWorkspaceUrl + "/published/" + id + ":1"));
-        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertEquals("published", fetched.getState());
-        assertEquals(1, fetched.getVersion());
     }
 
     @Test

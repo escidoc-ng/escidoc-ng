@@ -62,7 +62,7 @@ public class AuditRecordController extends AbstractLarchController {
             @PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
-        return entityService.retrieveAuditRecords(workspaceId, entityId, offset, count);
+        return entityService.retrieveAuditRecords(entityId, offset, count);
     }
 
     /**

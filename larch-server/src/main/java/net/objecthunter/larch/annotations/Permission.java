@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface WorkspacePermission {
+public @interface Permission {
 
     int idIndex() default -1;
 
@@ -38,7 +38,7 @@ public @interface WorkspacePermission {
 
     ObjectType objectType() default ObjectType.ENTITY;
 
-    WorkspacePermissionType workspacePermissionType() default WorkspacePermissionType.NULL;
+    PermissionType permissionType() default PermissionType.NULL;
 
     /**
      * Defines the type of the WorkspacePermission<br>
@@ -53,7 +53,7 @@ public @interface WorkspacePermission {
      * 
      * @author mih
      */
-    public enum WorkspacePermissionType {
+    public enum PermissionType {
         READ,
         WRITE,
         READ_WRITE,
@@ -67,8 +67,8 @@ public @interface WorkspacePermission {
      */
     public enum ObjectType {
         ENTITY,
-        WORKSPACE,
-        BINARY;
+        BINARY,
+        INPUT_ENTITY;
     }
 
 }

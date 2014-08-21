@@ -24,8 +24,8 @@ import net.objecthunter.larch.model.AuditRecord;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.model.Workspace;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,43 +35,43 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public interface EntityService {
 
-    String create(String workspaceId, Entity e) throws IOException;
+    String create(Entity e) throws IOException;
 
-    void update(String workspaceId, Entity e) throws IOException;
+    void update(Entity e) throws IOException;
 
-    Entity retrieve(String workspaceId, String id) throws IOException;
+    Entity retrieve(String id) throws IOException;
 
-    void delete(String workspaceId, String id) throws IOException;
+    void delete(String id) throws IOException;
 
-    InputStream getContent(String workspaceId, String id, String name) throws IOException;
+    InputStream getContent(String id, String name) throws IOException;
 
-    Entity retrieve(String workspaceId, String id, int i) throws IOException;
+    Entity retrieve(String id, int i) throws IOException;
 
-    void createBinary(String workspaceId, String entityId, String name, String contentType, InputStream inputStream)
+    void createBinary(String entityId, String name, String contentType, InputStream inputStream)
             throws IOException;
 
-    void patch(String workspaceId, String id, JsonNode node) throws IOException;
+    void patch(String id, JsonNode node) throws IOException;
 
-    void createRelation(String workspaceId, String id, String predicate, String object) throws IOException;
+    void createRelation(String id, String predicate, String object) throws IOException;
 
-    void deleteBinary(String workspaceId, String entityId, String name) throws IOException;
+    void deleteBinary(String entityId, String name) throws IOException;
 
     InputStream retrieveBinary(String path) throws IOException;
 
-    void deleteMetadata(String workspaceId, String entityId, String mdName) throws IOException;
+    void deleteMetadata(String entityId, String mdName) throws IOException;
 
-    void deleteBinaryMetadata(String workspaceId, String entityId, String binaryName, String mdName)
+    void deleteBinaryMetadata(String entityId, String binaryName, String mdName)
             throws IOException;
 
-    void createIdentifier(String workspaceId, String entityId, String type, String value) throws IOException;
+    void createIdentifier(String entityId, String type, String value) throws IOException;
 
-    void deleteIdentifier(String workspaceId, String entityId, String type, String value) throws IOException;
+    void deleteIdentifier(String entityId, String type, String value) throws IOException;
 
-    void submit(String workspaceId, String id) throws IOException;
+    void submit(String id) throws IOException;
 
-    String publish(String workspaceId, String id) throws IOException;
+    String publish(String id) throws IOException;
 
-    AuditRecords retrieveAuditRecords(String workspaceId, String entityId, int offset, int count) throws IOException;
+    AuditRecords retrieveAuditRecords(String entityId, int offset, int count) throws IOException;
 
     void createAuditRecord(AuditRecord auditRecord) throws IOException;
 
@@ -83,7 +83,7 @@ public interface EntityService {
      * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanEntities(int offset) throws IOException;
+    SearchResult scanEntities(EntityType type, int offset) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
@@ -94,15 +94,11 @@ public interface EntityService {
      * @param numRecords the number of {@link net.objecthunter.larch.model.Entity}s to return
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanEntities(int offset, int numRecords) throws IOException;
+    SearchResult scanEntities(EntityType type, int offset, int numRecords) throws IOException;
 
-    SearchResult scanWorkspaceEntities(String workspaceId, int offset) throws IOException;
+    SearchResult scanChildEntities(String ancestorId, EntityType type, int offset) throws IOException;
 
-    SearchResult scanWorkspaceEntities(String workspaceId, int offset, int numRecords) throws IOException;
-
-    SearchResult scanWorkspaces(int offset) throws IOException;
-
-    SearchResult scanWorkspaces(int offset, int numRecords) throws IOException;
+    SearchResult scanChildEntities(String ancestorId, EntityType type, int offset, int numRecords) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
@@ -110,7 +106,7 @@ public interface EntityService {
      * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException;
+    SearchResult searchEntities(EntityType type, Map<EntitiesSearchField, String[]> searchFields) throws IOException;
 
     /**
      * Retrieve all old versions of an entity from the version storage
@@ -118,14 +114,6 @@ public interface EntityService {
      * @param id the id of the entity to retrieve
      * @return the requested old versions of the entity as Entities-Object
      */
-    Entities getOldVersions(String workspaceId, String id) throws IOException;
-
-    String createWorkspace(Workspace workspace) throws IOException;
-
-    Workspace retrieveWorkspace(String id) throws IOException;
-
-    void updateWorkspace(Workspace workspace) throws IOException;
-
-    void patchWorkspace(Workspace workspace) throws IOException;
+    Entities getOldVersions(String id) throws IOException;
 
 }

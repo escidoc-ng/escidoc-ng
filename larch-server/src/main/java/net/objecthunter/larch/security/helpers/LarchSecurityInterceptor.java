@@ -16,12 +16,21 @@
 
 package net.objecthunter.larch.security.helpers;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 
+import net.objecthunter.larch.annotations.Permission.ObjectType;
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.service.AuthorizationService;
 
+import org.apache.commons.io.IOUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -31,6 +40,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Interceptor used for securing the escidoc-ng framework.
@@ -46,6 +57,9 @@ public class LarchSecurityInterceptor implements Ordered {
 
     @Autowired
     protected AuthorizationService authorizationService;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * The logger.
@@ -70,13 +84,13 @@ public class LarchSecurityInterceptor implements Ordered {
 
         if (preAuth != null) {
             authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
-                    null, preAuth
-                            .springSecurityExpression(), preAuth.workspacePermission(), joinPoint.getArgs());
+                    getObject(preAuth, joinPoint), preAuth
+                            .springSecurityExpression(), preAuth.permission(), preAuth.concat(), joinPoint.getArgs());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
             authorizationService.authorize(calledMethod, null, null, obj, postAuth
-                    .springSecurityExpression(), postAuth.workspacePermission(), joinPoint.getArgs());
+                    .springSecurityExpression(), postAuth.permission(), postAuth.concat(), joinPoint.getArgs());
         }
         return obj;
     }
@@ -89,12 +103,12 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return String workspaceId or null
      */
     private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null &&
-                preAuth.workspacePermission().idIndex() >= 0 && joinPoint != null &&
+        if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
+                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.workspacePermission().idIndex() &&
-                joinPoint.getArgs()[preAuth.workspacePermission().idIndex()] instanceof String) {
-            return (String) joinPoint.getArgs()[preAuth.workspacePermission().idIndex()];
+                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
+                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof String) {
+            return (String) joinPoint.getArgs()[preAuth.permission().idIndex()];
         }
         return null;
     }
@@ -108,12 +122,37 @@ public class LarchSecurityInterceptor implements Ordered {
      */
     private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null &&
-                preAuth.workspacePermission().versionIndex() >= 0 && joinPoint != null &&
+                preAuth.permission().versionIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.workspacePermission().versionIndex() &&
-                joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()] instanceof Integer) {
-            return (Integer) joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()];
+                joinPoint.getArgs().length > preAuth.permission().versionIndex() &&
+                joinPoint.getArgs()[preAuth.permission().versionIndex()] instanceof Integer) {
+            return (Integer) joinPoint.getArgs()[preAuth.permission().versionIndex()];
         }
+        return null;
+    }
+
+    /**
+     * Get id from method-parameters
+     * 
+     * @param preAuth Annotation
+     * @param joinPoint
+     * @return String workspaceId or null
+     */
+    private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
+//        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
+//                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
+//                joinPoint.getArgs() != null &&
+//                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
+//                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof InputStream) {
+//            InputStream inputStream = (InputStream) joinPoint.getArgs()[preAuth.permission().idIndex()];
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            IOUtils.copy(inputStream, baos);
+//            Entity e = mapper.readValue(baos.toByteArray(), Entity.class);
+//            ByteArrayOutputStream out = new ByteArrayOutputStream();
+//            mapper.writeValue(out, e);
+//            inputStream = new ByteArrayInputStream(out.toByteArray());
+//            return e;
+//        }
         return null;
     }
 

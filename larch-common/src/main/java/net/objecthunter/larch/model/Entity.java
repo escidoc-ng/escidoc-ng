@@ -20,35 +20,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.objecthunter.larch.model.Rights;
+
 /**
  * A DTO for a top level larch repository object. Creating any object in the larch repository normally starts with
  * creating an {@link Entity} and adding content/metadata to it.
  */
 public class Entity {
 
-    public static final String STATE_PUBLISHED = "published";
-
-    public static final String STATE_PENDING = "ingested";
-
-    public static final String STATE_SUBMITTED = "submitted";
-
-    public static final String STATE_WITHDRAWN = "withdrawn";
-
     private int version;
 
     private String id;
-
-    private String workspaceId;
 
     private String publishId;
 
     private String label;
 
-    private String type;
+    private EntityType type;
 
     private String parentId;
 
-    private String state;
+    private EntityState state;
 
     private String utcCreated;
 
@@ -66,12 +58,39 @@ public class Entity {
 
     private Map<String, List<String>> relations;
 
-    public String getWorkspaceId() {
-        return workspaceId;
+    private Rights rights;
+    
+    private String owner;
+    
+    /**
+     * @return the rights
+     */
+    public Rights getRights() {
+        return rights;
     }
 
-    public void setWorkspaceId(String workspaceId) {
-        this.workspaceId = workspaceId;
+    
+    /**
+     * @param rights the rights to set
+     */
+    public void setRights(Rights rights) {
+        this.rights = rights;
+    }
+
+    
+    /**
+     * @return the owner
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    
+    /**
+     * @param owner the owner to set
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     /**
@@ -255,7 +274,7 @@ public class Entity {
      * 
      * @return the type
      */
-    public String getType() {
+    public EntityType getType() {
         return type;
     }
 
@@ -264,7 +283,7 @@ public class Entity {
      * 
      * @param type the type to set
      */
-    public void setType(String type) {
+    public void setType(EntityType type) {
         this.type = type;
     }
 
@@ -328,7 +347,7 @@ public class Entity {
      */
     public void setVersionAndResetState(int version) {
         this.version = version;
-        this.state = STATE_PENDING;
+        this.state = EntityState.PENDING;
     }
 
     /**
@@ -336,7 +355,7 @@ public class Entity {
      * 
      * @return the state
      */
-    public String getState() {
+    public EntityState getState() {
         return state;
     }
 
@@ -345,7 +364,31 @@ public class Entity {
      * 
      * @param state the state to set
      */
-    public void setState(String state) {
+    public void setState(EntityState state) {
         this.state = state;
     }
+    
+    public enum EntityType {
+        AREA,
+        PERMISSION,
+        DATA;
+
+        public String getName() {
+            return this.toString();
+        }
+        
+    }
+
+    public enum EntityState {
+        PENDING,
+        SUBMITTED,
+        PUBLISHED,
+        WITHDRAWN;
+
+        public String getName() {
+            return this.toString();
+        }
+        
+    }
+
 }

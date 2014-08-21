@@ -27,6 +27,9 @@ import javax.annotation.PostConstruct;
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -76,15 +79,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         this.waitForIndex(INDEX_ENTITIES);
     }
 
-    private void verifyWorkspaceId(String workspaceId) throws IOException {
-        if (workspaceId == null || !StringUtils.isAsciiPrintable(workspaceId)) {
-            throw new IOException("Workspace id is not valid: " + workspaceId);
-        }
-    }
-
     @Override
     public String create(Entity e) throws IOException {
-        this.verifyWorkspaceId(e.getWorkspaceId());
         log.debug("creating new entity");
         if (e.getId() != null) {
             final GetResponse resp =
@@ -93,10 +89,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 throw new AlreadyExistsException("Entity with id " + e.getId() + " already exists");
             }
         }
+        this.validate(e);
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
-                            mapper.writeValueAsBytes(e))
+                            mapper.writeValueAsBytes(getEntityIndexData(e)))
                     .execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -107,7 +104,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     @Override
     public void update(Entity e) throws IOException {
-        this.verifyWorkspaceId(e.getWorkspaceId());
         final GetResponse resp;
         try {
             resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).execute().actionGet();
@@ -115,11 +111,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         log.debug("updating entity " + e.getId());
+        this.validate(e);
         /* and create the updated document */
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
-                            mapper.writeValueAsBytes(e))
+                            mapper.writeValueAsBytes(getEntityIndexData(e)))
                     .execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -226,16 +223,17 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult scanIndex(int offset) throws IOException {
-        return scanIndex(offset, maxRecords);
+    public SearchResult scanIndex(EntityType entityType, int offset) throws IOException {
+        return scanIndex(entityType, offset, maxRecords);
     }
 
     @Override
-    public SearchResult scanIndex(int offset, int numRecords) throws IOException {
+    public SearchResult scanIndex(EntityType entityType, int offset, int numRecords) throws IOException {
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords ? maxRecords : numRecords;
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.termQuery("type", entityType.name()));
         queryBuilder.must(getEntitesUserRestrictionQuery());
         try {
             resp =
@@ -243,7 +241,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
                                     queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "workspaceId", "version", "label", "type", "tags", "state").execute()
+                            .addFields("id", "parentId", "version", "label", "type", "tags", "state").execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -262,17 +260,17 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON docuemnt is prefetched or laziliy initialised
             int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
-            String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
+            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
-            e.setWorkspaceId(workspaceId);
+            e.setParentId(parentId);
             e.setVersion(version);
             e.setLabel(label);
-            e.setType(type);
-            e.setState(state);
+            e.setType(EntityType.valueOf(type));
+            e.setState(EntityState.valueOf(state));
             List<String> tags = new ArrayList<>();
             if (hit.field("tags") != null) {
                 for (Object o : hit.field("tags").values()) {
@@ -289,7 +287,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException {
+    public SearchResult searchEntities(EntityType entityType, Map<EntitiesSearchField, String[]> searchFields) throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         for (Entry<EntitiesSearchField, String[]> searchField : searchFields.entrySet()) {
             if (searchField.getValue() != null && searchField.getValue().length > 0) {
@@ -297,8 +295,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
                         String value = searchField.getValue()[i].toLowerCase();
-                        if (searchField.getKey().getFieldName().equals("workspaceId") ||
-                                searchField.getKey().getFieldName().equals("parentId")) {
+                        if (searchField.getKey().getFieldName().equals("parentId")) {
                             value = searchField.getValue()[i];
                         }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
@@ -308,6 +305,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 queryBuilder.must(childQueryBuilder);
             }
         }
+        queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), entityType.name()));
         queryBuilder.must(getEntitesUserRestrictionQuery());
 
         int numRecords = 20;
@@ -320,7 +318,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
             resp =
                     this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "workspaceId",
+                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "parentId",
                                     "state",
                                     "label",
                                     "type",
@@ -336,15 +334,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
-            String workspaceId = hit.field("workspaceId") != null ? hit.field("workspaceId").getValue() : null;
+            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
-            e.setWorkspaceId(workspaceId);
-            e.setType(type);
-            e.setState(state);
+            e.setParentId(parentId);
+            e.setType(EntityType.valueOf(type));
+            e.setState(EntityState.valueOf(state));
             e.setLabel(label);
 
             final List<String> tags = new ArrayList<>();
@@ -371,25 +369,26 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult scanWorkspace(String workspaceId, int offset) throws IOException {
-        return scanWorkspace(workspaceId, offset, maxRecords);
+    public SearchResult scanChildren(String ancestorId, EntityType entityType, int offset) throws IOException {
+        return scanChildren(ancestorId, entityType, offset, maxRecords);
     }
 
     @Override
-    public SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException {
+    public SearchResult scanChildren(String ancestorId, EntityType entityType, int offset, int numRecords) throws IOException {
         final long time = System.currentTimeMillis();
         numRecords = numRecords > maxRecords || numRecords < 1 ? maxRecords : numRecords;
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(QueryBuilders.matchQuery("workspaceId", workspaceId));
-        queryBuilder.must(getEntitiesUserRestrictionQuery(workspaceId));
+        queryBuilder.must(QueryBuilders.matchQuery(EntitiesSearchField.ANCESTOR_ENTITY_ID.getFieldName(), ancestorId));
+        queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), entityType.name()));
+        queryBuilder.must(getEntitiesUserRestrictionQuery(getHierarchy(ancestorId).getPermissionId()));
         try {
             resp =
                     this.client
                             .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
                                     queryBuilder)
                             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "version", "label", "type", "tags", "state").execute().actionGet();
+                            .addFields("id", "parentId", "version", "label", "type", "tags", "state").execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -407,17 +406,18 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         final List<Entity> entites = new ArrayList<>(numRecords);
         for (final SearchHit hit : resp.getHits()) {
             // TODO: check if JSON docuemnt is prefetched or laziliy initialised
+            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
             int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
             String label = hit.field("label") != null ? hit.field("label").getValue() : "";
             String type = hit.field("type") != null ? hit.field("type").getValue() : "";
             String state = hit.field("state") != null ? hit.field("state").getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field("id").getValue());
-            e.setWorkspaceId(workspaceId);
+            e.setParentId(parentId);
             e.setVersion(version);
             e.setLabel(label);
-            e.setType(type);
-            e.setState(state);
+            e.setType(EntityType.valueOf(type));
+            e.setState(EntityState.valueOf(state));
             List<String> tags = new ArrayList<>();
             if (hit.field("tags") != null) {
                 for (Object o : hit.field("tags").values()) {
@@ -433,6 +433,93 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         return result;
     }
 
+    private void validate(Entity entity) throws IOException {
+        if (StringUtils.isBlank(entity.getParentId()) && !EntityType.AREA.equals(entity.getType())) {
+            throw new IOException("Top level entity has to be of type " + EntityType.AREA);
+        }
+        if (!StringUtils.isBlank(entity.getParentId())) {
+            if (EntityType.AREA.equals(entity.getType())) {
+                throw new IOException(EntityType.AREA + " has to be Top level entity");
+            }
+            Entity parentEntity = retrieve(entity.getParentId());
+            if (EntityType.PERMISSION.equals(entity.getType())) {
+                if (!EntityType.AREA.equals(parentEntity.getType())) {
+                    throw new IOException("Parent of " + EntityType.PERMISSION + " has to be " + EntityType.AREA);
+                }
+            } else if (EntityType.DATA.equals(entity.getType())) {
+                if (!EntityType.PERMISSION.equals(parentEntity.getType()) && !EntityType.DATA.equals(parentEntity.getType())) {
+                    throw new IOException("Parent of " + EntityType.DATA + " has to be " + EntityType.PERMISSION + " or " + EntityType.DATA);
+                }
+            } else {
+                throw new IOException("Entity has wrong type: " + entity.getType());
+            }
+        }
+    }
+
+    @Override
+    public EntityHierarchy getHierarchy(String entityId) throws IOException {
+        log.debug("fetching entity " + entityId);
+        final GetResponse resp;
+        try {
+            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        if (resp.isSourceEmpty()) {
+            throw new NotFoundException("Entity with id " + entityId + " not found");
+        }
+        return mapper.readValue(resp.getSourceAsBytes(), EntityHierarchy.class);
+    }
+
+    private Map<String, Object> getEntityIndexData(Entity entity) throws IOException {
+        EntityHierarchy parentEntityHierarchy = null;
+        EntityHierarchy entityHierarchy = new EntityHierarchy();
+        if (StringUtils.isNotBlank(entity.getParentId())) {
+            parentEntityHierarchy = this.getHierarchy(entity.getParentId());
+        } else {
+            parentEntityHierarchy = new EntityHierarchy();
+        }
+        //copy data
+        if (EntityType.AREA.equals(entity.getType())) {
+            entityHierarchy.setType(entity.getType());
+            entityHierarchy.setAreaId(entity.getId());
+            List<String> ancestorEntityIds = parentEntityHierarchy.getAncestorEntityIds();
+            if (StringUtils.isNotBlank(entity.getParentId())) {
+                ancestorEntityIds.add(entity.getParentId());
+            }
+            entityHierarchy.setAncestorEntityIds(ancestorEntityIds);
+        } else if (EntityType.PERMISSION.equals(entity.getType())) {
+            entityHierarchy.setType(entity.getType());
+            entityHierarchy.setPermissionId(entity.getId());
+            entityHierarchy.setAreaId(parentEntityHierarchy.getAreaId());
+            List<String> ancestorEntityIds = parentEntityHierarchy.getAncestorEntityIds();
+            if (StringUtils.isNotBlank(entity.getParentId())) {
+                ancestorEntityIds.add(entity.getParentId());
+            }
+            entityHierarchy.setAncestorEntityIds(ancestorEntityIds);
+        } else if (EntityType.DATA.equals(entity.getType())) {
+            entityHierarchy.setType(entity.getType());
+            entityHierarchy.setPermissionId(parentEntityHierarchy.getPermissionId());
+            entityHierarchy.setAreaId(parentEntityHierarchy.getAreaId());
+            List<String> ancestorEntityIds = parentEntityHierarchy.getAncestorEntityIds();
+            if (StringUtils.isNotBlank(entity.getParentId())) {
+                ancestorEntityIds.add(entity.getParentId());
+            }
+            entityHierarchy.setAncestorEntityIds(ancestorEntityIds);
+        }
+        Map<String,Object> entityData = mapper.readValue(mapper.writeValueAsString(entity),Map.class);
+        if (!entityHierarchy.getAncestorEntityIds().isEmpty()) {
+            entityData.put(EntitiesSearchField.ANCESTOR_ENTITY_ID.getFieldName(), parentEntityHierarchy.getAncestorEntityIds());
+        }
+        if (StringUtils.isNotBlank(parentEntityHierarchy.getAreaId())) {
+            entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), parentEntityHierarchy.getAreaId());
+        }
+        if (StringUtils.isNotBlank(parentEntityHierarchy.getPermissionId())) {
+            entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), parentEntityHierarchy.getPermissionId());
+        }
+        return entityData;
+    }
+
     /**
      * Holds enabled search-fields in entities-index. Differentiate between name of GET/POST-Parameter and name of
      * Search-Field in index.
@@ -441,13 +528,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
      */
     public static enum EntitiesSearchField {
         ID("id", "id"),
-        WORKSPACE("workspace", "workspaceId"),
         LABEL("label", "label"),
         TYPE("type", "type"),
         PARENT("parent", "parentId"),
         TAG("tag", "tags"),
         STATE("state", "state"),
         VERSION("version", "version"),
+        ANCESTOR_ENTITY_ID("ancestorEntityId", "ancestorEntityId"),
+        PERMISSION_ID("permissionId", "permissionId"),
+        AREA_ID("areaId", "areaId"),
         ALL("term", "_all");
 
         private final String requestParameterName;

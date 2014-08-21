@@ -16,11 +16,11 @@
         <div class="heading">Entity</div>
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
-            <p th:if="${entity.state != 'published'}" class="property" th:text="Actions" />
-                <input th:if="${entity.state != 'submitted' and entity.state != 'published'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input  th:if="${entity.state != 'published'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
-            <p th:if="${entity.state != 'published'}" class="panel_title" />
+            <p th:if="${entity.state.name != 'PUBLISHED'}" class="property" th:text="Actions" />
+                <input th:if="${entity.state.name != 'SUBMITTED' and entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
+                <input th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
+                <input  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
+            <p th:if="${entity.state.name != 'PUBLISHED'}" class="panel_title" />
 
             <p class="property">Label</p>
 
@@ -196,10 +196,9 @@
                 <input id="ceId" type="text" name="id"
                        title="Set the identifier of the entity or leave empty for a generated value"/>
                 <input id="ceWsId" type="hidden" name="workspaceId" th:value="${entity.workspaceId}"/>
+                <input id="ceType" type="hidden" name="type" th:value="DATA"/>
                 <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
                 <input id="ceParentId" type="hidden" name="parentId" th:value="${entity.id}"/>
-                <input id="ceType" type="text" name="type"
-                       title="Set the user defined type of the entity"/>
                 <input id="ceTags" type="text" name="tags"
                        title="Set a comma separated list of tags for this entity"/>
                 <input class="button" id="ceButton" type="button" value="CREATE ENTITY"/>

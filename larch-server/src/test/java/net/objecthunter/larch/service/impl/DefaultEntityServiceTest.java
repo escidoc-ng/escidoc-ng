@@ -16,7 +16,6 @@
 
 package net.objecthunter.larch.service.impl;
 
-import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -33,7 +32,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendPublishService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -55,8 +53,6 @@ public class DefaultEntityServiceTest {
 
     private BackendVersionService mockVersionService;
 
-    private BackendPublishService mockPublishService;
-
     @Before
     public void setup() {
         entityService = new DefaultEntityService();
@@ -64,13 +60,11 @@ public class DefaultEntityServiceTest {
         mockBlobstoreService = createMock(BackendBlobstoreService.class);
         mockExportService = createMock(ExportService.class);
         mockVersionService = createMock(BackendVersionService.class);
-        mockPublishService = createMock(BackendPublishService.class);
         ReflectionTestUtils.setField(entityService, "mapper", new ObjectMapper());
         ReflectionTestUtils.setField(entityService, "backendEntityService", mockEntitiesService);
         ReflectionTestUtils.setField(entityService, "exportService", mockExportService);
         ReflectionTestUtils.setField(entityService, "backendBlobstoreService", mockBlobstoreService);
         ReflectionTestUtils.setField(entityService, "backendVersionService", mockVersionService);
-        ReflectionTestUtils.setField(entityService, "backendPublishService", mockPublishService);
     }
 
     @Test
@@ -81,7 +75,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.create(e)).andReturn(e.getId());
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.create(WORKSPACE_ID, e);
+        this.entityService.create(e);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -95,7 +89,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.fetchChildren(e.getId())).andReturn(new ArrayList<String>()).times(1);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.update(WORKSPACE_ID, e);
+        this.entityService.update(e);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -107,7 +101,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.fetchChildren(e.getId())).andReturn(new ArrayList<String>()).times(1);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(WORKSPACE_ID, e.getId());
+        this.entityService.retrieve(e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -121,7 +115,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.fetchChildren(e.getId())).andReturn(new ArrayList<String>()).times(1);
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.getContent(WORKSPACE_ID, e.getId(), "BINARY-1");
+        this.entityService.getContent(e.getId(), "BINARY-1");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -132,7 +126,7 @@ public class DefaultEntityServiceTest {
         expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
         expect(mockEntitiesService.fetchChildren(e.getId())).andReturn(new ArrayList<String>()).times(1);
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.retrieve(WORKSPACE_ID, e.getId());
+        this.entityService.retrieve(e.getId());
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
@@ -149,7 +143,7 @@ public class DefaultEntityServiceTest {
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createBinary(WORKSPACE_ID, e.getId(), b.getName(), "application/octet-stream",
+        this.entityService.createBinary(e.getId(), b.getName(), "application/octet-stream",
                 new ByteArrayInputStream(
                         new byte[3]));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
@@ -165,7 +159,7 @@ public class DefaultEntityServiceTest {
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.patch(WORKSPACE_ID, e.getId(), new ObjectMapper()
+        this.entityService.patch(e.getId(), new ObjectMapper()
                 .readTree("{\"label\": \"label update\"}"));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
@@ -181,7 +175,7 @@ public class DefaultEntityServiceTest {
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createRelation(WORKSPACE_ID, e.getId(), "<http://example.com/hasType>", "test");
+        this.entityService.createRelation(e.getId(), "<http://example.com/hasType>", "test");
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
 
     }

@@ -22,9 +22,9 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.annotations.WorkspacePermission;
-import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
-import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
+import net.objecthunter.larch.annotations.Permission;
+import net.objecthunter.larch.annotations.Permission.ObjectType;
+import net.objecthunter.larch.annotations.Permission.PermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
@@ -75,18 +75,17 @@ public class BinaryController extends AbstractLarchController {
      * @param src The request body containing the actual data
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
                 "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void create(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("name") final String name,
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
+    public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
-        entityService.createBinary(workspaceId, entityId, name, mimeType, src);
+        entityService.createBinary(entityId, name, mimeType, src);
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
     }
@@ -99,16 +98,15 @@ public class BinaryController extends AbstractLarchController {
      * @param src An Inputstream holding the request body's content
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void create(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, final InputStream src) throws IOException {
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
+    public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(workspaceId, entityId, b.getName(), b.getMimetype(), b.getSource()
+        this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
                 .getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
@@ -124,22 +122,21 @@ public class BinaryController extends AbstractLarchController {
      * @return The redirect address to view the updated Entity
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/file", method = RequestMethod.POST,
+    @RequestMapping(value = "/entity/{id}/binary/file", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
                 "application/x-www-form-urlencoded" }, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(
-                    objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("name") final String name,
+            permission = @Permission(
+                    objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
+    public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(workspaceId, entityId, name, file.getContentType(), file.getInputStream());
+        entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
+        return "redirect:/entity/" + entityId;
     }
 
     /**
@@ -150,20 +147,19 @@ public class BinaryController extends AbstractLarchController {
      * @param src An Inputstream holding the request body's content
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary", method = RequestMethod.POST,
+    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
             consumes = "application/json", produces = "text/html")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, final InputStream src) throws IOException {
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
+    public String createHtml(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(workspaceId, entityId, b.getName(), b.getMimetype(), b.getSource()
+        this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
                 .getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
+        return "redirect:/entity/" + entityId;
     }
 
     /**
@@ -175,16 +171,15 @@ public class BinaryController extends AbstractLarchController {
      * @return The Binary object requested
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.GET,
+    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET,
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.READ))
-    public Binary retrieve(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @PathVariable("name") final String name)
+    @PreAuth(permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+            permissionType = PermissionType.READ))
+    public Binary retrieve(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
-        final Entity e = this.entityService.retrieve(workspaceId, entityId);
+        final Entity e = this.entityService.retrieve(entityId);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
             throw new IOException("The Binary " + name + " does not exist on the entity " + entityId);
         }
@@ -200,16 +195,14 @@ public class BinaryController extends AbstractLarchController {
      *         view
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.GET,
+    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET,
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId,
+    public ModelAndView retrieveHtml(@PathVariable("id") final String entityId,
             @PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("binary", this.retrieve(workspaceId, entityId, name));
-        model.addAttribute("workspaceId", workspaceId);
+        model.addAttribute("binary", this.retrieve(entityId, name));
         model.addAttribute("entityId", entityId);
         model.addAttribute("metadataTypes", schemaService.getSchemaTypes());
         return new ModelAndView("binary", model);
@@ -225,17 +218,17 @@ public class BinaryController extends AbstractLarchController {
      *        used to write the actual byte stream to the client.
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{binary-name}/content",
+    @RequestMapping(value = "/entity/{id}/binary/{binary-name}/content",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-            workspacePermissionType = WorkspacePermissionType.READ))
-    public void download(@PathVariable("workspaceId") final String workspaceId, @PathVariable("id") final String id,
+    @PreAuth(permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+            permissionType = PermissionType.READ))
+    public void download(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {
         // TODO: Content Size
-        final Entity e = entityService.retrieve(workspaceId, id);
+        final Entity e = entityService.retrieve(id);
         final Binary bin = e.getBinaries().get(name);
         response.setContentType(bin.getMimetype());
         response.setContentLength(-1);
@@ -251,16 +244,15 @@ public class BinaryController extends AbstractLarchController {
      * @param name the name of the binary to delete
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(objectType = ObjectType.BINARY, idIndex = 1,
-                    workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void delete(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @PathVariable("name") final String name)
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
+    public void delete(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
-        this.entityService.deleteBinary(workspaceId, entityId, name);
+        this.entityService.deleteBinary(entityId, name);
         this.entityService.createAuditRecord(AuditRecordHelper.deleteBinaryRecord(entityId));
         this.messagingService.publishDeleteBinary(entityId, name);
     }

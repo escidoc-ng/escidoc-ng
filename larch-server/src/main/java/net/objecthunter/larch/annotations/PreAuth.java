@@ -33,7 +33,9 @@ import java.lang.annotation.Target;
 public @interface PreAuth {
 
     String springSecurityExpression() default "";
+    
+    Concat concat() default Concat.AND;
 
-    WorkspacePermission workspacePermission() default @WorkspacePermission;
+    Permission permission() default @Permission;
 
 }

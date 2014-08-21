@@ -48,14 +48,14 @@ public class LarchClientIT extends AbstractLarchIT {
     public void testPostEntity() throws Exception {
         Entity e = Fixtures.createFixtureEntity();
         e.setId(RandomStringUtils.randomAlphabetic(16));
-        client.postEntity(WORKSPACE_ID, e);
+        client.postEntity(PERMISSION_ID, e);
     }
 
     @Test
     public void testRetrieveEntity() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        client.postEntity(WORKSPACE_ID, e);
-        Entity fetched = client.retrieveEntity(WORKSPACE_ID, e.getId());
+        client.postEntity(PERMISSION_ID, e);
+        Entity fetched = client.retrieveEntity(PERMISSION_ID, e.getId());
         assertEquals(e.getId(), fetched.getId());
         assertEquals(e.getLabel(), fetched.getLabel());
         assertEquals(e.getBinaries().size(), fetched.getBinaries().size());
@@ -79,9 +79,9 @@ public class LarchClientIT extends AbstractLarchIT {
     @Test
     public void testRetrieveMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Metadata orig = e.getMetadata().entrySet().iterator().next().getValue();
-        Metadata md = this.client.retrieveMetadata(WORKSPACE_ID, e.getId(), orig.getName());
+        Metadata md = this.client.retrieveMetadata(PERMISSION_ID, e.getId(), orig.getName());
         assertNotNull(md);
         assertEquals(orig.getType(), md.getType());
         assertEquals(orig.getName(), md.getName());
@@ -92,10 +92,10 @@ public class LarchClientIT extends AbstractLarchIT {
     @Test
     public void testRetrieveBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
         Metadata orig = bin.getMetadata().entrySet().iterator().next().getValue();
-        Metadata md = this.client.retrieveBinaryMetadata(WORKSPACE_ID, e.getId(), bin.getName(), orig.getName());
+        Metadata md = this.client.retrieveBinaryMetadata(PERMISSION_ID, e.getId(), bin.getName(), orig.getName());
         assertNotNull(md);
         assertEquals(orig.getType(), md.getType());
         assertEquals(orig.getName(), md.getName());
@@ -106,69 +106,69 @@ public class LarchClientIT extends AbstractLarchIT {
     @Test
     public void testPostMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Metadata md = Fixtures.createRandomDCMetadata();
-        this.client.postMetadata(WORKSPACE_ID, e.getId(), md);
+        this.client.postMetadata(PERMISSION_ID, e.getId(), md);
     }
 
     @Test
     public void testPostBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
         Metadata binMd = Fixtures.createRandomDCMetadata();
-        this.client.postBinaryMetadata(WORKSPACE_ID, e.getId(), bin.getName(), binMd);
+        this.client.postBinaryMetadata(PERMISSION_ID, e.getId(), bin.getName(), binMd);
     }
 
     @Test
     public void testDeleteMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Metadata md = Fixtures.createRandomDCMetadata();
-        this.client.postMetadata(WORKSPACE_ID, e.getId(), md);
-        this.client.deleteMetadata(WORKSPACE_ID, e.getId(), md.getName());
+        this.client.postMetadata(PERMISSION_ID, e.getId(), md);
+        this.client.deleteMetadata(PERMISSION_ID, e.getId(), md.getName());
     }
 
     @Test
     public void testDeleteBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
         Metadata binMd = Fixtures.createRandomDCMetadata();
-        this.client.postBinaryMetadata(WORKSPACE_ID, e.getId(), bin.getName(), binMd);
-        this.client.deleteBinaryMetadata(WORKSPACE_ID, e.getId(), bin.getName(), binMd.getName());
+        this.client.postBinaryMetadata(PERMISSION_ID, e.getId(), bin.getName(), binMd);
+        this.client.deleteBinaryMetadata(PERMISSION_ID, e.getId(), bin.getName(), binMd.getName());
     }
 
     @Test
     public void testRetrieveBinary() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary orig = e.getBinaries().entrySet().iterator().next().getValue();
-        Binary fetched = this.client.retrieveBinary(WORKSPACE_ID, e.getId(), orig.getName());
+        Binary fetched = this.client.retrieveBinary(PERMISSION_ID, e.getId(), orig.getName());
     }
 
     @Test
     public void testPostBinary() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = Fixtures.createRandomImageBinary();
-        this.client.postBinary(WORKSPACE_ID, e.getId(), bin);
+        this.client.postBinary(PERMISSION_ID, e.getId(), bin);
     }
 
     @Test
     public void testDeleteBinary() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
-        this.client.deleteBinary(WORKSPACE_ID, e.getId(), bin.getName());
+        this.client.deleteBinary(PERMISSION_ID, e.getId(), bin.getName());
     }
 
     @Test
     public void testRetrieveBinaryContent() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
-        InputStream src = this.client.retrieveBinaryContent(WORKSPACE_ID, e.getId(), bin.getName());
+        InputStream src = this.client.retrieveBinaryContent(PERMISSION_ID, e.getId(), bin.getName());
         File target = new File(tempFolder.getRoot(), RandomStringUtils.randomAlphabetic(16));
         try (FileOutputStream sink = new FileOutputStream(target)) {
             IOUtils.copy(src, sink);
@@ -179,17 +179,17 @@ public class LarchClientIT extends AbstractLarchIT {
     @Test
     public void testUpdateEntity() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
+        this.client.postEntity(PERMISSION_ID, e);
         e.setLabel("new label");
-        this.client.updateEntity(WORKSPACE_ID, e);
-        Entity updated = this.client.retrieveEntity(WORKSPACE_ID, e.getId());
+        this.client.updateEntity(PERMISSION_ID, e);
+        Entity updated = this.client.retrieveEntity(PERMISSION_ID, e.getId());
         assertEquals(e.getLabel(), updated.getLabel());
     }
 
     @Test
     public void testDeleteEntity() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
-        this.client.postEntity(WORKSPACE_ID, e);
-        this.client.deleteEntity(WORKSPACE_ID, e.getId());
+        this.client.postEntity(PERMISSION_ID, e);
+        this.client.deleteEntity(PERMISSION_ID, e.getId());
     }
 }

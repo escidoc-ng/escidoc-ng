@@ -25,10 +25,10 @@ import java.util.Map;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
+import net.objecthunter.larch.model.Rights;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -37,7 +37,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
 
-    public static final String WORKSPACE_ID = "ws-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String PERMISSION_ID = "perm-" + RandomStringUtils.randomAlphabetic(16);
+
+    public static final String AREA_ID = "area-" + RandomStringUtils.randomAlphabetic(16);
 
     public static User createUser() {
         User u = new User();
@@ -72,12 +74,12 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setId("testid");
         e.setLabel("Test label");
-        e.setType("Test type");
+        e.setType(EntityType.DATA);
         e.setTags(Arrays.asList("tag1", "tag2"));
         e.setMetadata(createMetadataMap());
         e.setBinaries(createBinaryMap());
         e.setRelations(createRelations());
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
@@ -157,24 +159,24 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Book");
+        e.setType(EntityType.DATA);
         e.setBinaries(binaries);
         e.setMetadata(metadata);
         return e;
     }
 
-    public static Workspace createFixtureWorkspace() {
-        Workspace workspace = new Workspace();
-        final WorkspacePermissions permissions = new WorkspacePermissions();
-        permissions.setPermissions("admin", EnumSet.allOf(WorkspacePermissions.Permission.class));
-        workspace.setPermissions(permissions);
-        workspace.setId(RandomStringUtils.randomAlphanumeric(16));
-        workspace.setOwner("foo");
-        workspace.setName("bar");
-        return workspace;
+    public static Entity createFixturePermission() {
+        Entity permission = new Entity();
+        final Rights permissions = new Rights();
+        permissions.setRights("admin", EnumSet.allOf(Rights.Right.class));
+        permission.setRights(permissions);
+        permission.setId(RandomStringUtils.randomAlphanumeric(16));
+        permission.setOwner("foo");
+        permission.setLabel("bar");
+        return permission;
     }
 
     public static Metadata createRandomDCMetadata() {
@@ -204,9 +206,9 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Image");
+        e.setType(EntityType.DATA);
         e.setBinaries(binaries);
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
@@ -214,15 +216,15 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Image");
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setType(EntityType.DATA);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
     public static Entity createFixtureCollectionEntity() throws Exception {
         Entity e = createSimpleFixtureEntity();
-        e.setType("Collection");
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setType(EntityType.DATA);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 

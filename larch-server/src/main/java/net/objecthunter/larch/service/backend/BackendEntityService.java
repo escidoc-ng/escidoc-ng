@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -53,7 +55,7 @@ public interface BackendEntityService {
      * @param numRecords the number of {@link net.objecthunter.larch.model.Entity}s to return
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanIndex(int offset, int numRecords) throws IOException;
+    SearchResult scanIndex(EntityType entityType, int offset, int numRecords) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
@@ -61,7 +63,7 @@ public interface BackendEntityService {
      * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException;
+    SearchResult searchEntities(EntityType entityType, Map<EntitiesSearchField, String[]> searchFields) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
@@ -71,10 +73,12 @@ public interface BackendEntityService {
      * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
      * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
      */
-    SearchResult scanIndex(int offset) throws IOException;
+    SearchResult scanIndex(EntityType entityType, int offset) throws IOException;
 
-    SearchResult scanWorkspace(String workspaceId, int offset, int numRecords) throws IOException;
+    SearchResult scanChildren(String ancestorId, EntityType entityType, int offset, int numRecords) throws IOException;
 
-    SearchResult scanWorkspace(String workspaceId, int offset) throws IOException;
+    SearchResult scanChildren(String ancestorId, EntityType entityType, int offset) throws IOException;
+    
+    EntityHierarchy getHierarchy(String entityId) throws IOException;
 
 }

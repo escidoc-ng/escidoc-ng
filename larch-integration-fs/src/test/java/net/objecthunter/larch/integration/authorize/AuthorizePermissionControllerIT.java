@@ -23,7 +23,7 @@ import java.io.IOException;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
-import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.Entity;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
@@ -32,70 +32,70 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-public class AuthorizeWorkspaceControllerIT extends AbstractAuthorizeLarchIT {
+public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthorizeWorkspaceControllerIT.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorizePermissionControllerIT.class);
 
     @Test
-    public void testCreateWorkspace() throws Exception {
+    public void testCreatePermission() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, workspaceUrl)
+                HttpMethod.POST, entityUrl)
                 .roleRestriction(RoleRestriction.LOGGED_IN)
-                .body(mapper.writeValueAsString(getWorkspace()))
+                .body(mapper.writeValueAsString(getPermission()))
                 .build());
     }
 
     @Test
-    public void testRetrieveWorkspace() throws Exception {
+    public void testRetrievePermission() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId)
+                HttpMethod.GET, entityUrl + permissionId)
                 .neededPermission(MissingPermission.READ_WORKSPACE)
                 .build());
     }
 
     @Test
-    public void testRetrieveWorkspaceHtml() throws Exception {
+    public void testRetrievePermissionHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId)
+                HttpMethod.GET, entityUrl + permissionId)
                 .neededPermission(MissingPermission.READ_WORKSPACE)
                 .html(true)
                 .build());
     }
 
     @Test
-    public void testUpdateWorkspace() throws Exception {
+    public void testUpdatePermission() throws Exception {
         // retrieve workspace
-        Workspace workspace = retrieveWorkspace(workspaceId);
+        Entity permission = retrievePermission(permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, workspaceUrl + workspaceId)
-                .body(mapper.writeValueAsString(workspace))
+                HttpMethod.PUT, entityUrl + permissionId)
+                .body(mapper.writeValueAsString(permission))
                 .neededPermission(MissingPermission.WRITE_WORKSPACE)
                 .build());
     }
 
     @Test
-    public void testPatchWorkspace() throws Exception {
+    public void testPatchPermission() throws Exception {
         // retrieve workspace
-        Workspace workspace = retrieveWorkspace(workspaceId);
+        Entity permission = retrievePermission(permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PATCH, workspaceUrl + workspaceId)
-                .body(mapper.writeValueAsString(workspace))
+                HttpMethod.PATCH, entityUrl + permissionId)
+                .body(mapper.writeValueAsString(permission))
                 .neededPermission(MissingPermission.WRITE_WORKSPACE)
                 .build());
     }
 
-    private Workspace getWorkspace() {
-        final Workspace ws = new Workspace();
-        ws.setOwner("foo");
-        ws.setName("bar");
-        return ws;
+    private Entity getPermission() {
+        final Entity permission = new Entity();
+        permission.setOwner("foo");
+        permission.setLabel("bar");
+        return permission;
     }
 
-    private Workspace retrieveWorkspace(String workspaceId) throws IOException {
+    private Entity retrievePermission(String permissionId) throws IOException {
         HttpResponse resp = this.executeAsAdmin(
-                Request.Get(workspaceUrl + workspaceId));
+                Request.Get(entityUrl + permissionId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
-        return mapper.readValue(resp.getEntity().getContent(), Workspace.class);
+        return mapper.readValue(resp.getEntity().getContent(), Entity.class);
     }
 
 }

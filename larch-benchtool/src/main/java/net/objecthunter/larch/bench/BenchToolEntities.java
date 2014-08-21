@@ -17,6 +17,7 @@
 package net.objecthunter.larch.bench;
 
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -25,7 +26,7 @@ public abstract class BenchToolEntities {
     public static Entity createRandomEmptyEntity() {
         final Entity e = new Entity();
         e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
-        e.setType("book");
+        e.setType(EntityType.DATA);
         return e;
     }
 
