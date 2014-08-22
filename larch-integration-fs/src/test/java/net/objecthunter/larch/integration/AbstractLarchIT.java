@@ -103,18 +103,16 @@ public abstract class AbstractLarchIT {
             area.setType(EntityType.AREA);
             Request r = Request.Post(entityUrl)
                     .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
-            HttpResponse resp = this.executeAsAdmin(r);
-            String respo = EntityUtils.toString(resp.getEntity());
-            assertEquals(201, resp.getStatusLine().getStatusCode());
-            String areaId = EntityUtils.toString(resp.getEntity());
+            HttpResponse response = this.executeAsAdmin(r);
             // create default workspace
             Entity permission = new Entity();
             permission.setId(PERMISSION_ID);
+            permission.setType(EntityType.PERMISSION);
             permission.setLabel("Test Workspace");
-            permission.setParentId(areaId);
+            permission.setParentId(AREA_ID);
             r = Request.Post(entityUrl)
                     .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
-            this.executeAsAdmin(r);
+            response = this.executeAsAdmin(r);
             wsCreated = true;
         }
     }

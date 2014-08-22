@@ -75,6 +75,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
@@ -286,6 +287,7 @@ public class LarchServerConfiguration {
     public ObjectMapper objectMapper() {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JSR310Module());
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
     }
 

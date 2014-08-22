@@ -26,9 +26,9 @@ import net.objecthunter.larch.model.Entity.EntityType;
  */
 public class EntityHierarchy {
 
-    private EntityType type;
+    private String id;
 
-    private String entityId;
+    private EntityType type;
 
     private String areaId;
 
@@ -56,18 +56,18 @@ public class EntityHierarchy {
 
 
     /**
-     * @return the entityId
+     * @return the id
      */
-    public String getEntityId() {
-        return entityId;
+    public String getId() {
+        return id;
     }
 
     
     /**
-     * @param entityId the entityId to set
+     * @param Id the Id to set
      */
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     

@@ -54,7 +54,7 @@ public class AuditRecordController extends AbstractLarchController {
      * @return A {@link java.util.List} of {@link net.objecthunter.larch.model.AuditRecord} objects.
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET)
+    @RequestMapping(value = "/entity/{entity-id}/audit", method = RequestMethod.GET)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
@@ -77,7 +77,7 @@ public class AuditRecordController extends AbstractLarchController {
      */
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET,
+    @RequestMapping(value = "/entity/{entity-id}/audit", method = RequestMethod.GET,
             produces = "text/html")
     public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
             @PathVariable("entity-id") final String entityId, @RequestParam(

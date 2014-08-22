@@ -35,6 +35,7 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Rights;
 import net.objecthunter.larch.model.Rights.Right;
 import net.objecthunter.larch.model.security.User;
@@ -69,6 +70,7 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+
 import static net.objecthunter.larch.test.util.Fixtures.*;
 
 /**
@@ -112,6 +114,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // create Permission
         final Entity permission = new Entity();
         permission.setId(RandomStringUtils.randomAlphanumeric(16));
+        permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
         permission.setOwner("foo");
         permission.setLabel("bar");
@@ -120,6 +123,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 .execute()
                 .returnResponse();
 
+        String test = EntityUtils.toString(resp.getEntity());
         permissionId = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         assertNotNull(permissionId);
@@ -236,6 +240,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         HttpResponse resp = Request.Get(entityUrl + permissionId)
                 .execute()
                 .returnResponse();
+        String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = this.mapper.readValue(resp.getEntity().getContent(), Entity.class);
 
