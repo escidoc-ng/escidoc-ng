@@ -36,7 +36,7 @@
                     <td th:unless="${#strings.isEmpty(record.type)}" th:text="${record.type}"></td>
                     <td th:text="${record.tags}"></td>
                     <td><input type="button" id="bDelete" value="Delete"
-                               th:onclick="'javascript:deleteEntity(\'' + ${record.workspaceId} + '\', \'' + ${record.id} + '\');'"/>
+                               th:onclick="'javascript:deleteEntity(\'' + ${record.id} + '\');'"/>
                     </td>
                 </tr>
                 <tfoot>

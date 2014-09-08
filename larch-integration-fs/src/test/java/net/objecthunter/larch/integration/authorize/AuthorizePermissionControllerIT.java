@@ -24,6 +24,8 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
@@ -40,8 +42,8 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreatePermission() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl)
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .body(mapper.writeValueAsString(getPermission()))
+                .roleRestriction(RoleRestriction.ADMIN)
+                .body(mapper.writeValueAsString(getPermission(Fixtures.AREA_ID)))
                 .build());
     }
 
@@ -49,7 +51,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrievePermission() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + permissionId)
-                .neededPermission(MissingPermission.READ_WORKSPACE)
+                .neededPermission(MissingPermission.READ_PERMISSION)
                 .build());
     }
 
@@ -57,7 +59,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrievePermissionHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + permissionId)
-                .neededPermission(MissingPermission.READ_WORKSPACE)
+                .neededPermission(MissingPermission.READ_PERMISSION)
                 .html(true)
                 .build());
     }
@@ -69,23 +71,25 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + permissionId)
                 .body(mapper.writeValueAsString(permission))
-                .neededPermission(MissingPermission.WRITE_WORKSPACE)
+                .neededPermission(MissingPermission.WRITE_PERMISSION)
                 .build());
     }
 
     @Test
     public void testPatchPermission() throws Exception {
         // retrieve workspace
-        Entity permission = retrievePermission(permissionId);
+        String permission = "{\"label\": \"patched\"}";
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PATCH, entityUrl + permissionId)
-                .body(mapper.writeValueAsString(permission))
-                .neededPermission(MissingPermission.WRITE_WORKSPACE)
+                .body(permission)
+                .neededPermission(MissingPermission.WRITE_PERMISSION)
                 .build());
     }
 
-    private Entity getPermission() {
+    private Entity getPermission(String areaId) {
         final Entity permission = new Entity();
+        permission.setParentId(areaId);
+        permission.setType(EntityType.PERMISSION);
         permission.setOwner("foo");
         permission.setLabel("bar");
         return permission;

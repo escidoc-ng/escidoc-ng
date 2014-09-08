@@ -18,7 +18,7 @@
             <p class="panel_title" th:text="'Metadata: ' + ${md.name}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${workspaceId} + '\', \'' + ${entityId} + '\', \'' + ${md.name} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entityId} + '\', \'' + ${md.name} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>

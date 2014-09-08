@@ -211,12 +211,24 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "text/plain")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
+    public String create(final InputStream src)
+            throws IOException {
+        String entityId = create(mapper.readValue(src, Entity.class));
+        return entityId;
+    }
+    
+    /**
+     * Helper-Method with which authorization doesnt have to read an InputStream.
+     * 
+     * @param entity
+     * @return The id of the created entity.
+     * @throws IOException
+     */
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')", concat = Concat.OR, 
             permission = @Permission(idIndex = 0, objectType = ObjectType.INPUT_ENTITY,
                     permissionType = PermissionType.WRITE))
-    public String create(final InputStream src)
-            throws IOException {
-        final String id = this.entityService.create(mapper.readValue(src, Entity.class));
+    public String create(final Entity entity) throws IOException {
+        final String id = this.entityService.create(entity);
         this.entityService.createAuditRecord(AuditRecordHelper.createEntityRecord(id));
         this.messagingService.publishCreateEntity(id);
         return id;

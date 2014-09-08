@@ -206,7 +206,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl)
                 .body(mapper.writeValueAsString(e))
-                .neededPermission(MissingPermission.WRITE_WORKSPACE)
+                .neededPermission(MissingPermission.WRITE_PERMISSION)
                 .build());
     }
 

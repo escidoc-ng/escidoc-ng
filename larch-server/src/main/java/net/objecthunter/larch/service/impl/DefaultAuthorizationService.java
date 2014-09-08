@@ -399,14 +399,14 @@ public class DefaultAuthorizationService implements AuthorizationService {
             throws IOException {
         switch (workspacePermissionType) {
         case READ:
-            checkCurrentUserPermission(permission, Right.READ_PERMISSION_PERMISSION);
+            checkCurrentUserPermission(permission, Right.READ_PERMISSION);
             break;
         case WRITE:
-            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION_PERMISSION);
+            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION);
             break;
         case READ_WRITE:
-            checkCurrentUserPermission(permission, Right.READ_PERMISSION_PERMISSION);
-            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION_PERMISSION);
+            checkCurrentUserPermission(permission, Right.READ_PERMISSION);
+            checkCurrentUserPermission(permission, Right.WRITE_PERMISSION);
             break;
         default:
             break;

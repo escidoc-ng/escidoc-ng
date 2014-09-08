@@ -122,15 +122,12 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
     public void testListPermissions() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .build());
     }
 
@@ -138,17 +135,14 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
     public void testListPermissionsHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
                 .html(true)
                 .build());
     }

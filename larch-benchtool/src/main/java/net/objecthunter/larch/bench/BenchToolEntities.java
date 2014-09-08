@@ -23,8 +23,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class BenchToolEntities {
 
-    public static Entity createRandomEmptyEntity() {
+    public static Entity createRandomEmptyEntity(String permissionId) {
         final Entity e = new Entity();
+        e.setParentId(permissionId);
         e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
         e.setType(EntityType.DATA);
         return e;

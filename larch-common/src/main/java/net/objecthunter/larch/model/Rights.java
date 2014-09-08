@@ -92,8 +92,8 @@ public class Rights {
         WRITE_SUBMITTED_BINARY,
         WRITE_PUBLISHED_BINARY,
         WRITE_WITHDRAWN_BINARY,
-        READ_PERMISSION_PERMISSION,
-        WRITE_PERMISSION_PERMISSION
+        READ_PERMISSION,
+        WRITE_PERMISSION
     }
 
     public static Rights getDefaultRights(String userName) {
@@ -107,10 +107,10 @@ public class Rights {
                 Right.READ_SUBMITTED_BINARY,
                 Right.READ_PUBLISHED_BINARY,
                 Right.READ_WITHDRAWN_BINARY,
-                Right.READ_PERMISSION_PERMISSION,
+                Right.READ_PERMISSION,
                 Right.WRITE_PENDING_METADATA,
                 Right.WRITE_PENDING_BINARY,
-                Right.WRITE_PERMISSION_PERMISSION);
+                Right.WRITE_PERMISSION);
         return p;
     }
 }

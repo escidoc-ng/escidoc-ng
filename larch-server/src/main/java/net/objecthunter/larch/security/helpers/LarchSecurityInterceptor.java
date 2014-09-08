@@ -74,7 +74,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * @throws Throwable Thrown in case of an error.
      * @return
      */
-    @Around("execution(public * net.objecthunter.larch.controller.*.*(..))")
+    @Around("execution(* net.objecthunter.larch.controller.*.*(..))")
     public Object authorize(final ProceedingJoinPoint joinPoint) throws Throwable {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final Method calledMethod = methodSignature.getMethod();
@@ -100,7 +100,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * 
      * @param preAuth Annotation
      * @param joinPoint
-     * @return String workspaceId or null
+     * @return String Id or null
      */
     private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
@@ -118,7 +118,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * 
      * @param preAuth Annotation
      * @param joinPoint
-     * @return String workspaceId or null
+     * @return Integer versionId or null
      */
     private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null &&
@@ -132,27 +132,20 @@ public class LarchSecurityInterceptor implements Ordered {
     }
 
     /**
-     * Get id from method-parameters
+     * Get Entity-Object from method-parameters
      * 
      * @param preAuth Annotation
      * @param joinPoint
-     * @return String workspaceId or null
+     * @return Entity or null
      */
     private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
-//        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
-//                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
-//                joinPoint.getArgs() != null &&
-//                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
-//                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof InputStream) {
-//            InputStream inputStream = (InputStream) joinPoint.getArgs()[preAuth.permission().idIndex()];
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//            IOUtils.copy(inputStream, baos);
-//            Entity e = mapper.readValue(baos.toByteArray(), Entity.class);
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
-//            mapper.writeValue(out, e);
-//            inputStream = new ByteArrayInputStream(out.toByteArray());
-//            return e;
-//        }
+        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
+                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
+                joinPoint.getArgs() != null &&
+                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
+                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof Entity) {
+            return (Entity) joinPoint.getArgs()[preAuth.permission().idIndex()];
+        }
         return null;
     }
 

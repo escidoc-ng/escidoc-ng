@@ -13,13 +13,13 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading">Entity</div>
+        <div class="heading" th:text="${entity.type.name}" />
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state.name != 'PUBLISHED'}" class="property" th:text="Actions" />
-                <input th:if="${entity.state.name != 'SUBMITTED' and entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/submit' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/publish' + '\', \'' + @{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '\')'"/>
-                <input  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\')'"/>
+                <input th:if="${entity.state.name != 'SUBMITTED' and entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/submit' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
+                <input th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/publish' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
+                <input  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
             <p th:if="${entity.state.name != 'PUBLISHED'}" class="panel_title" />
 
             <p class="property">Label</p>
@@ -30,16 +30,10 @@
 
             <p class="value" th:text="${entity.type} ? ${entity.type} : 'No Type'"></p>
 
-            <p class="property">WorkspaceId</p>
-
-            <p class="value" th:if="${entity.workspaceId} ? ${entity.workspaceId} : 'None'">
-                <a th:text="${entity.workspaceId}" th:href="@{/workspace/} + ${entity.workspaceId}"></a>
-            </p>
-
             <p class="property">Parent</p>
 
             <p class="value" th:if="${entity.parentId} ? ${entity.parentId} : 'None'">
-                <a th:text="${entity.parentId}" th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.parentId}"></a>
+                <a th:text="${entity.parentId}" th:href="@{/entity/} + ${entity.parentId}"></a>
             </p>
             <p class="value" th:if="!${entity.parentId}" th:text="'None'" />
 
@@ -62,20 +56,17 @@
             <p class="property">Last modified</p>
 
             <p class="value" th:text="${entity.utcLastModified}"></p>
-            <a th:text="'Audit record'" th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/audit'"></a>
+            <a th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
 
             <p/>
-            <a th:text="'Versions'" th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/versions'"></a>
+            <a th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
 
-            <p/>
-            <a th:text="'Published Versions'"
-               th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/published'"></a>
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
@@ -99,11 +90,11 @@
             <p class="value" th:text="${md.value.utcLastModified}"></p>
 
             <p class="property">Validation</p>
-            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
                th:text="'Validate'"></a>
 
             <p class="property">Content</p>
-            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
@@ -121,7 +112,7 @@
             <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.workspaceId} + '\', \'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Mime type</p>
@@ -145,11 +136,11 @@
             <p class="value" th:text="${bin.value.utcLastModified}"></p>
 
             <p class="property">Content</p>
-            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
                th:text="'Download'"></a>
 
             <p class="property">Binary</p>
-            <a th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
 
         </div>
         <div class="panel" th:if="${entity.relations != null}">
@@ -176,7 +167,7 @@
             <p class="panel_title">Children</p>
 
             <p th:each="child: ${entity.children}" class="value"><a
-                    th:href="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${child}" th:text="${child}"></a></p>
+                    th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
             <div class="panel">
@@ -192,16 +183,18 @@
                 });
 
                 </script>
-                <p class="panel_title">Create new child</p>
+                <p th:if="${entity.type.name == 'AREA'}" class="panel_title">Create new Permission</p>
+                <p th:if="${entity.type.name == 'PERMISSION'}" class="panel_title">Create new Data</p>
+                <p th:if="${entity.type.name == 'DATA'}" class="panel_title">Create new Child</p>
                 <input id="ceId" type="text" name="id"
                        title="Set the identifier of the entity or leave empty for a generated value"/>
-                <input id="ceWsId" type="hidden" name="workspaceId" th:value="${entity.workspaceId}"/>
-                <input id="ceType" type="hidden" name="type" th:value="DATA"/>
+                <input th:if="${entity.type.name == 'AREA'}" id="ceType" type="hidden" name="type" th:value="PERMISSION"/>
+                <input th:if="${entity.type.name != 'AREA'}" id="ceType" type="hidden" name="type" th:value="DATA"/>
                 <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
                 <input id="ceParentId" type="hidden" name="parentId" th:value="${entity.id}"/>
                 <input id="ceTags" type="text" name="tags"
                        title="Set a comma separated list of tags for this entity"/>
-                <input class="button" id="ceButton" type="button" value="CREATE ENTITY"/>
+                <input class="button" id="ceButton" type="button" value="CREATE"/>
             </div>
             <div class="panel">
                 <script>
@@ -212,7 +205,7 @@
                 </script>
                 <p class="panel_title">Create new binary</p>
 
-                <form th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/binary/file'"
+                <form th:action="@{/entity/} + ${entity.id} + '/binary/file'"
                       method="post"
                       enctype="multipart/form-data">
                     <input id="binName" type="text" name="name" title="Set the name of the binary"/>
@@ -230,7 +223,7 @@
                 <p class="panel_title">Create new metadata</p>
 
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/metadata'">
+                      th:action="@{/entity/} + ${entity.id} + '/metadata'">
                     <input id="mdName" type="text" name="name"
                            title="Set the name of the metadata"/>
                     <input id="mdFile" type="file" name="metadata"
@@ -252,7 +245,7 @@
                 <p class="panel_title">Create new identifier</p>
 
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/identifier'">
+                      th:action="@{/entity/} + ${entity.id} + '/identifier'">
                     <select id="identifierType" name="type" title="Select a valid identifier type">
                         <option th:each="identifierType : ${identifierTypes}"
                                 th:label="${identifierType.name}"
@@ -274,7 +267,7 @@
                 <p class="panel_title">Create new relation</p>
 
                 <form enctype="multipart/form-data" method="post"
-                      th:action="@{/workspace/} + ${entity.workspaceId} + '/entity/' + ${entity.id} + '/relation'">
+                      th:action="@{/entity/} + ${entity.id} + '/relation'">
                     <input id="relPredicate" type="text" name="predicate"
                            title="Set the predicate of the relation"/>
                     <input id="relObject" type="text" name="object"

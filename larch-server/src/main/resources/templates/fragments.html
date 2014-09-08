@@ -6,8 +6,7 @@
     <meta charset="utf-8"/>
     <meta id="contextPath"
         th:src="${#httpServletRequest.getContextPath()}"/>
-    <title th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch repository</title>
-    <title th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch published repository</title>
+    <title th:if="!${isErrorPage}">Larch repository</title>
     <title th:if="${isErrorPage}">Error Page</title>
     <script th:src="@{/js/jquery-1.11.0.min.js}"></script>
     <script th:src="@{/js/jquery.watermark.min.js}"></script>
@@ -23,9 +22,7 @@
 <div th:fragment="banner">
     <span class="three_bars"></span>
 
-    <h1 th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch repository</h1>
-
-    <h1 th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')">Larch published repository</h1>
+    <h1 th:if="!${isErrorPage}">Larch repository</h1>
 
     <h1 th:if="${isErrorPage}">Error Page</h1>
     <script>
@@ -34,13 +31,9 @@
     });
 
     </script>
-    <form th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" method="post"
+    <form th:if="!${isErrorPage}" method="post"
           th:action="@{/search}" enctype="multipart/form-data"><input
             type="text" id="search" name="term"/></form>
-    <form th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" method="post"
-          th:action="@{/search/published}" enctype="multipart/form-data">
-        <input
-                type="text" id="search" name="term"/></form>
 </div>
 
 <div th:fragment="left">
@@ -61,16 +54,14 @@
     <ul class="left_menu">
         <li><p class="icon" id="icon_dashboard"></p><a th:href="@{/}" th:text="'DASHBOARD'"></a>
         </li>
+        <li th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ADMIN')"><p class="icon" id="icon_browse"></p><a
+                th:href="@{/browse/area}" th:text="'AREAS'"></a></li>
         <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/workspace-list}" th:text="'WORKSPACES'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/browse}" th:text="'BROWSE'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/browse/published}" th:text="'BROWSE'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_list"></p><a
-                th:href="@{/list}" th:text="'LIST'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_list"></p><a
-                th:href="@{/list/published}" th:text="'LIST'"></a></li>
+                th:href="@{/browse/permission}" th:text="'PERMISSIONS'"></a></li>
+        <li th:if="!${isErrorPage}"><p class="icon" id="icon_browse"></p><a
+                th:href="@{/browse/data}" th:text="'BROWSE DATA'"></a></li>
+        <li th:if="!${isErrorPage}"><p class="icon" id="icon_list"></p><a
+                th:href="@{/list/data}" th:text="'LIST DATA'"></a></li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/search}" th:text="'SEARCH'"></a>
         </li>
         <li th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ADMIN')"><p class="icon" id="icon_users"></p><a

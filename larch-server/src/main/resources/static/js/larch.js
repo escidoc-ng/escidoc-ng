@@ -18,14 +18,16 @@ function submitPut(url, redirectUrl) {
 		  }
 		});}
 
-function createEntity(id, workspaceId, type, label, tags, parentId) {
-    var tagList = tags.split(',');
-    for (var i = 0; i< tagList.length;i++) {
-        tagList[i] = $.trim(tagList[i]);
-    }
+function createEntity(id, type, label, tags, parentId) {
+	var tagList = null;
+	if (tags != null) {
+	    tagList = tags.split(',');
+	    for (var i = 0; i< tagList.length;i++) {
+	        tagList[i] = $.trim(tagList[i]);
+	    }
+	}
     var entity = {
         'id' : id,
-        'workspaceId' : workspaceId,
         'type' : type,
         'label' : label,
         'parentId' : parentId,
@@ -39,40 +41,13 @@ function createEntity(id, workspaceId, type, label, tags, parentId) {
         headers: {
             "X-CSRF-TOKEN" : csrf_token
         },
-        url: ctx + "/workspace/" + workspaceId + "/entity",
+        url: ctx + "/entity",
         type: "POST",
         data: JSON.stringify(entity),
         dataType: "text",
         contentType: "application/json; charset=utf-8",
         success: function(createdId){
-            document.location.href = ctx + '/workspace/' + workspaceId + '/entity/' + createdId;
-        },
-        error : function(request, msg, error) {
-            throwError(request);
-        }
-    });
-}
-
-function createWorkspace(id, name) {
-    var workspace = {
-        'id' : id,
-        'name' : name
-    };
-    var csrf_token = $("meta[name='_csrf']").attr("content");
-    $.ajax ({
-        xhrFields: {
-           withCredentials: true
-        },
-        headers: {
-            "X-CSRF-TOKEN" : csrf_token
-        },
-        url: ctx + "/workspace",
-        type: "POST",
-        data: JSON.stringify(workspace),
-        dataType: "text",
-        contentType: "application/json; charset=utf-8",
-        success: function(createdId){
-            document.location.href = ctx + '/workspace/' + createdId;
+            document.location.href = ctx + '/entity/' + createdId;
         },
         error : function(request, msg, error) {
             throwError(request);
@@ -99,7 +74,7 @@ function deleteUser(name) {
     });
 }
 
-function deleteEntity(workspaceId, id) {
+function deleteEntity(id) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -107,7 +82,7 @@ function deleteEntity(workspaceId, id) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/workspace/" + workspaceId + "/entity/" + id,
+	        url: ctx + "/entity/" + id,
 	        type: "DELETE",
 	        success: function(createdId){
 	        	if (ctx != '') {
@@ -122,7 +97,7 @@ function deleteEntity(workspaceId, id) {
 	    });
 	}
 
-function deleteBinary(workspaceId, entityId, name) {
+function deleteBinary(entityId, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -130,10 +105,10 @@ function deleteBinary(workspaceId, entityId, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + name,
+	        url: ctx + "/entity/" + entityId + "/binary/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId;
+		        document.location.href = ctx + "/entity/" + entityId;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -141,7 +116,7 @@ function deleteBinary(workspaceId, entityId, name) {
 	    });
 	}
 
-function deleteMetadata(workspaceId, entityId, name) {
+function deleteMetadata(entityId, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -149,10 +124,10 @@ function deleteMetadata(workspaceId, entityId, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/metadata/" + name,
+	        url: ctx + "/entity/" + entityId + "/metadata/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId;
+		        document.location.href = ctx + "/entity/" + entityId;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -160,7 +135,7 @@ function deleteMetadata(workspaceId, entityId, name) {
 	    });
 	}
 
-function deleteBinaryMetadata(workspaceId, entityId, binaryName, name) {
+function deleteBinaryMetadata(entityId, binaryName, name) {
 	   $.ajax ({
 	        xhrFields: {
 	           withCredentials: true
@@ -168,10 +143,10 @@ function deleteBinaryMetadata(workspaceId, entityId, binaryName, name) {
 	        headers: {
 	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
 	        },
-	        url: ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + name,
+	        url: ctx + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + name,
 	        type: "DELETE",
 	        success: function(createdId){
-		        document.location.href = ctx + "/workspace/" + workspaceId + "/entity/" + entityId + "/binary/" + binaryName;
+		        document.location.href = ctx + "/entity/" + entityId + "/binary/" + binaryName;
 	        },
 	        error : function(request, msg, error) {
 	            throwError(request);
@@ -221,7 +196,7 @@ function stopEdit(td, name) {
 
 function patchEntity() {
     $.ajax({
-        url : ctx + "/workspace/" + $('#workspaceId').html() + "/entity/" + $('#entityId').html(),
+        url : ctx + "/entity/" + $('#entityId').html(),
         type : "PATCH",
         data : JSON.stringify(patch),
         contentType : "application/json",

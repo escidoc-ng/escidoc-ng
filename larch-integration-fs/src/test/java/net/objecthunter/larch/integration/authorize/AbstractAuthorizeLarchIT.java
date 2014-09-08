@@ -154,8 +154,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_WITHDRAWN_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_METADATA)) {
                 createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_WITHDRAWN_METADATA);
-            } else if (e.getKey().equals(MissingPermission.READ_WORKSPACE)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PERMISSION_PERMISSION);
+            } else if (e.getKey().equals(MissingPermission.READ_PERMISSION)) {
+                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PERMISSION);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_BINARY)) {
                 createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PENDING_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_METADATA)) {
@@ -175,8 +175,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_METADATA)) {
                 createMissingPermissionRightsForUser(permissionId, e.getValue()[0],
                         Right.WRITE_WITHDRAWN_METADATA);
-            } else if (e.getKey().equals(MissingPermission.WRITE_WORKSPACE)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PERMISSION_PERMISSION);
+            } else if (e.getKey().equals(MissingPermission.WRITE_PERMISSION)) {
+                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PERMISSION);
             }
         }
     }

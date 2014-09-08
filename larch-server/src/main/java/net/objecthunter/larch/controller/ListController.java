@@ -53,7 +53,7 @@ public class ListController extends AbstractLarchController {
         "text/xml" })
     @ResponseBody
     public SearchResult listEntities(@PathVariable("entityType") final String entityType) throws IOException {
-        return entityService.scanEntities(EntityType.valueOf(entityType), 0);
+        return entityService.scanEntities(EntityType.valueOf(entityType.toUpperCase()), 0);
     }
 
     /**
@@ -97,7 +97,7 @@ public class ListController extends AbstractLarchController {
     @RequestMapping(value = "/list/{entityType}/{offset}", method = RequestMethod.GET)
     @ResponseBody
     public SearchResult listEntities(@PathVariable("entityType") final String entityType, @PathVariable("offset") final int offset) throws IOException {
-        return this.entityService.scanEntities(EntityType.valueOf(entityType), offset);
+        return this.entityService.scanEntities(EntityType.valueOf(entityType.toUpperCase()), offset);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ListController extends AbstractLarchController {
     @ResponseBody
     public SearchResult listEntities(@PathVariable("entityType") final String entityType, @PathVariable("offset") final int offset,
             @PathVariable("numrecords") final int numRecords) throws IOException {
-        return this.entityService.scanEntities(EntityType.valueOf(entityType), offset, numRecords);
+        return this.entityService.scanEntities(EntityType.valueOf(entityType.toUpperCase()), offset, numRecords);
     }
 
     /**
@@ -186,7 +186,7 @@ public class ListController extends AbstractLarchController {
 
     /**
      * Controller method for getting {@link net.objecthunter.larch.model.SearchResult} containing all stored
-     * {@link net.objecthunter.larch.model.Entity}s in the given workspace.
+     * {@link net.objecthunter.larch.model.Entity}s in the given permission.
      * 
      * @param ancestorId workspaceId
      * @return A SearchResult containing {@link net.objecthunter.larch.model.Entity}s
@@ -196,12 +196,12 @@ public class ListController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public SearchResult listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType), 0);
+        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), 0);
     }
 
     /**
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing stored
-     * {@link net.objecthunter.larch.model.Entity}s in the given workspace.
+     * {@link net.objecthunter.larch.model.Entity}s in the given permission.
      * 
      * @param ancestorId workspaceId
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the list result
@@ -211,7 +211,7 @@ public class ListController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType));
         return new ModelAndView("list", model);
     }
 
@@ -227,7 +227,7 @@ public class ListController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType));
         return new ModelAndView("browse", model);
     }
 
@@ -247,7 +247,7 @@ public class ListController extends AbstractLarchController {
     public SearchResult
             listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType, @PathVariable("offset") final int offset)
                     throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType), offset);
+        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), offset);
     }
 
     /**
@@ -265,7 +265,7 @@ public class ListController extends AbstractLarchController {
     public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset)
             throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId, offset));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset));
         return new ModelAndView("list", model);
     }
 
@@ -284,7 +284,7 @@ public class ListController extends AbstractLarchController {
     public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset)
             throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId, offset));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset));
         return new ModelAndView("browse", model);
     }
 
@@ -305,7 +305,7 @@ public class ListController extends AbstractLarchController {
     public SearchResult listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType), offset, numRecords);
+        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), offset, numRecords);
     }
 
     /**
@@ -325,7 +325,7 @@ public class ListController extends AbstractLarchController {
     public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId, offset, numRecords));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset, numRecords));
         return new ModelAndView("list", model);
     }
 
@@ -346,7 +346,7 @@ public class ListController extends AbstractLarchController {
     public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(entityType, ancestorId, offset, numRecords));
+        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset, numRecords));
         return new ModelAndView("browse", model);
     }
 

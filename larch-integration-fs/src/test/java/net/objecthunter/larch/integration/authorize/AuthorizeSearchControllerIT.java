@@ -70,9 +70,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      * 
      * @throws Exception
      */
-    //@Test
+    @Test
     public void testList() throws Exception {
-        String url = hostUrl + "list";
+        String url = hostUrl + "list/DATA";
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
@@ -568,16 +568,16 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     private void prepareSearch() throws Exception {
         // get total hits
-        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/0/0"));
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/DATA/0/0"));
+        assertEquals(200, response.getStatusLine().getStatusCode());
         long totalHits = getHitCount(response);
 
         int counter = 0;
         List<HashMap> entities = new ArrayList<HashMap>();
         while (counter <= totalHits) {
-            response = this.executeAsAdmin(Request.Get(hostUrl + "list/" + counter + "/50"));
+            response = this.executeAsAdmin(Request.Get(hostUrl + "list/DATA/" + counter + "/50"));
             counter += 50;
-            assertEquals(response.getStatusLine().getStatusCode(), 200);
+            assertEquals(200, response.getStatusLine().getStatusCode());
             SearchResult searchResult =
                     mapper.readValue(EntityUtils.toString(response.getEntity()), SearchResult.class);
             entities.addAll((List<HashMap>) searchResult.getData());
