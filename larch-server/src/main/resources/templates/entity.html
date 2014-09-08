@@ -174,11 +174,12 @@
                 <script>
                 $(document).ready(function() {
                 $('#ceId').watermark('Generated Id', {className: 'inactive'});
+                $('#ceParentId').watermark('Parent Id', {className: 'inactive'});
                 $('#ceLabel').watermark('Unnamed Entity', {className: 'inactive'});
                 $('#ceType').watermark('Type', {className: 'inactive'});
                 $('#ceTags').watermark('Tags', {className: 'inactive'});
                 $('#ceButton').click(function() {
-                    createEntity($('#ceId').val(), $('#ceWsId').val(), $('#ceType').val(),$('#ceLabel').val(),$('#ceTags').val(),$('#ceParentId').val());
+                    createEntity($('#ceId').val(), $('#ceType').val(),$('#ceLabel').val(),$('#ceTags').val(),$('#ceParentId').val());
                     })
                 });
 
