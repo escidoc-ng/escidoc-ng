@@ -274,11 +274,14 @@ public class EntityControllerIT extends AbstractLarchIT {
         String parentId = null;
         for (int i = 0; i < 5; i++) {
             Entity child = createFixtureEntity();
-            child.setParentId(id);
+            if (id != null) {
+                child.setParentId(id);
+            }
             HttpResponse resp =
                     this.executeAsAdmin(
                             Request.Post(entityUrl)
                                     .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON));
+            String test = EntityUtils.toString(resp.getEntity());
             assertEquals(201, resp.getStatusLine().getStatusCode());
             if (id == null) {
                 parentId = EntityUtils.toString(resp.getEntity());

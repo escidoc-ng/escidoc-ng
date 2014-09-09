@@ -110,7 +110,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * 
      * @throws Exception
      */
-    private void preparePermission() throws Exception {
+    protected void preparePermission() throws Exception {
         // create Permission
         final Entity permission = new Entity();
         permission.setId(RandomStringUtils.randomAlphanumeric(16));

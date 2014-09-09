@@ -119,6 +119,7 @@ public class PerformanceIT {
             permission.setId(PERMISSION_ID);
             permission.setLabel("Test Workspace");
             permission.setParentId(areaId);
+            permission.setType(EntityType.PERMISSION);
             r = Request.Post(hostUrl + "entity")
                     .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
             resp = this.execute(r).returnResponse();

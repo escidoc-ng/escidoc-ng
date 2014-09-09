@@ -311,7 +311,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (EntityType.PERMISSION.equals(((Entity) checkObject).getType())) {
                 checkPermissionPermissions((Entity) checkObject, workspacePermission.permissionType());
             } else {
-                if (workspacePermission.objectType().equals(ObjectType.ENTITY)) {
+                if (workspacePermission.objectType().equals(ObjectType.ENTITY) || workspacePermission.objectType().equals(ObjectType.INPUT_ENTITY)) {
                     checkEntityPermissions(((Entity) checkObject), permissionId, workspacePermission.permissionType());
                 } else if (workspacePermission.objectType().equals(ObjectType.BINARY)) {
                     checkBinaryPermissions(((Entity) checkObject), permissionId, workspacePermission.permissionType());

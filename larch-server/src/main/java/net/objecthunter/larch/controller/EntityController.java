@@ -29,6 +29,7 @@ import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -213,7 +214,11 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     public String create(final InputStream src)
             throws IOException {
-        String entityId = create(mapper.readValue(src, Entity.class));
+        Entity e = mapper.readValue(src, Entity.class);
+        if (e.getState() == null) {
+            e.setState(EntityState.PENDING);
+        }
+        String entityId = create(e);
         return entityId;
     }
     
@@ -294,8 +299,7 @@ public class EntityController extends AbstractLarchController {
 
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView publishHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String id) throws IOException {
+    public ModelAndView publishHtml( @PathVariable("id") final String id) throws IOException {
         this.publish(id);
         return this.retrieveHtml(id);
     }

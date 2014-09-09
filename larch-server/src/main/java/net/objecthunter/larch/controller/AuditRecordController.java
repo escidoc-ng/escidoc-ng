@@ -58,8 +58,7 @@ public class AuditRecordController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
-    public AuditRecords retrieve(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("entity-id") final String entityId, @RequestParam(
+    public AuditRecords retrieve(@PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
         return entityService.retrieveAuditRecords(entityId, offset, count);
@@ -79,12 +78,11 @@ public class AuditRecordController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/entity/{entity-id}/audit", method = RequestMethod.GET,
             produces = "text/html")
-    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("entity-id") final String entityId, @RequestParam(
+    public ModelAndView retrieveHtml(@PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("auditRecords", this.retrieve(workspaceId, entityId, offset, count));
+        model.addAttribute("auditRecords", this.retrieve(entityId, offset, count));
         return new ModelAndView("audit", model);
     }
 }
