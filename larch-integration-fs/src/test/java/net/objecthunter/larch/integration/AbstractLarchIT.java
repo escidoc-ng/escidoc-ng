@@ -175,7 +175,7 @@ public abstract class AbstractLarchIT {
      * @param status
      * @return String entityId
      */
-    protected Entity createEntity(EntityState status, String permissionId) throws Exception {
+    protected Entity createEntity(EntityState status, EntityType type, String parentId) throws Exception {
         if (status == null ||
                 (!status.equals(EntityState.PENDING) && !status.equals(EntityState.SUBMITTED) &&
                         !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
@@ -183,7 +183,8 @@ public abstract class AbstractLarchIT {
         }
         String publishId = null;
         Entity e = createFixtureEntity();
-        e.setParentId(permissionId);
+        e.setParentId(parentId);
+        e.setType(type);
         AlternativeIdentifier identifier = new AlternativeIdentifier();
         identifier.setType(IdentifierType.DOI.name);
         identifier.setValue("testdoi");

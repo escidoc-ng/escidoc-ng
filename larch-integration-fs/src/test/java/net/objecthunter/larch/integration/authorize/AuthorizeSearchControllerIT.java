@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 
 import org.apache.http.HttpResponse;
@@ -347,13 +348,13 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
             }
         }
         for (int i = 0; i < totalWorkspacePendingEntitiesCount; i++) {
-            createEntity(EntityState.PENDING, permissionId);
+            createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         }
         for (int i = 0; i < totalWorkspaceSubmittedEntitiesCount; i++) {
-            createEntity(EntityState.SUBMITTED, permissionId);
+            createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         }
         for (int i = 0; i < totalWorkspacePublishedEntitiesCount; i++) {
-            createEntity(EntityState.PUBLISHED, permissionId);
+            createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         }
     }
 

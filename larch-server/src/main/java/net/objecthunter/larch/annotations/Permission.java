@@ -43,7 +43,6 @@ public @interface Permission {
     /**
      * Defines the type of the WorkspacePermission<br>
      * <br>
-     * PROVIDED means that the desired workspace-permissions are provided in the Annotation <br>
      * READ means that READ-Permissions are desired and the state gets generated dependent on the given entityId and
      * its state.<br>
      * WRITE means that WRITE-Permissions are desired and the state gets generated dependent on the given entityId and

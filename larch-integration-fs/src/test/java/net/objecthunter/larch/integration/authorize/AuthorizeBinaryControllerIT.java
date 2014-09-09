@@ -26,6 +26,7 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -43,7 +44,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateBinaryStream() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(MultipartEntityBuilder.create()
@@ -60,7 +61,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(MultipartEntityBuilder.create()
@@ -77,7 +78,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(MultipartEntityBuilder.create()
@@ -98,7 +99,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateBinaryStreamHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
@@ -115,7 +116,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
@@ -132,7 +133,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
                 .body(MultipartEntityBuilder.create()
@@ -153,7 +154,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateBinaryJson() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -163,7 +164,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -173,7 +174,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -186,7 +187,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateBinaryJsonHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -197,7 +198,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -208,7 +209,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/binary")
                 .body(mapper.writeValueAsString(getBinary()))
@@ -222,21 +223,21 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveBinary() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .build());
@@ -245,7 +246,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveBinaryHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
@@ -253,7 +254,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
@@ -261,7 +262,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .html(true)
@@ -271,21 +272,21 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDownloadBinary() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1/content")
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1/content")
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1/content")
                 .build());
@@ -294,7 +295,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteBinary() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/binary/image-1")
@@ -304,7 +305,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/binary/image-1")
@@ -314,7 +315,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/binary/image-1")

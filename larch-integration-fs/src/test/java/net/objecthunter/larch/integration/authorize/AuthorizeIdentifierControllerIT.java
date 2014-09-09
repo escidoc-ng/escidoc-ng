@@ -20,6 +20,7 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateIdentifier() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -42,7 +43,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -51,7 +52,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -64,7 +65,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateIdentifierHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -74,7 +75,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -84,7 +85,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
@@ -98,7 +99,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteIdentifier() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
@@ -107,7 +108,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
@@ -116,7 +117,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
@@ -129,7 +130,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteIdentifierHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
@@ -139,7 +140,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
@@ -149,7 +150,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
