@@ -29,7 +29,11 @@ public class Rights {
     }
 
     public void setRights(String username, EnumSet<Right> rightsToSet) {
-        this.rights.put(username, rightsToSet);
+        if (rightsToSet == null || rightsToSet.isEmpty()) {
+            this.rights.remove(username);
+        } else {
+            this.rights.put(username, rightsToSet);
+        }
     }
 
     public void addRights(String userName, Right ... rightsToSet) {
@@ -43,7 +47,7 @@ public class Rights {
         this.rights.put(userName, existingRights);
     }
 
-    public void removeRight(String userName, Right ... rightsToRemove) {
+    public void removeRights(String userName, Right ... rightsToRemove) {
         final EnumSet<Right> existingRights = this.rights.get(userName);
         if (existingRights != null) {
             for (final Right p: rightsToRemove) {

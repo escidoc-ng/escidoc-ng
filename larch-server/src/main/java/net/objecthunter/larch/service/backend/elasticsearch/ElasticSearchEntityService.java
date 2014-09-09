@@ -287,7 +287,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult searchEntities(EntityType entityType, Map<EntitiesSearchField, String[]> searchFields) throws IOException {
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         for (Entry<EntitiesSearchField, String[]> searchField : searchFields.entrySet()) {
             if (searchField.getValue() != null && searchField.getValue().length > 0) {
@@ -295,7 +295,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 for (int i = 0; i < searchField.getValue().length; i++) {
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
                         String value = searchField.getValue()[i].toLowerCase();
-                        if (searchField.getKey().getFieldName().equals("parentId")) {
+                        if (searchField.getKey().getFieldName().matches("parentId|type|state|ancestorEntityIds|permissionId|areaId")) {
                             value = searchField.getValue()[i];
                         }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
@@ -305,7 +305,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 queryBuilder.must(childQueryBuilder);
             }
         }
-        queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), entityType.name()));
         queryBuilder.must(getEntitesUserRestrictionQuery());
 
         int numRecords = 20;

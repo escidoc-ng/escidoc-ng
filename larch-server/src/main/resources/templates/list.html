@@ -30,7 +30,7 @@
                 </tr>
                 </thead>
                 <tr th:each="record,iterStat : ${result.data}" th:class="${iterStat.odd}? 'odd'">
-                    <td><a th:href="@{/workspace/} + ${record.workspaceId} + '/entity/' + ${record.id}" th:text="${record.id}"></a></td>
+                    <td><a th:href="@{/entity/} + ${record.id}" th:text="${record.id}"></a></td>
                     <td th:text="${record.label}"></td>
                     <td th:if="${#strings.isEmpty(record.type)}" th:text="'No Type'"></td>
                     <td th:unless="${#strings.isEmpty(record.type)}" th:text="${record.type}"></td>

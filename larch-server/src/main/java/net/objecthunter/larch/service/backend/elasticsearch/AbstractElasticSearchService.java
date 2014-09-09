@@ -226,7 +226,9 @@ public class AbstractElasticSearchService {
                 for (SearchHit hit : search.getHits().getHits()) {
                     final Entity entity = new Entity();
                     entity.setId(hit.field("id").getValue());
-                    entity.setOwner(hit.field("owner").getValue());
+                    if (hit.field("owner") != null) {
+                        entity.setOwner(hit.field("owner").getValue());
+                    }
 
                     Rights rights = new Rights();
                     if (hit.field("rights.rights." + currentUser.getName()) != null) {

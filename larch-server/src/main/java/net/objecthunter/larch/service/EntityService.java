@@ -106,7 +106,7 @@ public interface EntityService {
      * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(EntityType type, Map<EntitiesSearchField, String[]> searchFields) throws IOException;
+    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException;
 
     /**
      * Retrieve all old versions of an entity from the version storage

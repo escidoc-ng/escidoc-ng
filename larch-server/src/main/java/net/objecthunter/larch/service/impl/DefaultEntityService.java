@@ -520,8 +520,8 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult searchEntities(EntityType entityType, Map<EntitiesSearchField, String[]> searchFields) throws IOException {
-        return backendEntityService.searchEntities(entityType, searchFields);
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException {
+        return backendEntityService.searchEntities(searchFields);
     }
 
     @Override

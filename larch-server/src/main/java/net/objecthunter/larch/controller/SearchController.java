@@ -46,7 +46,7 @@ import org.springframework.web.servlet.ModelAndView;
  * Web controller responsible for search views
  */
 @Controller
-@RequestMapping("/search/{entityType}")
+@RequestMapping("/search")
 public class SearchController extends AbstractLarchController {
 
     @Autowired
@@ -63,8 +63,8 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = { "application/json" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public SearchResult searchMatchFields(@PathVariable("entityType") final String entityType, final HttpServletRequest request) throws IOException {
-        return entityService.searchEntities(EntityType.valueOf(entityType), fillSearchFields(request));
+    public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
+        return entityService.searchEntities(fillSearchFields(request));
     }
 
     /**
@@ -75,7 +75,7 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchHtml(@PathVariable("entityType") final String entityType) {
+    public ModelAndView searchHtml() {
         final ModelMap model = new ModelMap();
         return new ModelAndView("search", model);
     }
@@ -90,9 +90,9 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = { "text/html" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchMatchFieldsHtml(@PathVariable("entityType") final String entityType, final HttpServletRequest request) throws IOException {
+    public ModelAndView searchMatchFieldsHtml(final HttpServletRequest request) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", searchMatchFields(entityType, request));
+        model.addAttribute("result", searchMatchFields(request));
         return new ModelAndView("searchresult", model);
     }
 

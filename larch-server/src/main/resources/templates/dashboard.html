@@ -67,7 +67,7 @@
 
             <p class="value" th:text="${describe.larchClusterName}"></p>
         </div>
-        <div sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" class="right">
+        <div sec:authorize="hasRole('ROLE_ADMIN')" class="right">
             <div class="panel">
                 <script>
                 $(document).ready(function() {

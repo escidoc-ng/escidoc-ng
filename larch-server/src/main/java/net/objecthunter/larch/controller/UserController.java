@@ -167,12 +167,12 @@ public class UserController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public String createUserHtml(@RequestParam("name") final String userName,
+    public ModelAndView createUserHtml(@RequestParam("name") final String userName,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email,
             @RequestParam("groups") final List<String> groups) throws IOException {
-        return "redirect:/confirm/" + createUser(userName, firstName, lastName, email, groups);
+        return new ModelAndView("redirect:/confirm/" + createUser(userName, firstName, lastName, email, groups));
     }
 
     /**
