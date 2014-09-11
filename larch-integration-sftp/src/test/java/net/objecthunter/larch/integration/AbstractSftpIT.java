@@ -15,7 +15,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @IntegrationTest
 @WebAppConfiguration
 @ActiveProfiles("sftp")
-public class AbstractSftpIT {
+public abstract class AbstractSftpIT {
     @Autowired
     protected Environment env;
 
