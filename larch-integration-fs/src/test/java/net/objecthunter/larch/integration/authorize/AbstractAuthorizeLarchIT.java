@@ -36,10 +36,10 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.Rights;
-import net.objecthunter.larch.model.Rights.Right;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.Rights.Right;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 

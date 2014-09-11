@@ -135,20 +135,12 @@ public class UserController extends AbstractLarchController {
     public String createUser(@RequestParam("name") final String userName,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
-            @RequestParam("email") final String email,
-            @RequestParam("groups") final List<String> groups) throws IOException {
+            @RequestParam("email") final String email) throws IOException {
         final User u = new User();
         u.setName(userName);
         u.setFirstName(firstName);
         u.setLastName(lastName);
         u.setEmail(email);
-        final List<Group> groupList = new ArrayList<>(groups.size());
-        for (String groupName : groups) {
-            final Group g = new Group();
-            g.setName(groupName);
-            groupList.add(g);
-        }
-        u.setGroups(groupList);
         UserRequest request = this.backendCredentialsService.createNewUserRequest(u);
         return request.getToken();
     }
@@ -170,9 +162,8 @@ public class UserController extends AbstractLarchController {
     public ModelAndView createUserHtml(@RequestParam("name") final String userName,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
-            @RequestParam("email") final String email,
-            @RequestParam("groups") final List<String> groups) throws IOException {
-        return new ModelAndView("redirect:/confirm/" + createUser(userName, firstName, lastName, email, groups));
+            @RequestParam("email") final String email) throws IOException {
+        return new ModelAndView("redirect:/confirm/" + createUser(userName, firstName, lastName, email));
     }
 
     /**
@@ -252,13 +243,11 @@ public class UserController extends AbstractLarchController {
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
-            @RequestParam("email") final String email,
-            @RequestParam("groups") final List<String> groupNames) throws IOException {
+            @RequestParam("email") final String email) throws IOException {
         final User u = this.backendCredentialsService.retrieveUser(username);
         u.setLastName(lastName);
         u.setFirstName(firstName);
         u.setEmail(email);
-        u.setGroups(this.backendCredentialsService.retrieveGroups(groupNames));
         this.backendCredentialsService.updateUser(u);
         return success("The user " + username + " has been updated");
     }

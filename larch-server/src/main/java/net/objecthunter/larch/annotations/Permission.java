@@ -23,6 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.objecthunter.larch.model.security.Rights.ObjectType;
+import net.objecthunter.larch.model.security.Rights.PermissionType;
+
 /**
  * @author mih
  */
@@ -39,35 +42,7 @@ public @interface Permission {
     ObjectType objectType() default ObjectType.ENTITY;
 
     PermissionType permissionType() default PermissionType.NULL;
-
-    /**
-     * Defines the type of the WorkspacePermission<br>
-     * <br>
-     * READ means that READ-Permissions are desired and the state gets generated dependent on the given entityId and
-     * its state.<br>
-     * WRITE means that WRITE-Permissions are desired and the state gets generated dependent on the given entityId and
-     * its state.<br>
-     * READ_WRITE means that READ and WRITE-Permissions are desired and the state gets generated dependent on the
-     * given entityId and its state.<br>
-     * 
-     * @author mih
-     */
-    public enum PermissionType {
-        READ,
-        WRITE,
-        READ_WRITE,
-        NULL;
-    }
-
-    /**
-     * Defines the type of the Object to check against permissions<br>
-     * 
-     * @author mih
-     */
-    public enum ObjectType {
-        ENTITY,
-        BINARY,
-        INPUT_ENTITY;
-    }
+    
+    String targetGroup() default "ROLE_USER";
 
 }

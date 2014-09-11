@@ -35,8 +35,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testPatchEntity() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         String patchData = "{\"label\":\"otherLabel\"}";
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PATCH, entityUrl + entity.getId())
@@ -47,8 +47,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveEntity() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -57,8 +57,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveEntityHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -68,8 +68,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveVersion() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -78,8 +78,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveVersionHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -89,8 +89,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveVersions() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -99,8 +99,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveVersionsHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -122,8 +122,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testUpdateEntity() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         entity.setLabel("otherLabel");
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId())
@@ -134,8 +134,8 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testDeleteEntity() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        // create submitted entity
+        Entity entity = createEntity(EntityState.SUBMITTED, EntityType.AREA, null);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)

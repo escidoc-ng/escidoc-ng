@@ -234,7 +234,6 @@ public abstract class AbstractLarchIT {
                         Request.Get(entityUrl + entityId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        fetched.setPublishId(publishId);
         return fetched;
     }
 

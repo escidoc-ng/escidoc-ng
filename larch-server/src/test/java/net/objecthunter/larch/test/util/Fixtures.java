@@ -16,9 +16,7 @@
 
 package net.objecthunter.larch.test.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.Rights;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -43,24 +40,11 @@ public abstract class Fixtures {
 
     public static User createUser() {
         User u = new User();
-        u.setGroups(Arrays.asList(createGroup()));
         u.setName(RandomStringUtils.randomAlphabetic(12));
         u.setPwhash("9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"); // sha256 hash for pw 'test'
         u.setFirstName("foo");
         u.setLastName("bar");
         u.setEmail("foo.bar@exmaple.com");
-        return u;
-    }
-
-    public static User createUser(String... groupNames) {
-        User u = createUser();
-        List<Group> groups = new ArrayList<>();
-        for (String name : groupNames) {
-            Group g = new Group();
-            g.setName(name);
-            groups.add(g);
-        }
-        u.setGroups(groups);
         return u;
     }
 
@@ -166,17 +150,6 @@ public abstract class Fixtures {
         e.setBinaries(binaries);
         e.setMetadata(metadata);
         return e;
-    }
-
-    public static Entity createFixturePermission() {
-        Entity permission = new Entity();
-        final Rights permissions = new Rights();
-        permissions.setRights("admin", EnumSet.allOf(Rights.Right.class));
-        permission.setRights(permissions);
-        permission.setId(RandomStringUtils.randomAlphanumeric(16));
-        permission.setOwner("foo");
-        permission.setLabel("bar");
-        return permission;
     }
 
     public static Metadata createRandomDCMetadata() {

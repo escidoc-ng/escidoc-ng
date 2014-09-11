@@ -24,10 +24,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.Permission.ObjectType;
-import net.objecthunter.larch.annotations.Permission.PermissionType;
+import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
@@ -35,6 +33,8 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.MetadataValidationResult;
+import net.objecthunter.larch.model.security.Rights.ObjectType;
+import net.objecthunter.larch.model.security.Rights.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;

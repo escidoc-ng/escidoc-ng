@@ -245,63 +245,6 @@ public class ElasticSearchCredentialsServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testAddUserToGroup() throws Exception {
-        User u = Fixtures.createUser();
-        Group g = Fixtures.createGroup();
-        g.setName("ROLE_TEST2");
-
-        GetResponse mockGetResponse = createMock(GetResponse.class);
-        GetRequestBuilder mockGetRequestBuilder = createMock(GetRequestBuilder.class);
-        ListenableActionFuture mockFuture = createMock(ListenableActionFuture.class);
-        IndexRequestBuilder mockIndexRequestBuilder = createMock(IndexRequestBuilder.class);
-
-        /* retrieve user */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE, u.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(u));
-
-        /* retrieve group */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_GROUPS,
-                ElasticSearchCredentialsService.INDEX_GROUPS_TYPE, g.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.isExists()).andReturn(true);
-        expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(g));
-
-        /* existence check */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE, u.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.isExists()).andReturn(true);
-
-        /* user indexing */
-        expect(mockClient.prepareIndex(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE,
-                u.getName())).andReturn(mockIndexRequestBuilder);
-        expect(mockIndexRequestBuilder.setSource((byte[]) anyObject())).andReturn(mockIndexRequestBuilder);
-        expect(mockIndexRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockGetResponse.isExists()).andReturn(true);
-        expect(mockFuture.actionGet()).andReturn(null);
-
-        /* index refresh */
-        expect(mockClient.admin()).andReturn(mockAdminClient);
-        expect(mockAdminClient.indices()).andReturn(mockIndicesAdminClient);
-        expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(null);
-
-        replay(mockClient, mockAdminClient, mockIndicesAdminClient, mockGetRequestBuilder, mockGetResponse,
-                mockFuture,
-                mockIndexRequestBuilder);
-        this.credentialsService.addUserToGroup(u.getName(), g.getName());
-        verify(mockClient, mockAdminClient, mockIndicesAdminClient, mockGetRequestBuilder, mockGetResponse,
-                mockFuture, mockIndexRequestBuilder);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
     public void testDeleteUser() throws Exception {
         User u = Fixtures.createUser();
         GetResponse mockGetResponse = createMock(GetResponse.class);
@@ -390,62 +333,6 @@ public class ElasticSearchCredentialsServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testRemoveUserFromGroup() throws Exception {
-        User u = Fixtures.createUser();
-        Group g = Fixtures.createGroup();
-        g.setName("ROLE_TEST2");
-
-        GetResponse mockGetResponse = createMock(GetResponse.class);
-        GetRequestBuilder mockGetRequestBuilder = createMock(GetRequestBuilder.class);
-        ListenableActionFuture mockFuture = createMock(ListenableActionFuture.class);
-        IndexRequestBuilder mockIndexRequestBuilder = createMock(IndexRequestBuilder.class);
-
-        /* retrieve user */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE, u.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(u));
-
-        /* retrieve group */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_GROUPS,
-                ElasticSearchCredentialsService.INDEX_GROUPS_TYPE, g.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.isExists()).andReturn(true);
-        expect(mockGetResponse.getSourceAsBytes()).andReturn(mapper.writeValueAsBytes(g));
-
-        /* existence check */
-        expect(mockClient.prepareGet(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE, u.getName())).andReturn(mockGetRequestBuilder);
-        expect(mockGetRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(mockGetResponse);
-        expect(mockGetResponse.isExists()).andReturn(true);
-
-        /* user indexing */
-        expect(mockClient.prepareIndex(ElasticSearchCredentialsService.INDEX_USERS,
-                ElasticSearchCredentialsService.INDEX_USERS_TYPE,
-                u.getName())).andReturn(mockIndexRequestBuilder);
-        expect(mockIndexRequestBuilder.setSource((byte[]) anyObject())).andReturn(mockIndexRequestBuilder);
-        expect(mockIndexRequestBuilder.execute()).andReturn(mockFuture);
-        expect(mockGetResponse.isExists()).andReturn(true);
-        expect(mockFuture.actionGet()).andReturn(null);
-
-        /* index refresh */
-        expect(mockClient.admin()).andReturn(mockAdminClient);
-        expect(mockAdminClient.indices()).andReturn(mockIndicesAdminClient);
-        expect(mockIndicesAdminClient.refresh(anyObject())).andReturn(mockFuture);
-        expect(mockFuture.actionGet()).andReturn(null);
-
-        replay(mockClient, mockAdminClient, mockIndicesAdminClient, mockGetRequestBuilder, mockGetResponse,
-                mockFuture, mockIndexRequestBuilder);
-        this.credentialsService.removeUserFromGroup(u.getName(), g.getName());
-        verify(mockClient, mockAdminClient, mockIndicesAdminClient, mockGetRequestBuilder, mockGetResponse,
-                mockFuture, mockIndexRequestBuilder);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
     public void testRetrieveUser() throws Exception {
         User u = Fixtures.createUser();
         GetResponse mockGetResponse = createMock(GetResponse.class);
@@ -514,7 +401,6 @@ public class ElasticSearchCredentialsServiceTest {
         verify(mockClient, mockSearchRequestBuilder, mockSearchResponse, mockFuture, mockHits, mockHit);
         assertEquals(1, users.size());
         assertEquals(u.getName(), users.get(0).getName());
-        assertEquals(u.getGroups().get(0).getName(), users.get(0).getGroups().get(0).getName());
     }
 
     @SuppressWarnings("unchecked")

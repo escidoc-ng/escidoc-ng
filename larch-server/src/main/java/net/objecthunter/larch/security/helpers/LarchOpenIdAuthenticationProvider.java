@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
+import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -104,10 +107,12 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
     protected Authentication createSuccessfulAuthentication(User user, OpenIDAuthenticationToken auth) {
         String[] roles = null;
         if (user != null) {
-            if (user.getGroups() != null && user.getGroups().size() > 0) {
-                roles = new String[user.getGroups().size()];
-                for (int i = 0; i < roles.length; i++) {
-                    roles[i] = user.getGroups().get(i).getName();
+            if (user.getRoles() != null && user.getRoles().size() > 0) {
+                roles = new String[user.getRoles().size()];
+                int i = 0;
+                for (Entry<Group, Rights> entry : user.getRoles().entrySet()) {
+                    roles[i] = entry.getKey().getName();
+                    i++;
                 }
             } else {
                 roles = new String[] { "ROLE_IDENTIFIED" };

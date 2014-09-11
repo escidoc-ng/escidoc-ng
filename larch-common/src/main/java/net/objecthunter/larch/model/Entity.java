@@ -20,35 +20,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.objecthunter.larch.model.Rights;
-
 /**
  * A DTO for a top level larch repository object. Creating any object in the larch repository normally starts with
  * creating an {@link Entity} and adding content/metadata to it.
  */
 public class Entity {
 
-    private int version;
-
     private String id;
-
-    private String publishId;
-
-    private String label;
-
-    private EntityType type;
 
     private String parentId;
 
+    private EntityType type;
+
     private EntityState state;
+
+    private int version;
+
+    private List<String> children;
+
+    private String label;
 
     private String utcCreated;
 
     private String utcLastModified;
 
     private List<String> tags;
-
-    private List<String> children;
 
     private Map<String, Metadata> metadata;
 
@@ -57,41 +53,6 @@ public class Entity {
     private List<AlternativeIdentifier> alternativeIdentifiers;
 
     private Map<String, List<String>> relations;
-
-    private Rights rights;
-    
-    private String owner;
-    
-    /**
-     * @return the rights
-     */
-    public Rights getRights() {
-        return rights;
-    }
-
-    
-    /**
-     * @param rights the rights to set
-     */
-    public void setRights(Rights rights) {
-        this.rights = rights;
-    }
-
-    
-    /**
-     * @return the owner
-     */
-    public String getOwner() {
-        return owner;
-    }
-
-    
-    /**
-     * @param owner the owner to set
-     */
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
 
     /**
      * Get the relations of an {@link Entity}
@@ -181,20 +142,6 @@ public class Entity {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * @return the publishId
-     */
-    public String getPublishId() {
-        return publishId;
-    }
-
-    /**
-     * @param publishId the publishId to set
-     */
-    public void setPublishId(String publishId) {
-        this.publishId = publishId;
     }
 
     /**

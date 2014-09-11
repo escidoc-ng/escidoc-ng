@@ -69,15 +69,6 @@ public interface BackendCredentialsService {
     void updateGroup(Group g) throws IOException;
 
     /**
-     * Add an existing user to an exisitng group in the repository
-     * 
-     * @param username The name of the user
-     * @param groupname the namoe of the group
-     * @throws IOException
-     */
-    void addUserToGroup(String username, String groupname) throws IOException;
-
-    /**
      * Delete a User from the repository
      * 
      * @param name The name of the user to delete
@@ -92,15 +83,6 @@ public interface BackendCredentialsService {
      * @throws IOException
      */
     void deleteGroup(String name) throws IOException;
-
-    /**
-     * Remove an existing user from group, he is currently a member of
-     * 
-     * @param username the name of the user to remove from the group
-     * @param groupname the name of the group to remove the user from
-     * @throws IOException
-     */
-    void removeUserFromGroup(String username, String groupname) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.security.User} object from the repository

@@ -16,21 +16,15 @@
 
 package net.objecthunter.larch.security.helpers;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.annotations.Permission.ObjectType;
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.security.Rights.ObjectType;
 import net.objecthunter.larch.service.AuthorizationService;
 
-import org.apache.commons.io.IOUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

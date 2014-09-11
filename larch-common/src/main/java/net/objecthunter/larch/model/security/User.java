@@ -16,7 +16,8 @@
 
 package net.objecthunter.larch.model.security;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A DTO for a larch User
@@ -33,12 +34,12 @@ public class User {
 
     private String pwhash;
 
-    private List<Group> groups;
+    private Map<Group, Rights> roles = new HashMap<Group, Rights>();
 
     /**
      * Get the user's name
      * 
-     * @return th user's name
+     * @return the user's name
      */
     public String getName() {
         return name;
@@ -126,21 +127,50 @@ public class User {
     }
 
     /**
-     * get the groups of the user
+     * get the roles of the user
      * 
-     * @return the groups
+     * @return the roles
      */
-    public List<Group> getGroups() {
-        return groups;
+    public Map<Group, Rights> getRoles() {
+        return roles;
     }
 
     /**
-     * Set the groups of the user
+     * Set the roles of the user
      * 
-     * @param groups the groups to set
+     * @param roles the roles to set
      */
-    public void setGroups(List<Group> groups) {
-        this.groups = groups;
+    public void setRoles(Map<Group, Rights> roles) {
+        if (roles == null) {
+            this.roles = new HashMap<Group, Rights>();
+        }
+        this.roles = roles;
+    }
+
+    /**
+     * add a role
+     * 
+     * @param group key of role
+     * @param rights value of role
+     */
+    public void addRole(Group group, Rights rights) {
+        if (roles == null) {
+            this.roles = new HashMap<Group, Rights>();
+        }
+        roles.put(group, rights);
+    }
+
+    /**
+     * add a role
+     * 
+     * @param group key of role
+     * @param rights value of role
+     */
+    public void removeRole(Group group) {
+        if (roles == null) {
+            this.roles = new HashMap<Group, Rights>();
+        }
+        roles.remove(group);
     }
 
     @Override
@@ -152,7 +182,7 @@ public class User {
 
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
         if (firstName != null ? !firstName.equals(user.firstName) : user.firstName != null) return false;
-        if (groups != null ? !groups.equals(user.groups) : user.groups != null) return false;
+        if (roles != null ? !roles.equals(user.roles) : user.roles != null) return false;
         if (lastName != null ? !lastName.equals(user.lastName) : user.lastName != null) return false;
         if (!name.equals(user.name)) return false;
         if (pwhash != null ? !pwhash.equals(user.pwhash) : user.pwhash != null) return false;
@@ -167,7 +197,7 @@ public class User {
         result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (pwhash != null ? pwhash.hashCode() : 0);
-        result = 31 * result + (groups != null ? groups.hashCode() : 0);
+        result = 31 * result + (roles != null ? roles.hashCode() : 0);
         return result;
     }
 }

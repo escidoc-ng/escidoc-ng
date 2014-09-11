@@ -18,11 +18,11 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.Permission.ObjectType;
-import net.objecthunter.larch.annotations.Permission.PermissionType;
+import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
+import net.objecthunter.larch.model.security.Rights.ObjectType;
+import net.objecthunter.larch.model.security.Rights.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 

@@ -19,7 +19,6 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -28,6 +27,7 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.service.MailService;
@@ -103,14 +103,14 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 admin.setName("admin");
                 admin.setFirstName("Generic");
                 admin.setLastName("Superuser");
-                admin.setGroups(Arrays.asList(adminGroup));
+                admin.addRole(adminGroup, new Rights());
                 client
                         .prepareIndex(INDEX_USERS, "user", admin.getName())
                         .setSource(mapper.writeValueAsBytes(admin))
                         .execute().actionGet();
 
                 // create default user
-                final Group g =
+                final Group userGroup =
                         mapper.readValue(client
                                 .prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, "ROLE_USER").execute().actionGet()
                                 .getSourceAsBytes(),
@@ -120,7 +120,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                user.setGroups(Arrays.asList(g));
+                user.addRole(userGroup, new Rights());
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()
@@ -164,11 +164,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 final User u = mapper.readValue(get.getSourceAsBytes(), User.class);
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
-                    if (u.getGroups() != null && u.getGroups().size() > 0) {
-                        roles = new String[u.getGroups().size()];
-                        for (int i = 0; i < roles.length; i++) {
-                            roles[i] = u.getGroups().get(i).getName();
-                        }
+                    if (u.getRoles() != null && u.getRoles().size() > 0) {
+                        roles = u.getRoles().keySet().toArray(roles);
                     } else {
                         roles = new String[] { "ROLE_IDENTIFIED" };
                     }
@@ -211,9 +208,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     public UserRequest createNewUserRequest(User u) throws IOException {
         if (u.getName() == null || u.getName().isEmpty()) {
             throw new InvalidParameterException("User name must be set");
-        }
-        if (u.getGroups() == null || u.getGroups().size() == 0) {
-            throw new InvalidParameterException("The user has no groups associated with it");
         }
         if (u.getEmail() == null || u.getEmail().isEmpty()) {
             throw new InvalidParameterException("User's email can not be empty");
@@ -275,6 +269,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (!get.isExists()) {
                 throw new NotFoundException("The user " + u.getName() + " does not exist");
             }
+            
+            //Roles cannot be set with update user
+            User oldUser = mapper.readValue(get.getSourceAsBytes(), User.class);
+            u.setRoles(oldUser.getRoles());
+
             this.client
                     .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, u.getName()).setSource(
                             mapper.writeValueAsBytes(u))
@@ -303,22 +302,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-    }
-
-    @Override
-    public void addUserToGroup(String username, String groupname) throws IOException {
-        final User u = this.retrieveUser(username);
-        final Group g = this.retrieveGroup(groupname);
-        if (u.getGroups() == null) {
-            u.setGroups(new ArrayList<>());
-        }
-        for (Group existing : u.getGroups()) {
-            if (existing.getName().equals(g.getName())) {
-                return;
-            }
-        }
-        u.getGroups().add(g);
-        this.updateUser(u);
     }
 
     @Override
@@ -359,20 +342,14 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         this.refreshIndex(INDEX_GROUPS);
     }
 
-    @Override
-    public void removeUserFromGroup(String username, String groupname) throws IOException {
-        final User u = this.retrieveUser(username);
-        final Group g = this.retrieveGroup(groupname);
-        if (u.getGroups() == null) {
-            u.setGroups(new ArrayList<>());
-        }
-        u.getGroups().remove(g);
-        this.updateUser(u);
-    }
-
     private boolean isLastAdminUser(String name) throws IOException {
-        if (!this.retrieveUser(name).getGroups().contains(this.retrieveGroup("ROLE_ADMIN"))) {
-            return false;
+        User user = this.retrieveUser(name);
+        if (user.getRoles() != null) {
+            for (Group group : user.getRoles().keySet()) {
+                if (group != null && group.getName().equals("ROLE_ADMIN")) {
+                    return false;
+                }
+            }
         }
         final CountResponse resp;
         try {

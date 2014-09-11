@@ -26,7 +26,7 @@ public class Group {
     /**
      * Get the group's name
      * 
-     * @return th grou's name
+     * @return th group's name
      */
     public String getName() {
         return name;
