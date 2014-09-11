@@ -28,8 +28,9 @@ import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -79,8 +80,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(objectType = ObjectType.ENTITY, idIndex = 0,
-                    permissionType = PermissionType.WRITE))
+            permission = @Permission(objectType = Right.ObjectType.ENTITY, idIndex = 0,
+                    permissionType = Right.PermissionType.WRITE))
     public void patch(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
@@ -101,7 +102,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PostAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ))
     public Entity
             retrieve(@PathVariable("id") final String id)
                     throws IOException {
@@ -140,7 +141,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PostAuth(permission = @Permission(idIndex = 0, versionIndex = 1,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ))
     public Entity retrieve(@PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         return entityService.retrieve(id, version);
@@ -230,8 +231,8 @@ public class EntityController extends AbstractLarchController {
      * @throws IOException
      */
     @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')", concat = Concat.OR, 
-            permission = @Permission(idIndex = 0, objectType = ObjectType.INPUT_ENTITY,
-                    permissionType = PermissionType.WRITE))
+            permission = @Permission(idIndex = 0, objectType = Right.ObjectType.INPUT_ENTITY,
+                    permissionType = Right.PermissionType.WRITE))
     public String create(final Entity entity) throws IOException {
         final String id = this.entityService.create(entity);
         this.entityService.createAuditRecord(AuditRecordHelper.createEntityRecord(id));
@@ -251,7 +252,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void update(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
@@ -276,7 +277,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void delete(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.delete(id);
@@ -288,7 +289,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public String publish(@PathVariable("id") final String id)
             throws IOException {
         String publishId = this.entityService.publish(id);
@@ -309,7 +310,7 @@ public class EntityController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void submit(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.submit(id);

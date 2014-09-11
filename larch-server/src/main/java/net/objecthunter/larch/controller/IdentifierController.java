@@ -21,8 +21,9 @@ import java.io.IOException;
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -61,7 +62,7 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void create(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(entityId, type, value);
@@ -99,7 +100,7 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void delete(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(entityId, type, value);

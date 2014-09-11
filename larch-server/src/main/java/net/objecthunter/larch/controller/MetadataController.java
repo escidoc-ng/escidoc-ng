@@ -33,8 +33,9 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.MetadataValidationResult;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -87,7 +88,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Entity e = entityService.retrieve(entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
@@ -119,7 +120,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public String addMetadataHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
@@ -157,7 +158,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.BINARY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.WRITE))
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
 
@@ -198,7 +199,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.BINARY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.WRITE))
     public String addBinaryMetadataHtml(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
@@ -247,7 +248,7 @@ public class MetadataController extends AbstractLarchController {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ))
     public void retrieveMetadataXml(@PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse resp) throws IOException {
@@ -276,7 +277,7 @@ public class MetadataController extends AbstractLarchController {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.BINARY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.READ))
     public void retrieveBinaryMetadataXml(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName,
@@ -312,7 +313,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ))
     public MetadataValidationResult validate(@PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
         return this.schemaService.validate(id, metadataName);
@@ -334,7 +335,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.BINARY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.READ))
     public MetadataValidationResult validate(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
@@ -413,7 +414,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ))
     public Metadata retrieveMetadata( @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
@@ -444,7 +445,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permission = @Permission(idIndex = 0,
-            objectType = ObjectType.BINARY, permissionType = PermissionType.READ))
+            objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.READ))
     public Metadata retrieveBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
@@ -482,7 +483,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
     public void deleteMetadata(@PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         this.entityService.deleteMetadata(entityId, mdName);
@@ -495,7 +496,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.BINARY, permissionType = PermissionType.WRITE))
+                    objectType = Right.ObjectType.BINARY, permissionType = Right.PermissionType.WRITE))
     public void deleteBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {

@@ -25,9 +25,9 @@ import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.Group;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
-import net.objecthunter.larch.model.security.Rights.Right;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -152,7 +152,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private void handleWorkspacePermission(Method method, Permission workspacePermission,
             String id, Integer versionId, Object result)
             throws IOException {
-        if (workspacePermission.permissionType().equals(PermissionType.NULL)) {
+        if (workspacePermission.permissionType().equals(net.objecthunter.larch.model.security.Right.PermissionType.NULL)) {
             return;
         }
         Object checkObject = result;
@@ -161,8 +161,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (StringUtils.isBlank(id)) {
                 throw new AccessDeniedException("No id provided");
             }
-            if (workspacePermission.objectType().equals(ObjectType.ENTITY) ||
-                    workspacePermission.objectType().equals(ObjectType.BINARY)) {
+            if (workspacePermission.objectType().equals(net.objecthunter.larch.model.security.Right.ObjectType.ENTITY) ||
+                    workspacePermission.objectType().equals(net.objecthunter.larch.model.security.Right.ObjectType.BINARY)) {
                 // get entity
                 if (versionId != null) {
                     checkObject = backendVersionService.getOldVersion(id, versionId);

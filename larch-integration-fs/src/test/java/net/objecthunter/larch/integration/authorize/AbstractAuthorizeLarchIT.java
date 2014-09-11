@@ -116,7 +116,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         permission.setId(RandomStringUtils.randomAlphanumeric(16));
         permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
-        permission.setOwner("foo");
         permission.setLabel("bar");
         HttpResponse resp = Request.Post(entityUrl)
                 .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON)

@@ -22,7 +22,8 @@ import java.lang.reflect.Method;
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.service.AuthorizationService;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -97,7 +98,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return String Id or null
      */
     private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
+        if (preAuth != null && !Right.ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
                 preAuth.permission().idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
                 joinPoint.getArgs().length > preAuth.permission().idIndex() &&
@@ -133,7 +134,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return Entity or null
      */
     private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
-        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
+        if (preAuth != null && Right.ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
                 preAuth.permission().idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
                 joinPoint.getArgs().length > preAuth.permission().idIndex() &&

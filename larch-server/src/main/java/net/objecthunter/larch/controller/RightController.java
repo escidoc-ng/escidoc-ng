@@ -17,10 +17,8 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.io.InputStream;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,14 +26,10 @@ import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
-import net.objecthunter.larch.model.security.Rights.Right;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -45,6 +39,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Web controller responsible for search views
@@ -59,20 +55,24 @@ public class RightController extends AbstractLarchController {
     @Autowired
     private BackendCredentialsService backendCredentialsService;
 
+    @Autowired
+    private ObjectMapper mapper;
+
     /**
      * Controller method for adding user-rights to a User
      * 
      * @param name The name of the user
      */
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
     permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
-    public void addRights(@PathVariable("name") final String name, final HttpServletRequest request) throws IOException {
+            objectType = net.objecthunter.larch.model.security.Right.ObjectType.ENTITY, permissionType = net.objecthunter.larch.model.security.Right.PermissionType.WRITE))
+    public void addRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
         User user = backendCredentialsService.retrieveUser(name);
-        user.setRoles(fillRoles(request, user.getRoles()));
+        Map<Group, Rights> roles = mapper.readValue(src, Map.class);
+        //user.setRoles(fillRoles(request, user.getRoles()));
         backendCredentialsService.updateUser(user);
     }
 
@@ -84,8 +84,8 @@ public class RightController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView addRightsHtml(@PathVariable("name") final String name, final HttpServletRequest request) throws IOException {
-        addRights(name, request);
+    public ModelAndView addRightsHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
+        addRights(name, src);
         return new ModelAndView("redirect:/user/" + name);
     }
 

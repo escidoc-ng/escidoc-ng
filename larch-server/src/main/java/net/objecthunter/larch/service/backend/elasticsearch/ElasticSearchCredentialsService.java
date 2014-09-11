@@ -19,14 +19,20 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -120,7 +126,22 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                user.addRole(userGroup, new Rights());
+                Rights rights = new Rights();
+                Set<Right> rightSet = new HashSet<Right>();
+                Right right = new Right();
+                right.setObjectType(ObjectType.ENTITY);
+                right.setPermissionType(PermissionType.READ);
+                right.setState(EntityState.PENDING);
+                right.setTree(false);
+                rightSet.add(right);
+                Right right1 = new Right();
+                right1.setObjectType(ObjectType.BINARY);
+                right1.setPermissionType(PermissionType.WRITE);
+                right1.setState(EntityState.SUBMITTED);
+                right1.setTree(true);
+                rightSet.add(right1);
+                rights.setRights("test", rightSet);
+                user.addRole(userGroup, rights);
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()

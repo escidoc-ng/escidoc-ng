@@ -10,10 +10,10 @@ import java.util.Set;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Rights.ObjectType;
-import net.objecthunter.larch.model.security.Rights.PermissionType;
-import net.objecthunter.larch.model.security.Rights.Right;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
@@ -137,8 +137,8 @@ public class AbstractElasticSearchService {
             for (Entry<String, Set<Right>> rightSet : rights.getRights().entrySet()) {
                 Set<Right> userRights = rightSet.getValue();
                 for (Right userRight : userRights) {
-                    if (ObjectType.ENTITY.equals(userRight.getObjectType()) &&
-                            PermissionType.READ.equals(userRight.getPermissionType())) {
+                    if (net.objecthunter.larch.model.security.Right.ObjectType.ENTITY.equals(userRight.getObjectType()) &&
+                            net.objecthunter.larch.model.security.Right.PermissionType.READ.equals(userRight.getPermissionType())) {
                         if (userRight.getState() != null) {
                             restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(userRight.getState(),
                                     rightSet.getKey()));
