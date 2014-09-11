@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -23,12 +24,20 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     private String passwd;
     private String host;
     private int port;
-    private long timeout = 100000;
+    private long timeout = 10000;
 
     @Autowired
     private Environment env;
 
     private ClientSession currentSession;
+
+    @PostConstruct
+    public void init() throws Exception {
+        this.username = env.getRequiredProperty("sftp.user");
+        this.passwd = env.getRequiredProperty("sftp.passwd");
+        this.host = env.getRequiredProperty("sftp.host");
+        this.port = Integer.parseInt(env.getRequiredProperty("sftp.port"));
+    }
 
     @Override
     public String create(InputStream src) throws IOException {
