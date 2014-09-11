@@ -41,6 +41,7 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
+import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
@@ -286,6 +287,12 @@ public class LarchServerConfiguration {
     public WeedFSBlobstoreService weedFSBlobstoreService() {
         return new WeedFSBlobstoreService();
     }
+
+     @Bean
+     @Profile("sftp")
+     public SftpBlobstoreService sftpBlobstoreServive() {
+        return new SftpBlobstoreService();
+     }
 
     /**
      * Get a Jackson {@link com.fasterxml.jackson.databind.ObjectMapper} Spring bean for JSON
