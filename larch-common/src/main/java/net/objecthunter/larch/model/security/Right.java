@@ -12,10 +12,23 @@ import net.objecthunter.larch.model.Entity.EntityState;
  */
 public class Right {
 
-    private PermissionType permissionType;
     private ObjectType objectType;
+    private PermissionType permissionType;
     private EntityState state;
     private boolean tree = true;
+    
+    /**
+     * Default Constructor
+     */
+    public Right() {
+    }
+    
+    public Right(ObjectType objectType, PermissionType permissionType, EntityState state, boolean isTree) {
+        this.objectType = objectType;
+        this.permissionType = permissionType;
+        this.state = state;
+        this.tree = isTree;
+    }
     
     /**
      * @return the tree
@@ -88,8 +101,25 @@ public class Right {
     public enum ObjectType {
         ENTITY,
         BINARY,
+        USER,
         INPUT_ENTITY;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Right right = (Right) o;
+
+        if (objectType != null ? !objectType.equals(right.objectType) : right.objectType != null) return false;
+        if (permissionType != null ? !permissionType.equals(right.permissionType) : right.permissionType != null) return false;
+        if (state != null ? !state.equals(right.state) : right.state != null) return false;
+        if (tree == true ? right.tree == false : right.tree == true) return false;
+
+        return true;
+    }
+
 
 }
 

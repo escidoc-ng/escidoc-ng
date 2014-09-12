@@ -179,7 +179,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                         .addTextBody("first_name", "test")
                         .addTextBody("last_name", "test")
                         .addTextBody("email", username + "@fiz.de")
-                        .addTextBody("groups", "ROLE_USER")
                         .build())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());

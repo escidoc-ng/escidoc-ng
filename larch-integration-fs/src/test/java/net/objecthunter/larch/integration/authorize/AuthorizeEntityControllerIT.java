@@ -81,6 +81,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -104,6 +105,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .html(true)
                 .build());
     }
@@ -126,6 +128,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -149,6 +152,7 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .html(true)
                 .build());
     }

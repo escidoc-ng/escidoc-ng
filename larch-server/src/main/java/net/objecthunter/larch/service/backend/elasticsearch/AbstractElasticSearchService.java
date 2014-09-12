@@ -11,8 +11,6 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -122,13 +120,13 @@ public class AbstractElasticSearchService {
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
-            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Group.ADMINS)) {
+            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
                 return QueryBuilders.matchAllQuery();
             }
         }
 
         // get user-permissions
-        Rights rights = currentUser.getRoles().get(Group.USERS);
+        Rights rights = currentUser.getRoles().get(Group.USERS.getName());
 
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
 
@@ -165,24 +163,6 @@ public class AbstractElasticSearchService {
         subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
                 EntityType.AREA.getName()));
         subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
-                EntityType.PERMISSION.getName()));
-        if (StringUtils.isNotBlank(permissionId)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(),
-                    permissionId));
-        }
-        return subRestrictionQueryBuilder;
-    }
-
-    /**
-     * Generate a subquery that restrict to a certain permission
-     * 
-     * @param state
-     * @param permissionId
-     * @return BoolQueryBuilder subRestrictionQuery
-     */
-    private BoolQueryBuilder getPermissionEntitiesRestrictionQuery(String permissionId) {
-        BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
                 EntityType.PERMISSION.getName()));
         if (StringUtils.isNotBlank(permissionId)) {
             subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(),

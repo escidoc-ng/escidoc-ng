@@ -240,6 +240,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 
@@ -266,6 +267,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
                 .html(true)
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 
@@ -289,6 +291,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1/content")
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 

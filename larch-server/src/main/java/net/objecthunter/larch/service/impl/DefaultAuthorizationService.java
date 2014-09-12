@@ -22,7 +22,9 @@ import java.util.Set;
 
 import net.objecthunter.larch.annotations.Concat;
 import net.objecthunter.larch.annotations.Permission;
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Right;
@@ -69,7 +71,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             Permission workspacePermission, Concat concat, Object[] methodArgs) throws IOException {
         // Admin may do everything
         final User u = this.getCurrentUser();
-        if (u != null && u.getRoles() != null && u.getRoles().keySet().contains(Group.ADMINS)) {
+        if (u != null && u.getRoles() != null && u.getRoles().keySet().contains(Group.ADMINS.getName())) {
             return;
         }
 
@@ -181,19 +183,24 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 throw new AccessDeniedException("Object is not below permission");
             }
             final User u = this.getCurrentUser();
-            Set<Right> rights = u.getRoles().get(Group.USERS).getRights(permissionId);
-            for (Right right : rights) {
-                if (right.getObjectType().equals(workspacePermission.objectType())) {
-                    if (right.getState() == null || right.getState().equals(((Entity) checkObject).getState())) {
-                        if ((right.isTree() && !((Entity) checkObject).getId().equals(permissionId)) ||
-                                (!right.isTree() && ((Entity) checkObject).getId().equals(permissionId))) {
-                            if (workspacePermission.permissionType().equals(right.getPermissionType())) {
-                                return;
+            if (u != null && u.getRoles().get(Group.USERS.getName()) != null) {
+                Set<Right> rights = u.getRoles().get(Group.USERS.getName()).getRights(permissionId);
+                if (rights != null) {
+                    for (Right right : rights) {
+                        if (right.getObjectType().equals(workspacePermission.objectType())) {
+                            if (right.getState() == null || right.getState().equals(((Entity) checkObject).getState())) {
+                                if ((right.isTree() && !((Entity) checkObject).getId().equals(permissionId)) ||
+                                        (!right.isTree() && ((Entity) checkObject).getId().equals(permissionId))) {
+                                    if (workspacePermission.permissionType().equals(right.getPermissionType())) {
+                                        return;
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+            throw new AccessDeniedException("User may not call method");
         } else {
             throw new AccessDeniedException("Object has wrong type");
         }
@@ -203,13 +210,17 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private String getPermissionId(Entity entity) throws IOException {
         EntityHierarchy hierarchy = null;
         if (StringUtils.isNotBlank(entity.getId())) {
-            hierarchy = backendEntityService.getHierarchy(entity.getId());
-        } else if (StringUtils.isNotBlank(entity.getParentId())) {
+            try {
+                hierarchy = backendEntityService.getHierarchy(entity.getId());
+                return hierarchy.getPermissionId();
+            } catch (NotFoundException e) {}
+        } 
+        if (StringUtils.isNotBlank(entity.getParentId())) {
             hierarchy = backendEntityService.getHierarchy(entity.getParentId());
+            return hierarchy.getPermissionId();
         } else {
             return null;
         }
-        return hierarchy.getPermissionId();
     }
 
 }

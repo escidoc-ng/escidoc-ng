@@ -24,7 +24,11 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
@@ -33,6 +37,9 @@ import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 
@@ -129,7 +136,6 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("first_name", "test")
                                 .addTextBody("last_name", "test")
                                 .addTextBody("email", name + "@fiz.de")
-                                .addTextBody("groups", "ROLE_USER")
                                 .build()
                         ));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -142,6 +148,14 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("passwordRepeat", password)
                                 .build()
                         ));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        // create user-role
+        Map<String, Rights> roles = new HashMap<String, Rights>();
+        Rights rights = new Rights();
+        roles.put(Group.USERS.getName(), rights);
+        resp = this.executeAsAdmin(Request.Post(userUrl + name + "/rights")
+                .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
+        String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         return name;
     }

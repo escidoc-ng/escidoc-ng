@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -41,6 +42,7 @@ import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -109,7 +111,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 admin.setName("admin");
                 admin.setFirstName("Generic");
                 admin.setLastName("Superuser");
-                admin.addRole(adminGroup, new Rights());
+                admin.addRole(adminGroup.getName(), new Rights());
                 client
                         .prepareIndex(INDEX_USERS, "user", admin.getName())
                         .setSource(mapper.writeValueAsBytes(admin))
@@ -128,20 +130,12 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setLastName("User");
                 Rights rights = new Rights();
                 Set<Right> rightSet = new HashSet<Right>();
-                Right right = new Right();
-                right.setObjectType(ObjectType.ENTITY);
-                right.setPermissionType(PermissionType.READ);
-                right.setState(EntityState.PENDING);
-                right.setTree(false);
+                Right right = new Right(ObjectType.ENTITY, PermissionType.READ, EntityState.PENDING, false);
                 rightSet.add(right);
-                Right right1 = new Right();
-                right1.setObjectType(ObjectType.BINARY);
-                right1.setPermissionType(PermissionType.WRITE);
-                right1.setState(EntityState.SUBMITTED);
-                right1.setTree(true);
+                Right right1 = new Right(ObjectType.BINARY, PermissionType.WRITE, EntityState.SUBMITTED, true);
                 rightSet.add(right1);
                 rights.setRights("test", rightSet);
-                user.addRole(userGroup, rights);
+                user.addRole(userGroup.getName(), rights);
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()
@@ -186,7 +180,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
                     if (u.getRoles() != null && u.getRoles().size() > 0) {
-                        roles = u.getRoles().keySet().toArray(roles);
+                        roles = u.getRoles().keySet().toArray(new String[u.getRoles().size()]);
                     } else {
                         roles = new String[] { "ROLE_IDENTIFIED" };
                     }
@@ -304,6 +298,32 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         this.refreshIndex(INDEX_USERS);
     }
+    
+    @Override
+    public void setRoles(String username, Map<String, Rights> roles) throws IOException {
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidParameterException("User name can not be null");
+        }
+        try {
+            final GetResponse get =
+                    this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, username).execute().actionGet();
+            if (!get.isExists()) {
+                throw new NotFoundException("The user " + username + " does not exist");
+            }
+            
+            User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            user.setRoles(roles);
+
+            this.client
+                    .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, user.getName()).setSource(
+                            mapper.writeValueAsBytes(user))
+                    .execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        this.refreshIndex(INDEX_USERS);
+    }
+
 
     @Override
     public void updateGroup(Group g) throws IOException {
@@ -365,12 +385,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
 
     private boolean isLastAdminUser(String name) throws IOException {
         User user = this.retrieveUser(name);
-        if (user.getRoles() != null) {
-            for (Group group : user.getRoles().keySet()) {
-                if (group != null && group.getName().equals("ROLE_ADMIN")) {
-                    return false;
-                }
-            }
+        if (user.getRoles() == null || !user.getRoles().containsKey(Group.ADMINS.getName())) {
+            return false;
         }
         final CountResponse resp;
         try {
@@ -380,7 +396,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders.termFilter("groups.name",
-                                                    "ROLE_ADMIN"))).execute()
+                                                    Group.ADMINS.getName()))).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());

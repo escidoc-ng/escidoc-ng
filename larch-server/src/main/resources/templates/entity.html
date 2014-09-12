@@ -62,14 +62,6 @@
             <a th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
 
         </div>
-        <div th:if="${entity.rights}">
-            <div th:each="right : ${entity.rights.rights}" class="panel">
-                <p class="panel_title" th:text="'Rights for User: ' + ${right.key}"></p>
-                <div th:each="permission : ${right.value}">
-                    <p class="value" th:text="${permission}"></p>
-                </div>
-            </div>
-        </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
@@ -178,24 +170,6 @@
                     th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
-            <div th:if="${entity.type.name == 'PERMISSION'}" class="panel">
-                <script>
-                $(document).ready(function() {
-                $('#ceUser').watermark('Username', {className: 'inactive'});
-               });
-
-                </script>
-                <p class="panel_title">Create Rights</p>
-                <form th:action="@{/entity/} + ${entity.id} + '/rights/'"
-                      method="post"
-                      enctype="multipart/form-data">
-                    <input type="text" id="ceUser" name="user" title="Set the name of the user"/>
-                    <select name="right" title="Select one or more rights" multiple="multiple">
-                         <option th:each="right: ${T(net.objecthunter.larch.model.Rights.Right).values()}" th:value="${right}" th:text="${right}" value="BAZ">BAZ</option>
-                    </select>
-                    <input class="button" type="submit" value="Create Rights"/>
-                </form>
-            </div>
             <div class="panel">
                 <script>
                 $(document).ready(function() {

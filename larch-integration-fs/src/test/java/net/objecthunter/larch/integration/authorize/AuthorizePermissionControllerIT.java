@@ -90,7 +90,6 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
         final Entity permission = new Entity();
         permission.setParentId(areaId);
         permission.setType(EntityType.PERMISSION);
-        permission.setOwner("foo");
         permission.setLabel("bar");
         return permission;
     }

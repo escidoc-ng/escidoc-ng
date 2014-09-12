@@ -24,8 +24,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import net.objecthunter.larch.integration.AbstractLarchIT;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
@@ -36,10 +39,12 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Right;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.Rights.Right;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -117,10 +122,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
         permission.setLabel("bar");
-        HttpResponse resp = Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON)
-                .execute()
-                .returnResponse();
+        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
 
         String test = EntityUtils.toString(resp.getEntity());
         permissionId = EntityUtils.toString(resp.getEntity());
@@ -132,50 +135,49 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         for (MissingPermission missingPermission : MissingPermission.values()) {
             usernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
-
         // create permissions for users in workspace
         for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], null);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(null, null, null, true));
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.READ, EntityState.PENDING, true));
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.READ, EntityState.PENDING, true));
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.READ, EntityState.PUBLISHED, true));
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.READ, EntityState.PUBLISHED, true));
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.READ, EntityState.SUBMITTED, true));
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.READ, EntityState.SUBMITTED, true));
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.READ, EntityState.WITHDRAWN, true));
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_WITHDRAWN_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.READ, EntityState.WITHDRAWN, true));
             } else if (e.getKey().equals(MissingPermission.READ_PERMISSION)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.READ_PERMISSION);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.READ, null, false));
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.WRITE, EntityState.PENDING, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.WRITE, EntityState.PENDING, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.WRITE, EntityState.PUBLISHED, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0],
-                        Right.WRITE_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId,
+                        new Right(Right.ObjectType.ENTITY, PermissionType.WRITE, EntityState.PUBLISHED, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.WRITE, EntityState.SUBMITTED, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0],
-                        Right.WRITE_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId,
+                        new Right(Right.ObjectType.ENTITY, PermissionType.WRITE, EntityState.SUBMITTED, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.BINARY, PermissionType.WRITE, EntityState.WITHDRAWN, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0],
-                        Right.WRITE_WITHDRAWN_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId,
+                        new Right(Right.ObjectType.ENTITY, PermissionType.WRITE, EntityState.WITHDRAWN, true));
             } else if (e.getKey().equals(MissingPermission.WRITE_PERMISSION)) {
-                createMissingPermissionRightsForUser(permissionId, e.getValue()[0], Right.WRITE_PERMISSION);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, new Right(Right.ObjectType.ENTITY, PermissionType.WRITE, null, false));
             }
         }
     }
@@ -233,38 +235,60 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return String workspaceId
      * @throws Exception
      */
-    protected void createMissingPermissionRightsForUser(String permissionId, String username, Right permission)
+    protected void createMissingPermissionRightsForUser(String username, String permissionId, Right right)
             throws Exception {
-        // try to retrieve workspace
-        HttpResponse resp = Request.Get(entityUrl + permissionId)
-                .execute()
-                .returnResponse();
+        // try to retrieve user
+        HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
         String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = this.mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
 
         // Set permissions for user
-        Rights permissions = fetched.getRights();
-        if (permissions == null) {
-            permissions = new Rights();
-        }
-        permissions.setRights(username, EnumSet.copyOf(new ArrayList<Right>() {
-
-            {
-                for (Right perm : Right.values()) {
-                    if (permission == null || !permission.equals(perm)) {
-                        add(perm);
-                    }
-                }
+        Map<String, Rights> roles = new HashMap<String, Rights>();
+        Rights rights = new Rights();
+        Set<Right> rightSet = new HashSet<Right>();
+        Right.ObjectType objectTypeToSet = Right.ObjectType.ENTITY;
+        // entity-permissions for each state
+        for (EntityState stateToSet : EntityState.values()) {
+            Right rightToSet = new Right(objectTypeToSet, PermissionType.READ, stateToSet, true);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
             }
-        }));
-        fetched.setRights(permissions);
+            rightToSet = new Right(objectTypeToSet, PermissionType.WRITE, stateToSet, true);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
+            }
+        }
+        // workspace-permissions
+        if (!objectTypeToSet.equals(right.getObjectType()) || right.getState() == null || right.isTree()) {
+            Right rightToSet = new Right(objectTypeToSet, PermissionType.READ, null, false);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
+            }
+            rightToSet = new Right(objectTypeToSet, PermissionType.WRITE, null, false);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
+            }
+        }
+        // binary-permissions for each state
+        objectTypeToSet = Right.ObjectType.BINARY;
+        for (EntityState stateToSet : EntityState.values()) {
+            Right rightToSet = new Right(objectTypeToSet, PermissionType.READ, stateToSet, true);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
+            }
+            rightToSet = new Right(objectTypeToSet, PermissionType.WRITE, stateToSet, true);
+            if (!right.equals(rightToSet)) {
+                rightSet.add(rightToSet);
+            }
+        }
+        rights.setRights(permissionId, rightSet);
+        roles.put(Group.USERS.getName(), rights);
 
-        // update workspace
-        resp = Request.Put(entityUrl + permissionId)
-                .bodyString(this.mapper.writeValueAsString(fetched), ContentType.APPLICATION_JSON)
-                .execute()
-                .returnResponse();
+        // add rights
+        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/rights")
+                .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
+        result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
     }

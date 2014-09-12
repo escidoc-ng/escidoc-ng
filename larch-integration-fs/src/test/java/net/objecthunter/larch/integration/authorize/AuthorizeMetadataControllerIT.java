@@ -239,6 +239,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/content")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -267,6 +268,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/content")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -291,6 +293,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/validate")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -319,6 +322,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/validate")
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -381,6 +385,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
 
@@ -407,6 +412,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .html(true)
                 .build());
     }
@@ -436,6 +442,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 
@@ -466,6 +473,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .html(true)
                 .build());
     }

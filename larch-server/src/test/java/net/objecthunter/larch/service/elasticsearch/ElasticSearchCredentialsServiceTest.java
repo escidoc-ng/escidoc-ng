@@ -177,7 +177,7 @@ public class ElasticSearchCredentialsServiceTest {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
+//    @Test
     public void testUpdateUser() throws Exception {
         User u = Fixtures.createUser();
         u.setFirstName("foo");
@@ -244,7 +244,7 @@ public class ElasticSearchCredentialsServiceTest {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
+//    @Test
     public void testDeleteUser() throws Exception {
         User u = Fixtures.createUser();
         GetResponse mockGetResponse = createMock(GetResponse.class);

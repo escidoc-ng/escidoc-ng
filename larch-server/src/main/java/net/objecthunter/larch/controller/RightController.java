@@ -20,11 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.EntityService;
@@ -69,11 +66,9 @@ public class RightController extends AbstractLarchController {
     @PreAuth(springSecurityExpression = "!isAnonymous()",
     permission = @Permission(idIndex = 0,
             objectType = net.objecthunter.larch.model.security.Right.ObjectType.ENTITY, permissionType = net.objecthunter.larch.model.security.Right.PermissionType.WRITE))
-    public void addRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
-        User user = backendCredentialsService.retrieveUser(name);
-        Map<Group, Rights> roles = mapper.readValue(src, Map.class);
-        //user.setRoles(fillRoles(request, user.getRoles()));
-        backendCredentialsService.updateUser(user);
+    public void setRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
+        Map<String, Rights> roles = mapper.readValue(src, Map.class);
+        backendCredentialsService.setRoles(name, roles);
     }
 
     /**
@@ -84,62 +79,9 @@ public class RightController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView addRightsHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
-        addRights(name, src);
+    public ModelAndView setRightsHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
+        setRights(name, src);
         return new ModelAndView("redirect:/user/" + name);
     }
 
-    /**
-     * Fill all Parameters in Roles-Map.
-     * 
-     * @param request HttpServletRequest
-     * @return Map<Group, Rights>
-     */
-    private Map<Group, Rights> fillRoles(HttpServletRequest request, Map<Group, Rights> existingRoles) throws IOException {
-        Map<Group, Rights> roles = existingRoles;
-//        Map<String, String[]> parameters = request.getParameterMap();
-//        String entityId = null;
-//        Group group = null;
-//        EnumSet<Right> rightSet = EnumSet.noneOf(Right.class);
-//        for (Entry<String, String[]> parameter : parameters.entrySet()) {
-//            if (parameter.getKey().equals("entityId")) {
-//                if (parameter.getValue() != null && parameter.getValue().length > 0) {
-//                    entityId = parameter.getValue()[0];
-//                }
-//            } else if (parameter.getKey().equals("group")) {
-//                if (parameter.getValue() != null && parameter.getValue().length > 0) {
-//                    group = backendCredentialsService.retrieveGroup(parameter.getValue()[0]);
-//                }
-//            } else if (parameter.getKey().equals("right")) {
-//                if (parameter.getValue() != null) {
-//                    for (int i = 0; i < parameter.getValue().length; i++) {
-//                        rightSet.add(Right.valueOf(parameter.getValue()[i]));
-//                    }
-//                }
-//            }
-//        }
-//        if (StringUtils.isBlank(entityId)) {
-//            throw new IOException("entityId may not be null");
-//        }
-//        if (group == null) {
-//            throw new IOException("group may not be null");
-//        }
-//        //check if entity exists
-//        entityService.retrieve(entityId);
-//        
-//        //set roles
-//        if (roles == null) {
-//            roles = new HashMap<Group, Rights>();
-//        }
-//        Rights rights = roles.get(group);
-//        if (rights == null) {
-//            rights = new Rights();
-//        }
-//        rights.setRights(entityId, rightSet);
-//        if (!rights.getRights().isEmpty()) {
-//            
-//        }
-//        roles.put(group, rights);
-        return roles;
-    }
 }

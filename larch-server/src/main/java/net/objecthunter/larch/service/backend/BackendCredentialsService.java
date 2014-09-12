@@ -18,8 +18,10 @@ package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 
@@ -59,6 +61,15 @@ public interface BackendCredentialsService {
      * @throws IOException
      */
     void updateUser(User u) throws IOException;
+
+    /**
+     * Set roles for a {@link net.objecthunter.larch.model.security.User} in the Repository
+     * 
+     * @param username the name of the user
+     * @param roles the roles to set
+     * @throws IOException
+     */
+    void setRoles(String username, Map<String, Rights> roles) throws IOException;
 
     /**
      * Update a {@link net.objecthunter.larch.model.security.Group} in the repository

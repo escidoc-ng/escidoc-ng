@@ -24,8 +24,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
 
 /**
  * @author mih
