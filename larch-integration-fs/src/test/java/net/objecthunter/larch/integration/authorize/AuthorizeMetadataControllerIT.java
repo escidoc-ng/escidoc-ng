@@ -268,7 +268,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/content")
-                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 
@@ -322,7 +322,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/validate")
-                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
+                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
 

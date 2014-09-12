@@ -154,7 +154,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private void handleWorkspacePermission(Method method, Permission workspacePermission,
             String id, Integer versionId, Object result)
             throws IOException {
-        if (workspacePermission.permissionType().equals(net.objecthunter.larch.model.security.Right.PermissionType.NULL)) {
+        if (workspacePermission.permissionType().equals(
+                net.objecthunter.larch.model.security.Right.PermissionType.NULL)) {
             return;
         }
         Object checkObject = result;
@@ -163,8 +164,10 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (StringUtils.isBlank(id)) {
                 throw new AccessDeniedException("No id provided");
             }
-            if (workspacePermission.objectType().equals(net.objecthunter.larch.model.security.Right.ObjectType.ENTITY) ||
-                    workspacePermission.objectType().equals(net.objecthunter.larch.model.security.Right.ObjectType.BINARY)) {
+            if (workspacePermission.objectType()
+                    .equals(net.objecthunter.larch.model.security.Right.ObjectType.ENTITY) ||
+                    workspacePermission.objectType().equals(
+                            net.objecthunter.larch.model.security.Right.ObjectType.BINARY)) {
                 // get entity
                 if (versionId != null) {
                     checkObject = backendVersionService.getOldVersion(id, versionId);
@@ -183,14 +186,20 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 throw new AccessDeniedException("Object is not below permission");
             }
             final User u = this.getCurrentUser();
-            if (u != null && u.getRoles().get(Group.USERS.getName()) != null) {
+            if (u != null && u.getRoles() != null && u.getRoles().get(Group.USERS.getName()) != null) {
                 Set<Right> rights = u.getRoles().get(Group.USERS.getName()).getRights(permissionId);
                 if (rights != null) {
+                    ObjectType checkObjectType = workspacePermission.objectType();
+                    if (ObjectType.INPUT_ENTITY.equals(checkObjectType)) {
+                        checkObjectType = ObjectType.ENTITY;
+                    }
                     for (Right right : rights) {
-                        if (right.getObjectType().equals(workspacePermission.objectType())) {
-                            if (right.getState() == null || right.getState().equals(((Entity) checkObject).getState())) {
-                                if ((right.isTree() && !((Entity) checkObject).getId().equals(permissionId)) ||
-                                        (!right.isTree() && ((Entity) checkObject).getId().equals(permissionId))) {
+                        if (right.getObjectType().equals(checkObjectType)) {
+                            if (right.getState() == null ||
+                                    right.getState().equals(((Entity) checkObject).getState())) {
+                                if ((right.isTree() && (((Entity) checkObject).getId() == null || !((Entity) checkObject)
+                                        .getId().equals(permissionId))) ||
+                                        (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject).getId().equals(permissionId))) {
                                     if (workspacePermission.permissionType().equals(right.getPermissionType())) {
                                         return;
                                     }
@@ -213,8 +222,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
             try {
                 hierarchy = backendEntityService.getHierarchy(entity.getId());
                 return hierarchy.getPermissionId();
-            } catch (NotFoundException e) {}
-        } 
+            } catch (NotFoundException e) {
+            }
+        }
         if (StringUtils.isNotBlank(entity.getParentId())) {
             hierarchy = backendEntityService.getHierarchy(entity.getParentId());
             return hierarchy.getPermissionId();

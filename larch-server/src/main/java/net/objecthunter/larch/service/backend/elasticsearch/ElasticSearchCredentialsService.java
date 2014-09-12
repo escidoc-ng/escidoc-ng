@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -39,6 +40,7 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -85,6 +87,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private BackendEntityService backendEntityService;
 
     @PostConstruct
     public void setup() throws IOException {
@@ -301,8 +306,31 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     
     @Override
     public void setRoles(String username, Map<String, Rights> roles) throws IOException {
+        //check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
+        }
+        for (String rolename : roles.keySet()) {
+            if (rolename == null) {
+                throw new InvalidParameterException("name of role may not be null");
+            }
+            if (roles.get(rolename) != null && roles.get(rolename).getRights() != null && !roles.get(rolename).getRights().isEmpty()) {
+                Map<String, Set<Right>> rights = roles.get(rolename).getRights();
+                for(Entry<String, Set<Right>> right : rights.entrySet()) {
+                    if (right.getKey() == null) {
+                        throw new InvalidParameterException("id of right may not be null");
+                    }
+                    backendEntityService.retrieve(right.getKey());
+                    for (Right singleRight : right.getValue()) {
+                        if (singleRight.getObjectType() == null) {
+                            throw new InvalidParameterException("objectType of right may not be null");
+                        }
+                        if (singleRight.getPermissionType() == null) {
+                            throw new InvalidParameterException("permissionType of right may not be null");
+                        }
+                    }
+                }
+            }
         }
         try {
             final GetResponse get =

@@ -121,11 +121,13 @@ public class AbstractElasticSearchService {
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
-            if (currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
+            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
                 return QueryBuilders.matchAllQuery();
             }
             // get user-permissions
-            rights = currentUser.getRoles().get(Group.USERS.getName());
+            if (currentUser.getRoles() != null) {
+                rights = currentUser.getRoles().get(Group.USERS.getName());
+            }
         }
 
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
@@ -133,7 +135,7 @@ public class AbstractElasticSearchService {
         restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
 
         // add restrictions
-        if (StringUtils.isNotBlank(username) && rights != null) {
+        if (StringUtils.isNotBlank(username) && rights != null && rights.getRights() != null) {
             for (Entry<String, Set<Right>> rightSet : rights.getRights().entrySet()) {
                 Set<Right> userRights = rightSet.getValue();
                 for (Right userRight : userRights) {
