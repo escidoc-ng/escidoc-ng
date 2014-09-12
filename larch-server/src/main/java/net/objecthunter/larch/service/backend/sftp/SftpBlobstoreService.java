@@ -131,7 +131,13 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
 
     @Override
     public InputStream retrieve(String path) throws IOException {
-        return null;
+
+        if (!path.startsWith(rootPath)) {
+            throw new IOException("Unable to read outside of the root path");
+        }
+        SftpClient.Attributes attrs = sftp.stat(path);
+
+        return sftp.read(rootPath + "/" + path);
     }
 
     @Override
