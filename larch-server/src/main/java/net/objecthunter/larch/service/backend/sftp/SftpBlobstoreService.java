@@ -120,10 +120,11 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
             final String path = rootPath + "/" + subdir + "/" + fileName;
 
             ensureSubDirExists(subdir);
+
             /* get a file handle */
             final SftpClient.Handle fileHandle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Create, SftpClient.OpenMode.Write));
 
-            /* write the data in a loop to the handle */
+            /* write the data in a loop via the handle */
             final byte buf[] = new byte[4096];
             int bytesRead;
             int bytesWritten = 0;
@@ -131,7 +132,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
                 sftp.write(fileHandle, bytesWritten, buf, 0, bytesRead);
                 bytesWritten += bytesRead;
             }
-            return path;
+            return subdir + "/" + fileName;
         } finally {
             IOUtils.closeQuietly(src);
         }
@@ -141,12 +142,9 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     @Override
     public InputStream retrieve(String path) throws IOException {
 
-        if (!path.startsWith(rootPath)) {
-            throw new IOException("Unable to read outside of the root path");
-        }
-        SftpClient.Attributes attrs = sftp.stat(path);
-
-        return sftp.read(rootPath + "/" + path);
+        SftpClient.Attributes attrs = sftp.stat(rootPath + "/" + path);
+        SftpClient.Handle fileHandle = sftp.open(rootPath + "/" + path, EnumSet.of(SftpClient.OpenMode.Read));
+        return new SftpInputStream(sftp, fileHandle);
     }
 
     @Override
