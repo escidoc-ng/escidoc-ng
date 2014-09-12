@@ -20,6 +20,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 import java.util.UUID;
 
 @Component
@@ -85,7 +86,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
             this.log.warn("Trying to create non existant sftp directory " + rootPath);
             try {
                 sftp.mkdir(rootPath);
-            }catch (IOException inner) {
+            } catch (IOException inner) {
                 this.log.error("Unable to create root directory", e);
                 throw e;
             }
@@ -93,11 +94,12 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     }
 
     private void ensureSubDirExists(String subdir) throws IOException {
-        try{
+        try {
             sftp.stat(rootPath + "/" + subdir);
         } catch (IOException e) {
-            this.log.warn("Creating sub directory " + subdir);
-            sftp.mkdir(rootPath + "/" +subdir);
+            final String path = rootPath + "/" + subdir;
+            this.log.warn("Creating sub directory " + path);
+            sftp.mkdir(path);
         }
     }
 
@@ -109,24 +111,31 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
             throw new IOException("Unable to write NULL inputstream");
         }
 
-        ensureConnected();
+        try {
+            ensureConnected();
 
-        SftpClient.Attributes attrs = sftp.stat(rootPath);
-        final String subdir = RandomStringUtils.randomAlphabetic(2);
-        final String fileName = UUID.randomUUID().toString();
-        final String path = rootPath + "/" + subdir + "/" + fileName;
+            SftpClient.Attributes attrs = sftp.stat(rootPath);
+            final String subdir = RandomStringUtils.randomAlphabetic(2);
+            final String fileName = UUID.randomUUID().toString();
+            final String path = rootPath + "/" + subdir + "/" + fileName;
 
-        ensureSubDirExists(subdir);
+            ensureSubDirExists(subdir);
+            /* get a file handle */
+            final SftpClient.Handle fileHandle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Create, SftpClient.OpenMode.Write));
 
-        try (OutputStream sink = sftp.write(path)) {
-            IOUtils.copy(src, sink);
+            /* write the data in a loop to the handle */
+            final byte buf[] = new byte[4096];
+            int bytesRead;
+            int bytesWritten = 0;
+            while ((bytesRead = src.read(buf)) > 0) {
+                sftp.write(fileHandle, bytesWritten, buf, 0, bytesRead);
+                bytesWritten += bytesRead;
+            }
+            return path;
         } finally {
             IOUtils.closeQuietly(src);
         }
-
-        return path;
     }
-
 
 
     @Override
