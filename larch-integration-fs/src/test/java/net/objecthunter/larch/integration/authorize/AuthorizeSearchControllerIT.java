@@ -51,11 +51,15 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
 
     private static int totalPublishedEntitiesCount = 0;
 
+    private static int totalWithdrawnEntitiesCount = 0;
+
     private static int totalWorkspacePendingEntitiesCount = 3;
 
     private static int totalWorkspaceSubmittedEntitiesCount = 4;
 
     private static int totalWorkspacePublishedEntitiesCount = 2;
+
+    private static int totalWorkspaceWithdrawnEntitiesCount = 1;
 
     @Before
     public void initialize() throws Exception {
@@ -80,7 +84,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
@@ -88,7 +92,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount + 
                 totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -97,20 +101,41 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount +
+                totalWorkspacePendingEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount +
+                totalWorkspacePendingEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePublishedEntitiesCount +
                 totalWorkspacePendingEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.GET, url, null,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+                assertEquals(totalWorkspacePublishedEntitiesCount +
                         totalWorkspacePendingEntitiesCount +
+                        totalWorkspaceWithdrawnEntitiesCount +
                         totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
             }
         }
@@ -119,7 +144,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsAnonymous(HttpMethod.GET, url, null, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
@@ -127,7 +152,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount + totalPendingEntitiesCount +
                 totalSubmittedEntitiesCount +
-                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount + 
+                totalWithdrawnEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -144,7 +170,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
@@ -152,7 +178,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount,
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount,
                 getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -161,19 +187,37 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.GET, url, null,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
                 assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
@@ -181,14 +225,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsAnonymous(HttpMethod.GET, url, null, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -198,7 +242,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearch() throws Exception {
-        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&type=DATA";
+        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA";
         String url = hostUrl + "search";
 
         // user with no workspace rights
@@ -207,7 +251,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
@@ -215,8 +259,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read submitted metadata rights
         response =
@@ -224,21 +268,41 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
-                totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+                assertEquals(totalWorkspacePublishedEntitiesCount +
                         totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
@@ -246,7 +310,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
@@ -254,7 +318,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount + totalPendingEntitiesCount +
                 totalSubmittedEntitiesCount +
-                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount + 
+                totalWithdrawnEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -264,7 +329,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearchForWorkspace() throws Exception {
-        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&type=DATA&permissionId=" + permissionId;
+        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA&permissionId=" + permissionId;
         String url = hostUrl + "search";
         // user with no workspace rights
         HttpResponse response =
@@ -272,7 +337,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
@@ -280,7 +345,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount,
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount,
                 getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -289,19 +354,37 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
                 assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
@@ -309,14 +392,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -345,6 +428,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                 totalSubmittedEntitiesCount++;
             } else if (EntityState.PUBLISHED.name().equals(entity.get("state"))) {
                 totalPublishedEntitiesCount++;
+            } else if (EntityState.WITHDRAWN.name().equals(entity.get("state"))) {
+                totalWithdrawnEntitiesCount++;
             }
         }
         for (int i = 0; i < totalWorkspacePendingEntitiesCount; i++) {
@@ -355,6 +440,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         }
         for (int i = 0; i < totalWorkspacePublishedEntitiesCount; i++) {
             createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        }
+        for (int i = 0; i < totalWorkspaceWithdrawnEntitiesCount; i++) {
+            createEntity(EntityState.WITHDRAWN, EntityType.DATA, permissionId);
         }
     }
 

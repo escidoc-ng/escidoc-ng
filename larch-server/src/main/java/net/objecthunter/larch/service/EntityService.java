@@ -69,7 +69,9 @@ public interface EntityService {
 
     void submit(String id) throws IOException;
 
-    String publish(String id) throws IOException;
+    void publish(String id) throws IOException;
+
+    void withdraw(String id) throws IOException;
 
     AuditRecords retrieveAuditRecords(String entityId, int offset, int count) throws IOException;
 

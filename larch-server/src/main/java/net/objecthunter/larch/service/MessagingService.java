@@ -60,4 +60,6 @@ public interface MessagingService {
 
     void publishPublishEntity(String id);
 
+    void publishWithdrawEntity(String id);
+
 }

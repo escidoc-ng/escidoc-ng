@@ -25,10 +25,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
@@ -38,7 +36,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Group;
-import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -234,11 +231,11 @@ public abstract class AbstractLarchIT {
                 assertEquals(200, resp.getStatusLine().getStatusCode());
                 publishId = EntityUtils.toString(resp.getEntity());
                 if (!status.equals(EntityState.PUBLISHED)) {
-                    // // withdraw
-                    // resp =
-                    // this.executeAsAdmin(
-                    // Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/withdraw"));
-                    // assertEquals(200, resp.getStatusLine().getStatusCode());
+                     // withdraw
+                    resp =
+                            this.executeAsAdmin(
+                                    Request.Put(entityUrl + entityId + "/withdraw"));
+                     assertEquals(200, resp.getStatusLine().getStatusCode());
                 }
             }
         }

@@ -29,8 +29,6 @@ import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -290,12 +288,11 @@ public class EntityController extends AbstractLarchController {
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
                     objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
-    public String publish(@PathVariable("id") final String id)
+    public void publish(@PathVariable("id") final String id)
             throws IOException {
-        String publishId = this.entityService.publish(id);
+        this.entityService.publish(id);
         this.entityService.createAuditRecord(AuditRecordHelper.publishEntityRecord(id));
         this.messagingService.publishPublishEntity(id);
-        return publishId;
     }
 
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
@@ -324,4 +321,25 @@ public class EntityController extends AbstractLarchController {
         this.submit(id);
         return this.retrieveHtml(id);
     }
+
+    @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @PreAuth(springSecurityExpression = "!isAnonymous()",
+            permission = @Permission(idIndex = 0,
+                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
+    public void withdraw(@PathVariable("id") final String id)
+            throws IOException {
+        this.entityService.withdraw(id);
+        this.entityService.createAuditRecord(AuditRecordHelper.publishEntityRecord(id));
+        this.messagingService.publishWithdrawEntity(id);
+    }
+
+    @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView withdrawHtml( @PathVariable("id") final String id) throws IOException {
+        this.withdraw(id);
+        return this.retrieveHtml(id);
+    }
+
 }

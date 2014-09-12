@@ -117,18 +117,20 @@ public class AbstractElasticSearchService {
     protected QueryBuilder getEntitiesUserRestrictionQuery(String permissionId) throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
+        Rights rights = null;
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
-            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
+            if (currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
                 return QueryBuilders.matchAllQuery();
             }
+            // get user-permissions
+            rights = currentUser.getRoles().get(Group.USERS.getName());
         }
 
-        // get user-permissions
-        Rights rights = currentUser.getRoles().get(Group.USERS.getName());
-
         BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        //restrict to nothing
+        restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
 
         // add restrictions
         if (StringUtils.isNotBlank(username) && rights != null) {

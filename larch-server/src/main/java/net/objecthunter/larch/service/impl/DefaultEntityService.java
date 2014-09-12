@@ -491,11 +491,17 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public String publish(String id) throws IOException {
+    public void publish(String id) throws IOException {
         final Entity e = retrieve(id);
         e.setState(EntityState.PUBLISHED);
         this.backendEntityService.update(e);
-        return id;
+    }
+
+    @Override
+    public void withdraw(String id) throws IOException {
+        final Entity e = retrieve(id);
+        e.setState(EntityState.WITHDRAWN);
+        this.backendEntityService.update(e);
     }
 
     @Override
