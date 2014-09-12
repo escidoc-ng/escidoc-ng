@@ -2,14 +2,21 @@ package net.objecthunter.larch.integration;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.Session;
+import org.apache.sshd.common.file.FileSystemView;
+import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
+import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.UserAuth;
 import org.apache.sshd.server.auth.UserAuthNone;
+import org.apache.sshd.server.auth.UserAuthPassword;
 import org.apache.sshd.server.command.ScpCommandFactory;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.shell.ProcessShellFactory;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -37,8 +44,11 @@ public class SftpServer {
         ssh.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 
         List<NamedFactory<UserAuth>> userAuthFactories = new ArrayList<NamedFactory<UserAuth>>();
-        userAuthFactories.add(new UserAuthNone.Factory());
+        userAuthFactories.add(new UserAuthPassword.Factory());
         ssh.setUserAuthFactories(userAuthFactories);
+
+        ssh.setShellFactory(new ProcessShellFactory(new String[] { "/bin/sh", "-i", "-l" }));
+        ssh.setPasswordAuthenticator((username, password, session) -> true);
 
         ssh.setCommandFactory(new ScpCommandFactory());
 

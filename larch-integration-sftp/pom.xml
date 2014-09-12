@@ -37,6 +37,12 @@
         <testResources>
             <testResource>
                 <directory>src/test/resources</directory>
+                <excludes>
+                    <exclude>application*.properties</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
                 <includes>
                     <include>application*.properties</include>
                 </includes>

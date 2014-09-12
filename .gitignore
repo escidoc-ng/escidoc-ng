@@ -5,3 +5,4 @@ larch-data/
 *.log
 !.gitignore
 dependency-reduced-pom.xml
+hostkey.ser

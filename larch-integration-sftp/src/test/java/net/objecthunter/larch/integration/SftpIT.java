@@ -5,6 +5,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
+import java.io.InputStream;
+
 import static junit.framework.TestCase.assertNotNull;
 
 public class SftpIT extends AbstractSftpIT {
@@ -16,7 +18,9 @@ public class SftpIT extends AbstractSftpIT {
         String host = env.getRequiredProperty("sftp.host");
         String port = env.getRequiredProperty("sftp.port");
         System.out.println(host + ":" + port);
-        String path = sftpBlobstoreService.create(this.getClass().getClassLoader().getResourceAsStream("fixtures/image_1.png"));
+        final InputStream src = this.getClass().getClassLoader().getResourceAsStream("fixtures/image_1.png");
+        assertNotNull(src);
+        String path = sftpBlobstoreService.create(src);
         assertNotNull(path);
     }
 }
