@@ -142,6 +142,12 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     @Override
     public InputStream retrieve(String path) throws IOException {
 
+        ensureConnected();
+
+        if (path == null || path.isEmpty()) {
+            throw new IOException("Path can not be null or empty");
+        }
+
         SftpClient.Attributes attrs = sftp.stat(rootPath + "/" + path);
         SftpClient.Handle fileHandle = sftp.open(rootPath + "/" + path, EnumSet.of(SftpClient.OpenMode.Read));
         return new SftpInputStream(sftp, fileHandle);
@@ -154,7 +160,33 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
 
     @Override
     public void update(String path, InputStream src) throws IOException {
+        if (src == null) {
+            throw new IOException("Unable to write NULL inputstream");
+        }
 
+        try {
+            ensureConnected();
+
+            SftpClient.Attributes attrs = sftp.stat(rootPath);
+            final String subdir = RandomStringUtils.randomAlphabetic(2);
+            final String fileName = UUID.randomUUID().toString();
+
+            path = rootPath + "/" + path;
+
+            /* get a file handle */
+            final SftpClient.Handle fileHandle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Write));
+
+            /* write the data in a loop via the handle */
+            final byte buf[] = new byte[4096];
+            int bytesRead;
+            int bytesWritten = 0;
+            while ((bytesRead = src.read(buf)) > 0) {
+                sftp.write(fileHandle, bytesWritten, buf, 0, bytesRead);
+                bytesWritten += bytesRead;
+            }
+        } finally {
+            IOUtils.closeQuietly(src);
+        }
     }
 
     @Override

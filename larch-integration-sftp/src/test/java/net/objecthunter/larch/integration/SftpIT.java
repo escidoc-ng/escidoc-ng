@@ -35,4 +35,17 @@ public class SftpIT extends AbstractSftpIT {
         final InputStream copy = sftpBlobstoreService.retrieve(path);
         assertEquals(data, IOUtils.toString(copy));
     }
+
+    @Test
+    public void testCreateUpdateAndRetrieve() throws Exception {
+        final String data1 = "MyData";
+        final String data2 = "MyChangedData";
+        final InputStream src = new ByteArrayInputStream(data1.getBytes());
+        assertNotNull(src);
+        String path = sftpBlobstoreService.create(src);
+        assertNotNull(path);
+        sftpBlobstoreService.update(path, new ByteArrayInputStream((data2.getBytes())));
+        final InputStream copy = sftpBlobstoreService.retrieve(path);
+        assertEquals(data2, IOUtils.toString(copy));
+    }
 }
