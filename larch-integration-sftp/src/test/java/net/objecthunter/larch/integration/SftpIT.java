@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static junit.framework.Assert.assertEquals;
@@ -47,5 +48,17 @@ public class SftpIT extends AbstractSftpIT {
         sftpBlobstoreService.update(path, new ByteArrayInputStream((data2.getBytes())));
         final InputStream copy = sftpBlobstoreService.retrieve(path);
         assertEquals(data2, IOUtils.toString(copy));
+    }
+
+
+    @Test(expected = IOException.class)
+    public void testCreateDeleteAndRetrieve() throws Exception {
+        final String data1 = "MyData";
+        final InputStream src = new ByteArrayInputStream(data1.getBytes());
+        assertNotNull(src);
+        String path = sftpBlobstoreService.create(src);
+        assertNotNull(path);
+        sftpBlobstoreService.delete(path);
+        final InputStream copy = sftpBlobstoreService.retrieve(path);
     }
 }

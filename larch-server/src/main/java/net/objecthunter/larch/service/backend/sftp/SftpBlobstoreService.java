@@ -10,6 +10,7 @@ import org.apache.sshd.SshClient;
 import org.apache.sshd.client.SftpClient;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.future.ConnectFuture;
+import org.apache.sshd.common.SshException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,8 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     private int port;
     private long timeout = 10000;
     private String rootPath;
+    private boolean connected;
+
 
     @Autowired
     private Environment env;
@@ -52,6 +55,9 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     }
 
     private void ensureConnected() throws IOException {
+        if (connected) {
+            return;
+        }
         ssh = SshClient.setUpDefaultClient();
         ssh.start();
         try {
@@ -91,6 +97,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
                 throw e;
             }
         }
+        connected = true;
     }
 
     private void ensureSubDirExists(String subdir) throws IOException {
@@ -148,14 +155,25 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
             throw new IOException("Path can not be null or empty");
         }
 
-        SftpClient.Attributes attrs = sftp.stat(rootPath + "/" + path);
         SftpClient.Handle fileHandle = sftp.open(rootPath + "/" + path, EnumSet.of(SftpClient.OpenMode.Read));
+        try {
+            SftpClient.Attributes attrs = sftp.stat(fileHandle);
+        }catch (SshException e) {
+            /* file can not be accessed */
+            throw new IOException(path + " could not be read", e);
+        }
         return new SftpInputStream(sftp, fileHandle);
     }
 
     @Override
     public void delete(String path) throws IOException {
 
+        ensureConnected();
+
+        if (path == null || path.isEmpty()) {
+            throw new IOException("Path can not be null or empty");
+        }
+        sftp.remove(rootPath + "/" + path);
     }
 
     @Override
