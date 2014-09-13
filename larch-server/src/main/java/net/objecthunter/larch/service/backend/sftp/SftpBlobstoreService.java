@@ -1,5 +1,6 @@
 package net.objecthunter.larch.service.backend.sftp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.state.BlobstoreState;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
@@ -37,8 +38,11 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     private int port;
     private long timeout = 10000;
     private String rootPath;
+    private String oldVersionRootPath;
     private boolean connected;
 
+    @Autowired
+    private ObjectMapper mapper;
 
     @Autowired
     private Environment env;
@@ -52,6 +56,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
         this.host = env.getRequiredProperty("sftp.host");
         this.port = Integer.parseInt(env.getRequiredProperty("sftp.port"));
         this.rootPath = env.getRequiredProperty("sftp.basepath");
+        this.oldVersionRootPath = env.getRequiredProperty("sftp.oldversion.basepath");
     }
 
     private void ensureConnected() throws IOException {
@@ -79,13 +84,14 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
         }
         sftp = currentSession.createSftpClient();
 
-        /* ensure that the root directory exists */
         try {
             SftpClient.Attributes attrs = sftp.stat("/");
         } catch (IOException e) {
-            this.log.error("Unable to stat directory '/'. SFTP client says: ", e);
+            this.log.error("Unable to stat root directory. SFTP client says: ", e);
             throw e;
         }
+
+        /* ensure that the root directory exists */
         try {
             SftpClient.Attributes attrs = sftp.stat(rootPath);
         } catch (IOException e) {
@@ -97,14 +103,27 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
                 throw e;
             }
         }
+
+        /* ensure that the old version directory exists */
+        try {
+            SftpClient.Attributes attrs = sftp.stat(oldVersionRootPath);
+        } catch (IOException e) {
+            this.log.warn("Trying to create non existent sftp directory " + oldVersionRootPath);
+            try {
+                sftp.mkdir(oldVersionRootPath);
+            } catch (IOException inner) {
+                this.log.error("Unable to create old version directory", e);
+                throw e;
+            }
+        }
         connected = true;
     }
 
-    private void ensureSubDirExists(String subdir) throws IOException {
+    private void ensureSubDirExists(String parent, String subdir) throws IOException {
         try {
-            sftp.stat(rootPath + "/" + subdir);
+            sftp.stat(parent + "/" + subdir);
         } catch (IOException e) {
-            final String path = rootPath + "/" + subdir;
+            final String path = parent + "/" + subdir;
             this.log.warn("Creating sub directory " + path);
             sftp.mkdir(path);
         }
@@ -115,7 +134,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
     public String create(InputStream src) throws IOException {
 
         if (src == null) {
-            throw new IOException("Unable to write NULL inputstream");
+            throw new IOException("Unable to write null stream");
         }
 
         try {
@@ -126,7 +145,7 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
             final String fileName = UUID.randomUUID().toString();
             final String path = rootPath + "/" + subdir + "/" + fileName;
 
-            ensureSubDirExists(subdir);
+            ensureSubDirExists(rootPath, subdir);
 
             /* get a file handle */
             final SftpClient.Handle fileHandle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Create, SftpClient.OpenMode.Write));
@@ -214,11 +233,38 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
 
     @Override
     public String createOldVersionBlob(Entity oldVersion) throws IOException {
-        return null;
+        if (oldVersion == null) {
+            throw new IOException("Unable to serialize a null entity");
+        }
+
+        ensureConnected();
+
+        final String fileName = UUID.randomUUID().toString();
+        final String subdir = RandomStringUtils.randomAlphabetic(2);
+        final String path = oldVersionRootPath + "/" + subdir + "/" + fileName;
+        ensureSubDirExists(this.oldVersionRootPath, subdir);
+        final SftpClient.Handle fileHandle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Create, SftpClient.OpenMode.Write));
+        final byte[] data = mapper.writeValueAsBytes(oldVersion);
+        sftp.write(fileHandle, 0, data, 0, data.length);
+        return subdir + "/" + fileName;
     }
 
     @Override
     public InputStream retrieveOldVersionBlob(String path) throws IOException {
-        return null;
+
+        ensureConnected();
+
+        if (path == null || path.isEmpty()) {
+            throw new IOException("Path can not be null or empty");
+        }
+
+        SftpClient.Handle fileHandle = sftp.open(oldVersionRootPath + "/" + path, EnumSet.of(SftpClient.OpenMode.Read));
+        try {
+            SftpClient.Attributes attrs = sftp.stat(fileHandle);
+        }catch (SshException e) {
+            /* file can not be accessed */
+            throw new IOException(path + " could not be read", e);
+        }
+        return new SftpInputStream(sftp, fileHandle);
     }
 }

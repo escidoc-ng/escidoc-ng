@@ -1,7 +1,10 @@
 package net.objecthunter.larch.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -10,13 +13,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 
 public class SftpIT extends AbstractSftpIT {
     @Autowired
     private SftpBlobstoreService sftpBlobstoreService;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Test
     public void testCreate() throws Exception {
@@ -60,5 +68,32 @@ public class SftpIT extends AbstractSftpIT {
         assertNotNull(path);
         sftpBlobstoreService.delete(path);
         final InputStream copy = sftpBlobstoreService.retrieve(path);
+    }
+
+    @Test
+    public void testCreateOldVersionBlob() throws Exception {
+        Entity e = new Entity();
+        e.setId(UUID.randomUUID().toString());
+        e.setLabel(RandomStringUtils.randomAlphabetic(64));
+        e.setState(Entity.STATE_PENDING);
+        e.setVersion(1);
+        final String path = sftpBlobstoreService.createOldVersionBlob(e);
+        assertNotNull(path);
+    }
+
+    @Test
+    public void testCreateAndRetrieveOldVersionBlob() throws Exception {
+        Entity e = new Entity();
+        e.setId(UUID.randomUUID().toString());
+        e.setLabel(RandomStringUtils.randomAlphabetic(64));
+        e.setState(Entity.STATE_PENDING);
+        e.setVersion(1);
+        final String path = sftpBlobstoreService.createOldVersionBlob(e);
+        assertNotNull(path);
+        Entity fetched = mapper.readValue(sftpBlobstoreService.retrieveOldVersionBlob(path), Entity.class);
+        assertEquals(e.getId(), fetched.getId());
+        assertEquals(e.getLabel(), fetched.getLabel());
+        assertEquals(e.getState(), fetched.getState());
+        assertEquals(e.getVersion(), fetched.getVersion());
     }
 }
