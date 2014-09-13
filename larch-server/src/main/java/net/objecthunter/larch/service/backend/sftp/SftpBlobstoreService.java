@@ -3,6 +3,7 @@ package net.objecthunter.larch.service.backend.sftp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.state.BlobstoreState;
+import net.objecthunter.larch.model.state.SftpBlobstoreState;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -228,7 +229,12 @@ public class SftpBlobstoreService implements BackendBlobstoreService {
 
     @Override
     public BlobstoreState status() throws IOException {
-        return null;
+        SftpBlobstoreState state = new SftpBlobstoreState();
+        state.setHost(host);
+        state.setPort(port);
+        state.setRootPath(rootPath);
+        state.setOldVersionRootPath(oldVersionRootPath);
+        return state;
     }
 
     @Override

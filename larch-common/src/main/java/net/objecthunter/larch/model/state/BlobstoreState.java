@@ -24,7 +24,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonSubTypes({
     @JsonSubTypes.Type(value = FilesystemBlobstoreState.class, name = "native"),
-    @JsonSubTypes.Type(value = WeedFsBlobstoreState.class, name = "weedfs")
+    @JsonSubTypes.Type(value = WeedFsBlobstoreState.class, name = "weedfs"),
+    @JsonSubTypes.Type(value = SftpBlobstoreState.class, name = "sftp")
 })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public abstract class BlobstoreState {

@@ -2,6 +2,7 @@ package net.objecthunter.larch.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.state.BlobstoreState;
 import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -95,5 +96,10 @@ public class SftpIT extends AbstractSftpIT {
         assertEquals(e.getLabel(), fetched.getLabel());
         assertEquals(e.getState(), fetched.getState());
         assertEquals(e.getVersion(), fetched.getVersion());
+    }
+
+    @Test
+    public void testRetrieveState() throws Exception {
+        String xml = mapper.writeValueAsString(sftpBlobstoreService.status());
     }
 }
