@@ -286,7 +286,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         roles.put(Group.USERS.getName(), rights);
 
         // add rights
-        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/rights")
+        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
         result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());

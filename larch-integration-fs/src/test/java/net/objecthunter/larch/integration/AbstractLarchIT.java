@@ -150,7 +150,7 @@ public abstract class AbstractLarchIT {
         Map<String, Rights> roles = new HashMap<String, Rights>();
         Rights rights = new Rights();
         roles.put(Group.USERS.getName(), rights);
-        resp = this.executeAsAdmin(Request.Post(userUrl + name + "/rights")
+        resp = this.executeAsAdmin(Request.Post(userUrl + name + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
         String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());

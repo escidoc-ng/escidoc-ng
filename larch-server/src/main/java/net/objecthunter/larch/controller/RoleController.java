@@ -44,8 +44,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Web controller responsible for search views
  */
 @Controller
-@RequestMapping("/user/{name}/rights")
-public class RightController extends AbstractLarchController {
+@RequestMapping("/user/{name}/roles")
+public class RoleController extends AbstractLarchController {
 
     @Autowired
     private EntityService entityService;
