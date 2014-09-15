@@ -536,13 +536,13 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult scanChildEntities(String ancestorId, EntityType type, int offset) throws IOException {
-        return backendEntityService.scanChildren(ancestorId, type, offset);
+    public SearchResult scanChildEntities(String permissionId, EntityType type, int offset) throws IOException {
+        return backendEntityService.scanChildren(permissionId, type, offset);
     }
 
     @Override
-    public SearchResult scanChildEntities(String ancestorId, EntityType type, int offset, int numRecords) throws IOException {
-        return backendEntityService.scanChildren(ancestorId, type, offset, numRecords);
+    public SearchResult scanChildEntities(String permissionId, EntityType type, int offset, int numRecords) throws IOException {
+        return backendEntityService.scanChildren(permissionId, type, offset, numRecords);
     }
 
     /**

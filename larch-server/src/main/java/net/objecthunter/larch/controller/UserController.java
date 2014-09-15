@@ -206,7 +206,7 @@ public class UserController extends AbstractLarchController {
     /**
      * Controller method for retrieving a HTML view via HTTP GET of all Users and Groups in the repository
      * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used for redering the HTML view
+     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used for rendering the HTML view
      * @throws IOException
      */
     @RequestMapping(value = "/credentials", method = RequestMethod.GET, produces = "text/html")

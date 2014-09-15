@@ -32,10 +32,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface PostAuth {
 
-    String springSecurityExpression() default "";
-
-    Concat concat() default Concat.AND;
-
-    Permission permission() default @Permission;
+    Permission[] permissions();
 
 }

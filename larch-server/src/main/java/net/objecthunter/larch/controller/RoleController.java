@@ -20,10 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
@@ -45,7 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Web controller responsible for search views
  */
 @Controller
-@RequestMapping("/user/{name}/roles")
+@RequestMapping("/user/{name}")
 public class RoleController extends AbstractLarchController {
 
     @Autowired
@@ -58,31 +55,29 @@ public class RoleController extends AbstractLarchController {
     private ObjectMapper mapper;
 
     /**
-     * Controller method for adding user-rights to a User
+     * Controller method for setting user-roles to a User
      * 
      * @param name The name of the user
      */
-    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "/roles", method = RequestMethod.POST, consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-    permission = @Permission(idIndex = 0,
-            objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
-    public void setRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
+    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    public void setRoles(@PathVariable("name") final String name, final InputStream src) throws IOException {
         Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
         backendCredentialsService.setRoles(name, roles);
     }
 
     /**
-     * Controller method for adding user-rights to a User
+     * Controller method for setting user-roles to a User
      * 
      * @param name The name of the user
      */
-    @RequestMapping(method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/roles", method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView setRightsHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
-        setRights(name, src);
+    public ModelAndView setRolesHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
+        setRoles(name, src);
         return new ModelAndView("redirect:/user/" + name);
     }
 

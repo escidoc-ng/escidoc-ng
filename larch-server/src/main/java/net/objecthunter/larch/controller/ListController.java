@@ -188,30 +188,30 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting {@link net.objecthunter.larch.model.SearchResult} containing all stored
      * {@link net.objecthunter.larch.model.Entity}s in the given permission.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @return A SearchResult containing {@link net.objecthunter.larch.model.Entity}s
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public SearchResult listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), 0);
+    public SearchResult listChildEntities(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType) throws IOException {
+        return this.entityService.scanChildEntities(permissionId, EntityType.valueOf(entityType.toUpperCase()), 0);
     }
 
     /**
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing stored
      * {@link net.objecthunter.larch.model.Entity}s in the given permission.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the list result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType));
+    public ModelAndView listChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType) throws IOException {
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType));
         return new ModelAndView("list", model);
     }
 
@@ -219,15 +219,15 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing stored
      * {@link net.objecthunter.larch.model.Entity}s in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the browse result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/browse", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/browse", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType));
+    public ModelAndView browseChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType) throws IOException {
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType));
         return new ModelAndView("browse", model);
     }
 
@@ -235,37 +235,37 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting {@link net.objecthunter.larch.model.SearchResult} containing all stored
      * {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @return A SearchResult containing {@link net.objecthunter.larch.model.Entity}s
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list/{offset}", method = RequestMethod.GET,
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list/{offset}", method = RequestMethod.GET,
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public SearchResult
-            listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType, @PathVariable("offset") final int offset)
+            listChildEntities(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType, @PathVariable("offset") final int offset)
                     throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), offset);
+        return this.entityService.scanChildEntities(permissionId, EntityType.valueOf(entityType.toUpperCase()), offset);
     }
 
     /**
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing stored
      * {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the list result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list/{offset}", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
+    public ModelAndView listChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset)
             throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset));
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType, offset));
         return new ModelAndView("list", model);
     }
 
@@ -273,18 +273,18 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing stored
      * {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the browse result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/browse/{offset}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
+    public ModelAndView browseChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset)
             throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset));
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType, offset));
         return new ModelAndView("browse", model);
     }
 
@@ -292,40 +292,40 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting {@link net.objecthunter.larch.model.SearchResult} containing a given number of
      * stored {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @param numRecords The maximal number of records to return
      * @return A SearchResult containing {@link net.objecthunter.larch.model.Entity}s
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list/{offset}/{numRecords}", method = RequestMethod.GET,
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list/{offset}/{numRecords}", method = RequestMethod.GET,
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public SearchResult listChildEntities(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
+    public SearchResult listChildEntities(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        return this.entityService.scanChildEntities(ancestorId, EntityType.valueOf(entityType.toUpperCase()), offset, numRecords);
+        return this.entityService.scanChildEntities(permissionId, EntityType.valueOf(entityType.toUpperCase()), offset, numRecords);
     }
 
     /**
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing a given number of
      * stored {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @param numRecords The maximal number of records to return
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the list result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/list/{offset}/{numRecords}", method = RequestMethod.GET,
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/list/{offset}/{numRecords}", method = RequestMethod.GET,
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView listChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
+    public ModelAndView listChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset, numRecords));
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType, offset, numRecords));
         return new ModelAndView("list", model);
     }
 
@@ -333,20 +333,20 @@ public class ListController extends AbstractLarchController {
      * Controller method for getting a HTML View using Spring MVC templating mechanism containing a given number of
      * stored {@link net.objecthunter.larch.model.Entity}s from a given offset in the given workspace.
      * 
-     * @param ancestorId workspaceId
+     * @param permissionId permissionId
      * @param offset The offset to use when creating the {@link net.objecthunter.larch.model.SearchResult}
      * @param numRecords The maximal number of records to return
      * @return A {@link org.springframework.web.servlet.ModelAndView} showing the browse result
      * @throws IOException
      */
-    @RequestMapping(value = "/{id}/children/{entityType}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
+    @RequestMapping(value = "/{permissionId}/children/{entityType}/browse/{offset}/{numRecords}", method = RequestMethod.GET,
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ModelAndView browseChildEntitiesHtml(@PathVariable("id") final String ancestorId, @PathVariable("entityType") final String entityType,
+    public ModelAndView browseChildEntitiesHtml(@PathVariable("permissionId") final String permissionId, @PathVariable("entityType") final String entityType,
             @PathVariable("offset") final int offset,
             @PathVariable("numRecords") final int numRecords) throws IOException {
-        final ModelMap model = new ModelMap("result", listChildEntities(ancestorId, entityType, offset, numRecords));
+        final ModelMap model = new ModelMap("result", listChildEntities(permissionId, entityType, offset, numRecords));
         return new ModelAndView("browse", model);
     }
 

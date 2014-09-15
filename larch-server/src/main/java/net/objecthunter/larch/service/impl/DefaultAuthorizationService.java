@@ -18,6 +18,7 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Set;
 
 import net.objecthunter.larch.annotations.Concat;
@@ -30,6 +31,7 @@ import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -67,49 +69,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Override
     public void authorize(Method method, String id, Integer versionId, Object result,
-            String springSecurityExpression,
-            Permission workspacePermission, Concat concat, Object[] methodArgs) throws IOException {
-        // Admin may do everything
+            Permission[] permissions, Object[] methodArgs) throws IOException {
         final User u = this.getCurrentUser();
-        if (u != null && u.getRoles() != null && u.getRoles().keySet().contains(Group.ADMINS.getName())) {
-            return;
+        if (u == null) {
+            // no user logged in but authorization required
+            throw new InsufficientAuthenticationException("No user logged in");
         }
 
-        boolean securityExpressionDenied = false;
-        // handle securityExpression
-        try {
-            handleSecurityExpression(method, springSecurityExpression, methodArgs);
-        } catch (Throwable e) {
-            if (e instanceof AccessDeniedException) {
-                securityExpressionDenied = true;
-                if (Concat.AND.equals(concat)) {
-                    if (u != null) {
-                        throw e;
-                    } else {
-                        throw new InsufficientAuthenticationException("No user logged in");
-                    }
-                }
-            } else {
-                throw e;
-            }
-        }
-
-        // handle workspacePermission
-        try {
-            handleWorkspacePermission(method, workspacePermission, id, versionId, result);
-        } catch (Throwable e) {
-            if (e instanceof AccessDeniedException) {
-                if (Concat.AND.equals(concat) || (Concat.OR.equals(concat)) && securityExpressionDenied) {
-                    if (u != null) {
-                        throw e;
-                    } else {
-                        throw new InsufficientAuthenticationException("No user logged in");
-                    }
-                }
-            } else {
-                throw e;
-            }
-        }
+        // handle permissions
+        handlePermissions(method, permissions, id, versionId, result, u);
     }
 
     private User getCurrentUser() {
@@ -123,42 +91,82 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     /**
-     * check if security-expression matches for logged in user
-     * 
-     * @param method
-     * @param springSecurityExpression
-     */
-    private void handleSecurityExpression(Method method, String springSecurityExpression, Object[] methodArgs) {
-        if (StringUtils.isNotBlank(springSecurityExpression)) {
-            Authentication a = SecurityContextHolder.getContext().getAuthentication();
-            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-            Expression accessExpression =
-                    handler.getExpressionParser().parseExpression(springSecurityExpression);
-            if (!ExpressionUtils.evaluateAsBoolean(accessExpression, handler.createEvaluationContext(
-                    a, MethodInvocationUtils.createFromClass(method, method.getDeclaringClass(), method
-                            .getName(), method.getParameterTypes(), methodArgs)))) {
-                throw new AccessDeniedException("Access denied");
-            }
-        }
-    }
-
-    /**
-     * check if workspace-permission matches for logged in user
+     * check if permissions match for user
      * 
      * @param method
      * @param workspacePermission
      * @param workspaceId
      * @param entityId
      * @param result
+     * @param u logged in user
      */
-    private void handleWorkspacePermission(Method method, Permission workspacePermission,
-            String id, Integer versionId, Object result)
+    private void handlePermissions(Method method, Permission[] permissions,
+            String id, Integer versionId, Object result, User u)
             throws IOException {
+        if (u == null) {
+            // no user logged in but authorization required
+            throw new InsufficientAuthenticationException("No user logged in");
+        }
+        Object checkObject = result;
+        Map<String, Rights> roles = u.getRoles();
+        for (Permission permission : permissions) {
+            if (permission.permissionType().equals(PermissionType.NULL)) {
+                if (roles.containsKey(permission.roleName())) {
+                    return;
+                }
+            } else {
+                if (!roles.containsKey(permission.roleName())) {
+                    continue;
+                }
+                if (checkObject == null) {
+                    checkObject = getCheckObject(permission.objectType(), id, versionId);
+                }
+                if (checkObject instanceof Entity) {
+                    String permissionId = getPermissionId((Entity) checkObject);
+                    if (permissionId == null) {
+                        throw new AccessDeniedException("Object is not below permission");
+                    }
+                    final User u = this.getCurrentUser();
+                    if (u != null && u.getRoles() != null && u.getRoles().get(Group.USERS.getName()) != null) {
+                        Set<Right> rights = u.getRoles().get(Group.USERS.getName()).getRights(permissionId);
+                        if (rights != null) {
+                            ObjectType checkObjectType = workspacePermission.objectType();
+                            if (ObjectType.INPUT_ENTITY.equals(checkObjectType)) {
+                                checkObjectType = ObjectType.ENTITY;
+                            }
+                            for (Right right : rights) {
+                                if (right.getObjectType().equals(checkObjectType)) {
+                                    if (right.getState() == null ||
+                                            right.getState().equals(((Entity) checkObject).getState())) {
+                                        if ((right.isTree() && (((Entity) checkObject).getId() == null || !((Entity) checkObject)
+                                                .getId().equals(permissionId))) ||
+                                                (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject).getId().equals(permissionId))) {
+                                            if (workspacePermission.permissionType().equals(right.getPermissionType())) {
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    throw new AccessDeniedException("User may not call method");
+                } else {
+                    throw new AccessDeniedException("Object has wrong type");
+                }
+            }
+        }
+
+        
+        
+        
+        
+        
+        
         if (workspacePermission.permissionType().equals(
                 net.objecthunter.larch.model.security.Right.PermissionType.NULL)) {
             return;
         }
-        Object checkObject = result;
         if (checkObject == null) {
             // get object to check
             if (StringUtils.isBlank(id)) {
@@ -215,19 +223,37 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
 
     }
+    
+    private Object getCheckObject(ObjectType objectType, String id, Integer versionId) throws IOException {
+        Object checkObject = null;
+        if (StringUtils.isBlank(id)) {
+            throw new AccessDeniedException("No id provided");
+        }
+        if (objectType
+                .equals(ObjectType.ENTITY) ||
+                objectType.equals(ObjectType.BINARY)) {
+            // get entity
+            if (versionId != null) {
+                checkObject = backendVersionService.getOldVersion(id, versionId);
+            } else {
+                checkObject = backendEntityService.retrieve(id);
+            }
+        }
+        if (checkObject == null) {
+            throw new AccessDeniedException("Object to check not found");
+        }
+        return checkObject;
+    }
 
     private String getPermissionId(Entity entity) throws IOException {
-        EntityHierarchy hierarchy = null;
         if (StringUtils.isNotBlank(entity.getId())) {
             try {
-                hierarchy = backendEntityService.getHierarchy(entity.getId());
-                return hierarchy.getPermissionId();
+                return backendEntityService.getPermissionId(entity.getId());
             } catch (NotFoundException e) {
             }
         }
         if (StringUtils.isNotBlank(entity.getParentId())) {
-            hierarchy = backendEntityService.getHierarchy(entity.getParentId());
-            return hierarchy.getPermissionId();
+            return backendEntityService.getPermissionId(entity.getParentId());
         } else {
             return null;
         }
