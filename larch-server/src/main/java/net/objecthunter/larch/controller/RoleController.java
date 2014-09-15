@@ -22,8 +22,9 @@ import java.util.Map;
 
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -66,7 +67,7 @@ public class RoleController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
     permission = @Permission(idIndex = 0,
-            objectType = net.objecthunter.larch.model.security.Right.ObjectType.ENTITY, permissionType = net.objecthunter.larch.model.security.Right.PermissionType.WRITE))
+            objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
     public void setRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
         Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
         backendCredentialsService.setRoles(name, roles);

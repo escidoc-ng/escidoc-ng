@@ -82,8 +82,8 @@ public class BinaryController extends AbstractLarchController {
                 "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-                    permissionType = Right.PermissionType.WRITE))
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
     public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
         entityService.createBinary(entityId, name, mimeType, src);
@@ -103,8 +103,8 @@ public class BinaryController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-                    permissionType = Right.PermissionType.WRITE))
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
     public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
         this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
@@ -130,8 +130,8 @@ public class BinaryController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(
-                    objectType = Right.ObjectType.BINARY, idIndex = 0,
-                    permissionType = Right.PermissionType.WRITE))
+                    objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
     public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
         entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
@@ -152,8 +152,8 @@ public class BinaryController extends AbstractLarchController {
             consumes = "application/json", produces = "text/html")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-                    permissionType = Right.PermissionType.WRITE))
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
     public String createHtml(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
         this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
@@ -176,8 +176,8 @@ public class BinaryController extends AbstractLarchController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-            permissionType = Right.PermissionType.READ))
+    @PreAuth(permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+            permissionType = PermissionType.READ))
     public Binary retrieve(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
@@ -223,8 +223,8 @@ public class BinaryController extends AbstractLarchController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-            permissionType = Right.PermissionType.READ))
+    @PreAuth(permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+            permissionType = PermissionType.READ))
     public void download(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {
@@ -249,8 +249,8 @@ public class BinaryController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(objectType = Right.ObjectType.BINARY, idIndex = 0,
-                    permissionType = Right.PermissionType.WRITE))
+            permission = @Permission(objectType = ObjectType.BINARY, idIndex = 0,
+                    permissionType = PermissionType.WRITE))
     public void delete(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         this.entityService.deleteBinary(entityId, name);

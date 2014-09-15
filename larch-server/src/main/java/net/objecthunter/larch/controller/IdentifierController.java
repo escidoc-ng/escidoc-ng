@@ -62,7 +62,7 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
+                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
     public void create(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(entityId, type, value);
@@ -100,7 +100,7 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
+                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
     public void delete(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(entityId, type, value);

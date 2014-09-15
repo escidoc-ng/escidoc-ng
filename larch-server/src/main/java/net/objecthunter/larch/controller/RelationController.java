@@ -21,7 +21,6 @@ import java.io.IOException;
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
-import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
@@ -62,7 +61,7 @@ public class RelationController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(springSecurityExpression = "!isAnonymous()",
             permission = @Permission(idIndex = 0,
-                    objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.WRITE))
+                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
     public void create(@PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {

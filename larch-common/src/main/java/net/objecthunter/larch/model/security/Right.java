@@ -101,7 +101,7 @@ public class Right {
     public enum ObjectType {
         ENTITY,
         BINARY,
-        USER,
+        RIGHT,
         INPUT_ENTITY;
     }
     

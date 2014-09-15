@@ -282,9 +282,14 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 rightSet.add(rightToSet);
             }
         }
+
+        // permission to write right
+        Right rightToSet = new Right(Right.ObjectType.RIGHT, PermissionType.WRITE, null, false);
+        rightSet.add(rightToSet);
+        
         rights.setRights(permissionId, rightSet);
         roles.put(Group.USERS.getName(), rights);
-
+        
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
