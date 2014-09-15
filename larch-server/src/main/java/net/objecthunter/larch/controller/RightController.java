@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -67,7 +68,7 @@ public class RightController extends AbstractLarchController {
     permission = @Permission(idIndex = 0,
             objectType = net.objecthunter.larch.model.security.Right.ObjectType.ENTITY, permissionType = net.objecthunter.larch.model.security.Right.PermissionType.WRITE))
     public void setRights(@PathVariable("name") final String name, final InputStream src) throws IOException {
-        Map<String, Rights> roles = mapper.readValue(src, Map.class);
+        Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
         backendCredentialsService.setRoles(name, roles);
     }
 
