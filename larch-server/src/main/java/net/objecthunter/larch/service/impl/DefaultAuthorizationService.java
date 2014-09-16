@@ -25,6 +25,7 @@ import java.util.Set;
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
@@ -64,7 +65,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private BackendCredentialsService backendCredentialsService;
 
     @Override
-    public void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result,
+    public void authorize(Method method, ObjectType objectType, EntityType entityType, String id, Integer versionId, Object result,
             Permission[] permissions, Object[] methodArgs) throws IOException {
         final User u = this.getCurrentUser();
         if (u == null) {
@@ -73,7 +74,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
 
         // handle permissions
-        handlePermissions(method, permissions, objectType, id, versionId, result, u);
+        handlePermissions(method, permissions, objectType, entityType, id, versionId, result, u);
     }
 
     private User getCurrentUser() {
@@ -97,7 +98,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param currentUser logged in user
      */
     private void handlePermissions(Method method, Permission[] permissions,
-            ObjectType objectType, String id, Integer versionId, Object result, User currentUser)
+            ObjectType objectType, EntityType entityType, String id, Integer versionId, Object result, User currentUser)
             throws IOException {
         if (currentUser == null) {
             // no user logged in but authorization required
@@ -122,11 +123,12 @@ public class DefaultAuthorizationService implements AuthorizationService {
                     checkObject = getCheckObject(objectType, id, versionId);
                 }
                 if (checkObject instanceof Entity) {
-                    String permissionId = getPermissionId((Entity) checkObject);
-                    if (permissionId == null) {
-                        throw new AccessDeniedException("Object is not below permission");
+                    String checkObjectId = null;
+                    checkObjectId = getHierarchicalId((Entity) checkObject, entityType);
+                    if (checkObjectId == null) {
+                        throw new AccessDeniedException("Object is not below object to check");
                     }
-                    Set<Right> rights = roles.get(permission.roleName()).getRights(permissionId);
+                    Set<Right> rights = roles.get(permission.roleName()).getRights(checkObjectId);
                     if (rights != null) {
                         ObjectType checkObjectType = objectType;
                         if (ObjectType.INPUT_ENTITY.equals(checkObjectType)) {
@@ -137,9 +139,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
                                 if (right.getState() == null ||
                                         right.getState().equals(((Entity) checkObject).getState())) {
                                     if ((right.isTree() && (((Entity) checkObject).getId() == null || !((Entity) checkObject)
-                                            .getId().equals(permissionId))) ||
+                                            .getId().equals(checkObjectId))) ||
                                             (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject)
-                                                    .getId().equals(permissionId))) {
+                                                    .getId().equals(checkObjectId))) {
                                         if (permission.permissionType().equals(right.getPermissionType())) {
                                             return;
                                         }
@@ -190,15 +192,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return checkObject;
     }
 
-    private String getPermissionId(Entity entity) throws IOException {
+    private String getHierarchicalId(Entity entity, EntityType fromType) throws IOException {
         if (StringUtils.isNotBlank(entity.getId())) {
             try {
-                return backendEntityService.getPermissionId(entity.getId());
+                return backendEntityService.getHierarchicalId(entity.getId(), fromType);
             } catch (NotFoundException e) {
             }
         }
         if (StringUtils.isNotBlank(entity.getParentId())) {
-            return backendEntityService.getPermissionId(entity.getParentId());
+            return backendEntityService.getHierarchicalId(entity.getParentId(), fromType);
         } else {
             return null;
         }

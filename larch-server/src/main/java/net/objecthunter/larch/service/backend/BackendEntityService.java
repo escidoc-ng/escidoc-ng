@@ -78,6 +78,6 @@ public interface BackendEntityService {
 
     SearchResult scanChildren(String ancestorId, EntityType entityType, int offset) throws IOException;
     
-    String getPermissionId(String entityId) throws IOException;
+    String getHierarchicalId(String entityId, EntityType fromType) throws IOException;
 
 }

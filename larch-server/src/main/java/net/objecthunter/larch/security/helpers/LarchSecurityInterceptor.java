@@ -77,12 +77,14 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.authorize(calledMethod, preAuth.objectType(), getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
+            authorizationService.authorize(calledMethod, preAuth.objectType(), preAuth.entityType(), getId(preAuth,
+                    joinPoint), getVersionId(preAuth, joinPoint),
                     getObject(preAuth, joinPoint), preAuth.permissions(), joinPoint.getArgs());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.authorize(calledMethod, postAuth.objectType(), null, null, obj, postAuth.permissions(), joinPoint.getArgs());
+            authorizationService.authorize(calledMethod, postAuth.objectType(), postAuth.entityType(), null, null,
+                    obj, postAuth.permissions(), joinPoint.getArgs());
         }
         return obj;
     }

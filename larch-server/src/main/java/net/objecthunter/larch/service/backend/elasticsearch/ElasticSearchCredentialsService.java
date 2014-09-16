@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -341,6 +342,55 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
             user.setRoles(roles);
+
+            this.client
+                    .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, user.getName()).setSource(
+                            mapper.writeValueAsBytes(user))
+                    .execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        this.refreshIndex(INDEX_USERS);
+    }
+
+    @Override
+    public void setRight(String username, String rolename, String objectId, Right right) throws IOException {
+        //check parameters
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidParameterException("User name can not be null");
+        }
+        if (rolename == null) {
+            throw new InvalidParameterException("name of role may not be null");
+        }
+        if (objectId == null) {
+            throw new InvalidParameterException("objectId may not be null");
+        }
+        if (right == null) {
+            throw new InvalidParameterException("right may not be null");
+        }
+        if (right.getObjectType() == null) {
+            throw new InvalidParameterException("objectType of right may not be null");
+        }
+        if (right.getPermissionType() == null) {
+            throw new InvalidParameterException("permissionType of right may not be null");
+        }
+        backendEntityService.retrieve(objectId);
+
+        try {
+            final GetResponse get =
+                    this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, username).execute().actionGet();
+            if (!get.isExists()) {
+                throw new NotFoundException("The user " + username + " does not exist");
+            }
+            
+            User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            if (user.getRoles().get(rolename) == null) {
+                Rights rights = new Rights();
+                rights.addRights(objectId, right);
+                user.addRole(rolename, rights);
+            } else {
+                user.getRoles().get(rolename).addRights(objectId, right);
+            }
 
             this.client
                     .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, user.getName()).setSource(

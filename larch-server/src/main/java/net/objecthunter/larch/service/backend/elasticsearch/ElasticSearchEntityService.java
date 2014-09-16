@@ -90,7 +90,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         this.validate(e);
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getPermissionId(e));
+        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), getHierarchicalId(e, EntityType.AREA));
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getHierarchicalId(e, EntityType.PERMISSION));
 
         try {
             client
@@ -116,7 +117,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         this.validate(e);
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getPermissionId(e));
+        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), getHierarchicalId(e, EntityType.AREA));
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getHierarchicalId(e, EntityType.PERMISSION));
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
@@ -441,23 +443,30 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public String getPermissionId(String entityId) throws IOException {
-        log.debug("fetching entity " + entityId);
+    public String getHierarchicalId(String entityId, EntityType fromType) throws IOException {
+        String searchField = null;
+        if (EntityType.AREA.equals(fromType)) {
+            searchField = EntitiesSearchField.AREA_ID.getFieldName();
+        } else if (EntityType.AREA.equals(fromType)) {
+            searchField = EntitiesSearchField.PERMISSION_ID.getFieldName();
+        } else {
+            throw new IOException("unsupported entityType");
+        }
         final GetResponse resp;
         try {
             resp =
                     client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).setFields(
-                            EntitiesSearchField.PERMISSION_ID.getFieldName()).execute().actionGet();
+                            searchField).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         if (!resp.isExists()) {
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
-        String permissionId =
-                resp.getField(EntitiesSearchField.PERMISSION_ID.getFieldName()) != null ? (String) resp.getField(
-                        EntitiesSearchField.PERMISSION_ID.getFieldName()).getValue() : null;
-        return permissionId;
+        String hierarchicalId =
+                resp.getField(searchField) != null ? (String) resp.getField(
+                        searchField).getValue() : null;
+        return hierarchicalId;
     }
 
     private void validate(Entity entity) throws IOException {
@@ -485,15 +494,25 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
     }
 
-    private String getPermissionId(Entity entity) throws IOException {
-        // copy data
-        if (EntityType.AREA.equals(entity.getType())) {
-            return null;
-        } else if (EntityType.PERMISSION.equals(entity.getType())) {
-            return entity.getId();
-        } else {
-            return getPermissionId(entity.getParentId());
+    private String getHierarchicalId(Entity entity, EntityType fromType) throws IOException {
+        if (EntityType.AREA.equals(fromType)) {
+            if (EntityType.AREA.equals(entity.getType())) {
+                return entity.getId();
+            } else if (EntityType.PERMISSION.equals(entity.getType())) {
+                return entity.getParentId();
+            } else {
+                return getHierarchicalId(entity.getParentId(), fromType);
+            }
+        } else if (EntityType.PERMISSION.equals(fromType)) {
+            if (EntityType.AREA.equals(entity.getType())) {
+                return null;
+            } else if (EntityType.PERMISSION.equals(entity.getType())) {
+                return entity.getId();
+            } else {
+                return getHierarchicalId(entity.getParentId(), fromType);
+            }
         }
+        return null;
     }
 
     /**
@@ -511,6 +530,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         STATE("state", "state"),
         VERSION("version", "version"),
         PERMISSION_ID("permissionId", "permissionId"),
+        AREA_ID("areaId", "areaId"),
         ALL("term", "_all");
 
         private final String requestParameterName;

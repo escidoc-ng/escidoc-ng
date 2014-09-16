@@ -23,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 
 /**
@@ -39,6 +40,8 @@ public @interface PostAuth {
     int versionIndex() default -1;
 
     ObjectType objectType() default ObjectType.ENTITY;
+
+    EntityType entityType() default EntityType.PERMISSION;
 
     Permission[] permissions();
 

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -70,6 +71,16 @@ public interface BackendCredentialsService {
      * @throws IOException
      */
     void setRoles(String username, Map<String, Rights> roles) throws IOException;
+
+    /**
+     * Set a right for a {@link net.objecthunter.larch.model.security.User} and an objectId in the Repository
+     * 
+     * @param username the name of the user
+     * @param objectId the objectId to set the right for
+     * @param right the right to set
+     * @throws IOException
+     */
+    void setRight(String username, String rolename, String objectId, Right right) throws IOException;
 
     /**
      * Update a {@link net.objecthunter.larch.model.security.Group} in the repository

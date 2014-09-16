@@ -22,7 +22,11 @@ import java.util.Map;
 
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Rights;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -43,7 +47,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Web controller responsible for search views
  */
 @Controller
-@RequestMapping("/user/{name}")
+@RequestMapping("/user/{username}")
 public class RoleController extends AbstractLarchController {
 
     @Autowired
@@ -58,29 +62,65 @@ public class RoleController extends AbstractLarchController {
     /**
      * Controller method for setting user-roles to a User
      * 
-     * @param name The name of the user
+     * @param username The name of the user
      */
     @RequestMapping(value = "/roles", method = RequestMethod.POST, consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
-    public void setRoles(@PathVariable("name") final String name, final InputStream src) throws IOException {
+        @Permission(roleName = "ROLE_ADMIN") })
+    public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
         Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
-        backendCredentialsService.setRoles(name, roles);
+        backendCredentialsService.setRoles(username, roles);
     }
 
     /**
      * Controller method for setting user-roles to a User
      * 
-     * @param name The name of the user
+     * @param username The name of the user
      */
     @RequestMapping(value = "/roles", method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView setRolesHtml(@PathVariable("name") final String name, final InputStream src) throws IOException {
-        setRoles(name, src);
-        return new ModelAndView("redirect:/user/" + name);
+    public ModelAndView setRolesHtml(@PathVariable("username") final String username, final InputStream src)
+            throws IOException {
+        setRoles(username, src);
+        return new ModelAndView("redirect:/user/" + username);
+    }
+
+    /**
+     * Controller method for setting a right for an object to a User
+     * 
+     * @param username The name of the user
+     * @param objectId The id of the object the user becomes a right for.
+     */
+    @RequestMapping(value = "/role/{rolename}/right/{objectId}", method = RequestMethod.POST,
+            consumes = "application/json")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuth(objectType = ObjectType.ENTITY, entityType = EntityType.AREA, idIndex = 1, permissions = {
+        @Permission(roleName = "ROLE_ADMIN"),
+        @Permission(roleName = "ROLE_USER_ADMIN", permissionType = PermissionType.WRITE) })
+    public void setRight(@PathVariable("username") final String username,
+            @PathVariable("rolename") final String rolename,
+            @PathVariable("objectId") final String objectId, final InputStream src) throws IOException {
+        Right right = mapper.readValue(src, Right.class);
+        backendCredentialsService.setRight(username, rolename, objectId, right);
+    }
+
+    /**
+     * Controller method for setting a right for an object to a User
+     * 
+     * @param username The name of the user
+     */
+    @RequestMapping(value = "/role/{rolename}/right/{objectId}", method = RequestMethod.POST, produces = "text/html")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView setRightHtml(@PathVariable("username") final String username,
+            @PathVariable("rolename") final String rolename, @PathVariable("objectId") final String objectId,
+            final InputStream src) throws IOException {
+        setRight(username, rolename, objectId, src);
+        return new ModelAndView("redirect:/user/" + username);
     }
 
 }
