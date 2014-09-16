@@ -102,6 +102,7 @@ public class Right {
         ENTITY,
         BINARY,
         RIGHT,
+        USER,
         INPUT_ENTITY;
     }
     

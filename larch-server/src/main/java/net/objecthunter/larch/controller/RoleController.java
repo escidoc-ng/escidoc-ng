@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.service.EntityService;
@@ -62,7 +63,8 @@ public class RoleController extends AbstractLarchController {
     @RequestMapping(value = "/roles", method = RequestMethod.POST, consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public void setRoles(@PathVariable("name") final String name, final InputStream src) throws IOException {
         Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
         backendCredentialsService.setRoles(name, roles);

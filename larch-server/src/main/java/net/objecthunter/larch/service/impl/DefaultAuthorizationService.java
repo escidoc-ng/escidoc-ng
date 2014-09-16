@@ -18,6 +18,7 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +31,7 @@ import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
+import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 
@@ -57,6 +59,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Autowired
     private BackendVersionService backendVersionService;
+
+    @Autowired
+    private BackendCredentialsService backendCredentialsService;
 
     @Override
     public void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result,
@@ -98,12 +103,12 @@ public class DefaultAuthorizationService implements AuthorizationService {
             // no user logged in but authorization required
             throw new InsufficientAuthenticationException("No user logged in");
         }
-        if (currentUser.getRoles() == null || currentUser.getRoles().isEmpty()) {
-            //User has no roles
-            throw new AccessDeniedException("User may not call method");
-        }
         Object checkObject = result;
         Map<String, Rights> roles = currentUser.getRoles();
+        if (roles == null) {
+            roles = new HashMap<String, Rights>();
+        }
+        roles.putAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
             if (permission.permissionType().equals(PermissionType.NULL)) {
                 if (roles.containsKey(permission.roleName())) {
@@ -133,11 +138,23 @@ public class DefaultAuthorizationService implements AuthorizationService {
                                         right.getState().equals(((Entity) checkObject).getState())) {
                                     if ((right.isTree() && (((Entity) checkObject).getId() == null || !((Entity) checkObject)
                                             .getId().equals(permissionId))) ||
-                                            (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject).getId().equals(permissionId))) {
+                                            (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject)
+                                                    .getId().equals(permissionId))) {
                                         if (permission.permissionType().equals(right.getPermissionType())) {
                                             return;
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                } else if (checkObject instanceof User) {
+                    Set<Right> rights = roles.get(permission.roleName()).getRights(((User) checkObject).getName());
+                    if (rights != null) {
+                        for (Right right : rights) {
+                            if (right.getObjectType().equals(objectType)) {
+                                if (permission.permissionType().equals(right.getPermissionType())) {
+                                    return;
                                 }
                             }
                         }
@@ -149,21 +166,23 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
         throw new AccessDeniedException("User may not call method");
     }
-    
+
     private Object getCheckObject(ObjectType objectType, String id, Integer versionId) throws IOException {
         Object checkObject = null;
         if (StringUtils.isBlank(id)) {
             throw new AccessDeniedException("No id provided");
         }
-        if (objectType
-                .equals(ObjectType.ENTITY) ||
-                objectType.equals(ObjectType.BINARY)) {
+        if (ObjectType.ENTITY.equals(objectType) ||
+                ObjectType.BINARY.equals(objectType)) {
             // get entity
             if (versionId != null) {
                 checkObject = backendVersionService.getOldVersion(id, versionId);
             } else {
                 checkObject = backendEntityService.retrieve(id);
             }
+        } else if (ObjectType.USER.equals(objectType)) {
+            // get User
+            checkObject = backendCredentialsService.retrieveUser(id);
         }
         if (checkObject == null) {
             throw new AccessDeniedException("Object to check not found");
@@ -183,6 +202,20 @@ public class DefaultAuthorizationService implements AuthorizationService {
         } else {
             return null;
         }
+    }
+
+    private Map<String, Rights> getDefaultRoles(String username) throws IOException {
+        Map<String, Rights> defaultRoles = new HashMap<String, Rights>();
+        Rights rights = new Rights();
+        Right readRight = new Right();
+        readRight.setObjectType(ObjectType.USER);
+        readRight.setPermissionType(PermissionType.READ);
+        Right writeRight = new Right();
+        writeRight.setObjectType(ObjectType.USER);
+        writeRight.setPermissionType(PermissionType.WRITE);
+        rights.addRights(username, readRight, writeRight);
+        defaultRoles.put("ANY_ROLE", rights);
+        return defaultRoles;
     }
 
 }

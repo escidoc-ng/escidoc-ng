@@ -180,8 +180,9 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(
-            springSecurityExpression = "hasRole('ROLE_ADMIN') or (hasRole('ROLE_USER') and #name == authentication.principal.name)")
+    @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
+            @Permission(roleName = "ROLE_ADMIN"),
+            @Permission(roleName = "ANY_ROLE", permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
         return backendCredentialsService.retrieveUser(name);
@@ -198,8 +199,9 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(
-            springSecurityExpression = "hasRole('ROLE_ADMIN') or (hasRole('ROLE_USER') and #name == authentication.principal.name)")
+    @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
+            @Permission(roleName = "ROLE_ADMIN"),
+            @Permission(roleName = "ANY_ROLE", permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
