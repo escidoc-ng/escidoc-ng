@@ -89,8 +89,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             }
         }
         this.validate(e);
-        Map<String,Object> entityData = mapper.readValue(mapper.writeValueAsString(e),Map.class);
-        entityData.put(EntitiesSearchField.PERMISSION_ID.searchFieldName, getPermissionId(e));
+        Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getPermissionId(e));
 
         try {
             client
@@ -115,8 +115,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         log.debug("updating entity " + e.getId());
         this.validate(e);
         /* and create the updated document */
-        Map<String,Object> entityData = mapper.readValue(mapper.writeValueAsString(e),Map.class);
-        entityData.put(EntitiesSearchField.PERMISSION_ID.searchFieldName, getPermissionId(e));
+        Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getPermissionId(e));
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
@@ -442,26 +442,22 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     @Override
     public String getPermissionId(String entityId) throws IOException {
-        log.debug("searching entity " + entityId);
-        final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.ID.getFieldName(), entityId));
+        log.debug("fetching entity " + entityId);
+        final GetResponse resp;
         try {
             resp =
-                    this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                                    queryBuilder)
-                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                            .addFields(EntitiesSearchField.PARENT.searchFieldName).execute().actionGet();
+                    client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).setFields(
+                            EntitiesSearchField.PERMISSION_ID.getFieldName()).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        if (resp.getHits().getHits().length != 1) {
-            throw new IOException("entity not found");
+        if (!resp.isExists()) {
+            throw new NotFoundException("Entity with id " + entityId + " not found");
         }
-
-        return resp.getHits().getAt(0).field(EntitiesSearchField.PARENT.searchFieldName) != null ? resp.getHits()
-                .getAt(0).field(EntitiesSearchField.PARENT.searchFieldName).getValue() : null;
+        String permissionId =
+                resp.getField(EntitiesSearchField.PERMISSION_ID.getFieldName()) != null ? (String) resp.getField(
+                        EntitiesSearchField.PERMISSION_ID.getFieldName()).getValue() : null;
+        return permissionId;
     }
 
     private void validate(Entity entity) throws IOException {

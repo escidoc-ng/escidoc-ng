@@ -192,7 +192,6 @@ public abstract class AbstractLarchIT {
                         !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
             throw new Exception("given status not valid");
         }
-        String publishId = null;
         Entity e = createFixtureEntity();
         e.setParentId(parentId);
         e.setType(type);
@@ -207,6 +206,7 @@ public abstract class AbstractLarchIT {
                         Request.Post(entityUrl).bodyString(
                                 mapper.writeValueAsString(e),
                                 ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         String entityId = EntityUtils.toString(resp.getEntity());
         e.setLabel("other");
@@ -229,7 +229,7 @@ public abstract class AbstractLarchIT {
                         this.executeAsAdmin(
                                 Request.Put(entityUrl + entityId + "/publish"));
                 assertEquals(200, resp.getStatusLine().getStatusCode());
-                publishId = EntityUtils.toString(resp.getEntity());
+                EntityUtils.toString(resp.getEntity());
                 if (!status.equals(EntityState.PUBLISHED)) {
                      // withdraw
                     resp =
