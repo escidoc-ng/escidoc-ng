@@ -59,9 +59,9 @@ public class RelationController extends AbstractLarchController {
      */
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-            permission = @Permission(idIndex = 0,
-                    objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE))
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+            @Permission(roleName = "ROLE_ADMIN"),
+            @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {

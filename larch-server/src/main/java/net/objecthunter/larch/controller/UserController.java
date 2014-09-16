@@ -19,10 +19,13 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 import java.util.List;
 
+import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +101,8 @@ public class UserController extends AbstractLarchController {
      */
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
         this.backendCredentialsService.deleteUser(name);
     }
@@ -113,7 +117,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public List<User> retrieveUsers() throws IOException {
         return backendCredentialsService.retrieveUsers();
     }
@@ -212,7 +217,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/credentials", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public ModelAndView retrieveCredentials() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
@@ -230,7 +236,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/group", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public List<Group> retrieveGroups() throws IOException {
         return backendCredentialsService.retrieveGroups();
     }
@@ -238,7 +245,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,

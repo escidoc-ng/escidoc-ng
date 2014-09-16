@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.service.AuthorizationService;
 
@@ -78,12 +77,12 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
+            authorizationService.authorize(calledMethod, preAuth.objectType(), getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
                     getObject(preAuth, joinPoint), preAuth.permissions(), joinPoint.getArgs());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.authorize(calledMethod, null, null, obj, postAuth.permissions(), joinPoint.getArgs());
+            authorizationService.authorize(calledMethod, postAuth.objectType(), null, null, obj, postAuth.permissions(), joinPoint.getArgs());
         }
         return obj;
     }
@@ -96,12 +95,12 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return String Id or null
      */
     private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null && !Right.ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
-                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
+        if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
+                preAuth.idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
-                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof String) {
-            return (String) joinPoint.getArgs()[preAuth.permission().idIndex()];
+                joinPoint.getArgs().length > preAuth.idIndex() &&
+                joinPoint.getArgs()[preAuth.idIndex()] instanceof String) {
+            return (String) joinPoint.getArgs()[preAuth.idIndex()];
         }
         return null;
     }
@@ -115,11 +114,11 @@ public class LarchSecurityInterceptor implements Ordered {
      */
     private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null &&
-                preAuth.permission().versionIndex() >= 0 && joinPoint != null &&
+                preAuth.versionIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.permission().versionIndex() &&
-                joinPoint.getArgs()[preAuth.permission().versionIndex()] instanceof Integer) {
-            return (Integer) joinPoint.getArgs()[preAuth.permission().versionIndex()];
+                joinPoint.getArgs().length > preAuth.versionIndex() &&
+                joinPoint.getArgs()[preAuth.versionIndex()] instanceof Integer) {
+            return (Integer) joinPoint.getArgs()[preAuth.versionIndex()];
         }
         return null;
     }
@@ -132,12 +131,12 @@ public class LarchSecurityInterceptor implements Ordered {
      * @return Entity or null
      */
     private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
-        if (preAuth != null && Right.ObjectType.INPUT_ENTITY.equals(preAuth.permission().objectType()) &&
-                preAuth.permission().idIndex() >= 0 && joinPoint != null &&
+        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
+                preAuth.idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.permission().idIndex() &&
-                joinPoint.getArgs()[preAuth.permission().idIndex()] instanceof Entity) {
-            return (Entity) joinPoint.getArgs()[preAuth.permission().idIndex()];
+                joinPoint.getArgs().length > preAuth.idIndex() &&
+                joinPoint.getArgs()[preAuth.idIndex()] instanceof Entity) {
+            return (Entity) joinPoint.getArgs()[preAuth.idIndex()];
         }
         return null;
     }

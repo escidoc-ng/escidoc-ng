@@ -18,6 +18,7 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
+import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Settings;
 import net.objecthunter.larch.service.RepositoryService;
@@ -72,7 +73,8 @@ public class SettingsController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(roleName = "ROLE_ADMIN") })
     public Settings retrieve() throws IOException {
         return this.createSettings();
     }

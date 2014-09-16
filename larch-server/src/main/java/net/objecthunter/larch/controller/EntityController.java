@@ -19,7 +19,6 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 import java.io.InputStream;
 
-import net.objecthunter.larch.annotations.Concat;
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PostAuth;
 import net.objecthunter.larch.annotations.PreAuth;
@@ -28,7 +27,6 @@ import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.service.EntityService;
@@ -79,10 +77,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(roleName = "ROLE_USER", objectType = ObjectType.ENTITY, idIndex = 0,
-                permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void patch(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
@@ -102,9 +99,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PostAuth(permissions = {
+    @PostAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0, objectType = Right.ObjectType.ENTITY, permissionType = Right.PermissionType.READ) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.READ) })
     public Entity
             retrieve(@PathVariable("id") final String id)
                     throws IOException {
@@ -142,10 +139,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/version/{version}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PostAuth(permissions = {
+    @PostAuth(objectType = ObjectType.ENTITY, idIndex = 0, versionIndex = 1, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0, versionIndex = 1, objectType = ObjectType.ENTITY,
-                permissionType = PermissionType.READ) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.READ) })
     public Entity retrieve(@PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         return entityService.retrieve(id, version);
@@ -181,9 +177,8 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping("/{id}/versions")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(permissions = {
-        @Permission(roleName = "ROLE_ADMIN") }
-            )
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+        @Permission(roleName = "ROLE_ADMIN") })
             public Entities retrieveVersions(@PathVariable("id") final String id) throws IOException {
         Entities entities = entityService.getOldVersions(id);
         entities.getEntities().add(0, entityService.retrieve(id));
@@ -236,10 +231,9 @@ public class EntityController extends AbstractLarchController {
      * @return The id of the created entity.
      * @throws IOException
      */
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.INPUT_ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0, objectType = ObjectType.INPUT_ENTITY,
-                permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public String create(final Entity entity) throws IOException {
         final String id = this.entityService.create(entity);
         this.entityService.createAuditRecord(AuditRecordHelper.createEntityRecord(id));
@@ -257,10 +251,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0,
-                objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void update(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final Entity e = mapper.readValue(src, Entity.class);
@@ -283,10 +276,9 @@ public class EntityController extends AbstractLarchController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0,
-                objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void delete(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.delete(id);
@@ -296,10 +288,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0,
-                objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void publish(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.publish(id);
@@ -317,10 +308,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0,
-                objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void submit(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.submit(id);
@@ -338,10 +328,9 @@ public class EntityController extends AbstractLarchController {
     @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(idIndex = 0,
-                objectType = ObjectType.ENTITY, permissionType = PermissionType.WRITE) })
+        @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
     public void withdraw(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.withdraw(id);

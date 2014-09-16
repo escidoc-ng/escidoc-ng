@@ -23,7 +23,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
 
 /**
@@ -34,12 +33,6 @@ import net.objecthunter.larch.model.security.Right.PermissionType;
 @Inherited
 @Documented
 public @interface Permission {
-
-    int idIndex() default -1;
-
-    int versionIndex() default -1;
-
-    ObjectType objectType() default ObjectType.ENTITY;
 
     PermissionType permissionType() default PermissionType.NULL;
     
