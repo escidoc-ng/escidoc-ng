@@ -233,16 +233,32 @@ public class UserController extends AbstractLarchController {
      * Controller method to retrieve a list of Roles that exist in the
      * repository as a JSON representation
      * 
-     * @return the list of {@link net.objecthunter.larch.model.security.Group}s as a JSON representation
+     * @return the list of {@link net.objecthunter.larch.model.security.Role}s as a JSON representation
      * @throws IOException
      */
-    @RequestMapping(value = "/role", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/roles", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
     public List<Role> retrieveRoles() throws IOException {
-        return Arrays.asList(Role.values());
+        List<Role> roles = Arrays.asList(Role.values());
+        roles.remove(Role.ANY);
+        return roles;
+    }
+
+    /**
+     * Controller method to retrieve a list of ObjectTypes that exist in the
+     * repository as a JSON representation
+     * 
+     * @return the list of {@link net.objecthunter.larch.model.security.Right.ObjectType}s as a JSON representation
+     * @throws IOException
+     */
+    @RequestMapping(value = "/object-types", method = RequestMethod.GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<ObjectType> retrieveObjectTypes() throws IOException {
+        List<ObjectType> objectTypes = Arrays.asList(ObjectType.values());
+        objectTypes.remove(ObjectType.INPUT_ENTITY);
+        return objectTypes;
     }
 
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")
