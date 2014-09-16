@@ -26,7 +26,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
 
@@ -46,12 +45,6 @@ public abstract class Fixtures {
         u.setLastName("bar");
         u.setEmail("foo.bar@exmaple.com");
         return u;
-    }
-
-    public static Group createGroup() {
-        Group g = new Group();
-        g.setName("ROLE_TEST");
-        return g;
     }
 
     public static Entity createEntity() {

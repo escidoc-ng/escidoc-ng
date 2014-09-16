@@ -16,16 +16,14 @@
 
 package net.objecthunter.larch.integration.authorize;
 
+import static net.objecthunter.larch.test.util.Fixtures.AREA_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,10 +37,10 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.source.UrlSource;
@@ -75,8 +73,6 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
-
-import static net.objecthunter.larch.test.util.Fixtures.*;
 
 /**
  * Class holds methods used by auth-tests.<br>
@@ -244,7 +240,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
 
         // Set permissions for user
-        Map<String, Rights> roles = new HashMap<String, Rights>();
+        Map<Role, Rights> roles = new HashMap<Role, Rights>();
         Rights rights = new Rights();
         Set<Right> rightSet = new HashSet<Right>();
         Right.ObjectType objectTypeToSet = Right.ObjectType.ENTITY;
@@ -288,7 +284,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         rightSet.add(rightToSet);
         
         rights.setRights(permissionId, rightSet);
-        roles.put(Group.USERS.getName(), rights);
+        roles.put(Role.USER, rights);
         
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")

@@ -17,15 +17,16 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.model.security.Group;
-import net.objecthunter.larch.model.security.User;
-import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,7 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
+            @Permission(role = Role.ADMIN) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
         this.backendCredentialsService.deleteUser(name);
     }
@@ -118,7 +119,7 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
+            @Permission(role = Role.ADMIN) })
     public List<User> retrieveUsers() throws IOException {
         return backendCredentialsService.retrieveUsers();
     }
@@ -181,8 +182,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(roleName = "ROLE_ADMIN"),
-            @Permission(roleName = "ANY_ROLE", permissionType = PermissionType.READ) })
+            @Permission(role = Role.ADMIN),
+            @Permission(role = Role.ANY, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
         return backendCredentialsService.retrieveUser(name);
@@ -200,13 +201,13 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(roleName = "ROLE_ADMIN"),
-            @Permission(roleName = "ANY_ROLE", permissionType = PermissionType.READ) })
+            @Permission(role = Role.ADMIN),
+            @Permission(role = Role.ANY, permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("user", backendCredentialsService.retrieveUser(name));
-        model.addAttribute("groups", backendCredentialsService.retrieveGroups());
+        model.addAttribute("roles", retrieveRoles());
         return new ModelAndView("user", model);
     }
 
@@ -220,35 +221,35 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
+            @Permission(role = Role.ADMIN) })
     public ModelAndView retrieveCredentials() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
-        model.addAttribute("groups", this.backendCredentialsService.retrieveGroups());
+        model.addAttribute("roles", retrieveRoles());
         return new ModelAndView("credentials", model);
     }
 
     /**
-     * Controller method to retrieve a list of {@link net.objecthunter.larch.model.security.Group}s that exist in the
+     * Controller method to retrieve a list of Roles that exist in the
      * repository as a JSON representation
      * 
      * @return the list of {@link net.objecthunter.larch.model.security.Group}s as a JSON representation
      * @throws IOException
      */
-    @RequestMapping(value = "/group", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/role", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
-    public List<Group> retrieveGroups() throws IOException {
-        return backendCredentialsService.retrieveGroups();
+            @Permission(role = Role.ADMIN) })
+    public List<Role> retrieveRoles() throws IOException {
+        return Arrays.asList(Role.values());
     }
 
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
+            @Permission(role = Role.ADMIN) })
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,

@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.state.LarchState;
 import net.objecthunter.larch.service.RepositoryService;
 
@@ -54,7 +55,7 @@ public class StateController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(roleName = "ROLE_ADMIN") })
+            @Permission(role = Role.ADMIN) })
     public LarchState state() throws IOException {
         return repositoryService.status();
     }

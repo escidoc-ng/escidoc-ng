@@ -41,8 +41,6 @@ public @interface PostAuth {
 
     ObjectType objectType() default ObjectType.ENTITY;
 
-    EntityType entityType() default EntityType.PERMISSION;
-
     Permission[] permissions();
 
 }

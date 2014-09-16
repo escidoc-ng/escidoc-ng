@@ -23,6 +23,7 @@ import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -60,8 +61,8 @@ public class RelationController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(roleName = "ROLE_ADMIN"),
-            @Permission(roleName = "ROLE_USER", permissionType = PermissionType.WRITE) })
+            @Permission(role = Role.ADMIN),
+            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {

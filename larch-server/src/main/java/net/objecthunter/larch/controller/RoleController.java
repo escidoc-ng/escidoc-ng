@@ -27,6 +27,7 @@ import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -68,9 +69,9 @@ public class RoleController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-        @Permission(roleName = "ROLE_ADMIN") })
+        @Permission(role = Role.ADMIN) })
     public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
-        Map<String, Rights> roles = mapper.readValue(src, new TypeReference<Map<String, Rights>>() {});
+        Map<Role, Rights> roles = mapper.readValue(src, new TypeReference<Map<Role, Rights>>() {});
         backendCredentialsService.setRoles(username, roles);
     }
 
@@ -98,14 +99,14 @@ public class RoleController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(objectType = ObjectType.ENTITY, entityType = EntityType.AREA, idIndex = 1, permissions = {
-        @Permission(roleName = "ROLE_ADMIN"),
-        @Permission(roleName = "ROLE_USER_ADMIN", permissionType = PermissionType.WRITE) })
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 1, permissions = {
+        @Permission(role = Role.ADMIN),
+        @Permission(role = Role.USER_ADMIN, permissionType = PermissionType.WRITE, anchor = EntityType.AREA) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("objectId") final String objectId, final InputStream src) throws IOException {
         Right right = mapper.readValue(src, Right.class);
-        backendCredentialsService.setRight(username, rolename, objectId, right);
+        backendCredentialsService.setRight(username, Role.valueOf(rolename.toUpperCase()), objectId, right);
     }
 
     /**

@@ -34,7 +34,7 @@ public class User {
 
     private String pwhash;
 
-    private Map<String, Rights> roles = new HashMap<String, Rights>();
+    private Map<Role, Rights> roles = new HashMap<Role, Rights>();
 
     /**
      * Get the user's name
@@ -131,7 +131,7 @@ public class User {
      * 
      * @return the roles
      */
-    public Map<String, Rights> getRoles() {
+    public Map<Role, Rights> getRoles() {
         return roles;
     }
 
@@ -140,9 +140,9 @@ public class User {
      * 
      * @param roles the roles to set
      */
-    public void setRoles(Map<String, Rights> roles) {
+    public void setRoles(Map<Role, Rights> roles) {
         if (roles == null) {
-            this.roles = new HashMap<String, Rights>();
+            this.roles = new HashMap<Role, Rights>();
         }
         this.roles = roles;
     }
@@ -153,11 +153,11 @@ public class User {
      * @param group key of role
      * @param rights value of role
      */
-    public void addRole(String name, Rights rights) {
+    public void addRole(Role role, Rights rights) {
         if (roles == null) {
-            this.roles = new HashMap<String, Rights>();
+            this.roles = new HashMap<Role, Rights>();
         }
-        roles.put(name, rights);
+        roles.put(role, rights);
     }
 
     /**
@@ -166,11 +166,11 @@ public class User {
      * @param group key of role
      * @param rights value of role
      */
-    public void removeRole(String name) {
+    public void removeRole(Role role) {
         if (roles == null) {
-            this.roles = new HashMap<String, Rights>();
+            this.roles = new HashMap<Role, Rights>();
         }
-        roles.remove(name);
+        roles.remove(role);
     }
 
     @Override

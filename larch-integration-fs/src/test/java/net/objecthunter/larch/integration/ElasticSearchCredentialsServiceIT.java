@@ -2,13 +2,10 @@
 package net.objecthunter.larch.integration;
 
 import static org.junit.Assert.assertEquals;
-
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.test.util.Fixtures;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,14 +34,6 @@ public class ElasticSearchCredentialsServiceIT extends AbstractLarchIT {
         User u = Fixtures.createUser();
         this.credentialsService.createUser(u);
         assertEquals(u, this.credentialsService.retrieveUser(u.getName()));
-    }
-
-    @Test
-    public void testAddGroup() throws Exception {
-        Group g = new Group();
-        g.setName(RandomStringUtils.randomAlphabetic(16));
-        this.credentialsService.createGroup(g);
-        assertEquals(g, this.credentialsService.retrieveGroup(g.getName()));
     }
 
     @Test

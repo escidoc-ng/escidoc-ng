@@ -23,7 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Role;
 
 /**
  * @author mih
@@ -36,6 +38,8 @@ public @interface Permission {
 
     PermissionType permissionType() default PermissionType.NULL;
     
-    String roleName() default "ROLE_ADMIN";
+    Role role() default Role.ADMIN;
+    
+    EntityType anchor() default EntityType.PERMISSION;
 
 }

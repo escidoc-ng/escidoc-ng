@@ -9,9 +9,9 @@ import java.util.Set;
 
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Rights;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
@@ -121,12 +121,12 @@ public class AbstractElasticSearchService {
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
-            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Group.ADMINS.getName())) {
+            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Role.ADMIN.getName())) {
                 return QueryBuilders.matchAllQuery();
             }
             // get user-permissions
             if (currentUser.getRoles() != null) {
-                rights = currentUser.getRoles().get(Group.USERS.getName());
+                rights = currentUser.getRoles().get(Role.USER.getName());
             }
         }
 

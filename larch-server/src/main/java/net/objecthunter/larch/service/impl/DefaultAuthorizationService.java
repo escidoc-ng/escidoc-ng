@@ -30,6 +30,7 @@ import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
+import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
@@ -65,7 +66,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private BackendCredentialsService backendCredentialsService;
 
     @Override
-    public void authorize(Method method, ObjectType objectType, EntityType entityType, String id, Integer versionId, Object result,
+    public void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result,
             Permission[] permissions, Object[] methodArgs) throws IOException {
         final User u = this.getCurrentUser();
         if (u == null) {
@@ -74,7 +75,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
 
         // handle permissions
-        handlePermissions(method, permissions, objectType, entityType, id, versionId, result, u);
+        handlePermissions(method, permissions, objectType, id, versionId, result, u);
     }
 
     private User getCurrentUser() {
@@ -98,25 +99,25 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * @param currentUser logged in user
      */
     private void handlePermissions(Method method, Permission[] permissions,
-            ObjectType objectType, EntityType entityType, String id, Integer versionId, Object result, User currentUser)
+            ObjectType objectType, String id, Integer versionId, Object result, User currentUser)
             throws IOException {
         if (currentUser == null) {
             // no user logged in but authorization required
             throw new InsufficientAuthenticationException("No user logged in");
         }
         Object checkObject = result;
-        Map<String, Rights> roles = currentUser.getRoles();
+        Map<Role, Rights> roles = currentUser.getRoles();
         if (roles == null) {
-            roles = new HashMap<String, Rights>();
+            roles = new HashMap<Role, Rights>();
         }
         roles.putAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
             if (permission.permissionType().equals(PermissionType.NULL)) {
-                if (roles.containsKey(permission.roleName())) {
+                if (roles.containsKey(permission.role())) {
                     return;
                 }
             } else {
-                if (!roles.containsKey(permission.roleName())) {
+                if (!roles.containsKey(permission.role())) {
                     continue;
                 }
                 if (checkObject == null) {
@@ -124,11 +125,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 }
                 if (checkObject instanceof Entity) {
                     String checkObjectId = null;
-                    checkObjectId = getHierarchicalId((Entity) checkObject, entityType);
+                    checkObjectId = getHierarchicalId((Entity) checkObject, permission.anchor());
                     if (checkObjectId == null) {
                         throw new AccessDeniedException("Object is not below object to check");
                     }
-                    Set<Right> rights = roles.get(permission.roleName()).getRights(checkObjectId);
+                    Set<Right> rights = roles.get(permission.role()).getRights(checkObjectId);
                     if (rights != null) {
                         ObjectType checkObjectType = objectType;
                         if (ObjectType.INPUT_ENTITY.equals(checkObjectType)) {
@@ -151,7 +152,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                         }
                     }
                 } else if (checkObject instanceof User) {
-                    Set<Right> rights = roles.get(permission.roleName()).getRights(((User) checkObject).getName());
+                    Set<Right> rights = roles.get(permission.role()).getRights(((User) checkObject).getName());
                     if (rights != null) {
                         for (Right right : rights) {
                             if (right.getObjectType().equals(objectType)) {
@@ -206,8 +207,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
         }
     }
 
-    private Map<String, Rights> getDefaultRoles(String username) throws IOException {
-        Map<String, Rights> defaultRoles = new HashMap<String, Rights>();
+    private Map<Role, Rights> getDefaultRoles(String username) throws IOException {
+        Map<Role, Rights> defaultRoles = new HashMap<Role, Rights>();
         Rights rights = new Rights();
         Right readRight = new Right();
         readRight.setObjectType(ObjectType.USER);
@@ -216,7 +217,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
         writeRight.setObjectType(ObjectType.USER);
         writeRight.setPermissionType(PermissionType.WRITE);
         rights.addRights(username, readRight, writeRight);
-        defaultRoles.put("ANY_ROLE", rights);
+        defaultRoles.put(Role.ANY, rights);
         return defaultRoles;
     }
 

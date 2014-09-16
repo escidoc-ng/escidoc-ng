@@ -18,7 +18,6 @@ package net.objecthunter.larch.integration.authorize;
 
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
-import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
