@@ -104,11 +104,7 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
     protected Authentication createSuccessfulAuthentication(User user, OpenIDAuthenticationToken auth) {
         String[] roles = null;
         if (user != null) {
-            if (user.getRoles() != null && user.getRoles().size() > 0) {
-                roles = user.getRoles().keySet().toArray(new String[user.getRoles().size()]);
-            } else {
-                roles = new String[] { "ROLE_IDENTIFIED" };
-            }
+            roles = new String[] { "ROLE_IDENTIFIED" };
             return new OpenIDAuthenticationToken(user, AuthorityUtils.createAuthorityList(roles),
                     auth.getIdentityUrl(), auth.getAttributes());
         }

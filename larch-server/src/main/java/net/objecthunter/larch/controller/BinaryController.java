@@ -21,14 +21,15 @@ import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -82,8 +83,8 @@ public class BinaryController extends AbstractLarchController {
                 "application/x-www-form-urlencoded" })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("mimetype") final String mimeType, final InputStream src) throws IOException {
         entityService.createBinary(entityId, name, mimeType, src);
@@ -103,8 +104,8 @@ public class BinaryController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
         this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
@@ -129,8 +130,8 @@ public class BinaryController extends AbstractLarchController {
                 "application/x-www-form-urlencoded" }, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
         entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
@@ -151,8 +152,8 @@ public class BinaryController extends AbstractLarchController {
             consumes = "application/json", produces = "text/html")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public String createHtml(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
         this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
@@ -176,8 +177,8 @@ public class BinaryController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
     public Binary retrieve(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
@@ -224,8 +225,8 @@ public class BinaryController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
     public void download(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {
@@ -250,8 +251,8 @@ public class BinaryController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public void delete(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         this.entityService.deleteBinary(entityId, name);

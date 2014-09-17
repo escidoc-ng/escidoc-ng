@@ -3,16 +3,17 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.TestUserRole.UserRoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.io.IOUtils;
@@ -117,16 +118,16 @@ public class AbstractElasticSearchService {
     protected QueryBuilder getEntitiesUserRestrictionQuery(String permissionId) throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
-        Rights rights = null;
+        TestUserRole role = null;
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
-            if (currentUser.getRoles() != null && currentUser.getRoles().keySet().contains(Role.ADMIN.getName())) {
+            if (currentUser.getRoles() != null && currentUser.hasRole(RoleName.ADMIN)) {
                 return QueryBuilders.matchAllQuery();
             }
             // get user-permissions
             if (currentUser.getRoles() != null) {
-                rights = currentUser.getRoles().get(Role.USER.getName());
+                role = (TestUserRole)currentUser.getRole(RoleName.USER);
             }
         }
 
@@ -135,16 +136,22 @@ public class AbstractElasticSearchService {
         restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
 
         // add restrictions
-        if (StringUtils.isNotBlank(username) && rights != null && rights.getRights() != null) {
-            for (Entry<String, Set<Right>> rightSet : rights.getRights().entrySet()) {
-                Set<Right> userRights = rightSet.getValue();
-                for (Right userRight : userRights) {
-                    if (net.objecthunter.larch.model.security.Right.ObjectType.ENTITY.equals(userRight.getObjectType()) &&
-                            net.objecthunter.larch.model.security.Right.PermissionType.READ.equals(userRight.getPermissionType())) {
-                        if (userRight.getState() != null) {
-                            restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(userRight.getState(),
-                                    rightSet.getKey()));
-                        }
+        if (StringUtils.isNotBlank(username) && role != null && role.getRights() != null) {
+            for (Entry<String, List<UserRoleRight>> rightSet : role.getRights().entrySet()) {
+                List<UserRoleRight> userRights = rightSet.getValue();
+                for (UserRoleRight userRight : userRights) {
+                    if (UserRoleRight.READ_PENDING_METADATA.equals(userRight)) {
+                        restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.PENDING,
+                                rightSet.getKey()));
+                    } else if (UserRoleRight.READ_PUBLISHED_METADATA.equals(userRight)) {
+                        restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.PUBLISHED,
+                                rightSet.getKey()));
+                    } else if (UserRoleRight.READ_SUBMITTED_METADATA.equals(userRight)) {
+                        restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.SUBMITTED,
+                                rightSet.getKey()));
+                    } else if (UserRoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
+                        restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.WITHDRAWN,
+                                rightSet.getKey()));
                     }
                 }
             }

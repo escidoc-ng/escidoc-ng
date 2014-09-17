@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,10 @@ import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.TestAdminRole;
+import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestUserRole.UserRoleRight;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -105,7 +110,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 admin.setName("admin");
                 admin.setFirstName("Generic");
                 admin.setLastName("Superuser");
-                admin.addRole(Role.ADMIN, new Rights());
+                admin.setRole(new TestAdminRole());
                 client
                         .prepareIndex(INDEX_USERS, "user", admin.getName())
                         .setSource(mapper.writeValueAsBytes(admin))
@@ -116,14 +121,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                Rights rights = new Rights();
-                Set<Right> rightSet = new HashSet<Right>();
-                Right right = new Right(ObjectType.ENTITY, PermissionType.READ, EntityState.PENDING, false);
-                rightSet.add(right);
-                Right right1 = new Right(ObjectType.BINARY, PermissionType.WRITE, EntityState.SUBMITTED, true);
-                rightSet.add(right1);
-                rights.setRights("test", rightSet);
-                user.addRole(Role.USER, rights);
+                TestUserRole userRole = new TestUserRole();
+                Map<String, List<UserRoleRight>> rights = new HashMap<String, List<UserRoleRight>>();
+                rights.put("test", new ArrayList<UserRoleRight>(){{add(UserRoleRight.READ_PENDING_METADATA);add(UserRoleRight.WRITE_SUBMITTED_BINARY);}});
+                userRole.setRights(rights);
+                user.setRole(userRole);
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()
@@ -149,11 +151,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 final User u = mapper.readValue(get.getSourceAsBytes(), User.class);
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
-                    if (u.getRoles() != null && u.getRoles().size() > 0) {
-                        roles = u.getRoles().keySet().toArray(new String[u.getRoles().size()]);
-                    } else {
-                        roles = new String[] { "ROLE_IDENTIFIED" };
-                    }
+                    roles = new String[] { "ROLE_IDENTIFIED" };
                     return new UsernamePasswordAuthenticationToken(u, auth.getCredentials(),
                             AuthorityUtils.createAuthorityList(roles));
                 }
@@ -377,7 +375,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
 
     private boolean isLastAdminUser(String name) throws IOException {
         User user = this.retrieveUser(name);
-        if (user.getRoles() == null || !user.getRoles().containsKey(Role.ADMIN.getName())) {
+        if (user.getRoles() == null || !user.hasRole(RoleName.ADMIN)) {
             return false;
         }
         final CountResponse resp;

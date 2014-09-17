@@ -18,10 +18,10 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Settings;
-import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.RepositoryService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -75,7 +75,7 @@ public class SettingsController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN) })
     public Settings retrieve() throws IOException {
         return this.createSettings();
     }

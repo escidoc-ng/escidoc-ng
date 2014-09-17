@@ -18,11 +18,11 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.EntityService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class AuditRecordController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN)})
+            @Permission(rolename = RoleName.ADMIN)})
     public AuditRecords retrieve(@PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {

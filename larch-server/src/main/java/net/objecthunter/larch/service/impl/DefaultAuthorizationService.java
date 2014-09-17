@@ -18,17 +18,25 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.objecthunter.larch.annotations.Permission;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.role.TestRole;
+import net.objecthunter.larch.model.security.role.TestRole.DefaultRoleRight;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestUserAdminRole;
+import net.objecthunter.larch.model.security.role.TestUserRole;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
@@ -73,6 +81,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
             // no user logged in but authorization required
             throw new InsufficientAuthenticationException("No user logged in");
         }
+        if (permissions == null) {
+            throw new AccessDeniedException("nobody may call method");
+        }
 
         // handle permissions
         handlePermissions(method, permissions, objectType, id, versionId, result, u);
@@ -101,69 +112,30 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private void handlePermissions(Method method, Permission[] permissions,
             ObjectType objectType, String id, Integer versionId, Object result, User currentUser)
             throws IOException {
-        if (currentUser == null) {
-            // no user logged in but authorization required
-            throw new InsufficientAuthenticationException("No user logged in");
-        }
         Object checkObject = result;
-        Map<Role, Rights> roles = currentUser.getRoles();
-        if (roles == null) {
-            roles = new HashMap<Role, Rights>();
+        List<TestRole> userRoles = currentUser.getRoles();
+        if (userRoles == null) {
+            userRoles = new ArrayList<TestRole>();
         }
-        roles.putAll(getDefaultRoles(currentUser.getName()));
+        userRoles.addAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
             if (permission.permissionType().equals(PermissionType.NULL)) {
-                if (roles.containsKey(permission.role())) {
+                if (userHasRole(permission.rolename(), userRoles)) {
                     return;
                 }
+            } else if (RoleName.ANY.equals(permission.rolename())) {
+               return;
             } else {
-                if (!roles.containsKey(permission.role())) {
+                if (!userHasRole(permission.rolename(), userRoles)) {
                     continue;
                 }
                 if (checkObject == null) {
                     checkObject = getCheckObject(objectType, id, versionId);
                 }
-                if (checkObject instanceof Entity) {
-                    String checkObjectId = null;
-                    checkObjectId = getHierarchicalId((Entity) checkObject, permission.anchor());
-                    if (checkObjectId == null) {
-                        throw new AccessDeniedException("Object is not below object to check");
+                for (TestRole userRole : userRoles) {
+                    if (userRole.compare(permission, checkObject)) {
+                        return;
                     }
-                    Set<Right> rights = roles.get(permission.role()).getRights(checkObjectId);
-                    if (rights != null) {
-                        ObjectType checkObjectType = objectType;
-                        if (ObjectType.INPUT_ENTITY.equals(checkObjectType)) {
-                            checkObjectType = ObjectType.ENTITY;
-                        }
-                        for (Right right : rights) {
-                            if (right.getObjectType().equals(checkObjectType)) {
-                                if (right.getState() == null ||
-                                        right.getState().equals(((Entity) checkObject).getState())) {
-                                    if ((right.isTree() && (((Entity) checkObject).getId() == null || !((Entity) checkObject)
-                                            .getId().equals(checkObjectId))) ||
-                                            (!right.isTree() && ((Entity) checkObject).getId() != null && ((Entity) checkObject)
-                                                    .getId().equals(checkObjectId))) {
-                                        if (permission.permissionType().equals(right.getPermissionType())) {
-                                            return;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (checkObject instanceof User) {
-                    Set<Right> rights = roles.get(permission.role()).getRights(((User) checkObject).getName());
-                    if (rights != null) {
-                        for (Right right : rights) {
-                            if (right.getObjectType().equals(objectType)) {
-                                if (permission.permissionType().equals(right.getPermissionType())) {
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    throw new AccessDeniedException("Object has wrong type");
                 }
             }
         }
@@ -193,32 +165,26 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return checkObject;
     }
 
-    private String getHierarchicalId(Entity entity, EntityType fromType) throws IOException {
-        if (StringUtils.isNotBlank(entity.getId())) {
-            try {
-                return backendEntityService.getHierarchicalId(entity.getId(), fromType);
-            } catch (NotFoundException e) {
+    private List<TestRole> getDefaultRoles(String username) throws IOException {
+        List<TestRole> userDefaultRoles = new ArrayList<TestRole>();
+        TestUserAdminRole userAdminRole = new TestUserAdminRole();
+        Map<String, List<DefaultRoleRight>> rights = new HashMap<String, List<DefaultRoleRight>>();
+        rights.put(username, new ArrayList<DefaultRoleRight>() {{add(DefaultRoleRight.READ);add(DefaultRoleRight.WRITE);}});
+        userAdminRole.setRights(rights);
+        userDefaultRoles.add(userAdminRole);
+        return userDefaultRoles;
+    }
+    
+    private boolean userHasRole(RoleName roleName, List<TestRole> userRoles) {
+        if (roleName == null || userRoles == null) {
+            return false;
+        }
+        for (TestRole role : userRoles) {
+            if (roleName.equals(role.getRoleName())) {
+                return true;
             }
         }
-        if (StringUtils.isNotBlank(entity.getParentId())) {
-            return backendEntityService.getHierarchicalId(entity.getParentId(), fromType);
-        } else {
-            return null;
-        }
-    }
-
-    private Map<Role, Rights> getDefaultRoles(String username) throws IOException {
-        Map<Role, Rights> defaultRoles = new HashMap<Role, Rights>();
-        Rights rights = new Rights();
-        Right readRight = new Right();
-        readRight.setObjectType(ObjectType.USER);
-        readRight.setPermissionType(PermissionType.READ);
-        Right writeRight = new Right();
-        writeRight.setObjectType(ObjectType.USER);
-        writeRight.setPermissionType(PermissionType.WRITE);
-        rights.addRights(username, readRight, writeRight);
-        defaultRoles.put(Role.ANY, rights);
-        return defaultRoles;
+        return false;
     }
 
 }

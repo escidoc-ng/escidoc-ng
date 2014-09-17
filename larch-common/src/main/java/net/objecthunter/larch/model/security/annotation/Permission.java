@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.annotations;
+package net.objecthunter.larch.model.security.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,9 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
-import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 
 /**
  * @author mih
@@ -38,8 +37,6 @@ public @interface Permission {
 
     PermissionType permissionType() default PermissionType.NULL;
     
-    Role role() default Role.ADMIN;
+    RoleName rolename() default RoleName.ADMIN;
     
-    EntityType anchor() default EntityType.PERMISSION;
-
 }

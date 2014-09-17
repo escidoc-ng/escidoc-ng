@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -69,7 +69,7 @@ public class RoleController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-        @Permission(role = Role.ADMIN) })
+        @Permission(rolename = RoleName.ADMIN) })
     public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
         Map<Role, Rights> roles = mapper.readValue(src, new TypeReference<Map<Role, Rights>>() {});
         backendCredentialsService.setRoles(username, roles);
@@ -100,8 +100,8 @@ public class RoleController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 1, permissions = {
-        @Permission(role = Role.ADMIN),
-        @Permission(role = Role.USER_ADMIN, permissionType = PermissionType.WRITE, anchor = EntityType.AREA) })
+        @Permission(rolename = RoleName.ADMIN),
+        @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("objectId") final String objectId, final InputStream src) throws IOException {

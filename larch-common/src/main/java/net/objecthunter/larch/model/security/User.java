@@ -16,8 +16,11 @@
 
 package net.objecthunter.larch.model.security;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.objecthunter.larch.model.security.role.TestRole;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 
 /**
  * A DTO for a larch User
@@ -34,7 +37,7 @@ public class User {
 
     private String pwhash;
 
-    private Map<Role, Rights> roles = new HashMap<Role, Rights>();
+    private List<TestRole> roles;
 
     /**
      * Get the user's name
@@ -131,7 +134,7 @@ public class User {
      * 
      * @return the roles
      */
-    public Map<Role, Rights> getRoles() {
+    public List<TestRole> getRoles() {
         return roles;
     }
 
@@ -140,37 +143,52 @@ public class User {
      * 
      * @param roles the roles to set
      */
-    public void setRoles(Map<Role, Rights> roles) {
-        if (roles == null) {
-            this.roles = new HashMap<Role, Rights>();
-        }
+    public void setRoles(List<TestRole> roles) {
         this.roles = roles;
     }
-
-    /**
-     * add a role
-     * 
-     * @param group key of role
-     * @param rights value of role
-     */
-    public void addRole(Role role, Rights rights) {
-        if (roles == null) {
-            this.roles = new HashMap<Role, Rights>();
+    
+    public boolean hasRole(RoleName roleName) {
+        if (roleName == null || roles == null) {
+            return false;
         }
-        roles.put(role, rights);
+        for (TestRole role : roles) {
+            if (roleName.equals(role.getRoleName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    /**
-     * add a role
-     * 
-     * @param group key of role
-     * @param rights value of role
-     */
-    public void removeRole(Role role) {
-        if (roles == null) {
-            this.roles = new HashMap<Role, Rights>();
+    public TestRole getRole(RoleName roleName) {
+        if (roleName == null || roles == null) {
+            return null;
         }
-        roles.remove(role);
+        for (TestRole role : roles) {
+            if (roleName.equals(role.getRoleName())) {
+                return role;
+            }
+        }
+        return null;
+    }
+
+    public void setRole(TestRole role) {
+        if (roles == null) {
+            roles = new ArrayList<TestRole>();
+        }
+        removeRole(role.getRoleName());
+        roles.add(role);
+    }
+
+    public void removeRole(RoleName roleName) {
+        if (roleName == null || roles == null) {
+            return;
+        }
+        for (TestRole role : roles) {
+            if (roleName.equals(role.getRoleName())) {
+                roles.remove(role);
+                return;
+            }
+        }
     }
 
     @Override

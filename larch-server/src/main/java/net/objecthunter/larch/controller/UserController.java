@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -103,7 +104,7 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
         this.backendCredentialsService.deleteUser(name);
     }
@@ -119,7 +120,7 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN) })
     public List<User> retrieveUsers() throws IOException {
         return backendCredentialsService.retrieveUsers();
     }
@@ -182,8 +183,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.ANY, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
         return backendCredentialsService.retrieveUser(name);
@@ -201,8 +202,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.ANY, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
@@ -221,7 +222,7 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN) })
     public ModelAndView retrieveCredentials() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
@@ -265,7 +266,7 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(role = Role.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN) })
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,

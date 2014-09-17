@@ -19,10 +19,10 @@ package net.objecthunter.larch.security.helpers;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.annotations.PostAuth;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.annotation.PostAuth;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.service.AuthorizationService;
 
 import org.aspectj.lang.ProceedingJoinPoint;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.annotations;
+package net.objecthunter.larch.model.security.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,7 +23,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 
 /**
@@ -33,7 +32,7 @@ import net.objecthunter.larch.model.security.Right.ObjectType;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface PostAuth {
+public @interface PreAuth {
 
     int idIndex() default -1;
 

@@ -18,12 +18,12 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.Permission;
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
-import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -61,8 +61,8 @@ public class IdentifierController extends AbstractLarchController {
     @RequestMapping(value = "/identifier", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(entityId, type, value);
@@ -99,8 +99,8 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(role = Role.ADMIN),
-            @Permission(role = Role.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
     public void delete(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(entityId, type, value);

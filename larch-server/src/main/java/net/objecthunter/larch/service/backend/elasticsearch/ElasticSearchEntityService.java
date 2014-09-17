@@ -29,6 +29,7 @@ import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -90,8 +91,9 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         this.validate(e);
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
-        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), getHierarchicalId(e, EntityType.AREA));
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getHierarchicalId(e, EntityType.PERMISSION));
+        EntityHierarchy entityHierarchy = getHierarchy(e);
+        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), entityHierarchy.getAreaId());
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), entityHierarchy.getPermissionId());
 
         try {
             client
@@ -117,8 +119,9 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         this.validate(e);
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
-        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), getHierarchicalId(e, EntityType.AREA));
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), getHierarchicalId(e, EntityType.PERMISSION));
+        EntityHierarchy entityHierarchy = getHierarchy(e);
+        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), entityHierarchy.getAreaId());
+        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), entityHierarchy.getPermissionId());
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
@@ -443,30 +446,29 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public String getHierarchicalId(String entityId, EntityType fromType) throws IOException {
-        String searchField = null;
-        if (EntityType.AREA.equals(fromType)) {
-            searchField = EntitiesSearchField.AREA_ID.getFieldName();
-        } else if (EntityType.AREA.equals(fromType)) {
-            searchField = EntitiesSearchField.PERMISSION_ID.getFieldName();
-        } else {
-            throw new IOException("unsupported entityType");
-        }
+    public EntityHierarchy getHierarchy(String entityId) throws IOException {
         final GetResponse resp;
         try {
             resp =
                     client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).setFields(
-                            searchField).execute().actionGet();
+                            EntitiesSearchField.AREA_ID.getFieldName(),
+                            EntitiesSearchField.PERMISSION_ID.getFieldName()).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         if (!resp.isExists()) {
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
-        String hierarchicalId =
-                resp.getField(searchField) != null ? (String) resp.getField(
-                        searchField).getValue() : null;
-        return hierarchicalId;
+        EntityHierarchy entityHierarchy = new EntityHierarchy();
+        String areaId =
+                resp.getField(EntitiesSearchField.AREA_ID.getFieldName()) != null ? (String) resp.getField(
+                        EntitiesSearchField.AREA_ID.getFieldName()).getValue() : null;
+        String permissionId =
+                resp.getField(EntitiesSearchField.PERMISSION_ID.getFieldName()) != null ? (String) resp.getField(
+                        EntitiesSearchField.PERMISSION_ID.getFieldName()).getValue() : null;
+        entityHierarchy.setAreaId(areaId);
+        entityHierarchy.setPermissionId(permissionId);
+        return entityHierarchy;
     }
 
     private void validate(Entity entity) throws IOException {
@@ -494,23 +496,20 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
     }
 
-    private String getHierarchicalId(Entity entity, EntityType fromType) throws IOException {
-        if (EntityType.AREA.equals(fromType)) {
-            if (EntityType.AREA.equals(entity.getType())) {
-                return entity.getId();
-            } else if (EntityType.PERMISSION.equals(entity.getType())) {
-                return entity.getParentId();
-            } else {
-                return getHierarchicalId(entity.getParentId(), fromType);
-            }
-        } else if (EntityType.PERMISSION.equals(fromType)) {
-            if (EntityType.AREA.equals(entity.getType())) {
-                return null;
-            } else if (EntityType.PERMISSION.equals(entity.getType())) {
-                return entity.getId();
-            } else {
-                return getHierarchicalId(entity.getParentId(), fromType);
-            }
+    private EntityHierarchy getHierarchy(Entity entity) throws IOException {
+        if (entity == null) {
+            throw new IOException("entity may not be null");
+        }
+        EntityHierarchy entityHierarchy = new EntityHierarchy();
+        if (EntityType.AREA.equals(entity.getType())) {
+            entityHierarchy.setAreaId(entity.getId());
+        } else if (EntityType.PERMISSION.equals(entity.getType())) {
+            entityHierarchy.setAreaId(entity.getParentId());
+            entityHierarchy.setPermissionId(entity.getId());
+        } else if (entity.getType() != null) {
+            return getHierarchy(entity.getParentId());
+        } else {
+            throw new IOException("entityType may not be null");
         }
         return null;
     }
