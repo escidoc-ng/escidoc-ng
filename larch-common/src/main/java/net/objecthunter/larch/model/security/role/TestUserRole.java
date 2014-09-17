@@ -53,6 +53,11 @@ public class TestUserRole extends TestRole {
         return false;
     }
 
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
     public enum UserRoleRight implements RoleRight {
         READ_PENDING_METADATA,
         READ_SUBMITTED_METADATA,

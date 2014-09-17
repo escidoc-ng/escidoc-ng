@@ -18,16 +18,15 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
+import java.util.List;
 
-import net.objecthunter.larch.model.security.Right;
 import net.objecthunter.larch.model.security.Right.ObjectType;
 import net.objecthunter.larch.model.security.Right.PermissionType;
-import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole;
 import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -71,7 +70,7 @@ public class RoleController extends AbstractLarchController {
     @PreAuth(permissions = {
         @Permission(rolename = RoleName.ADMIN) })
     public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
-        Map<Role, Rights> roles = mapper.readValue(src, new TypeReference<Map<Role, Rights>>() {});
+        List<TestRole> roles = mapper.readValue(src, new TypeReference<List<TestRole>>() {});
         backendCredentialsService.setRoles(username, roles);
     }
 
@@ -101,12 +100,12 @@ public class RoleController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 1, permissions = {
         @Permission(rolename = RoleName.ADMIN),
-        @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
+        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("objectId") final String objectId, final InputStream src) throws IOException {
-        Right right = mapper.readValue(src, Right.class);
-        backendCredentialsService.setRight(username, Role.valueOf(rolename.toUpperCase()), objectId, right);
+        List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
+        backendCredentialsService.setRight(username, RoleName.valueOf(rolename.toUpperCase()), objectId, rights);
     }
 
     /**

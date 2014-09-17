@@ -50,4 +50,9 @@ public class TestAreaAdminRole extends TestRole {
         return false;
     }
 
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
 }

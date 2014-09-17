@@ -42,9 +42,15 @@ public abstract class TestRole {
     public RoleName getRoleName() {
         return roleName;
     }
+    
+    public 
 
 
     public boolean compare(Permission permission, Object checkObject) {
+        return false;
+    }
+    
+    public boolean isValid() {
         return false;
     }
     
@@ -56,7 +62,7 @@ public abstract class TestRole {
         ANY;
     }
     
-    interface RoleRight {}
+    public interface RoleRight {}
     
     public enum DefaultRoleRight implements RoleRight {
         READ,

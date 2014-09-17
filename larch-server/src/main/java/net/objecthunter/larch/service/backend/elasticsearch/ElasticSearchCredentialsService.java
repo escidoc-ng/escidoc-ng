@@ -20,11 +20,8 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -32,18 +29,16 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
 import net.objecthunter.larch.model.security.Rights;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.TestAdminRole;
-import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.TestRole;
 import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
+import net.objecthunter.larch.model.security.role.TestUserRole;
 import net.objecthunter.larch.model.security.role.TestUserRole.UserRoleRight;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
@@ -247,35 +242,23 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
     
     @Override
-    public void setRoles(String username, Map<Role, Rights> roles) throws IOException {
+    public void setRoles(String username, List<TestRole> roles) throws IOException {
         //check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
-        for (Role role : roles.keySet()) {
+        List<RoleName> existingRoleNames = new ArrayList<RoleName>();
+        for (TestRole role : roles) {
             if (role == null) {
                 throw new InvalidParameterException("role may not be null");
             }
-            if (roles.get(role) != null && roles.get(role).getRights() != null && !roles.get(role).getRights().isEmpty()) {
-                Map<String, Set<Right>> rights = roles.get(role).getRights();
-                for(Entry<String, Set<Right>> right : rights.entrySet()) {
-                    if (right.getKey() == null) {
-                        throw new InvalidParameterException("id of right may not be null");
-                    }
-                    Entity entity = backendEntityService.retrieve(right.getKey());
-                    if (!EntityType.AREA.equals(entity.getType()) && !EntityType.PERMISSION.equals(entity.getType())) {
-                        throw new InvalidParameterException("object for objectId must be of type AREA or PERMISSION");
-                    }
-                    for (Right singleRight : right.getValue()) {
-                        if (singleRight.getObjectType() == null) {
-                            throw new InvalidParameterException("objectType of right may not be null");
-                        }
-                        if (singleRight.getPermissionType() == null) {
-                            throw new InvalidParameterException("permissionType of right may not be null");
-                        }
-                    }
-                }
+            if (existingRoleNames.contains(role.getRoleName())) {
+                throw new InvalidParameterException("duplicate role " + role.getRoleName());
             }
+            if (!role.isValid()) {
+                throw new InvalidParameterException("invalid role " + role.getRoleName());
+            }
+            existingRoleNames.add(role.getRoleName());
         }
         try {
             final GetResponse get =
@@ -298,28 +281,22 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public void setRight(String username, Role role, String objectId, Right right) throws IOException {
+    public void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights) throws IOException {
         //check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
-        if (role == null) {
+        if (roleName == null) {
             throw new InvalidParameterException("name of role may not be null");
         }
-        if (Role.ADMIN.equals(role)) {
+        if (RoleName.ADMIN.equals(roleName)) {
             throw new InvalidParameterException("admin-role cannot be set with this method");
         }
         if (objectId == null) {
             throw new InvalidParameterException("objectId may not be null");
         }
-        if (right == null) {
-            throw new InvalidParameterException("right may not be null");
-        }
-        if (right.getObjectType() == null) {
-            throw new InvalidParameterException("objectType of right may not be null");
-        }
-        if (right.getPermissionType() == null) {
-            throw new InvalidParameterException("permissionType of right may not be null");
+        if (rights == null) {
+            throw new InvalidParameterException("rights may not be null");
         }
         Entity entity = backendEntityService.retrieve(objectId);
         if (!EntityType.AREA.equals(entity.getType()) && !EntityType.PERMISSION.equals(entity.getType())) {
@@ -334,6 +311,10 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
             
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            TestRole existingRole = user.getRole(roleName);
+            if (existingRole != null) {
+                existingRole.
+            }
             if (user.getRoles().get(role) == null) {
                 Rights rights = new Rights();
                 rights.addRights(objectId, right);

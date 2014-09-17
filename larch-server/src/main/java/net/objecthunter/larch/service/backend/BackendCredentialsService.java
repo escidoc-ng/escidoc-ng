@@ -18,13 +18,12 @@ package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.TestRole;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
 
 /**
  * Service definition for the AuthZ/AuthN service
@@ -62,18 +61,18 @@ public interface BackendCredentialsService {
      * @param roles the roles to set
      * @throws IOException
      */
-    void setRoles(String username, Map<Role, Rights> roles) throws IOException;
+    void setRoles(String username, List<TestRole> roles) throws IOException;
 
     /**
      * Set a right for a {@link net.objecthunter.larch.model.security.User} and an objectId in the Repository
      * 
      * @param username the name of the user
-     * @param role the role
+     * @param roleName the rolename
      * @param objectId the objectId to set the right for
-     * @param right the right to set
+     * @param rights the rights to set
      * @throws IOException
      */
-    void setRight(String username, Role role, String objectId, Right right) throws IOException;
+    void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights) throws IOException;
 
     /**
      * Delete a User from the repository

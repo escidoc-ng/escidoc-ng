@@ -24,4 +24,9 @@ public class TestAdminRole extends TestRole {
         return true;
     }
 
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
 }
