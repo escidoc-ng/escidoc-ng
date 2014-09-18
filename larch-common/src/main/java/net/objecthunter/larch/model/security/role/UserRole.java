@@ -6,13 +6,14 @@ package net.objecthunter.larch.model.security.role;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.PermissionType;
@@ -55,6 +56,37 @@ public class UserRole extends Role {
 
         {
             add(PermissionAnchorType.PERMISSION);
+        }
+    };
+
+    private Map<String, RoleRight> validateMatrix = new HashMap<String, RoleRight>() {
+
+        {
+            put("" + PermissionType.READ + EntityState.PENDING + ObjectType.BINARY, RoleRight.READ_PENDING_BINARY);
+            put("" + PermissionType.READ + EntityState.SUBMITTED + ObjectType.BINARY, RoleRight.READ_SUBMITTED_BINARY);
+            put("" + PermissionType.READ + EntityState.PUBLISHED + ObjectType.BINARY, RoleRight.READ_PUBLISHED_BINARY);
+            put("" + PermissionType.READ + EntityState.WITHDRAWN + ObjectType.BINARY, RoleRight.READ_WITHDRAWN_BINARY);
+            put("" + PermissionType.READ + EntityState.PENDING + ObjectType.ENTITY, RoleRight.READ_PENDING_METADATA);
+            put("" + PermissionType.READ + EntityState.SUBMITTED + ObjectType.ENTITY,
+                    RoleRight.READ_SUBMITTED_METADATA);
+            put("" + PermissionType.READ + EntityState.PUBLISHED + ObjectType.ENTITY,
+                    RoleRight.READ_PUBLISHED_METADATA);
+            put("" + PermissionType.READ + EntityState.WITHDRAWN + ObjectType.ENTITY,
+                    RoleRight.READ_WITHDRAWN_METADATA);
+            put("" + PermissionType.WRITE + EntityState.PENDING + ObjectType.BINARY, RoleRight.WRITE_PENDING_BINARY);
+            put("" + PermissionType.WRITE + EntityState.SUBMITTED + ObjectType.BINARY,
+                    RoleRight.WRITE_SUBMITTED_BINARY);
+            put("" + PermissionType.WRITE + EntityState.PUBLISHED + ObjectType.BINARY,
+                    RoleRight.WRITE_PUBLISHED_BINARY);
+            put("" + PermissionType.WRITE + EntityState.WITHDRAWN + ObjectType.BINARY,
+                    RoleRight.WRITE_WITHDRAWN_BINARY);
+            put("" + PermissionType.WRITE + EntityState.PENDING + ObjectType.ENTITY, RoleRight.WRITE_PENDING_METADATA);
+            put("" + PermissionType.WRITE + EntityState.SUBMITTED + ObjectType.ENTITY,
+                    RoleRight.WRITE_SUBMITTED_METADATA);
+            put("" + PermissionType.WRITE + EntityState.PUBLISHED + ObjectType.ENTITY,
+                    RoleRight.WRITE_PUBLISHED_METADATA);
+            put("" + PermissionType.WRITE + EntityState.WITHDRAWN + ObjectType.ENTITY,
+                    RoleRight.WRITE_WITHDRAWN_METADATA);
         }
     };
 
@@ -110,135 +142,20 @@ public class UserRole extends Role {
         if (this.rights.get(entityHierarchy.getPermissionId()) == null) {
             return false;
         }
-        if (permission.permissionType().equals(PermissionType.READ)) {
-            if (EntityType.PERMISSION.equals(checkEntity.getType()) &&
-                    !this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PERMISSION)) {
-                return false;
-            } else {
-                if (checkEntity.getState() == null) {
+        if (EntityType.PERMISSION.equals(checkEntity.getType())) {
+            if (permission.permissionType().equals(PermissionType.READ)) {
+                if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PERMISSION)) {
                     return false;
                 }
-                switch (checkEntity.getState()) {
-                case PENDING:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PENDING_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PENDING_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case SUBMITTED:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_SUBMITTED_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_SUBMITTED_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case PUBLISHED:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PUBLISHED_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PUBLISHED_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case WITHDRAWN:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_WITHDRAWN_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_WITHDRAWN_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                default:
+            } else if (permission.permissionType().equals(PermissionType.WRITE)) {
+                if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PERMISSION)) {
                     return false;
                 }
             }
-        } else if (permission.permissionType().equals(PermissionType.WRITE)) {
-            if (EntityType.PERMISSION.equals(checkEntity.getType()) &&
-                    !this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PERMISSION)) {
+        } else {
+            if (!this.rights.get(entityHierarchy.getPermissionId()).contains(
+                    validateMatrix.get("" + permission.permissionType() + checkEntity.getState() + objectType))) {
                 return false;
-            } else {
-                if (checkEntity.getState() == null) {
-                    return false;
-                }
-                switch (checkEntity.getState()) {
-                case PENDING:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PENDING_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PENDING_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case SUBMITTED:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_SUBMITTED_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_SUBMITTED_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case PUBLISHED:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PUBLISHED_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PUBLISHED_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                case WITHDRAWN:
-                    if (ObjectType.ENTITY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_WITHDRAWN_METADATA)) {
-                            return false;
-                        }
-                    } else if (ObjectType.BINARY.equals(objectType)) {
-                        if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_WITHDRAWN_BINARY)) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                default:
-                    return false;
-                }
             }
         }
         return true;

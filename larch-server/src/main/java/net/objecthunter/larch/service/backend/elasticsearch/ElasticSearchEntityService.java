@@ -511,7 +511,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } else {
             throw new IOException("entityType may not be null");
         }
-        return null;
+        return entityHierarchy;
     }
 
     /**

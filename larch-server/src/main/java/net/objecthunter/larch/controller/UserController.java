@@ -17,6 +17,7 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -240,25 +241,9 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public List<RoleName> retrieveRoles() throws IOException {
-        List<RoleName> roles = Arrays.asList(RoleName.values());
+        List<RoleName> roles = new ArrayList<RoleName>(Arrays.asList(RoleName.values()));
         roles.remove(RoleName.ANY);
         return roles;
-    }
-
-    /**
-     * Controller method to retrieve a list of ObjectTypes that exist in the
-     * repository as a JSON representation
-     * 
-     * @return the list of {@link net.objecthunter.larch.model.security.Right.ObjectType}s as a JSON representation
-     * @throws IOException
-     */
-    @RequestMapping(value = "/object-types", method = RequestMethod.GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public List<ObjectType> retrieveObjectTypes() throws IOException {
-        List<ObjectType> objectTypes = Arrays.asList(ObjectType.values());
-        objectTypes.remove(ObjectType.INPUT_ENTITY);
-        return objectTypes;
     }
 
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")

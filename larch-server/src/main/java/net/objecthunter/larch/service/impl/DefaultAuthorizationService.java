@@ -110,17 +110,20 @@ public class DefaultAuthorizationService implements AuthorizationService {
         EntityHierarchy entityHierarchy = null;
         boolean entityHierarchySet = false;
         List<Role> userRoles = currentUser.getRoles();
+        if (objectType != null && ObjectType.INPUT_ENTITY.equals(objectType)) {
+            objectType = ObjectType.ENTITY;
+        }
         if (userRoles == null) {
             userRoles = new ArrayList<Role>();
         }
         userRoles.addAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
-            if (permission.permissionType().equals(PermissionType.NULL)) {
+            if (RoleName.ANY.equals(permission.rolename())) {
+                return;
+            } else if (permission.permissionType().equals(PermissionType.NULL)) {
                 if (userHasRole(permission.rolename(), userRoles)) {
                     return;
                 }
-            } else if (RoleName.ANY.equals(permission.rolename())) {
-               return;
             } else {
                 if (!userHasRole(permission.rolename(), userRoles)) {
                     continue;

@@ -162,14 +162,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveGroups() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "group")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .build());
-    }
-
-    @Test
     public void testUpdateUserDetails() throws Exception {
         // create user
         String username = createUser(null, userPassword);
