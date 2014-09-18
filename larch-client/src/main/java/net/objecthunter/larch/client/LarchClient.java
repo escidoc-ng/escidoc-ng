@@ -52,8 +52,8 @@ public class LarchClient {
     private ThreadLocal<Executor> executor;
 
     public LarchClient(URI larchUri, String username, String password) {
-        if (!larchUri.toASCIIString().endsWith("/")) {
-            this.larchUri = URI.create(larchUri.toASCIIString() + "/");
+        if (larchUri.toASCIIString().endsWith("/")) {
+            this.larchUri = URI.create(larchUri.toASCIIString().substring(0, larchUri.toASCIIString().length() -1));
         }else {
             this.larchUri = larchUri;
         }

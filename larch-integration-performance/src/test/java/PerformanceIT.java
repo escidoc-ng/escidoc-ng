@@ -93,7 +93,7 @@ public class PerformanceIT {
             final String data = EntityUtils.toString(resp.getEntity());
             if (!data.isEmpty()) {
                 JsonNode node = mapper.readTree(data);
-                if (node.get("Topology").get("DataCenters").get(0) != null) {
+                if (node.get("error") == null && node.get("Topology").get("DataCenters").get(0) != null) {
                     weedfsReady = true;
                 } else {
                     Thread.sleep(150);
