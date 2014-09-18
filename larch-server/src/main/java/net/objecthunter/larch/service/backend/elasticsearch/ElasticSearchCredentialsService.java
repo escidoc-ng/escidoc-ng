@@ -20,14 +20,19 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.AdminRole;
@@ -113,7 +118,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setLastName("User");
                 UserRole userRole = new UserRole();
                 Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
-                rights.put("test", new ArrayList<RoleRight>(){{add(RoleRight.READ_PENDING_METADATA);add(RoleRight.WRITE_SUBMITTED_BINARY);}});
+                rights.put("test", new ArrayList<RoleRight>() {
+
+                    {
+                        add(RoleRight.READ_PENDING_METADATA);
+                        add(RoleRight.WRITE_SUBMITTED_BINARY);
+                    }
+                });
                 userRole.setRights(rights);
                 user.setRole(userRole);
                 client
@@ -221,8 +232,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (!get.isExists()) {
                 throw new NotFoundException("The user " + u.getName() + " does not exist");
             }
-            
-            //Roles cannot be set with update user
+
+            // Roles cannot be set with update user
             User oldUser = mapper.readValue(get.getSourceAsBytes(), User.class);
             u.setRoles(oldUser.getRoles());
 
@@ -235,10 +246,10 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         this.refreshIndex(INDEX_USERS);
     }
-    
+
     @Override
     public void setRoles(String username, List<Role> roles) throws IOException {
-        //check parameters
+        // check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
@@ -250,8 +261,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (existingRoleNames.contains(role.getRoleName())) {
                 throw new InvalidParameterException("duplicate role " + role.getRoleName());
             }
-            if (!role.validate()) {
-                throw new InvalidParameterException("invalid role " + role.getRoleName());
+            role.validate();
+            if (role.getRights() != null) {
+                checkAnchorTypes(role.getRights().keySet(), role.anchorTypes());
             }
             existingRoleNames.add(role.getRoleName());
         }
@@ -261,7 +273,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (!get.isExists()) {
                 throw new NotFoundException("The user " + username + " does not exist");
             }
-            
+
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
             user.setRoles(roles);
 
@@ -276,8 +288,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights) throws IOException {
-        //check parameters
+    public void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights)
+            throws IOException {
+        // check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
@@ -300,10 +313,16 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (!get.isExists()) {
                 throw new NotFoundException("The user " + username + " does not exist");
             }
-            
+
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
             Role existingRole = user.getRole(roleName);
             if (existingRole != null) {
+                checkAnchorTypes(new HashSet<String>() {
+
+                    {
+                        add(objectId);
+                    }
+                }, existingRole.anchorTypes());
                 Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
                 if (expandedRights == null) {
                     expandedRights = new HashMap<String, List<RoleRight>>();
@@ -311,9 +330,15 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 expandedRights.put(objectId, rights);
                 existingRole.setRights(expandedRights);
             } else {
+                Role newRole = Role.getRoleObject(roleName);
+                checkAnchorTypes(new HashSet<String>() {
+
+                    {
+                        add(objectId);
+                    }
+                }, newRole.anchorTypes());
                 Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
                 newRights.put(objectId, rights);
-                Role newRole = Role.getRoleObject(roleName);
                 newRole.setRights(newRights);
                 user.setRole(newRole);
             }
@@ -327,7 +352,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         this.refreshIndex(INDEX_USERS);
     }
-
 
     @Override
     public void deleteUser(String name) throws IOException {
@@ -455,6 +479,48 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             return this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, name).execute().actionGet().isExists();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+    }
+
+    private void checkAnchorTypes(Set<String> objectIds, List<PermissionAnchorType> anchorTypes) throws IOException {
+        List<String> usernames = new ArrayList<String>();
+        List<EntityType> entityTypes = new ArrayList<EntityType>();
+        if (anchorTypes == null && objectIds != null && !objectIds.isEmpty()) {
+            throw new IOException("No object permissions supported");
+        }
+        if (anchorTypes == null || objectIds == null) {
+            return;
+        }
+        if (anchorTypes.contains(PermissionAnchorType.USER)) {
+            for (String objectId : objectIds) {
+                try {
+                    retrieveUser(objectId);
+                    usernames.add(objectId);
+                } catch (IOException e) {
+                }
+            }
+        }
+        if (anchorTypes.contains(PermissionAnchorType.AREA) || anchorTypes.contains(PermissionAnchorType.PERMISSION)) {
+            for (String objectId : objectIds) {
+                try {
+                    Entity e = backendEntityService.retrieve(objectId);
+                    if (e.getType() == null) {
+                        throw new IOException("Object " + objectId + " has wrong type for permission-anchor");
+                    }
+                    entityTypes.add(e.getType());
+                } catch (IOException e) {
+                }
+            }
+        }
+        if (objectIds.size() != (usernames.size() + entityTypes.size())) {
+            throw new IOException("At least one Object has wrong type for permission-anchor");
+        }
+        for (EntityType entityType : entityTypes) {
+            if ((EntityType.AREA.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.AREA)) ||
+                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.PERMISSION)) ||
+                    (!EntityType.AREA.equals(entityType)) && !EntityType.PERMISSION.equals(entityType)) {
+                throw new IOException("At least one Object has wrong type for permission-anchor");
+            }
         }
     }
 

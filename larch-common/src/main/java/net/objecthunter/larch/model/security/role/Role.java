@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -34,6 +37,8 @@ public abstract class Role {
     
     public abstract Map<String, List<RoleRight>> getRights();
 
+    public abstract List<PermissionAnchorType> anchorTypes();
+
     public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
     
     public static Role getRoleObject(RoleName roleName) throws IOException {
@@ -50,9 +55,9 @@ public abstract class Role {
         }
     }
     
-    public abstract boolean compare(Permission permission, Object checkObject);
+    public abstract boolean compare(Permission permission, ObjectType objectType, Object checkObject, EntityHierarchy entityHierarchy);
 
-    public abstract boolean validate();
+    public abstract void validate() throws IOException;
 
     public enum RoleName {
         ADMIN,

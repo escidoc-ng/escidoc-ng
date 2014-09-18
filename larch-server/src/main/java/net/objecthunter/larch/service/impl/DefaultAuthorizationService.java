@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.User;
@@ -104,6 +107,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
             ObjectType objectType, String id, Integer versionId, Object result, User currentUser)
             throws IOException {
         Object checkObject = result;
+        EntityHierarchy entityHierarchy = null;
+        boolean entityHierarchySet = false;
         List<Role> userRoles = currentUser.getRoles();
         if (userRoles == null) {
             userRoles = new ArrayList<Role>();
@@ -123,8 +128,25 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 if (checkObject == null) {
                     checkObject = getCheckObject(objectType, id, versionId);
                 }
+                if(checkObject instanceof Entity) {
+                    if (!entityHierarchySet) {
+                        Entity entityObject = (Entity)checkObject;
+                        if (entityObject.getType() != null && entityObject.getType().equals(EntityType.AREA)) {
+                            entityHierarchy = new EntityHierarchy();
+                            entityHierarchy.setAreaId(entityObject.getId());
+                        } else if (entityObject.getType() != null && entityObject.getType().equals(EntityType.PERMISSION)) {
+                            entityHierarchy = new EntityHierarchy();
+                            entityHierarchy.setPermissionId(entityObject.getId());
+                            entityHierarchy.setAreaId(entityObject.getParentId());
+                        } else {
+                            if (StringUtils.isNotBlank(entityObject.getParentId())) {
+                                entityHierarchy = backendEntityService.getHierarchy(entityObject.getParentId());
+                            }
+                        }
+                    }
+                }
                 for (Role userRole : userRoles) {
-                    if (userRole.compare(permission, checkObject)) {
+                    if (userRole.compare(permission, objectType, checkObject, entityHierarchy)) {
                         return;
                     }
                 }
