@@ -11,9 +11,9 @@ import java.util.Set;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
-import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.io.IOUtils;
@@ -118,7 +118,7 @@ public class AbstractElasticSearchService {
     protected QueryBuilder getEntitiesUserRestrictionQuery(String permissionId) throws IOException {
         // get username and check for ADMIN-Role
         User currentUser = getCurrentUser();
-        TestUserRole role = null;
+        UserRole role = null;
         String username = null;
         if (currentUser != null) {
             username = currentUser.getName();
@@ -127,7 +127,7 @@ public class AbstractElasticSearchService {
             }
             // get user-permissions
             if (currentUser.getRoles() != null) {
-                role = (TestUserRole)currentUser.getRole(RoleName.USER);
+                role = (UserRole)currentUser.getRole(RoleName.USER);
             }
         }
 

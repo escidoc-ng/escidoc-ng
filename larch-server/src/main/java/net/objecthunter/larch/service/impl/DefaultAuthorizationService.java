@@ -27,10 +27,10 @@ import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
-import net.objecthunter.larch.model.security.role.TestUserAdminRole;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -104,9 +104,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
             ObjectType objectType, String id, Integer versionId, Object result, User currentUser)
             throws IOException {
         Object checkObject = result;
-        List<TestRole> userRoles = currentUser.getRoles();
+        List<Role> userRoles = currentUser.getRoles();
         if (userRoles == null) {
-            userRoles = new ArrayList<TestRole>();
+            userRoles = new ArrayList<Role>();
         }
         userRoles.addAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
@@ -123,7 +123,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 if (checkObject == null) {
                     checkObject = getCheckObject(objectType, id, versionId);
                 }
-                for (TestRole userRole : userRoles) {
+                for (Role userRole : userRoles) {
                     if (userRole.compare(permission, checkObject)) {
                         return;
                     }
@@ -156,9 +156,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return checkObject;
     }
 
-    private List<TestRole> getDefaultRoles(String username) throws IOException {
-        List<TestRole> userDefaultRoles = new ArrayList<TestRole>();
-        TestUserAdminRole userAdminRole = new TestUserAdminRole();
+    private List<Role> getDefaultRoles(String username) throws IOException {
+        List<Role> userDefaultRoles = new ArrayList<Role>();
+        UserAdminRole userAdminRole = new UserAdminRole();
         Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
         rights.put(username, new ArrayList<RoleRight>() {{add(RoleRight.READ);add(RoleRight.WRITE);}});
         userAdminRole.setRights(rights);
@@ -166,11 +166,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return userDefaultRoles;
     }
     
-    private boolean userHasRole(RoleName roleName, List<TestRole> userRoles) {
+    private boolean userHasRole(RoleName roleName, List<Role> userRoles) {
         if (roleName == null || userRoles == null) {
             return false;
         }
-        for (TestRole role : userRoles) {
+        for (Role role : userRoles) {
             if (roleName.equals(role.getRoleName())) {
                 return true;
             }

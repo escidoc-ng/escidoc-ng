@@ -22,12 +22,11 @@ import java.util.List;
 
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,9 +239,9 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/roles", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<Role> retrieveRoles() throws IOException {
-        List<Role> roles = Arrays.asList(Role.values());
-        roles.remove(Role.ANY);
+    public List<RoleName> retrieveRoles() throws IOException {
+        List<RoleName> roles = Arrays.asList(RoleName.values());
+        roles.remove(RoleName.ANY);
         return roles;
     }
 

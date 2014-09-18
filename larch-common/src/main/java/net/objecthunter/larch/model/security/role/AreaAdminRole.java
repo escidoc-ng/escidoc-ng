@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
 
 /**
  * @author mih
  *
  */
-public class TestAreaAdminRole extends TestRole {
+public class AreaAdminRole extends Role {
     
     private RoleName roleName = RoleName.AREA_ADMIN;
     

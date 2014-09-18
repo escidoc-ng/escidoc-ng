@@ -23,12 +23,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         include = JsonTypeInfo.As.PROPERTY,
         property = "roleName")
     @JsonSubTypes({
-        @Type(value = TestAdminRole.class, name = "ADMIN"),
-        @Type(value = TestUserRole.class, name = "USER"),
-        @Type(value = TestUserAdminRole.class, name = "USER_ADMIN"),
-        @Type(value = TestAreaAdminRole.class, name = "AREA_ADMIN")
+        @Type(value = AdminRole.class, name = "ADMIN"),
+        @Type(value = UserRole.class, name = "USER"),
+        @Type(value = UserAdminRole.class, name = "USER_ADMIN"),
+        @Type(value = AreaAdminRole.class, name = "AREA_ADMIN")
         })
-public abstract class TestRole {
+public abstract class Role {
     
     public abstract RoleName getRoleName();
     
@@ -36,15 +36,15 @@ public abstract class TestRole {
 
     public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
     
-    public static TestRole getRoleObject(RoleName roleName) throws IOException {
+    public static Role getRoleObject(RoleName roleName) throws IOException {
         if (RoleName.ADMIN.equals(roleName)) {
-            return new TestAdminRole();
+            return new AdminRole();
         } else if (RoleName.USER.equals(roleName)) {
-            return new TestUserRole();
+            return new UserRole();
         } else if (RoleName.USER_ADMIN.equals(roleName)) {
-            return new TestUserAdminRole();
+            return new UserAdminRole();
         } else if (RoleName.AREA_ADMIN.equals(roleName)) {
-            return new TestAreaAdminRole();
+            return new AreaAdminRole();
         } else {
             throw new IOException("roleName not supported");
         }

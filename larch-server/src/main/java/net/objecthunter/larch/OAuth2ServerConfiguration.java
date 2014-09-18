@@ -16,7 +16,7 @@
 
 package net.objecthunter.larch;
 
-import net.objecthunter.larch.model.security.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.security.helpers.LarchOauthRegexRequestMatcher;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class OAuth2ServerConfiguration {
                     .resourceIds("larch")
                     .authorizedGrantTypes("authorization_code", "implicit")
                     .secret("secret")
-                    .authorities(Role.ADMIN.getName())
+                    .authorities(RoleName.ADMIN.name())
                     .scopes("read", "write")
                     .autoApprove(true)
                     .redirectUris("http://localhost:8088/oauthclient/oauth?method=token");

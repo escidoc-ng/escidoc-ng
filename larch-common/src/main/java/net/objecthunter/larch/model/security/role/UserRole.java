@@ -14,7 +14,7 @@ import net.objecthunter.larch.model.security.annotation.Permission;
  * @author mih
  *
  */
-public class TestUserRole extends TestRole {
+public class UserRole extends Role {
     
     private RoleName roleName = RoleName.USER;
     

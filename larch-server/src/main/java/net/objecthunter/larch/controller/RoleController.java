@@ -24,9 +24,9 @@ import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
@@ -70,7 +70,7 @@ public class RoleController extends AbstractLarchController {
     @PreAuth(permissions = {
         @Permission(rolename = RoleName.ADMIN) })
     public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
-        List<TestRole> roles = mapper.readValue(src, new TypeReference<List<TestRole>>() {});
+        List<Role> roles = mapper.readValue(src, new TypeReference<List<Role>>() {});
         backendCredentialsService.setRoles(username, roles);
     }
 

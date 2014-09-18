@@ -21,9 +21,9 @@ import java.util.List;
 
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
 
 /**
  * Service definition for the AuthZ/AuthN service
@@ -61,7 +61,7 @@ public interface BackendCredentialsService {
      * @param roles the roles to set
      * @throws IOException
      */
-    void setRoles(String username, List<TestRole> roles) throws IOException;
+    void setRoles(String username, List<Role> roles) throws IOException;
 
     /**
      * Set a right for a {@link net.objecthunter.larch.model.security.User} and an objectId in the Repository

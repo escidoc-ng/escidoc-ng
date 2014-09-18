@@ -19,8 +19,8 @@ package net.objecthunter.larch.model.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 /**
  * A DTO for a larch User
@@ -37,7 +37,7 @@ public class User {
 
     private String pwhash;
 
-    private List<TestRole> roles;
+    private List<Role> roles;
 
     /**
      * Get the user's name
@@ -134,7 +134,7 @@ public class User {
      * 
      * @return the roles
      */
-    public List<TestRole> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
@@ -143,7 +143,7 @@ public class User {
      * 
      * @param roles the roles to set
      */
-    public void setRoles(List<TestRole> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
     
@@ -151,7 +151,7 @@ public class User {
         if (roleName == null || roles == null) {
             return false;
         }
-        for (TestRole role : roles) {
+        for (Role role : roles) {
             if (roleName.equals(role.getRoleName())) {
                 return true;
             }
@@ -159,11 +159,11 @@ public class User {
         return false;
     }
 
-    public TestRole getRole(RoleName roleName) {
+    public Role getRole(RoleName roleName) {
         if (roleName == null || roles == null) {
             return null;
         }
-        for (TestRole role : roles) {
+        for (Role role : roles) {
             if (roleName.equals(role.getRoleName())) {
                 return role;
             }
@@ -171,9 +171,9 @@ public class User {
         return null;
     }
 
-    public void setRole(TestRole role) {
+    public void setRole(Role role) {
         if (roles == null) {
-            roles = new ArrayList<TestRole>();
+            roles = new ArrayList<Role>();
         }
         removeRole(role.getRoleName());
         roles.add(role);
@@ -183,7 +183,7 @@ public class User {
         if (roleName == null || roles == null) {
             return;
         }
-        for (TestRole role : roles) {
+        for (Role role : roles) {
             if (roleName.equals(role.getRoleName())) {
                 roles.remove(role);
                 return;

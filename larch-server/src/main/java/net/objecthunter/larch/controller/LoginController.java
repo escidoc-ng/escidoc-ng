@@ -16,10 +16,9 @@
 
 package net.objecthunter.larch.controller;
 
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;

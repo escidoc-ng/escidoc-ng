@@ -28,14 +28,13 @@ import javax.annotation.PostConstruct;
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.TestAdminRole;
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
-import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.AdminRole;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -101,7 +100,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 admin.setName("admin");
                 admin.setFirstName("Generic");
                 admin.setLastName("Superuser");
-                admin.setRole(new TestAdminRole());
+                admin.setRole(new AdminRole());
                 client
                         .prepareIndex(INDEX_USERS, "user", admin.getName())
                         .setSource(mapper.writeValueAsBytes(admin))
@@ -112,7 +111,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                TestUserRole userRole = new TestUserRole();
+                UserRole userRole = new UserRole();
                 Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
                 rights.put("test", new ArrayList<RoleRight>(){{add(RoleRight.READ_PENDING_METADATA);add(RoleRight.WRITE_SUBMITTED_BINARY);}});
                 userRole.setRights(rights);
@@ -238,13 +237,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
     
     @Override
-    public void setRoles(String username, List<TestRole> roles) throws IOException {
+    public void setRoles(String username, List<Role> roles) throws IOException {
         //check parameters
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
         List<RoleName> existingRoleNames = new ArrayList<RoleName>();
-        for (TestRole role : roles) {
+        for (Role role : roles) {
             if (role == null) {
                 throw new InvalidParameterException("role may not be null");
             }
@@ -303,7 +302,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
             
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
-            TestRole existingRole = user.getRole(roleName);
+            Role existingRole = user.getRole(roleName);
             if (existingRole != null) {
                 Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
                 if (expandedRights == null) {
@@ -314,7 +313,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             } else {
                 Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
                 newRights.put(objectId, rights);
-                TestRole newRole = TestRole.getRoleObject(roleName);
+                Role newRole = Role.getRoleObject(roleName);
                 newRole.setRights(newRights);
                 user.setRole(newRole);
             }
@@ -363,7 +362,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders.termFilter("groups.name",
-                                                    Role.ADMIN.getName()))).execute()
+                                                    RoleName.ADMIN))).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());

@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import net.objecthunter.larch.model.security.PermissionType;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 /**
  * @author mih

@@ -39,9 +39,9 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
-import net.objecthunter.larch.model.security.role.TestUserRole;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -236,8 +236,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
 
         // Set permissions for user
-        List<TestRole> roles = new ArrayList<TestRole>();
-        TestUserRole userRole = new TestUserRole();
+        List<Role> roles = new ArrayList<Role>();
+        UserRole userRole = new UserRole();
         Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
         // permissions
         List<RoleRight> roleRights = new ArrayList<RoleRight>();
