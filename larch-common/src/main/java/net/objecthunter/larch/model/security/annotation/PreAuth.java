@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.annotations;
+package net.objecthunter.larch.model.security.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -22,6 +22,8 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import net.objecthunter.larch.model.security.ObjectType;
 
 /**
  * @author mih
@@ -32,8 +34,12 @@ import java.lang.annotation.Target;
 @Documented
 public @interface PreAuth {
 
-    String springSecurityExpression() default "";
+    int idIndex() default -1;
 
-    WorkspacePermission workspacePermission() default @WorkspacePermission;
+    int versionIndex() default -1;
+
+    ObjectType objectType() default ObjectType.ENTITY;
+
+    Permission[] permissions();
 
 }

@@ -14,7 +14,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" class="panel clickable">
+        <div class="panel clickable">
             <p class="panel_title">Search</p>
             <script>
             $(document).ready(function() {
@@ -22,40 +22,23 @@
             });
 
             </script>
-            <!-- form method="post" th:action="@{/search} + '?_csrf=' + ${_csrf.token}"
-                  enctype="multipart/form-data" -->
             <form method="post" th:action="@{/search}"
                   enctype="multipart/form-data">
+                <label for="type">Type:</label>
+                <select id="type" name="type" title="Select a valid entity type">
+                    <option th:label="DATA" th:text="DATA" selected="selected"></option>
+                    <option th:label="AREA" th:text="AREA"></option>
+                    <option th:label="PERMISSION" th:text="PERMISSION"></option>
+                </select>
                 <label for="searchMain">All Fields:</label><input type="text" id="searchMain"
                                                                   name="term"/>
                 <label for="id">ID:</label><input type="text" id="id" name="id"/>
                 <label for="label">Label:</label><input type="text" id="label" name="label"/>
-                <label for="type">Type:</label><input type="text" id="type" name="type"/>
                 <label for="parent">Parent:</label><input type="text" id="parent" name="parent"/>
                 <label for="tag">Tag:</label><input type="text" id="tag" name="tag"/>
                 <label for="state">State:</label><input type="text" id="state" name="state"/>
                 <label for="version">Version:</label><input type="text" id="version"
                                                             name="version"/>
-                <input type="submit" value="Submit"/>
-            </form>
-        </div>
-        <div class="panel clickable">
-            <p class="panel_title">Search Published</p>
-            <script>
-            $(document).ready(function() {
-                $('#searchMain').watermark('Search', {className: 'inactive'});
-            });
-
-            </script>
-            <form method="post" th:action="@{/search/published}"
-                  enctype="multipart/form-data">
-                <label for="searchMain">All Fields:</label><input type="text" id="searchMain"
-                                                                  name="term"/>
-                <label for="id">ID:</label><input type="text" id="id" name="id"/>
-                <label for="label">Label:</label><input type="text" id="label" name="label"/>
-                <label for="type">Type:</label><input type="text" id="type" name="type"/>
-                <label for="parent">Parent:</label><input type="text" id="parent" name="parent"/>
-                <label for="tag">Tag:</label><input type="text" id="tag" name="tag"/>
                 <input type="submit" value="Submit"/>
             </form>
         </div>

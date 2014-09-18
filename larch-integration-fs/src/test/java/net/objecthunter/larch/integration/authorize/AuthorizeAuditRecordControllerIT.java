@@ -19,6 +19,8 @@ package net.objecthunter.larch.integration.authorize;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,9 +34,9 @@ public class AuthorizeAuditRecordControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveAuditRecords() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/audit")
+                HttpMethod.GET, entityUrl + entity.getId() + "/audit")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
     }
@@ -42,9 +44,9 @@ public class AuthorizeAuditRecordControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveAuditRecordsHtml() throws Exception {
         // create pending entity
-        Entity entity = createEntity(Entity.STATE_PENDING, workspaceId);
+        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/entity/" + entity.getId() + "/audit")
+                HttpMethod.GET, entityUrl + entity.getId() + "/audit")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());

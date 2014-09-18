@@ -29,216 +29,120 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
     private static final Logger log = LoggerFactory.getLogger(AuthorizeListControllerIT.class);
 
     @Test
-    public void testListEntities() throws Exception {
+    public void testListData() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list")
+                HttpMethod.GET, hostUrl + "list/DATA")
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/1")
+                HttpMethod.GET, hostUrl + "list/DATA/1")
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/1/1")
-                .build());
-    }
-
-    @Test
-    public void testListEntitiesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list")
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/1")
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/1/1")
-                .html(true)
+                HttpMethod.GET, hostUrl + "list/DATA/1/1")
                 .build());
     }
 
     @Test
-    public void testBrowseEntitiesHtml() throws Exception {
+    public void testListDataHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse")
+                HttpMethod.GET, hostUrl + "list/DATA")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse/1")
+                HttpMethod.GET, hostUrl + "list/DATA/1")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse/1/1")
+                HttpMethod.GET, hostUrl + "list/DATA/1/1")
                 .html(true)
                 .build());
     }
 
     @Test
-    public void testListPublishedEntities() throws Exception {
+    public void testBrowseDataHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published/1")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published/1/1")
-                .build());
-    }
-
-    @Test
-    public void testListPublishedEntitiesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published")
+                HttpMethod.GET, hostUrl + "browse/DATA")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published/1")
+                HttpMethod.GET, hostUrl + "browse/DATA/1")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/list/published/1/1")
+                HttpMethod.GET, hostUrl + "browse/DATA/1/1")
                 .html(true)
                 .build());
     }
 
     @Test
-    public void testBrowsePublishedEntitiesHtml() throws Exception {
+    public void testListPermissionData() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse/published")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list")
+                .build());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1")
+                .build());
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1/1")
+                .build());
+    }
+
+    @Test
+    public void testListPermissionDataHtml() throws Exception {
+        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse/published/1")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "/browse/published/1/1")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1/1")
                 .html(true)
                 .build());
     }
 
     @Test
-    public void testListWorkspaceEntities() throws Exception {
+    public void testBrowsePermissionDataHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/1")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/1/1")
-                .build());
-    }
-
-    @Test
-    public void testListWorkspaceEntitiesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/1")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse/1")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/1/1")
+                HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse/1/1")
                 .html(true)
                 .build());
     }
 
     @Test
-    public void testBrowseWorkspaceEntitiesHtml() throws Exception {
+    public void testListPermissions() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse")
-                .html(true)
+                HttpMethod.GET, hostUrl + "list/PERMISSION")
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse/1")
-                .html(true)
+                HttpMethod.GET, hostUrl + "list/PERMISSION/1")
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse/1/1")
-                .html(true)
+                HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
                 .build());
     }
 
     @Test
-    public void testListPublishedWorkspaceEntities() throws Exception {
+    public void testListPermissionsHtml() throws Exception {
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published/1")
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published/1/1")
-                .build());
-    }
-
-    @Test
-    public void testListPublishedWorkspaceEntitiesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published")
+                HttpMethod.GET, hostUrl + "list/PERMISSION")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published/1")
+                HttpMethod.GET, hostUrl + "list/PERMISSION/1")
                 .html(true)
                 .build());
         testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/list/published/1/1")
-                .html(true)
-                .build());
-    }
-
-    @Test
-    public void testBrowsePublishedWorkspaceEntitiesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse/published")
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse/published/1")
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, workspaceUrl + workspaceId + "/browse/published/1/1")
-                .html(true)
-                .build());
-    }
-
-    @Test
-    public void testRetrieveWorkspaces() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list/1")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list/1/2")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .build());
-    }
-
-    @Test
-    public void testRetrieveWorkspacesHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list/1")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .html(true)
-                .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "workspace-list/1/2")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
+                HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
                 .html(true)
                 .build());
     }

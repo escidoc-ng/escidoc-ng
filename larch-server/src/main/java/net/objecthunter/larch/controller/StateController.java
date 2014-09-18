@@ -18,7 +18,9 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.model.state.LarchState;
 import net.objecthunter.larch.service.RepositoryService;
 
@@ -52,7 +54,8 @@ public class StateController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
+    @PreAuth(permissions = {
+            @Permission(rolename = RoleName.ADMIN) })
     public LarchState state() throws IOException {
         return repositoryService.status();
     }

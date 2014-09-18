@@ -19,11 +19,11 @@ package net.objecthunter.larch.service;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.annotations.WorkspacePermission;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.annotation.Permission;
 
 public interface AuthorizationService {
 
-    void authorize(Method method, String id, Integer versionId, Object result, String springSecurityExpression,
-            WorkspacePermission workspacePermission, Object[] methodArgs) throws IOException;
+    void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result, Permission[] permissions, Object[] methodArgs) throws IOException;
 
 }

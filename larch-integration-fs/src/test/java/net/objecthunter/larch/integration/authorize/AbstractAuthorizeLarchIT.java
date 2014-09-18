@@ -16,14 +16,15 @@
 
 package net.objecthunter.larch.integration.authorize;
 
+import static net.objecthunter.larch.test.util.Fixtures.AREA_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -34,11 +35,13 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer.ObjectType;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.WorkspacePermissions.Permission;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
@@ -81,7 +84,7 @@ import com.fasterxml.jackson.core.JsonParser;
  */
 public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
-    protected static String workspaceId = null;
+    protected static String permissionId = null;
 
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
@@ -95,82 +98,78 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     @Before
     public void initialize() throws Exception {
         if (methodCounter == 0) {
-            prepareWorkspace();
+            preparePermission();
             methodCounter++;
         }
     }
 
     /**
-     * Create Workspace.<br>
-     * Create users having different rights in the workspace.<br>
-     * store workspaceId in variable.<br>
+     * Create Permission.<br>
+     * Create users having different rights in the permission.<br>
+     * store entityId in variable.<br>
      * 
      * @throws Exception
      */
-    private void prepareWorkspace() throws Exception {
-        // create Workspace
-        final Workspace ws = new Workspace();
-        ws.setId(RandomStringUtils.randomAlphanumeric(16));
-        ws.setOwner("foo");
-        ws.setName("bar");
-        HttpResponse resp = Request.Post(workspaceUrl)
-                .bodyString(this.mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON)
-                .execute()
-                .returnResponse();
+    protected void preparePermission() throws Exception {
+        // create Permission
+        final Entity permission = new Entity();
+        permission.setId(RandomStringUtils.randomAlphanumeric(16));
+        permission.setType(EntityType.PERMISSION);
+        permission.setParentId(AREA_ID);
+        permission.setLabel("bar");
+        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
 
-        workspaceId = EntityUtils.toString(resp.getEntity());
+        String test = EntityUtils.toString(resp.getEntity());
+        permissionId = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(workspaceId);
-        assertEquals(ws.getId(), workspaceId);
+        assertNotNull(permissionId);
+        assertEquals(permission.getId(), permissionId);
 
         // create users
         for (MissingPermission missingPermission : MissingPermission.values()) {
             usernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
-
         // create permissions for users in workspace
         for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], null);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, null);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PENDING_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PENDING_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PUBLISHED_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PUBLISHED_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_SUBMITTED_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_SUBMITTED_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_WITHDRAWN_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_WITHDRAWN_METADATA);
-            } else if (e.getKey().equals(MissingPermission.READ_WORKSPACE)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.READ_WORKSPACE);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_WITHDRAWN_METADATA);
+            } else if (e.getKey().equals(MissingPermission.READ_PERMISSION)) {
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PERMISSION);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PENDING_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PENDING_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PUBLISHED_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0],
-                        Permission.WRITE_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PUBLISHED_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_SUBMITTED_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0],
-                        Permission.WRITE_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_SUBMITTED_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_WITHDRAWN_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0],
-                        Permission.WRITE_WITHDRAWN_METADATA);
-            } else if (e.getKey().equals(MissingPermission.WRITE_WORKSPACE)) {
-                createMissingPermissionRightsForUser(workspaceId, e.getValue()[0], Permission.WRITE_WORKSPACE);
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_WITHDRAWN_METADATA);
+            } else if (e.getKey().equals(MissingPermission.WRITE_PERMISSION)) {
+                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PERMISSION);
             }
         }
     }
@@ -228,37 +227,33 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @return String workspaceId
      * @throws Exception
      */
-    protected void createMissingPermissionRightsForUser(String workspaceId, String username, Permission permission)
+    protected void createMissingPermissionRightsForUser(String username, String permissionId, RoleRight roleRight)
             throws Exception {
-        // try to retrieve workspace
-        HttpResponse resp = Request.Get(workspaceUrl + workspaceId)
-                .execute()
-                .returnResponse();
+        // try to retrieve user
+        HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
+        String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
-        Workspace fetched = this.mapper.readValue(resp.getEntity().getContent(), Workspace.class);
+        User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
 
         // Set permissions for user
-        WorkspacePermissions permissions = fetched.getPermissions();
-        if (permissions == null) {
-            permissions = new WorkspacePermissions();
-        }
-        permissions.setPermissions(username, EnumSet.copyOf(new ArrayList<Permission>() {
-
-            {
-                for (Permission perm : Permission.values()) {
-                    if (permission == null || !permission.equals(perm)) {
-                        add(perm);
-                    }
-                }
+        List<Role> roles = new ArrayList<Role>();
+        UserRole userRole = new UserRole();
+        Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
+        // permissions
+        List<RoleRight> roleRights = new ArrayList<RoleRight>();
+        for (RoleRight allowedRoleRight : userRole.allowedRights()) {
+            if (!allowedRoleRight.equals(roleRight)) {
+                roleRights.add(allowedRoleRight);
             }
-        }));
-        fetched.setPermissions(permissions);
+        }
+        rights.put(permissionId, roleRights);
+        userRole.setRights(rights);
+        roles.add(userRole);
 
-        // update workspace
-        resp = Request.Put(workspaceUrl + workspaceId)
-                .bodyString(this.mapper.writeValueAsString(fetched), ContentType.APPLICATION_JSON)
-                .execute()
-                .returnResponse();
+        // add rights
+        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
+                .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
+        result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
     }
@@ -469,7 +464,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         if (authConfigurer.isResetState()) {
             String url = null;
             if (authConfigurer.getResetStateObjectType().equals(ObjectType.ENTITY)) {
-                url = workspaceUrl + workspaceId + "/entity/" +
+                url = entityUrl +
                         authConfigurer.getResetStateId();
             } else if (authConfigurer.getResetStateObjectType().equals(ObjectType.USER)) {
                 url = hostUrl + "user/" + authConfigurer.getResetStateId();
@@ -519,7 +514,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // check if entity is there
         HttpResponse resp =
                 this.executeAsAdmin(
-                        Request.Get(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId()));
+                        Request.Get(entityUrl + resetEntity.getId()));
         String response = EntityUtils.toString(resp.getEntity());
         if (resetEntity.getBinaries() != null) {
             for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
@@ -533,7 +528,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             // recreate entity
             resp =
                     this.executeAsAdmin(
-                            Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
+                            Request.Post(entityUrl).bodyString(
                                     mapper.writeValueAsString(resetEntity),
                                     ContentType.APPLICATION_JSON));
             response = EntityUtils.toString(resp.getEntity());
@@ -543,7 +538,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             // update
             resp =
                     this.executeAsAdmin(
-                            Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId())
+                            Request.Put(entityUrl + resetEntity.getId())
                                     .bodyString(
                                             mapper.writeValueAsString(resetEntity),
                                             ContentType.APPLICATION_JSON));
@@ -551,16 +546,16 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             assertEquals(200, resp.getStatusLine().getStatusCode());
         }
         String urlSuffix = null;
-        if (resetEntity.getState().equals(Entity.STATE_SUBMITTED)) {
+        if (resetEntity.getState().equals(EntityState.SUBMITTED)) {
             urlSuffix = "submit";
-        } else if (resetEntity.getState().equals(Entity.STATE_PUBLISHED)) {
+        } else if (resetEntity.getState().equals(EntityState.PUBLISHED)) {
             urlSuffix = "publish";
         } else {
             return;
         }
         resp =
                 this.executeAsAdmin(
-                        Request.Put(workspaceUrl + workspaceId + "/entity/" + resetEntity.getId() + "/" +
+                        Request.Put(entityUrl + resetEntity.getId() + "/" +
                                 urlSuffix));
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());

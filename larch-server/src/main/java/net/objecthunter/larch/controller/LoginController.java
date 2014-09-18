@@ -16,7 +16,9 @@
 
 package net.objecthunter.larch.controller;
 
-import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -36,7 +38,8 @@ public class LoginController extends AbstractLarchController {
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
      */
     @RequestMapping(value = "/login-redirect", method = RequestMethod.GET, produces = { "text/html" })
-    @PreAuth(springSecurityExpression = "!isAnonymous()")
+    @PreAuth(permissions = {
+            @Permission(rolename = RoleName.ANY) })
     public String loginRedirect() {
         return "redirect:/";
     }

@@ -19,9 +19,11 @@ package net.objecthunter.larch.service.backend;
 import java.io.IOException;
 import java.util.List;
 
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
 
 /**
  * Service definition for the AuthZ/AuthN service
@@ -45,14 +47,6 @@ public interface BackendCredentialsService {
     net.objecthunter.larch.model.security.UserRequest createNewUserRequest(User u) throws IOException;
 
     /**
-     * Create a new Group in the repository
-     * 
-     * @param g the group to create
-     * @throws IOException
-     */
-    void createGroup(Group g) throws IOException;
-
-    /**
      * Update a {@link net.objecthunter.larch.model.security.User} in the Repository
      * 
      * @param u the user to update
@@ -61,21 +55,24 @@ public interface BackendCredentialsService {
     void updateUser(User u) throws IOException;
 
     /**
-     * Update a {@link net.objecthunter.larch.model.security.Group} in the repository
+     * Set roles for a {@link net.objecthunter.larch.model.security.User} in the Repository
      * 
-     * @param g The group to update
+     * @param username the name of the user
+     * @param roles the roles to set
      * @throws IOException
      */
-    void updateGroup(Group g) throws IOException;
+    void setRoles(String username, List<Role> roles) throws IOException;
 
     /**
-     * Add an existing user to an exisitng group in the repository
+     * Set a right for a {@link net.objecthunter.larch.model.security.User} and an objectId in the Repository
      * 
-     * @param username The name of the user
-     * @param groupname the namoe of the group
+     * @param username the name of the user
+     * @param roleName the rolename
+     * @param objectId the objectId to set the right for
+     * @param rights the rights to set
      * @throws IOException
      */
-    void addUserToGroup(String username, String groupname) throws IOException;
+    void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights) throws IOException;
 
     /**
      * Delete a User from the repository
@@ -84,23 +81,6 @@ public interface BackendCredentialsService {
      * @throws IOException
      */
     void deleteUser(String name) throws IOException;
-
-    /**
-     * Delete a {@link net.objecthunter.larch.model.security.Group} from the repository
-     * 
-     * @param name The name of the {@link net.objecthunter.larch.model.security.Group} to delete
-     * @throws IOException
-     */
-    void deleteGroup(String name) throws IOException;
-
-    /**
-     * Remove an existing user from group, he is currently a member of
-     * 
-     * @param username the name of the user to remove from the group
-     * @param groupname the name of the group to remove the user from
-     * @throws IOException
-     */
-    void removeUserFromGroup(String username, String groupname) throws IOException;
 
     /**
      * Retrieve a {@link net.objecthunter.larch.model.security.User} object from the repository
@@ -112,29 +92,12 @@ public interface BackendCredentialsService {
     User retrieveUser(String name) throws IOException;
 
     /**
-     * Retrieve a Group from the repository
-     * 
-     * @param name the name of the{@link net.objecthunter.larch.model.security.Group} to retrieve
-     * @return The {@link net.objecthunter.larch.model.security.Group} object with the corresponding name
-     * @throws IOException
-     */
-    Group retrieveGroup(String name) throws IOException;
-
-    /**
      * Retrieve a list of {@link net.objecthunter.larch.model.security.User}s existing in the repository
      * 
      * @return a list of {@link net.objecthunter.larch.model.security.User} objects
      * @throws IOException
      */
     List<User> retrieveUsers() throws IOException;
-
-    /**
-     * retrieve a list of {@link net.objecthunter.larch.model.security.Group}s existing in the repository
-     * 
-     * @return The list of {@link net.objecthunter.larch.model.security.Group} that are available
-     * @throws IOException
-     */
-    List<Group> retrieveGroups() throws IOException;
 
     /**
      * Retrieve an existing {@link net.objecthunter.larch.model.security.UserRequest}
@@ -169,11 +132,4 @@ public interface BackendCredentialsService {
      */
     boolean isExistingUser(String name) throws IOException;
 
-    /**
-     * Retrieve a list of groups from the repo
-     * 
-     * @param groupNames the names of the groups to retrieve
-     * @return a List containing the corresponding {@link net.objecthunter.larch.model.security.Group} instances
-     */
-    List<Group> retrieveGroups(List<String> groupNames) throws IOException;
 }

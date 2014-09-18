@@ -16,20 +16,16 @@
 
 package net.objecthunter.larch.test.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.Workspace;
-import net.objecthunter.larch.model.WorkspacePermissions;
-import net.objecthunter.larch.model.security.Group;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.UrlSource;
 
@@ -37,11 +33,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
 
-    public static final String WORKSPACE_ID = "ws-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String PERMISSION_ID = "perm-" + RandomStringUtils.randomAlphabetic(16);
+
+    public static final String AREA_ID = "area-" + RandomStringUtils.randomAlphabetic(16);
 
     public static User createUser() {
         User u = new User();
-        u.setGroups(Arrays.asList(createGroup()));
         u.setName(RandomStringUtils.randomAlphabetic(12));
         u.setPwhash("9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"); // sha256 hash for pw 'test'
         u.setFirstName("foo");
@@ -50,34 +47,16 @@ public abstract class Fixtures {
         return u;
     }
 
-    public static User createUser(String... groupNames) {
-        User u = createUser();
-        List<Group> groups = new ArrayList<>();
-        for (String name : groupNames) {
-            Group g = new Group();
-            g.setName(name);
-            groups.add(g);
-        }
-        u.setGroups(groups);
-        return u;
-    }
-
-    public static Group createGroup() {
-        Group g = new Group();
-        g.setName("ROLE_TEST");
-        return g;
-    }
-
     public static Entity createEntity() {
         Entity e = new Entity();
         e.setId("testid");
         e.setLabel("Test label");
-        e.setType("Test type");
+        e.setType(EntityType.DATA);
         e.setTags(Arrays.asList("tag1", "tag2"));
         e.setMetadata(createMetadataMap());
         e.setBinaries(createBinaryMap());
         e.setRelations(createRelations());
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
@@ -157,24 +136,13 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Book");
+        e.setType(EntityType.DATA);
         e.setBinaries(binaries);
         e.setMetadata(metadata);
         return e;
-    }
-
-    public static Workspace createFixtureWorkspace() {
-        Workspace workspace = new Workspace();
-        final WorkspacePermissions permissions = new WorkspacePermissions();
-        permissions.setPermissions("admin", EnumSet.allOf(WorkspacePermissions.Permission.class));
-        workspace.setPermissions(permissions);
-        workspace.setId(RandomStringUtils.randomAlphanumeric(16));
-        workspace.setOwner("foo");
-        workspace.setName("bar");
-        return workspace;
     }
 
     public static Metadata createRandomDCMetadata() {
@@ -204,9 +172,9 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Image");
+        e.setType(EntityType.DATA);
         e.setBinaries(binaries);
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
@@ -214,15 +182,15 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType("Image");
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setType(EntityType.DATA);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 
     public static Entity createFixtureCollectionEntity() throws Exception {
         Entity e = createSimpleFixtureEntity();
-        e.setType("Collection");
-        e.setWorkspaceId(WORKSPACE_ID);
+        e.setType(EntityType.DATA);
+        e.setParentId(PERMISSION_ID);
         return e;
     }
 

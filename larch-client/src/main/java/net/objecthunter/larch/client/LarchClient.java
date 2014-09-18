@@ -52,8 +52,8 @@ public class LarchClient {
     private ThreadLocal<Executor> executor;
 
     public LarchClient(URI larchUri, String username, String password) {
-        if (!larchUri.toASCIIString().endsWith("/")) {
-            this.larchUri = URI.create(larchUri.toASCIIString() + "/");
+        if (larchUri.toASCIIString().endsWith("/")) {
+            this.larchUri = URI.create(larchUri.toASCIIString().substring(0, larchUri.toASCIIString().length() -1));
         }else {
             this.larchUri = larchUri;
         }
@@ -110,9 +110,9 @@ public class LarchClient {
      * @return the Metadata as a POJO
      * @throws IOException if an error occurred while fetching the meta data
      */
-    public Metadata retrieveMetadata(String workspaceId, String entityId, String metadataName) throws IOException {
+    public Metadata retrieveMetadata(String entityId, String metadataName) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Get(larchUri + "workspace/" + workspaceId + "/entity/" + entityId + "/metadata/" + metadataName)
+                this.execute(Request.Get(larchUri + "/entity/" + entityId + "/metadata/" + metadataName)
                         .useExpectContinue())
                         .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -130,12 +130,12 @@ public class LarchClient {
      * @return the Metadata as a POJO
      * @throws IOException if an error occurred while fetching the meta data
      */
-    public Metadata retrieveBinaryMetadata(String workspaceId, String entityId, String binaryName, String metadataName)
+    public Metadata retrieveBinaryMetadata(String entityId, String binaryName, String metadataName)
             throws IOException {
         final HttpResponse resp =
                 this.execute(
                         Request.Get(
-                                larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" +
+                                larchUri + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" +
                                         metadataName)
                                 .useExpectContinue())
                         .returnResponse();
@@ -154,8 +154,8 @@ public class LarchClient {
      * @param md the Metadata object
      * @throws IOException
      */
-    public void postMetadata(String workspaceId, String entityId, Metadata md) throws IOException {
-        final HttpResponse resp = this.execute(Request.Post(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/metadata")
+    public void postMetadata(String entityId, Metadata md) throws IOException {
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/metadata")
                 .useExpectContinue()
                 .bodyString(mapper.writeValueAsString(md), ContentType.APPLICATION_JSON))
                 .returnResponse();
@@ -172,9 +172,9 @@ public class LarchClient {
      * @param md the Metadata object
      * @throws IOException
      */
-    public void postBinaryMetadata(String workspaceId, String entityId, String binaryName, Metadata md) throws IOException {
+    public void postBinaryMetadata(String entityId, String binaryName, Metadata md) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Post(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName + "/metadata")
+                this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary/" + binaryName + "/metadata")
                         .useExpectContinue()
                         .bodyString(mapper.writeValueAsString(md), ContentType.APPLICATION_JSON))
                         .returnResponse();
@@ -192,9 +192,9 @@ public class LarchClient {
      * @param metadataName the meta data set's name
      * @throws IOException
      */
-    public void deleteMetadata(String workspaceId, String entityId, String metadataName) throws IOException {
+    public void deleteMetadata(String entityId, String metadataName) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Delete(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/metadata/" + metadataName)
+                this.execute(Request.Delete(larchUri + "/entity/" + entityId + "/metadata/" + metadataName)
                         .useExpectContinue())
                         .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -212,11 +212,11 @@ public class LarchClient {
      * @param metadataName the meta data set's name
      * @throws IOException
      */
-    public void deleteBinaryMetadata(String workspaceId, String entityId, String binaryName, String metadataName) throws IOException {
+    public void deleteBinaryMetadata(String entityId, String binaryName, String metadataName) throws IOException {
         final HttpResponse resp =
                 this.execute(
                         Request.Delete(
-                                larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" +
+                                larchUri + "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" +
                                         metadataName)
                                 .useExpectContinue())
                         .returnResponse();
@@ -236,9 +236,9 @@ public class LarchClient {
      * @return the Binary as a POJO
      * @throws IOException if an error occurred while fetching from the repository
      */
-    public Binary retrieveBinary(String workspaceId, String entityId, String binaryName) throws IOException {
+    public Binary retrieveBinary(String entityId, String binaryName) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Get(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName)
+                this.execute(Request.Get(larchUri + "/entity/" + entityId + "/binary/" + binaryName)
                         .useExpectContinue())
                         .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -255,8 +255,8 @@ public class LarchClient {
      * @param bin the binary object to add
      * @throws IOException
      */
-    public void postBinary(String workspaceId, String entityId, Binary bin) throws IOException {
-        final HttpResponse resp = this.execute(Request.Post(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary")
+    public void postBinary(String entityId, Binary bin) throws IOException {
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary")
                 .useExpectContinue()
                 .bodyString(mapper.writeValueAsString(bin), ContentType.APPLICATION_JSON))
                 .returnResponse();
@@ -266,8 +266,8 @@ public class LarchClient {
         }
     }
 
-    public void postBinary(String workspaceId, String entityId, String name, String mimeType, InputStream src) throws IOException {
-        final HttpResponse resp = this.execute(Request.Post(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary?name=" + name
+    public void postBinary(String entityId, String name, String mimeType, InputStream src) throws IOException {
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary?name=" + name
                 + "&mimetype=" + mimeType)
                 .useExpectContinue()
                 .bodyStream(src))
@@ -285,9 +285,9 @@ public class LarchClient {
      * @param binaryName the binary's name
      * @throws IOException
      */
-    public void deleteBinary(String workspaceId, String entityId, String binaryName) throws IOException {
+    public void deleteBinary(String entityId, String binaryName) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Delete(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName)
+                this.execute(Request.Delete(larchUri + "/entity/" + entityId + "/binary/" + binaryName)
                         .useExpectContinue())
                         .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -304,9 +304,9 @@ public class LarchClient {
      * @return an InputStream containing the binary's data
      * @throws IOException
      */
-    public InputStream retrieveBinaryContent(String workspaceId, String entityId, String binaryName) throws IOException {
+    public InputStream retrieveBinaryContent(String entityId, String binaryName) throws IOException {
         final HttpResponse resp =
-                this.execute(Request.Get(larchUri + "workspace/" + workspaceId  + "/entity/" + entityId + "/binary/" + binaryName + "/content")
+                this.execute(Request.Get(larchUri + "/entity/" + entityId + "/binary/" + binaryName + "/content")
                         .useExpectContinue())
                         .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -322,11 +322,11 @@ public class LarchClient {
      * @param e the updated entity object to be written to the repository
      * @throws IOException if an error occurred during update
      */
-    public void updateEntity(String workspaceId, Entity e) throws IOException {
+    public void updateEntity(Entity e) throws IOException {
         if (e.getId() == null || e.getId().isEmpty()) {
             throw new IOException("ID of the entity can not be empty when updating");
         }
-        final HttpResponse resp = this.execute(Request.Put(larchUri + "workspace/" + workspaceId  + "/entity/" + e.getId())
+        final HttpResponse resp = this.execute(Request.Put(larchUri + "/entity/" + e.getId())
                 .useExpectContinue()
                 .bodyString(mapper.writeValueAsString(e), ContentType.APPLICATION_JSON))
                 .returnResponse();
@@ -342,8 +342,8 @@ public class LarchClient {
      * @param id the id of the entity to delete
      * @throws IOException
      */
-    public void deleteEntity(String workspaceId, String id) throws IOException {
-        final HttpResponse resp = this.execute(Request.Delete(larchUri + "workspace/" + workspaceId  + "/entity/" + id)
+    public void deleteEntity(String id) throws IOException {
+        final HttpResponse resp = this.execute(Request.Delete(larchUri + "/entity/" + id)
                 .useExpectContinue())
                 .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
@@ -359,8 +359,8 @@ public class LarchClient {
      * @return the entity's id
      * @throws IOException if an error occurred while ingesting
      */
-    public String postEntity(String workspaceId, Entity e) throws IOException {
-        final HttpResponse resp = this.execute(Request.Post(larchUri + "workspace/" + workspaceId  + "/entity")
+    public String postEntity(Entity e) throws IOException {
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity")
                 .useExpectContinue()
                 .bodyString(mapper.writeValueAsString(e), ContentType.APPLICATION_JSON))
                 .returnResponse();
@@ -377,8 +377,8 @@ public class LarchClient {
      * @param id the Id of the entity
      * @return An entity object
      */
-    public Entity retrieveEntity(String workspaceId, String id) throws IOException {
-        final HttpResponse resp = this.execute(Request.Get(larchUri + "workspace/" + workspaceId  + "/entity/" + id)
+    public Entity retrieveEntity(String id) throws IOException {
+        final HttpResponse resp = this.execute(Request.Get(larchUri + "/entity/" + id)
                 .useExpectContinue()
                 .addHeader("Accept", "application/json"))
                 .returnResponse();

@@ -2,7 +2,11 @@
      "entity" : {
         "properties" : {
            "parentId" : {"type" : "string","index" : "not_analyzed"},
-           "workspaceId" : {"type" : "string","index" : "not_analyzed"}
+           "type" : {"type" : "string","index" : "not_analyzed"},
+           "state" : {"type" : "string","index" : "not_analyzed"},
+           "ancestorEntityIds" : {"type" : "string","index" : "not_analyzed"},
+           "permissionId" : {"type" : "string","index" : "not_analyzed"},
+           "areaId" : {"type" : "string","index" : "not_analyzed"}
            }
      }
    }

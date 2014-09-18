@@ -171,4 +171,9 @@ public class DefaultMessagingService implements MessagingService {
         this.publish("Submitted entity " + id);
     }
 
+    @Override
+    public void publishWithdrawEntity(String id) {
+        this.publish("Withdrawn entity " + id);
+    }
+
 }

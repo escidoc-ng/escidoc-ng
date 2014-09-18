@@ -18,11 +18,12 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.PreAuth;
-import net.objecthunter.larch.annotations.WorkspacePermission;
-import net.objecthunter.larch.annotations.WorkspacePermission.ObjectType;
-import net.objecthunter.larch.annotations.WorkspacePermission.WorkspacePermissionType;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 
@@ -40,7 +41,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Web controller responsible for interactions on the identifier level
  */
 @Controller
-@RequestMapping("/workspace/{workspaceId}/entity/{id}")
+@RequestMapping("/entity/{id}")
 public class IdentifierController extends AbstractLarchController {
 
     @Autowired
@@ -59,13 +60,12 @@ public class IdentifierController extends AbstractLarchController {
      */
     @RequestMapping(value = "/identifier", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void create(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("type") final String type,
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+    public void create(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
-        this.entityService.createIdentifier(workspaceId, entityId, type, value);
+        this.entityService.createIdentifier(entityId, type, value);
         this.entityService.createAuditRecord(AuditRecordHelper.createIdentifier(entityId));
         this.messagingService.publishCreateIdentifier(entityId, type, value);
     }
@@ -81,11 +81,10 @@ public class IdentifierController extends AbstractLarchController {
      */
     @RequestMapping(value = "/identifier", method = RequestMethod.POST, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
-    public String createHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @RequestParam("type") final String type,
+    public String createHtml(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
-        this.create(workspaceId, entityId, type, value);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
+        this.create(entityId, type, value);
+        return "redirect:/entity/" + entityId;
     }
 
     /**
@@ -99,13 +98,12 @@ public class IdentifierController extends AbstractLarchController {
     @RequestMapping(value = "/identifier/{type}/{value}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(springSecurityExpression = "!isAnonymous()",
-            workspacePermission = @WorkspacePermission(idIndex = 1,
-                    objectType = ObjectType.ENTITY, workspacePermissionType = WorkspacePermissionType.WRITE))
-    public void delete(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @PathVariable("type") final String type,
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+    public void delete(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
-        this.entityService.deleteIdentifier(workspaceId, entityId, type, value);
+        this.entityService.deleteIdentifier(entityId, type, value);
         this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
     }
@@ -122,11 +120,10 @@ public class IdentifierController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public String deleteHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("id") final String entityId, @PathVariable("type") final String type,
+    public String deleteHtml(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
-        this.delete(workspaceId, entityId, type, value);
-        return "redirect:/workspace/" + workspaceId + "/entity/" + entityId;
+        this.delete(entityId, type, value);
+        return "redirect:/entity/" + entityId;
     }
 
 }

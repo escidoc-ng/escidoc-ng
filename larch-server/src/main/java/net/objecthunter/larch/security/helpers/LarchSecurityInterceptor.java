@@ -16,10 +16,13 @@
 
 package net.objecthunter.larch.security.helpers;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.annotations.PostAuth;
-import net.objecthunter.larch.annotations.PreAuth;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.annotation.PostAuth;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.service.AuthorizationService;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -31,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Interceptor used for securing the escidoc-ng framework.
@@ -47,6 +52,9 @@ public class LarchSecurityInterceptor implements Ordered {
     @Autowired
     protected AuthorizationService authorizationService;
 
+    @Autowired
+    private ObjectMapper mapper;
+
     /**
      * The logger.
      */
@@ -60,7 +68,7 @@ public class LarchSecurityInterceptor implements Ordered {
      * @throws Throwable Thrown in case of an error.
      * @return
      */
-    @Around("execution(public * net.objecthunter.larch.controller.*.*(..))")
+    @Around("execution(* net.objecthunter.larch.controller.*.*(..))")
     public Object authorize(final ProceedingJoinPoint joinPoint) throws Throwable {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final Method calledMethod = methodSignature.getMethod();
@@ -69,14 +77,14 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.authorize(calledMethod, getId(preAuth, joinPoint), getVersionId(preAuth, joinPoint),
-                    null, preAuth
-                            .springSecurityExpression(), preAuth.workspacePermission(), joinPoint.getArgs());
+            authorizationService.authorize(calledMethod, preAuth.objectType(), getId(preAuth,
+                    joinPoint), getVersionId(preAuth, joinPoint),
+                    getObject(preAuth, joinPoint), preAuth.permissions(), joinPoint.getArgs());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
-            authorizationService.authorize(calledMethod, null, null, obj, postAuth
-                    .springSecurityExpression(), postAuth.workspacePermission(), joinPoint.getArgs());
+            authorizationService.authorize(calledMethod, postAuth.objectType(), null, null,
+                    obj, postAuth.permissions(), joinPoint.getArgs());
         }
         return obj;
     }
@@ -86,15 +94,15 @@ public class LarchSecurityInterceptor implements Ordered {
      * 
      * @param preAuth Annotation
      * @param joinPoint
-     * @return String workspaceId or null
+     * @return String Id or null
      */
     private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null &&
-                preAuth.workspacePermission().idIndex() >= 0 && joinPoint != null &&
+        if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
+                preAuth.idIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.workspacePermission().idIndex() &&
-                joinPoint.getArgs()[preAuth.workspacePermission().idIndex()] instanceof String) {
-            return (String) joinPoint.getArgs()[preAuth.workspacePermission().idIndex()];
+                joinPoint.getArgs().length > preAuth.idIndex() &&
+                joinPoint.getArgs()[preAuth.idIndex()] instanceof String) {
+            return (String) joinPoint.getArgs()[preAuth.idIndex()];
         }
         return null;
     }
@@ -104,15 +112,33 @@ public class LarchSecurityInterceptor implements Ordered {
      * 
      * @param preAuth Annotation
      * @param joinPoint
-     * @return String workspaceId or null
+     * @return Integer versionId or null
      */
     private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
         if (preAuth != null &&
-                preAuth.workspacePermission().versionIndex() >= 0 && joinPoint != null &&
+                preAuth.versionIndex() >= 0 && joinPoint != null &&
                 joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.workspacePermission().versionIndex() &&
-                joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()] instanceof Integer) {
-            return (Integer) joinPoint.getArgs()[preAuth.workspacePermission().versionIndex()];
+                joinPoint.getArgs().length > preAuth.versionIndex() &&
+                joinPoint.getArgs()[preAuth.versionIndex()] instanceof Integer) {
+            return (Integer) joinPoint.getArgs()[preAuth.versionIndex()];
+        }
+        return null;
+    }
+
+    /**
+     * Get Entity-Object from method-parameters
+     * 
+     * @param preAuth Annotation
+     * @param joinPoint
+     * @return Entity or null
+     */
+    private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
+        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
+                preAuth.idIndex() >= 0 && joinPoint != null &&
+                joinPoint.getArgs() != null &&
+                joinPoint.getArgs().length > preAuth.idIndex() &&
+                joinPoint.getArgs()[preAuth.idIndex()] instanceof Entity) {
+            return (Entity) joinPoint.getArgs()[preAuth.idIndex()];
         }
         return null;
     }

@@ -174,8 +174,8 @@ public class AuthConfigurer {
         WRITE_SUBMITTED_BINARY,
         WRITE_PUBLISHED_BINARY,
         WRITE_WITHDRAWN_BINARY,
-        READ_WORKSPACE,
-        WRITE_WORKSPACE,
+        READ_PERMISSION,
+        WRITE_PERMISSION,
         ALL,
         NONE;
     }

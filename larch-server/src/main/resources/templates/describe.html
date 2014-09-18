@@ -40,11 +40,10 @@
         </thead>
         <tr>
             <td>
+                <input id="ceType" type="hidden" name="type" th:value="DATA"/>
                 <input id="ceId" type="text" name="id"
                        title="Set the identifier of the entity or leave empty for a generated value"/>
                 <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
-                <input id="ceType" type="text" name="type"
-                       title="Set the user defined type of the entity"/>
                 <input id="ceTags" type="text" name="tags"
                        title="Set a comma separated list of tags for this entity"/>
                 <input id="ceButton" type="button" value="Create new Entity"/>

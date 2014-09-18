@@ -26,6 +26,8 @@ import java.util.Map.Entry;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 
 import org.apache.http.HttpResponse;
@@ -49,16 +51,20 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
 
     private static int totalPublishedEntitiesCount = 0;
 
+    private static int totalWithdrawnEntitiesCount = 0;
+
     private static int totalWorkspacePendingEntitiesCount = 3;
 
     private static int totalWorkspaceSubmittedEntitiesCount = 4;
 
     private static int totalWorkspacePublishedEntitiesCount = 2;
 
+    private static int totalWorkspaceWithdrawnEntitiesCount = 1;
+
     @Before
     public void initialize() throws Exception {
-        super.initialize();
         if (methodCounter == 0) {
+            preparePermission();
             prepareSearch();
             methodCounter++;
         }
@@ -71,22 +77,22 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testList() throws Exception {
-        String url = hostUrl + "list";
+        String url = hostUrl + "list/data";
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount + 
                 totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -94,21 +100,42 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount +
+                totalWorkspacePendingEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount +
+                totalWorkspacePendingEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePublishedEntitiesCount +
                 totalWorkspacePendingEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.GET, url, null,
                                 entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+                assertEquals(200, response.getStatusLine().getStatusCode());
+                assertEquals(totalWorkspacePublishedEntitiesCount +
                         totalWorkspacePendingEntitiesCount +
+                        totalWorkspaceWithdrawnEntitiesCount +
                         totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
             }
         }
@@ -116,76 +143,17 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // anonymous
         response =
                 this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount + totalPendingEntitiesCount +
                 totalSubmittedEntitiesCount +
-                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving published list of all entities and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testPublishedList() throws Exception {
-        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/published/0/0"));
-        long totalPublishedHits = getHitCount(response);
-        String url = hostUrl + "/list/published";
-        // user with no workspace rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.ALL)[0], usernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.GET, url, null,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedHits, getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount + 
+                totalWithdrawnEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -195,22 +163,22 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testListForWorkspace() throws Exception {
-        String url = hostUrl + "workspace/" + workspaceId + "/list";
+        String url = hostUrl + permissionId + "/children/data/list";
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount,
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount,
                 getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -218,96 +186,53 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.GET, url, null,
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.GET, url, null,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.GET, url, null,
                                 entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
+                assertEquals(200, response.getStatusLine().getStatusCode());
                 assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
         // anonymous
         response =
                 this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving published list of all entities belonging to a workspace and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testPublishedListForWorkspace() throws Exception {
-        HttpResponse response =
-                this.executeAsAdmin(Request.Get(hostUrl + "workspace/" + workspaceId + "/list/published/0/0"));
-        long totalPublishedWorkspaceHits = getHitCount(response);
-        String url = hostUrl + "workspace/" + workspaceId + "/list/published";
-        // user with no workspace rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.ALL)[0], usernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.GET, url, null,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -317,7 +242,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearch() throws Exception {
-        String postParameters = "state=ingested&state=submitted&state=published";
+        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA";
         String url = hostUrl + "search";
 
         // user with no workspace rights
@@ -325,117 +250,76 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
-                totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount +
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount +
+                assertEquals(200, response.getStatusLine().getStatusCode());
+                assertEquals(totalWorkspacePublishedEntitiesCount +
                         totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
         // anonymous
         response =
                 this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPublishedEntitiesCount + totalWorkspacePublishedEntitiesCount + totalPendingEntitiesCount +
                 totalSubmittedEntitiesCount +
-                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
-    }
-
-    /**
-     * test searching for published entities and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testSearchPublished() throws Exception {
-        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/published/0/0"));
-        long totalPublishedHits = getHitCount(response);
-        String postParameters = "state=ingested&state=submitted&state=published";
-        String url = hostUrl + "search/published";
-
-        // user with no workspace rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.ALL)[0], usernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.POST, url, postParameters,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedHits, getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedHits, getHitCount(response));
+                totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount + 
+                totalWithdrawnEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -445,23 +329,23 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearchForWorkspace() throws Exception {
-        String postParameters = "state=ingested&state=submitted&state=published&workspace=" + workspaceId;
+        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA&permissionId=" + permissionId;
         String url = hostUrl + "search";
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.ALL)[0], usernames
                                 .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount,
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount,
                 getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -469,97 +353,53 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read published metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspaceSubmittedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
+
+        // user with no read withdrawn metadata rights
+        response =
+                this.executeAsUser(HttpMethod.POST, url, postParameters,
+                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount + totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
+                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
                     && !MissingPermission.ALL.equals(entry.getKey())) {
                 response =
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
+                assertEquals(200, response.getStatusLine().getStatusCode());
                 assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                        totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
+                        totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
             }
         }
 
         // anonymous
         response =
                 this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalWorkspacePublishedEntitiesCount, getHitCount(response));
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalWorkspacePublishedEntitiesCount + totalWorkspacePendingEntitiesCount +
-                totalWorkspaceSubmittedEntitiesCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving published list of all entities belonging to a workspace and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testSearchPublishedForWorkspace() throws Exception {
-        HttpResponse response =
-                this.executeAsAdmin(Request.Get(hostUrl + "workspace/" + workspaceId + "/list/published/0/0"));
-        long totalPublishedWorkspaceHits = getHitCount(response);
-        String postParameters = "state=ingested&state=submitted&state=published&workspace=" + workspaceId;
-        String url = hostUrl + "search/published";
-        // user with no workspace rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.ALL)[0], usernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.POST, url, postParameters,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(response.getStatusLine().getStatusCode(), 200);
-                assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.POST, url, postParameters, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
-        assertEquals(totalPublishedWorkspaceHits, getHitCount(response));
+                totalWorkspaceSubmittedEntitiesCount + totalWorkspaceWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -567,37 +407,42 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     private void prepareSearch() throws Exception {
         // get total hits
-        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/0/0"));
-        assertEquals(response.getStatusLine().getStatusCode(), 200);
+        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/data/0/0"));
+        assertEquals(200, response.getStatusLine().getStatusCode());
         long totalHits = getHitCount(response);
 
         int counter = 0;
         List<HashMap> entities = new ArrayList<HashMap>();
         while (counter <= totalHits) {
-            response = this.executeAsAdmin(Request.Get(hostUrl + "list/" + counter + "/50"));
+            response = this.executeAsAdmin(Request.Get(hostUrl + "list/data/" + counter + "/50"));
             counter += 50;
-            assertEquals(response.getStatusLine().getStatusCode(), 200);
+            assertEquals(200, response.getStatusLine().getStatusCode());
             SearchResult searchResult =
                     mapper.readValue(EntityUtils.toString(response.getEntity()), SearchResult.class);
             entities.addAll((List<HashMap>) searchResult.getData());
         }
         for (HashMap entity : entities) {
-            if (Entity.STATE_PENDING.equals(entity.get("state"))) {
+            if (EntityState.PENDING.name().equals(entity.get("state"))) {
                 totalPendingEntitiesCount++;
-            } else if (Entity.STATE_SUBMITTED.equals(entity.get("state"))) {
+            } else if (EntityState.SUBMITTED.name().equals(entity.get("state"))) {
                 totalSubmittedEntitiesCount++;
-            } else if (Entity.STATE_PUBLISHED.equals(entity.get("state"))) {
+            } else if (EntityState.PUBLISHED.name().equals(entity.get("state"))) {
                 totalPublishedEntitiesCount++;
+            } else if (EntityState.WITHDRAWN.name().equals(entity.get("state"))) {
+                totalWithdrawnEntitiesCount++;
             }
         }
         for (int i = 0; i < totalWorkspacePendingEntitiesCount; i++) {
-            createEntity(Entity.STATE_PENDING, workspaceId);
+            createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
         }
         for (int i = 0; i < totalWorkspaceSubmittedEntitiesCount; i++) {
-            createEntity(Entity.STATE_SUBMITTED, workspaceId);
+            createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
         }
         for (int i = 0; i < totalWorkspacePublishedEntitiesCount; i++) {
-            createEntity(Entity.STATE_PUBLISHED, workspaceId);
+            createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        }
+        for (int i = 0; i < totalWorkspaceWithdrawnEntitiesCount; i++) {
+            createEntity(EntityState.WITHDRAWN, EntityType.DATA, permissionId);
         }
     }
 

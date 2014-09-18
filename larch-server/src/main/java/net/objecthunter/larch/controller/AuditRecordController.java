@@ -18,8 +18,11 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 
-import net.objecthunter.larch.annotations.PreAuth;
 import net.objecthunter.larch.model.AuditRecords;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.service.EntityService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,15 +57,15 @@ public class AuditRecordController extends AbstractLarchController {
      * @return A {@link java.util.List} of {@link net.objecthunter.larch.model.AuditRecord} objects.
      * @throws IOException
      */
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET)
+    @RequestMapping(value = "/entity/{entity-id}/audit", method = RequestMethod.GET)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(springSecurityExpression = "hasAnyRole('ROLE_ADMIN')")
-    public AuditRecords retrieve(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("entity-id") final String entityId, @RequestParam(
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+            @Permission(rolename = RoleName.ADMIN)})
+    public AuditRecords retrieve(@PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
-        return entityService.retrieveAuditRecords(workspaceId, entityId, offset, count);
+        return entityService.retrieveAuditRecords(entityId, offset, count);
     }
 
     /**
@@ -77,14 +80,13 @@ public class AuditRecordController extends AbstractLarchController {
      */
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/workspace/{workspaceId}/entity/{entity-id}/audit", method = RequestMethod.GET,
+    @RequestMapping(value = "/entity/{entity-id}/audit", method = RequestMethod.GET,
             produces = "text/html")
-    public ModelAndView retrieveHtml(@PathVariable("workspaceId") final String workspaceId,
-            @PathVariable("entity-id") final String entityId, @RequestParam(
+    public ModelAndView retrieveHtml(@PathVariable("entity-id") final String entityId, @RequestParam(
                     value = "offset", defaultValue = "0") final int offset, @RequestParam(value = "count",
                     defaultValue = "25") final int count) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("auditRecords", this.retrieve(workspaceId, entityId, offset, count));
+        model.addAttribute("auditRecords", this.retrieve(entityId, offset, count));
         return new ModelAndView("audit", model);
     }
 }

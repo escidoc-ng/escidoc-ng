@@ -20,10 +20,8 @@ import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 
-import net.objecthunter.larch.model.Workspace;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.entity.ContentType;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +36,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = LarchServerConfiguration.class)

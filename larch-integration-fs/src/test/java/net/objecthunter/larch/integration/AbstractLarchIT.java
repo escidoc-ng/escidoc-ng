@@ -16,7 +16,8 @@
 
 package net.objecthunter.larch.integration;
 
-import static net.objecthunter.larch.test.util.Fixtures.WORKSPACE_ID;
+import static net.objecthunter.larch.test.util.Fixtures.AREA_ID;
+import static net.objecthunter.larch.test.util.Fixtures.PERMISSION_ID;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 
@@ -30,7 +31,8 @@ import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Workspace;
+import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 
@@ -66,11 +68,7 @@ public abstract class AbstractLarchIT {
 
     protected static final String hostUrl = "http://localhost:" + port + "/";
 
-    protected static final String workspaceUrl = hostUrl + "workspace/";
-
-    protected static final String defaultWorkspaceUrl = workspaceUrl + WORKSPACE_ID + "/";
-
-    protected static final String entityUrl = defaultWorkspaceUrl + "entity/";
+    protected static final String entityUrl = hostUrl + "entity/";
 
     protected static final String userUrl = hostUrl + "user/";
 
@@ -99,13 +97,22 @@ public abstract class AbstractLarchIT {
     public void resetSystOutErr() throws Exception {
         this.showLog();
         if (!wsCreated) {
+            // create default area
+            Entity area = new Entity();
+            area.setId(AREA_ID);
+            area.setType(EntityType.AREA);
+            Request r = Request.Post(entityUrl)
+                    .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
+            HttpResponse response = this.executeAsAdmin(r);
             // create default workspace
-            Workspace ws = new Workspace();
-            ws.setId(WORKSPACE_ID);
-            ws.setName("Test Workspace");
-            Request r = Request.Post(hostUrl + "workspace")
-                    .bodyString(mapper.writeValueAsString(ws), ContentType.APPLICATION_JSON);
-            this.executeAsAdmin(r);
+            Entity permission = new Entity();
+            permission.setId(PERMISSION_ID);
+            permission.setType(EntityType.PERMISSION);
+            permission.setLabel("Test Workspace");
+            permission.setParentId(AREA_ID);
+            r = Request.Post(entityUrl)
+                    .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
+            response = this.executeAsAdmin(r);
             wsCreated = true;
         }
     }
@@ -122,7 +129,6 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("first_name", "test")
                                 .addTextBody("last_name", "test")
                                 .addTextBody("email", name + "@fiz.de")
-                                .addTextBody("groups", "ROLE_USER")
                                 .build()
                         ));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -151,7 +157,6 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("first_name", "test")
                                 .addTextBody("last_name", "test")
                                 .addTextBody("email", name + "@fiz.de")
-                                .addTextBody("groups", "ROLE_USER")
                                 .build()
                         ));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -168,15 +173,15 @@ public abstract class AbstractLarchIT {
      * @param status
      * @return String entityId
      */
-    protected Entity createEntity(String status, String workspaceId) throws Exception {
-        if (StringUtils.isBlank(status) ||
-                (!status.equals(Entity.STATE_PENDING) && !status.equals(Entity.STATE_SUBMITTED) &&
-                        !status.equals(Entity.STATE_PUBLISHED) && !status.equals(Entity.STATE_WITHDRAWN))) {
+    protected Entity createEntity(EntityState status, EntityType type, String parentId) throws Exception {
+        if (status == null ||
+                (!status.equals(EntityState.PENDING) && !status.equals(EntityState.SUBMITTED) &&
+                        !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
             throw new Exception("given status not valid");
         }
-        String publishId = null;
         Entity e = createFixtureEntity();
-        e.setWorkspaceId(workspaceId);
+        e.setParentId(parentId);
+        e.setType(type);
         AlternativeIdentifier identifier = new AlternativeIdentifier();
         identifier.setType(IdentifierType.DOI.name);
         identifier.setValue("testdoi");
@@ -185,48 +190,48 @@ public abstract class AbstractLarchIT {
         e.setAlternativeIdentifiers(identifiers);
         HttpResponse resp =
                 this.executeAsAdmin(
-                        Request.Post(workspaceUrl + workspaceId + "/entity").bodyString(
+                        Request.Post(entityUrl).bodyString(
                                 mapper.writeValueAsString(e),
                                 ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         String entityId = EntityUtils.toString(resp.getEntity());
         e.setLabel("other");
         resp =
                 this.executeAsAdmin(
-                        Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId).bodyString(
+                        Request.Put(entityUrl + entityId).bodyString(
                                 mapper.writeValueAsString(e),
                                 ContentType.APPLICATION_JSON));
         String response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
-        if (!status.equals(Entity.STATE_PENDING)) {
+        if (!status.equals(EntityState.PENDING)) {
             // submit
             resp =
                     this.executeAsAdmin(
-                            Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId + "/submit"));
+                            Request.Put(entityUrl + entityId + "/submit"));
             assertEquals(200, resp.getStatusLine().getStatusCode());
-            if (!status.equals(Entity.STATE_SUBMITTED)) {
+            if (!status.equals(EntityState.SUBMITTED)) {
                 // publish
                 resp =
                         this.executeAsAdmin(
-                                Request.Put(workspaceUrl + workspaceId + "/entity/" + entityId + "/publish"));
+                                Request.Put(entityUrl + entityId + "/publish"));
                 assertEquals(200, resp.getStatusLine().getStatusCode());
-                publishId = EntityUtils.toString(resp.getEntity());
-                if (!status.equals(Entity.STATE_PUBLISHED)) {
-                    // // withdraw
-                    // resp =
-                    // this.executeAsAdmin(
-                    // Request.Post(workspaceUrl + workspaceId + "/entity" + entityId + "/withdraw"));
-                    // assertEquals(200, resp.getStatusLine().getStatusCode());
+                EntityUtils.toString(resp.getEntity());
+                if (!status.equals(EntityState.PUBLISHED)) {
+                     // withdraw
+                    resp =
+                            this.executeAsAdmin(
+                                    Request.Put(entityUrl + entityId + "/withdraw"));
+                     assertEquals(200, resp.getStatusLine().getStatusCode());
                 }
             }
         }
         // get entity
         resp =
                 this.executeAsAdmin(
-                        Request.Get(workspaceUrl + workspaceId + "/entity/" + entityId));
+                        Request.Get(entityUrl + entityId));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        fetched.setPublishId(publishId);
         return fetched;
     }
 

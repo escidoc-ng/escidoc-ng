@@ -52,7 +52,6 @@ public class DefaultRepositoryService implements RepositoryService {
     private Client client;
 
     @Override
-    @Secured("ROLE_ADMIN")
     public LarchState status() throws IOException {
         final LarchState state = new LarchState();
         state.setBlobstoreState(backendBlobstoreService.status());

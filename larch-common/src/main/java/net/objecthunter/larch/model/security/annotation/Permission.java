@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.objecthunter.larch.annotations;
+package net.objecthunter.larch.model.security.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,6 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.objecthunter.larch.model.security.PermissionType;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+
 /**
  * @author mih
  */
@@ -30,10 +33,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface PostAuth {
+public @interface Permission {
 
-    String springSecurityExpression() default "";
-
-    WorkspacePermission workspacePermission() default @WorkspacePermission;
-
+    PermissionType permissionType() default PermissionType.NULL;
+    
+    RoleName rolename() default RoleName.ADMIN;
+    
 }

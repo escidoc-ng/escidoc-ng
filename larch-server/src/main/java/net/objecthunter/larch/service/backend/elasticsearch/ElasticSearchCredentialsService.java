@@ -19,22 +19,34 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
-import net.objecthunter.larch.model.security.Group;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.AdminRole;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -62,11 +74,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
 
     public static final String INDEX_USERS = "users";
 
-    public static final String INDEX_GROUPS = "groups";
-
     public static final String INDEX_USERS_TYPE = "user";
-
-    public static final String INDEX_GROUPS_TYPE = "group";
 
     public static final String INDEX_USERS_REQUEST = "user_requests";
 
@@ -78,12 +86,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private BackendEntityService backendEntityService;
+
     @PostConstruct
     public void setup() throws IOException {
         this.checkAndOrCreateIndex(INDEX_USERS);
-        this.checkAndOrCreateIndex(INDEX_GROUPS);
         this.checkAndOrCreateIndex(INDEX_USERS_REQUEST);
-        checkAndOrCreateDefaultGroups();
         checkAndOrCreateDefaultUsers();
     }
 
@@ -91,36 +100,33 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         long count = client.prepareCount(INDEX_USERS).execute().actionGet().getCount();
         if (count == 0) {
             try {
-                // create default admin
-                final Group adminGroup =
-                        mapper.readValue(
-                                client
-                                        .prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, "ROLE_ADMIN").execute()
-                                        .actionGet()
-                                        .getSourceAsBytes(), Group.class);
                 final User admin = new User();
                 admin.setPwhash(DigestUtils.sha256Hex("admin"));
                 admin.setName("admin");
                 admin.setFirstName("Generic");
                 admin.setLastName("Superuser");
-                admin.setGroups(Arrays.asList(adminGroup));
+                admin.setRole(new AdminRole());
                 client
                         .prepareIndex(INDEX_USERS, "user", admin.getName())
                         .setSource(mapper.writeValueAsBytes(admin))
                         .execute().actionGet();
 
-                // create default user
-                final Group g =
-                        mapper.readValue(client
-                                .prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, "ROLE_USER").execute().actionGet()
-                                .getSourceAsBytes(),
-                                Group.class);
                 final User user = new User();
                 user.setPwhash(DigestUtils.sha256Hex("user"));
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                user.setGroups(Arrays.asList(g));
+                UserRole userRole = new UserRole();
+                Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
+                rights.put("test", new ArrayList<RoleRight>() {
+
+                    {
+                        add(RoleRight.READ_PENDING_METADATA);
+                        add(RoleRight.WRITE_SUBMITTED_BINARY);
+                    }
+                });
+                userRole.setRights(rights);
+                user.setRole(userRole);
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()
@@ -128,24 +134,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             } catch (ElasticsearchException ex) {
                 throw new IOException(ex.getMostSpecificCause().getMessage());
             }
-        }
-    }
-
-    private void checkAndOrCreateDefaultGroups() throws IOException {
-        try {
-            long count = client.prepareCount(INDEX_GROUPS).execute().actionGet().getCount();
-            if (count == 0) {
-                // create default groups
-                final Group[] groups = new Group[] { Group.ADMINS, Group.USERS };
-                for (final Group g : groups) {
-                    client
-                            .prepareIndex(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).setSource(
-                                    mapper.writeValueAsBytes(g))
-                            .execute().actionGet();
-                }
-            }
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
         }
     }
 
@@ -164,14 +152,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 final User u = mapper.readValue(get.getSourceAsBytes(), User.class);
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
-                    if (u.getGroups() != null && u.getGroups().size() > 0) {
-                        roles = new String[u.getGroups().size()];
-                        for (int i = 0; i < roles.length; i++) {
-                            roles[i] = u.getGroups().get(i).getName();
-                        }
-                    } else {
-                        roles = new String[] { "ROLE_IDENTIFIED" };
-                    }
+                    roles = new String[] { "ROLE_IDENTIFIED" };
                     return new UsernamePasswordAuthenticationToken(u, auth.getCredentials(),
                             AuthorityUtils.createAuthorityList(roles));
                 }
@@ -212,9 +193,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (u.getName() == null || u.getName().isEmpty()) {
             throw new InvalidParameterException("User name must be set");
         }
-        if (u.getGroups() == null || u.getGroups().size() == 0) {
-            throw new InvalidParameterException("The user has no groups associated with it");
-        }
         if (u.getEmail() == null || u.getEmail().isEmpty()) {
             throw new InvalidParameterException("User's email can not be empty");
         }
@@ -241,27 +219,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public void createGroup(Group g) throws IOException {
-        if (g.getName() == null) {
-            throw new InvalidParameterException("Group name can not be null");
-        }
-        try {
-            final GetResponse get =
-                    this.client.prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).execute().actionGet();
-            if (get.isExists()) {
-                throw new AlreadyExistsException("The group " + g.getName() + " does already exist");
-            }
-            this.client
-                    .prepareIndex(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).setSource(
-                            mapper.writeValueAsBytes(g))
-                    .execute().actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-        this.refreshIndex(INDEX_GROUPS);
-    }
-
-    @Override
     public void updateUser(User u) throws IOException {
         if (u.getName() == null || u.getName().isEmpty()) {
             throw new InvalidParameterException("User name can not be null");
@@ -275,6 +232,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (!get.isExists()) {
                 throw new NotFoundException("The user " + u.getName() + " does not exist");
             }
+
+            // Roles cannot be set with update user
+            User oldUser = mapper.readValue(get.getSourceAsBytes(), User.class);
+            u.setRoles(oldUser.getRoles());
+
             this.client
                     .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, u.getName()).setSource(
                             mapper.writeValueAsBytes(u))
@@ -286,39 +248,109 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public void updateGroup(Group g) throws IOException {
-        if (g.getName() == null) {
-            throw new InvalidParameterException("Group name can not be null");
+    public void setRoles(String username, List<Role> roles) throws IOException {
+        // check parameters
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidParameterException("User name can not be null");
+        }
+        List<RoleName> existingRoleNames = new ArrayList<RoleName>();
+        for (Role role : roles) {
+            if (role == null) {
+                throw new InvalidParameterException("role may not be null");
+            }
+            if (existingRoleNames.contains(role.getRoleName())) {
+                throw new InvalidParameterException("duplicate role " + role.getRoleName());
+            }
+            role.validate();
+            if (role.getRights() != null) {
+                checkAnchorTypes(role.getRights().keySet(), role.anchorTypes());
+            }
+            existingRoleNames.add(role.getRoleName());
         }
         try {
             final GetResponse get =
-                    this.client.prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).execute().actionGet();
+                    this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, username).execute().actionGet();
             if (!get.isExists()) {
-                throw new NotFoundException("The group " + g.getName() + " does not exist");
+                throw new NotFoundException("The user " + username + " does not exist");
             }
+
+            User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            user.setRoles(roles);
+
             this.client
-                    .prepareIndex(INDEX_GROUPS, INDEX_GROUPS_TYPE, g.getName()).setSource(
-                            mapper.writeValueAsBytes(g))
+                    .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, user.getName()).setSource(
+                            mapper.writeValueAsBytes(user))
                     .execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        this.refreshIndex(INDEX_USERS);
     }
 
     @Override
-    public void addUserToGroup(String username, String groupname) throws IOException {
-        final User u = this.retrieveUser(username);
-        final Group g = this.retrieveGroup(groupname);
-        if (u.getGroups() == null) {
-            u.setGroups(new ArrayList<>());
+    public void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights)
+            throws IOException {
+        // check parameters
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidParameterException("User name can not be null");
         }
-        for (Group existing : u.getGroups()) {
-            if (existing.getName().equals(g.getName())) {
-                return;
+        if (roleName == null) {
+            throw new InvalidParameterException("name of role may not be null");
+        }
+        if (RoleName.ADMIN.equals(roleName)) {
+            throw new InvalidParameterException("admin-role cannot be set with this method");
+        }
+        if (objectId == null) {
+            throw new InvalidParameterException("objectId may not be null");
+        }
+        if (rights == null) {
+            throw new InvalidParameterException("rights may not be null");
+        }
+
+        try {
+            final GetResponse get =
+                    this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, username).execute().actionGet();
+            if (!get.isExists()) {
+                throw new NotFoundException("The user " + username + " does not exist");
             }
+
+            User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            Role existingRole = user.getRole(roleName);
+            if (existingRole != null) {
+                checkAnchorTypes(new HashSet<String>() {
+
+                    {
+                        add(objectId);
+                    }
+                }, existingRole.anchorTypes());
+                Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
+                if (expandedRights == null) {
+                    expandedRights = new HashMap<String, List<RoleRight>>();
+                }
+                expandedRights.put(objectId, rights);
+                existingRole.setRights(expandedRights);
+            } else {
+                Role newRole = Role.getRoleObject(roleName);
+                checkAnchorTypes(new HashSet<String>() {
+
+                    {
+                        add(objectId);
+                    }
+                }, newRole.anchorTypes());
+                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+                newRights.put(objectId, rights);
+                newRole.setRights(newRights);
+                user.setRole(newRole);
+            }
+
+            this.client
+                    .prepareIndex(INDEX_USERS, INDEX_USERS_TYPE, user.getName()).setSource(
+                            mapper.writeValueAsBytes(user))
+                    .execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        u.getGroups().add(g);
-        this.updateUser(u);
+        this.refreshIndex(INDEX_USERS);
     }
 
     @Override
@@ -341,37 +373,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         this.refreshIndex(INDEX_USERS);
     }
 
-    @Override
-    public void deleteGroup(String name) throws IOException {
-        if (name == null) {
-            throw new InvalidParameterException("Group name can not be null");
-        }
-        try {
-            final GetResponse get =
-                    this.client.prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, name).execute().actionGet();
-            if (!get.isExists()) {
-                throw new NotFoundException("The group " + name + " does not exist");
-            }
-            this.client.prepareDelete(INDEX_GROUPS, INDEX_GROUPS_TYPE, name).execute().actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-        this.refreshIndex(INDEX_GROUPS);
-    }
-
-    @Override
-    public void removeUserFromGroup(String username, String groupname) throws IOException {
-        final User u = this.retrieveUser(username);
-        final Group g = this.retrieveGroup(groupname);
-        if (u.getGroups() == null) {
-            u.setGroups(new ArrayList<>());
-        }
-        u.getGroups().remove(g);
-        this.updateUser(u);
-    }
-
     private boolean isLastAdminUser(String name) throws IOException {
-        if (!this.retrieveUser(name).getGroups().contains(this.retrieveGroup("ROLE_ADMIN"))) {
+        User user = this.retrieveUser(name);
+        if (user.getRoles() == null || !user.hasRole(RoleName.ADMIN)) {
             return false;
         }
         final CountResponse resp;
@@ -382,7 +386,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders.termFilter("groups.name",
-                                                    "ROLE_ADMIN"))).execute()
+                                                    RoleName.ADMIN))).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -405,20 +409,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public Group retrieveGroup(String name) throws IOException {
-        final GetResponse get;
-        try {
-            get = this.client.prepareGet(INDEX_GROUPS, INDEX_GROUPS_TYPE, name).execute().actionGet();
-            if (!get.isExists()) {
-                throw new NotFoundException("Group '" + name + "' does not exist");
-            }
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-        return mapper.readValue(get.getSourceAsBytes(), Group.class);
-    }
-
-    @Override
     public List<User> retrieveUsers() throws IOException {
         final SearchResponse resp;
         try {
@@ -433,23 +423,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             users.add(mapper.readValue(hit.getSourceAsString(), User.class));
         }
         return users;
-    }
-
-    @Override
-    public List<Group> retrieveGroups() throws IOException {
-        final SearchResponse resp;
-        try {
-            resp =
-                    this.client.prepareSearch(INDEX_GROUPS).setQuery(QueryBuilders.matchAllQuery()).execute()
-                            .actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-        final List<Group> groups = new ArrayList<>(resp.getHits().getHits().length);
-        for (SearchHit hit : resp.getHits()) {
-            groups.add(mapper.readValue(hit.getSourceAsString(), Group.class));
-        }
-        return groups;
     }
 
     @Override
@@ -509,24 +482,46 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
     }
 
-    @Override
-    public List<Group> retrieveGroups(List<String> groupNames) throws IOException {
-        final SearchResponse resp;
-        try {
-            resp =
-                    this.client
-                            .prepareSearch(INDEX_GROUPS)
-                            .setQuery(QueryBuilders.idsQuery()
-                                    .ids(groupNames.toArray(new String[groupNames.size()])))
-                            .execute()
-                            .actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
+    private void checkAnchorTypes(Set<String> objectIds, List<PermissionAnchorType> anchorTypes) throws IOException {
+        List<String> usernames = new ArrayList<String>();
+        List<EntityType> entityTypes = new ArrayList<EntityType>();
+        if (anchorTypes == null && objectIds != null && !objectIds.isEmpty()) {
+            throw new IOException("No object permissions supported");
         }
-        final List<Group> groups = new ArrayList<>(resp.getHits().getHits().length);
-        for (SearchHit hit : resp.getHits()) {
-            groups.add(mapper.readValue(hit.getSourceAsString(), Group.class));
+        if (anchorTypes == null || objectIds == null) {
+            return;
         }
-        return groups;
+        if (anchorTypes.contains(PermissionAnchorType.USER)) {
+            for (String objectId : objectIds) {
+                try {
+                    retrieveUser(objectId);
+                    usernames.add(objectId);
+                } catch (IOException e) {
+                }
+            }
+        }
+        if (anchorTypes.contains(PermissionAnchorType.AREA) || anchorTypes.contains(PermissionAnchorType.PERMISSION)) {
+            for (String objectId : objectIds) {
+                try {
+                    Entity e = backendEntityService.retrieve(objectId);
+                    if (e.getType() == null) {
+                        throw new IOException("Object " + objectId + " has wrong type for permission-anchor");
+                    }
+                    entityTypes.add(e.getType());
+                } catch (IOException e) {
+                }
+            }
+        }
+        if (objectIds.size() != (usernames.size() + entityTypes.size())) {
+            throw new IOException("At least one Object has wrong type for permission-anchor");
+        }
+        for (EntityType entityType : entityTypes) {
+            if ((EntityType.AREA.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.AREA)) ||
+                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.PERMISSION)) ||
+                    (!EntityType.AREA.equals(entityType)) && !EntityType.PERMISSION.equals(entityType)) {
+                throw new IOException("At least one Object has wrong type for permission-anchor");
+            }
+        }
     }
+
 }
