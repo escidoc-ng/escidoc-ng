@@ -24,9 +24,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
@@ -35,8 +33,6 @@ import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 
@@ -145,14 +141,6 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("passwordRepeat", password)
                                 .build()
                         ));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        // create user-role
-        Map<Role, Rights> roles = new HashMap<Role, Rights>();
-        Rights rights = new Rights();
-        roles.put(Role.USER, rights);
-        resp = this.executeAsAdmin(Request.Post(userUrl + name + "/roles")
-                .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
-        String result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         return name;
     }

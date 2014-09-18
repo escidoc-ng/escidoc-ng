@@ -19,8 +19,8 @@ package net.objecthunter.larch.controller;
 import java.io.IOException;
 
 import net.objecthunter.larch.helpers.AuditRecordHelper;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.TestRole.RoleName;

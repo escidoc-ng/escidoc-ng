@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
-import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.Role;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.TestRole.RoleName;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;

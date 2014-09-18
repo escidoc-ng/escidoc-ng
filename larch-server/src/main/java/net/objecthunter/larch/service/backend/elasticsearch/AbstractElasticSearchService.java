@@ -12,8 +12,8 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
 import net.objecthunter.larch.model.security.role.TestUserRole;
-import net.objecthunter.larch.model.security.role.TestUserRole.UserRoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.io.IOUtils;
@@ -137,19 +137,19 @@ public class AbstractElasticSearchService {
 
         // add restrictions
         if (StringUtils.isNotBlank(username) && role != null && role.getRights() != null) {
-            for (Entry<String, List<UserRoleRight>> rightSet : role.getRights().entrySet()) {
-                List<UserRoleRight> userRights = rightSet.getValue();
-                for (UserRoleRight userRight : userRights) {
-                    if (UserRoleRight.READ_PENDING_METADATA.equals(userRight)) {
+            for (Entry<String, List<RoleRight>> rightSet : role.getRights().entrySet()) {
+                List<RoleRight> userRights = rightSet.getValue();
+                for (RoleRight userRight : userRights) {
+                    if (RoleRight.READ_PENDING_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.PENDING,
                                 rightSet.getKey()));
-                    } else if (UserRoleRight.READ_PUBLISHED_METADATA.equals(userRight)) {
+                    } else if (RoleRight.READ_PUBLISHED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.PUBLISHED,
                                 rightSet.getKey()));
-                    } else if (UserRoleRight.READ_SUBMITTED_METADATA.equals(userRight)) {
+                    } else if (RoleRight.READ_SUBMITTED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.SUBMITTED,
                                 rightSet.getKey()));
-                    } else if (UserRoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
+                    } else if (RoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.WITHDRAWN,
                                 rightSet.getKey()));
                     }

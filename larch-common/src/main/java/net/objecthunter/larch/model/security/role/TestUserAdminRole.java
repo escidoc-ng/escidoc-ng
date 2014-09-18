@@ -3,7 +3,8 @@
  */
 package net.objecthunter.larch.model.security.role;
 
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,17 +16,27 @@ import net.objecthunter.larch.model.security.annotation.Permission;
  */
 public class TestUserAdminRole extends TestRole {
     
-    public TestUserAdminRole() {
-        super();
-        setRoleName(RoleName.USER_ADMIN);
+    private RoleName roleName = RoleName.USER_ADMIN;
+    
+    private Map<String, List<RoleRight>> rights;
+    
+    private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>(){{
+        add(RoleRight.WRITE);
+        add(RoleRight.READ);
+    }};
+    
+    public RoleName roleName() {
+        return roleName;
     }
     
-    private Map<String, List<DefaultRoleRight>> rights;
+    public List<RoleRight> allowedRights() {
+        return allowedRoleRights;
+    }
     
     /**
      * @return the rights
      */
-    public Map<String, List<DefaultRoleRight>> getRights() {
+    public Map<String, List<RoleRight>> getRights() {
         return rights;
     }
 
@@ -33,13 +44,17 @@ public class TestUserAdminRole extends TestRole {
     /**
      * @param rights the rights to set
      */
-    public void setRights(Map<String, List<DefaultRoleRight>> rights) {
-        this.rights = new HashMap<String, List<DefaultRoleRight>>();
+    public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
         if (rights != null) {
-            for (String key : rights.keySet()) {
-                this.rights.put(key, rights.get(key));
+            for (List<RoleRight> value : rights.values()) {
+                for(RoleRight right : value) {
+                    if (!allowedRoleRights.contains(right)) {
+                        throw new IOException("right " + right + " not allowed");
+                    }
+                }
             }
         }
+        this.rights = rights;
     }
     
     @Override
@@ -51,7 +66,7 @@ public class TestUserAdminRole extends TestRole {
     }
 
     @Override
-    public boolean isValid() {
+    public boolean validate() {
         return true;
     }
 

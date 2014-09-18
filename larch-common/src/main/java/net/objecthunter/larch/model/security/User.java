@@ -152,7 +152,7 @@ public class User {
             return false;
         }
         for (TestRole role : roles) {
-            if (roleName.equals(role.getRoleName())) {
+            if (roleName.equals(role.roleName())) {
                 return true;
             }
         }
@@ -164,7 +164,7 @@ public class User {
             return null;
         }
         for (TestRole role : roles) {
-            if (roleName.equals(role.getRoleName())) {
+            if (roleName.equals(role.roleName())) {
                 return role;
             }
         }
@@ -175,7 +175,7 @@ public class User {
         if (roles == null) {
             roles = new ArrayList<TestRole>();
         }
-        removeRole(role.getRoleName());
+        removeRole(role.roleName());
         roles.add(role);
     }
 
@@ -184,7 +184,7 @@ public class User {
             return;
         }
         for (TestRole role : roles) {
-            if (roleName.equals(role.getRoleName())) {
+            if (roleName.equals(role.roleName())) {
                 roles.remove(role);
                 return;
             }

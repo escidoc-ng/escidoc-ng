@@ -19,7 +19,7 @@ package net.objecthunter.larch.service;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.model.security.Right.ObjectType;
+import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 public interface AuthorizationService {

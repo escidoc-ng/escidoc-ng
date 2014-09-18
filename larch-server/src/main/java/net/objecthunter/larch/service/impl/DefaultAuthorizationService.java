@@ -22,24 +22,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import net.objecthunter.larch.exceptions.NotFoundException;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.EntityHierarchy;
-import net.objecthunter.larch.model.security.Right;
-import net.objecthunter.larch.model.security.Right.ObjectType;
-import net.objecthunter.larch.model.security.Right.PermissionType;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionType;
+import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.role.TestRole;
-import net.objecthunter.larch.model.security.role.TestRole.DefaultRoleRight;
 import net.objecthunter.larch.model.security.role.TestRole.RoleName;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
 import net.objecthunter.larch.model.security.role.TestUserAdminRole;
-import net.objecthunter.larch.model.security.role.TestUserRole;
-import net.objecthunter.larch.model.security.Rights;
-import net.objecthunter.larch.model.security.Role;
-import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -168,8 +159,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
     private List<TestRole> getDefaultRoles(String username) throws IOException {
         List<TestRole> userDefaultRoles = new ArrayList<TestRole>();
         TestUserAdminRole userAdminRole = new TestUserAdminRole();
-        Map<String, List<DefaultRoleRight>> rights = new HashMap<String, List<DefaultRoleRight>>();
-        rights.put(username, new ArrayList<DefaultRoleRight>() {{add(DefaultRoleRight.READ);add(DefaultRoleRight.WRITE);}});
+        Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
+        rights.put(username, new ArrayList<RoleRight>() {{add(RoleRight.READ);add(RoleRight.WRITE);}});
         userAdminRole.setRights(rights);
         userDefaultRoles.add(userAdminRole);
         return userDefaultRoles;
@@ -180,7 +171,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             return false;
         }
         for (TestRole role : userRoles) {
-            if (roleName.equals(role.getRoleName())) {
+            if (roleName.equals(role.roleName())) {
                 return true;
             }
         }

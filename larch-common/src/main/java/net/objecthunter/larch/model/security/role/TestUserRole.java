@@ -3,7 +3,8 @@
  */
 package net.objecthunter.larch.model.security.role;
 
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,17 +16,44 @@ import net.objecthunter.larch.model.security.annotation.Permission;
  */
 public class TestUserRole extends TestRole {
     
-    public TestUserRole() {
-        super();
-        setRoleName(RoleName.USER);
+    private RoleName roleName = RoleName.USER;
+    
+    private Map<String, List<RoleRight>> rights;
+    
+    private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>(){{
+        add(RoleRight.READ_PENDING_METADATA);
+        add(RoleRight.READ_SUBMITTED_METADATA);
+        add(RoleRight.READ_PUBLISHED_METADATA);
+        add(RoleRight.READ_WITHDRAWN_METADATA);
+        add(RoleRight.WRITE_PENDING_METADATA);
+        add(RoleRight.WRITE_SUBMITTED_METADATA);
+        add(RoleRight.WRITE_PUBLISHED_METADATA);
+        add(RoleRight.WRITE_WITHDRAWN_METADATA);
+        add(RoleRight.READ_PENDING_BINARY);
+        add(RoleRight.READ_SUBMITTED_BINARY);
+        add(RoleRight.READ_PUBLISHED_BINARY);
+        add(RoleRight.READ_WITHDRAWN_BINARY);
+        add(RoleRight.WRITE_PENDING_BINARY);
+        add(RoleRight.WRITE_SUBMITTED_BINARY);
+        add(RoleRight.WRITE_PUBLISHED_BINARY);
+        add(RoleRight.WRITE_WITHDRAWN_BINARY);
+        add(RoleRight.READ_PERMISSION);
+        add(RoleRight.WRITE_PERMISSION);
+    }};
+    
+    public RoleName roleName() {
+        return roleName;
     }
     
-    private Map<String, List<UserRoleRight>> rights;
+    public List<RoleRight> allowedRights() {
+        return allowedRoleRights;
+    }
     
     /**
      * @return the rights
      */
-    public Map<String, List<UserRoleRight>> getRights() {
+    @Override
+    public Map<String, List<RoleRight>> getRights() {
         return rights;
     }
 
@@ -33,13 +61,18 @@ public class TestUserRole extends TestRole {
     /**
      * @param rights the rights to set
      */
-    public void setRights(Map<String, List<UserRoleRight>> rights) {
-        this.rights = new HashMap<String, List<UserRoleRight>>();
+    @Override
+    public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
         if (rights != null) {
-            for (String key : rights.keySet()) {
-                this.rights.put(key, rights.get(key));
+            for (List<RoleRight> value : rights.values()) {
+                for(RoleRight right : value) {
+                    if (!allowedRoleRights.contains(right)) {
+                        throw new IOException("right " + right + " not allowed");
+                    }
+                }
             }
         }
+        this.rights = rights;
     }
 
     @Override
@@ -54,29 +87,8 @@ public class TestUserRole extends TestRole {
     }
 
     @Override
-    public boolean isValid() {
+    public boolean validate() {
         return true;
-    }
-
-    public enum UserRoleRight implements RoleRight {
-        READ_PENDING_METADATA,
-        READ_SUBMITTED_METADATA,
-        READ_PUBLISHED_METADATA,
-        READ_WITHDRAWN_METADATA,
-        WRITE_PENDING_METADATA,
-        WRITE_SUBMITTED_METADATA,
-        WRITE_PUBLISHED_METADATA,
-        WRITE_WITHDRAWN_METADATA,
-        READ_PENDING_BINARY,
-        READ_SUBMITTED_BINARY,
-        READ_PUBLISHED_BINARY,
-        READ_WITHDRAWN_BINARY,
-        WRITE_PENDING_BINARY,
-        WRITE_SUBMITTED_BINARY,
-        WRITE_PUBLISHED_BINARY,
-        WRITE_WITHDRAWN_BINARY,
-        READ_PERMISSION,
-        WRITE_PERMISSION;
     }
 
 }
