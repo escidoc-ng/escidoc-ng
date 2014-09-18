@@ -41,7 +41,7 @@ public class TestUserRole extends TestRole {
         add(RoleRight.WRITE_PERMISSION);
     }};
     
-    public RoleName roleName() {
+    public RoleName getRoleName() {
         return roleName;
     }
     
@@ -88,6 +88,15 @@ public class TestUserRole extends TestRole {
 
     @Override
     public boolean validate() {
+        if (rights != null) {
+            for (List<RoleRight> value : rights.values()) {
+                for(RoleRight right : value) {
+                    if (!allowedRoleRights.contains(right)) {
+                        return false;
+                    }
+                }
+            }
+        }
         return true;
     }
 

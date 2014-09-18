@@ -248,13 +248,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             if (role == null) {
                 throw new InvalidParameterException("role may not be null");
             }
-            if (existingRoleNames.contains(role.roleName())) {
-                throw new InvalidParameterException("duplicate role " + role.roleName());
+            if (existingRoleNames.contains(role.getRoleName())) {
+                throw new InvalidParameterException("duplicate role " + role.getRoleName());
             }
             if (!role.validate()) {
-                throw new InvalidParameterException("invalid role " + role.roleName());
+                throw new InvalidParameterException("invalid role " + role.getRoleName());
             }
-            existingRoleNames.add(role.roleName());
+            existingRoleNames.add(role.getRoleName());
         }
         try {
             final GetResponse get =

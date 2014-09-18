@@ -171,7 +171,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             return false;
         }
         for (TestRole role : userRoles) {
-            if (roleName.equals(role.roleName())) {
+            if (roleName.equals(role.getRoleName())) {
                 return true;
             }
         }

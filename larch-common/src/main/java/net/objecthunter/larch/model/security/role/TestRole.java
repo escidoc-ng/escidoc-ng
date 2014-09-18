@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         })
 public abstract class TestRole {
     
-    public abstract RoleName roleName();
+    public abstract RoleName getRoleName();
     
     public abstract Map<String, List<RoleRight>> getRights();
 
@@ -50,14 +50,10 @@ public abstract class TestRole {
         }
     }
     
-    public boolean compare(Permission permission, Object checkObject) {
-        return false;
-    }
+    public abstract boolean compare(Permission permission, Object checkObject);
 
-    public boolean validate() {
-        return false;
-    }
-    
+    public abstract boolean validate();
+
     public enum RoleName {
         ADMIN,
         USER,

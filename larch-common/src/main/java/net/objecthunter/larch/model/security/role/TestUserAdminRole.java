@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.role.TestRole.RoleRight;
 
 /**
  * @author mih
@@ -25,7 +26,7 @@ public class TestUserAdminRole extends TestRole {
         add(RoleRight.READ);
     }};
     
-    public RoleName roleName() {
+    public RoleName getRoleName() {
         return roleName;
     }
     
@@ -67,6 +68,15 @@ public class TestUserAdminRole extends TestRole {
 
     @Override
     public boolean validate() {
+        if (rights != null) {
+            for (List<RoleRight> value : rights.values()) {
+                for(RoleRight right : value) {
+                    if (!allowedRoleRights.contains(right)) {
+                        return false;
+                    }
+                }
+            }
+        }
         return true;
     }
 
