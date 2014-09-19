@@ -39,8 +39,10 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.AreaAdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
@@ -84,12 +86,22 @@ import com.fasterxml.jackson.core.JsonParser;
  */
 public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
+    protected static String areaId = null;
+
     protected static String permissionId = null;
+
+    protected static String unusedAreaId = null;
+
+    protected static String unusedUserId = null;
 
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
      */
     protected static Map<MissingPermission, String[]> userRoleUsernames = new HashMap<MissingPermission, String[]>();
+
+    protected static Map<String, String[]> areaAdminRoleUsernames = new HashMap<String, String[]>();
+
+    protected static Map<String, String[]> userAdminRoleUsernames = new HashMap<String, String[]>();
 
     protected static String userPassword = "ttestt";
 
@@ -111,22 +123,50 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @throws Exception
      */
     protected void preparePermission() throws Exception {
+        //create area
+        final Entity area = new Entity();
+        area.setId(RandomStringUtils.randomAlphanumeric(16));
+        area.setType(EntityType.AREA);
+        area.setParentId(null);
+        area.setLabel("bar");
+        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        areaId = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(areaId);
+        assertEquals(area.getId(), areaId);
+        
+        //create unused area
+        final Entity unusedArea = new Entity();
+        unusedArea.setId(RandomStringUtils.randomAlphanumeric(16));
+        unusedArea.setType(EntityType.AREA);
+        unusedArea.setParentId(null);
+        unusedArea.setLabel("bar");
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(unusedArea), ContentType.APPLICATION_JSON));
+        test = EntityUtils.toString(resp.getEntity());
+        unusedAreaId = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(unusedAreaId);
+        assertEquals(unusedArea.getId(), unusedAreaId);
+        
         // create Permission
         final Entity permission = new Entity();
         permission.setId(RandomStringUtils.randomAlphanumeric(16));
         permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
         permission.setLabel("bar");
-        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
                 .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
 
-        String test = EntityUtils.toString(resp.getEntity());
+        test = EntityUtils.toString(resp.getEntity());
         permissionId = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         assertNotNull(permissionId);
         assertEquals(permission.getId(), permissionId);
 
-        // create users
+        //create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
             userRoleUsernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
@@ -172,6 +212,19 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PERMISSION);
             }
         }
+        
+        //create users with areaAdmin + userAdmin Roles
+        unusedUserId = createUser(null, userPassword);
+
+        areaAdminRoleUsernames.put("AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
+        areaAdminRoleUsernames.put("AREA_ADMIN" + areaId, new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId)[0], new AreaAdminRole(), areaId);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY)[0]);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserAdminRole(), "");
+        
     }
 
     /**
@@ -249,10 +302,79 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         rights.put(permissionId, roleRights);
         userRole.setRights(rights);
         roles.add(userRole);
-        
+
+        //set other roles
+        // user-admin
+        UserAdminRole userAdminRole = new UserAdminRole();
+        Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> userAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight userAdminRoleRight : userAdminRole.allowedRights()) {
+            userAdminRoleRights.add(userAdminRoleRight);
+        }
+        userAdminRights.put(unusedUserId, userAdminRoleRights);
+        userAdminRole.setRights(userAdminRights);
+        roles.add(userAdminRole);
+        //area-admin
+        AreaAdminRole areaAdminRole = new AreaAdminRole();
+        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
+            areaAdminRoleRights.add(areaAdminRoleRight);
+        }
+        areaAdminRights.put(unusedAreaId, areaAdminRoleRights);
+        areaAdminRole.setRights(areaAdminRights);
+        roles.add(areaAdminRole);
+
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
+        result = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+    }
+
+    /**
+     * Create Workspace-Rights where user with provided username has all rights except for provided permission.
+     * 
+     * @param username
+     * @param permission permission
+     * @return String workspaceId
+     * @throws Exception
+     */
+    protected void createRoleForUser(String username, Role role, String anchorId)
+            throws Exception {
+        // try to retrieve user
+        HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
+        String result = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
+
+        List<Role> userRoles = (ArrayList) fetched.getRoles();
+        if (userRoles == null) {
+            userRoles = new ArrayList<Role>();
+        }
+        for (Role userRole : userRoles) {
+            if (userRole.getRoleName().equals(role.getRoleName())) {
+                userRoles.remove(userRole);
+            }
+        }
+
+        if (anchorId != null) {
+            List<RoleRight> roleRights = new ArrayList<RoleRight>();
+            for (RoleRight roleRight : role.allowedRights()) {
+                roleRights.add(roleRight);
+            }
+            if (!roleRights.isEmpty()) {
+                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+                newRights.put(anchorId, roleRights);
+                role.setRights(newRights);
+                userRoles.add(role);
+            }
+        }
+
+        // set roles
+        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
+                .bodyString(this.mapper.writeValueAsString(userRoles), ContentType.APPLICATION_JSON));
         result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 

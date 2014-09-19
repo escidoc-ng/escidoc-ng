@@ -57,10 +57,12 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
      */
     private BoolQueryBuilder getAreaAndPermissionEntitiesRestrictionQuery(String areaId) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
+        BoolQueryBuilder subSubRestrictionQueryBuilder = QueryBuilders.boolQuery();
+        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
                 EntityType.AREA.getName()));
-        subRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
+        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
                 EntityType.PERMISSION.getName()));
+        subRestrictionQueryBuilder.must(subSubRestrictionQueryBuilder);
         if (StringUtils.isNotBlank(areaId)) {
             subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.AREA_ID.getFieldName(),
                     areaId));

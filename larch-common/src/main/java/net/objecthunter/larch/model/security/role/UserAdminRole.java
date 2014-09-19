@@ -44,6 +44,7 @@ public class UserAdminRole extends Role {
         return roleName;
     }
 
+    @Override
     public List<RoleRight> allowedRights() {
         return allowedRoleRights;
     }

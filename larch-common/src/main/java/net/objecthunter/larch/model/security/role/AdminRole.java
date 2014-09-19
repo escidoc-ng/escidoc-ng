@@ -4,6 +4,7 @@
 package net.objecthunter.larch.model.security.role;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +21,17 @@ import net.objecthunter.larch.model.security.role.Role.RoleRight;
 public class AdminRole extends Role {
     private RoleName roleName = RoleName.ADMIN;
     
+    private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>();
+    
     public RoleName getRoleName() {
         return roleName;
     }
     
+    @Override
+    public List<RoleRight> allowedRights() {
+        return allowedRoleRights;
+    }
+
     @Override
     public void setRights(Map<String,java.util.List<RoleRight>> rights) throws IOException {
         if (rights != null) {
