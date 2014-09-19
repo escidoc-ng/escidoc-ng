@@ -85,7 +85,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
@@ -93,7 +93,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount + 
@@ -102,7 +102,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
@@ -111,7 +111,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read published metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
@@ -120,14 +120,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read withdrawn metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPublishedEntitiesCount +
                 totalPermissionPendingEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
@@ -171,7 +171,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
@@ -179,7 +179,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount + 
@@ -188,7 +188,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
@@ -197,7 +197,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read published metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
@@ -206,14 +206,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read withdrawn metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPublishedEntitiesCount +
                 totalPermissionPendingEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
@@ -257,7 +257,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
@@ -265,7 +265,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount,
@@ -274,7 +274,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
@@ -282,7 +282,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read published metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
@@ -290,13 +290,13 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read withdrawn metadata rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
@@ -338,7 +338,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
@@ -346,7 +346,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount +
@@ -355,7 +355,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount +
@@ -364,7 +364,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read published metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount +
@@ -373,14 +373,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read withdrawn metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount +
                 totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
@@ -424,7 +424,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no workspace rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
@@ -432,7 +432,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read pending metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PENDING_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount,
@@ -441,7 +441,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read submitted metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
@@ -449,7 +449,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read published metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
@@ -457,13 +457,13 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user with no read withdrawn metadata rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        usernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], usernames
+                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
             if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
                     && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())

@@ -39,10 +39,8 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.AreaAdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
-import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
@@ -91,7 +89,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
      */
-    protected static Map<MissingPermission, String[]> usernames = new HashMap<MissingPermission, String[]>();
+    protected static Map<MissingPermission, String[]> userRoleUsernames = new HashMap<MissingPermission, String[]>();
 
     protected static String userPassword = "ttestt";
 
@@ -130,10 +128,10 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
         // create users
         for (MissingPermission missingPermission : MissingPermission.values()) {
-            usernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
+            userRoleUsernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
         // create permissions for users in workspace
-        for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> e : userRoleUsernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
                 createMissingPermissionRightsForUser(e.getValue()[0], permissionId, null);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_BINARY)) {
@@ -252,28 +250,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userRole.setRights(rights);
         roles.add(userRole);
         
-        //set other roles
-        // user-admin
-        UserAdminRole userAdminRole = new UserAdminRole();
-        Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
-        List<RoleRight> userAdminRoleRights = new ArrayList<RoleRight>();
-        for (RoleRight userAdminRoleRight : userAdminRole.allowedRights()) {
-            userAdminRoleRights.add(userAdminRoleRight);
-        }
-        userAdminRights.put("", userAdminRoleRights);
-        userAdminRole.setRights(userAdminRights);
-        roles.add(userAdminRole);
-        //area-admin
-        AreaAdminRole areaAdminRole = new AreaAdminRole();
-        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
-        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
-        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
-            areaAdminRoleRights.add(areaAdminRoleRight);
-        }
-        areaAdminRights.put(AREA_ID, areaAdminRoleRights);
-        areaAdminRole.setRights(areaAdminRights);
-        roles.add(areaAdminRole);
-
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
@@ -378,7 +354,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param adminOnly
      * @throws Exception
      */
-    protected void testAuth(AuthConfigurer authConfigurer)
+    protected void testUserRoleAuth(AuthConfigurer authConfigurer)
             throws Exception {
         // get entity for reset
         Object resetObject = getResetObject(authConfigurer);
@@ -395,7 +371,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
-                        usernames.get(MissingPermission.NONE)[0], usernames
+                        userRoleUsernames.get(MissingPermission.NONE)[0], userRoleUsernames
                                 .get(MissingPermission.NONE)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
@@ -409,7 +385,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
@@ -446,9 +422,9 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // try as user with wrong workspace rights
         String[] userparams = null;
         if (authConfigurer.getNeededPermission() != null) {
-            userparams = usernames.get(authConfigurer.getNeededPermission());
+            userparams = userRoleUsernames.get(authConfigurer.getNeededPermission());
         } else {
-            userparams = usernames.get(MissingPermission.ALL);
+            userparams = userRoleUsernames.get(MissingPermission.ALL);
         }
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
@@ -464,7 +440,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         resetState(authConfigurer.isResetState(), resetObject);
         // try as user with correct workspace rights
-        // for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        // for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
         // if (authConfigurer.getNeededPermission() == null || (!entry.getKey().equals(MissingPermission.ALL) &&
         // !entry.getKey().equals(authConfigurer.getNeededPermission()))) {
         // url = manipulateUrl(authConfigurer.getUrl(), resetObject);

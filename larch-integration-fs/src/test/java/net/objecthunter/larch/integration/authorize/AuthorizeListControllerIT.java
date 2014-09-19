@@ -30,28 +30,28 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testListData() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA/1")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA/1/1")
                 .build());
     }
 
     @Test
     public void testListDataHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA/1")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/DATA/1/1")
                 .html(true)
                 .build());
@@ -59,15 +59,15 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testBrowseDataHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "browse/DATA")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "browse/DATA/1")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "browse/DATA/1/1")
                 .html(true)
                 .build());
@@ -75,28 +75,28 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testListPermissionData() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1/1")
                 .build());
     }
 
     @Test
     public void testListPermissionDataHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/list/1/1")
                 .html(true)
                 .build());
@@ -104,15 +104,15 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testBrowsePermissionDataHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse/1")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + permissionId + "/children/DATA/browse/1/1")
                 .html(true)
                 .build());
@@ -120,28 +120,28 @@ public class AuthorizeListControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testListPermissions() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1")
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
                 .build());
     }
 
     @Test
     public void testListPermissionsHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1")
                 .html(true)
                 .build());
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "list/PERMISSION/1/2")
                 .html(true)
                 .build());

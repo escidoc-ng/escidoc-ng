@@ -38,7 +38,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUserRequest() throws Exception {
         // create user request
         UserRequest userRequest = createUserRequest(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "confirm/" + userRequest.getToken())
                 .build());
     }
@@ -47,7 +47,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUserRequestHtml() throws Exception {
         // create user request
         UserRequest userRequest = createUserRequest(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "confirm/" + userRequest.getToken())
                 .html(true)
                 .build());
@@ -57,7 +57,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testConfirmUserRequest() throws Exception {
         // create user request
         UserRequest userRequest = createUserRequest(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, hostUrl + "confirm/{token}")
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("password", userPassword)
@@ -73,7 +73,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testConfirmUserRequestHtml() throws Exception {
         // create user request
         UserRequest userRequest = createUserRequest(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, hostUrl + "confirm/{token}")
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("password", userPassword)
@@ -90,7 +90,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testDeleteUser() throws Exception {
         // create user
         String username = createUser(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, hostUrl + "user/" + username)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
@@ -101,7 +101,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveUsers() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "user")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
@@ -121,7 +121,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUser() throws Exception {
         // create user
         String username = createUser(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "user/" + username)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
@@ -138,7 +138,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUserHtml() throws Exception {
         // create user
         String username = createUser(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "user/" + username)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
@@ -154,7 +154,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveCredentials() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "credentials")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
@@ -165,7 +165,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testUpdateUserDetails() throws Exception {
         // create user
         String username = createUser(null, userPassword);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, hostUrl + "user/" + username)
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("first_name", "test")

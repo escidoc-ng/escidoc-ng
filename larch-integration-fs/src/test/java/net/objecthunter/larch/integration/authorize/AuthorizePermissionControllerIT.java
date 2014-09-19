@@ -40,7 +40,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testCreatePermission() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .body(mapper.writeValueAsString(getPermission(Fixtures.AREA_ID)))
@@ -49,7 +49,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrievePermission() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + permissionId)
                 .neededPermission(MissingPermission.READ_PERMISSION)
                 .build());
@@ -57,7 +57,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrievePermissionHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + permissionId)
                 .neededPermission(MissingPermission.READ_PERMISSION)
                 .html(true)
@@ -68,7 +68,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
     public void testUpdatePermission() throws Exception {
         // retrieve workspace
         Entity permission = retrievePermission(permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + permissionId)
                 .body(mapper.writeValueAsString(permission))
                 .neededPermission(MissingPermission.WRITE_PERMISSION)
@@ -79,7 +79,7 @@ public class AuthorizePermissionControllerIT extends AbstractAuthorizeLarchIT {
     public void testPatchPermission() throws Exception {
         // retrieve workspace
         String permission = "{\"label\": \"patched\"}";
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PATCH, entityUrl + permissionId)
                 .body(permission)
                 .neededPermission(MissingPermission.WRITE_PERMISSION)
