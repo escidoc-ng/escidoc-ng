@@ -82,13 +82,15 @@ public class UserAdminRole extends Role {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.WRITE) &&
-                !this.rights.get(checkUser.getName()).contains(RoleRight.WRITE) &&
-                !this.rights.get("").contains(RoleRight.WRITE)) {
+                (this.rights.get(checkUser.getName()) == null || !this.rights.get(checkUser.getName()).contains(
+                        RoleRight.WRITE)) &&
+                (this.rights.get("") == null || !this.rights.get("").contains(RoleRight.WRITE))) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.READ) &&
-                !this.rights.get(checkUser.getName()).contains(RoleRight.READ) &&
-                !this.rights.get("").contains(RoleRight.READ)) {
+                (this.rights.get(checkUser.getName()) == null || !this.rights.get(checkUser.getName()).contains(
+                        RoleRight.READ)) &&
+                (this.rights.get("") == null || !this.rights.get("").contains(RoleRight.READ))) {
             return false;
         }
         return true;
@@ -104,7 +106,7 @@ public class UserAdminRole extends Role {
             for (List<RoleRight> value : rights.values()) {
                 for (RoleRight right : value) {
                     if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed");
+                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
                     }
                 }
             }

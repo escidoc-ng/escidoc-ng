@@ -87,10 +87,8 @@ public class AreaAdminRole extends Role {
                 !EntityType.PERMISSION.equals(checkEntity.getType())) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getAreaId())) {
-            return false;
-        }
-        if (this.rights.get(entityHierarchy.getAreaId()) == null) {
+        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getAreaId()) ||
+                this.rights.get(entityHierarchy.getAreaId()) == null) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.READ) &&
@@ -114,7 +112,7 @@ public class AreaAdminRole extends Role {
             for (List<RoleRight> value : rights.values()) {
                 for (RoleRight right : value) {
                     if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed");
+                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
                     }
                 }
             }

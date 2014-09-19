@@ -136,7 +136,8 @@ public class UserRole extends Role {
         if (entityHierarchy == null || entityHierarchy.getPermissionId() == null) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getPermissionId())) {
+        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getPermissionId()) ||
+                this.rights.get(entityHierarchy.getPermissionId()) == null) {
             return false;
         }
         if (this.rights.get(entityHierarchy.getPermissionId()) == null) {
@@ -171,7 +172,7 @@ public class UserRole extends Role {
             for (List<RoleRight> value : rights.values()) {
                 for (RoleRight right : value) {
                     if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed");
+                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
                     }
                 }
             }

@@ -27,7 +27,7 @@ public class AdminRole extends Role {
     @Override
     public void setRights(Map<String,java.util.List<RoleRight>> rights) throws IOException {
         if (rights != null) {
-            throw new IOException("not allowed to set rigths for this role");
+            throw new IOException("not allowed to set rigths for role " + getRoleName());
         }
     }
 

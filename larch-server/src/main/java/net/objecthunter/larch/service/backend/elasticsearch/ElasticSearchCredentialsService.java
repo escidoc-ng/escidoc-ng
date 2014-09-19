@@ -263,6 +263,15 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
             role.validate();
             if (role.getRights() != null) {
+                for (List<RoleRight> rights : role.getRights().values()) {
+                    List<RoleRight> existingRights = new ArrayList<RoleRight>();
+                    for(RoleRight right : rights) {
+                        if (existingRights.contains(right)) {
+                            throw new InvalidParameterException("duplicate right " + right);
+                        }
+                        existingRights.add(right);
+                    }
+                }
                 checkAnchorTypes(role.getRights().keySet(), role.anchorTypes());
             }
             existingRoleNames.add(role.getRoleName());
@@ -305,6 +314,14 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         if (rights == null) {
             throw new InvalidParameterException("rights may not be null");
+        }
+        
+        List<RoleRight> existingRights = new ArrayList<RoleRight>();
+        for(RoleRight right : rights) {
+            if (existingRights.contains(right)) {
+                throw new InvalidParameterException("duplicate right " + right);
+            }
+            existingRights.add(right);
         }
 
         try {

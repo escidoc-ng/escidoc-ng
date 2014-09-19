@@ -39,8 +39,10 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.AreaAdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
@@ -249,6 +251,28 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         rights.put(permissionId, roleRights);
         userRole.setRights(rights);
         roles.add(userRole);
+        
+        //set other roles
+        // user-admin
+        UserAdminRole userAdminRole = new UserAdminRole();
+        Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> userAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight userAdminRoleRight : userAdminRole.allowedRights()) {
+            userAdminRoleRights.add(userAdminRoleRight);
+        }
+        userAdminRights.put("", userAdminRoleRights);
+        userAdminRole.setRights(userAdminRights);
+        roles.add(userAdminRole);
+        //area-admin
+        AreaAdminRole areaAdminRole = new AreaAdminRole();
+        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
+            areaAdminRoleRights.add(areaAdminRoleRight);
+        }
+        areaAdminRights.put(AREA_ID, areaAdminRoleRights);
+        areaAdminRole.setRights(areaAdminRights);
+        roles.add(areaAdminRole);
 
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
