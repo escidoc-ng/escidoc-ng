@@ -104,7 +104,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
         this.backendCredentialsService.deleteUser(name);
     }
@@ -120,7 +121,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public List<User> retrieveUsers() throws IOException {
         return backendCredentialsService.retrieveUsers();
     }
@@ -222,7 +224,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public ModelAndView retrieveCredentials() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
@@ -250,7 +253,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,

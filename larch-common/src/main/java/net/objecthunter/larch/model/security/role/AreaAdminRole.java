@@ -11,6 +11,7 @@ import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.PermissionType;
@@ -69,14 +70,21 @@ public class AreaAdminRole extends Role {
     }
 
     @Override
-    public boolean compare(Permission permission, ObjectType objectType, Object checkObject, EntityHierarchy entityHierarchy) {
+    public boolean compare(Permission permission, ObjectType objectType, Object checkObject,
+            EntityHierarchy entityHierarchy) {
         if (!roleName.equals(permission.rolename())) {
             return false;
         }
         if (checkObject == null || !(checkObject instanceof Entity)) {
             return false;
         }
+        Entity checkEntity = (Entity) checkObject;
         if (entityHierarchy == null || entityHierarchy.getAreaId() == null) {
+            return false;
+        }
+        // Only do something with AREA or PERMISSION
+        if (!EntityType.AREA.equals(checkEntity.getType()) &&
+                !EntityType.PERMISSION.equals(checkEntity.getType())) {
             return false;
         }
         if (this.rights == null || !this.rights.containsKey(entityHierarchy.getAreaId())) {

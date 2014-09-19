@@ -494,7 +494,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (anchorTypes.contains(PermissionAnchorType.USER)) {
             for (String objectId : objectIds) {
                 try {
-                    retrieveUser(objectId);
+                    if (objectId == null || !objectId.equals("")) {
+                        retrieveUser(objectId);
+                    }
                     usernames.add(objectId);
                 } catch (IOException e) {
                 }

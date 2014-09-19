@@ -392,7 +392,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         queryBuilder
                 .must(QueryBuilders.matchQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(), permissionId));
         queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), entityType.name()));
-        queryBuilder.must(getEntitiesUserRestrictionQuery(permissionId));
+        queryBuilder.must(getEntitesUserRestrictionQuery());
         try {
             resp =
                     this.client
