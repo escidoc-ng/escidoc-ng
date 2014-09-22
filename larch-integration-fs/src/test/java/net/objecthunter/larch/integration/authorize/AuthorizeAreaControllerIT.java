@@ -17,12 +17,16 @@
 package net.objecthunter.larch.integration.authorize;
 
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
+import static org.junit.Assert.*;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.test.util.Fixtures;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,21 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .body(patchData)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PATCH, entityUrl + Fixtures.AREA_ID, patchData,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PATCH, entityUrl + areaId1, patchData,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -52,6 +71,21 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.GET, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -63,6 +97,21 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
