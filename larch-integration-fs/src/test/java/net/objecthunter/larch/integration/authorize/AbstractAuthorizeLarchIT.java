@@ -700,6 +700,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             urlSuffix = "submit";
         } else if (resetEntity.getState().equals(EntityState.PUBLISHED)) {
             urlSuffix = "publish";
+        } else if (resetEntity.getState().equals(EntityState.WITHDRAWN)) {
+            urlSuffix = "withdraw";
         } else {
             return;
         }

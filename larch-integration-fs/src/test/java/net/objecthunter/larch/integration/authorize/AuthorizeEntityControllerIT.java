@@ -316,4 +316,29 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
     }
+
+    @Test
+    public void testWithdrawEntity() throws Exception {
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .build());
+    }
+
+    @Test
+    public void testWithdrawEntityHtml() throws Exception {
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
+                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+    }
 }
