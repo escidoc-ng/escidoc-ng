@@ -25,4 +25,7 @@ public abstract class RoleQueryRestriction {
     }
     
     public abstract QueryBuilder getEntitiesRestrictionQuery();
+
+    public abstract QueryBuilder getUsersRestrictionQuery();
+
 }

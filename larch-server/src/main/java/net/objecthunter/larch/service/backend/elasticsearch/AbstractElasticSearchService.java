@@ -118,6 +118,32 @@ public class AbstractElasticSearchService {
     }
 
     /**
+     * Get Query that restricts a search to users the user may see.
+     * 
+     * @return QueryBuilder with user-restriction query
+     */
+    protected QueryBuilder getUsersUserRestrictionQuery() throws IOException {
+        User currentUser = getCurrentUser();
+        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        if (currentUser == null) {
+            //restrict to nothing
+            restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
+            return restrictionQueryBuilder;
+        } else {
+            // user may see himself
+            restrictionQueryBuilder.should(QueryBuilders.termQuery("name",
+                    currentUser.getName()));
+            if (currentUser.getRoles() != null) {
+                for (Role role : currentUser.getRoles()) {
+                    RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
+                    restrictionQueryBuilder.should(roleQueryRestriction.getUsersRestrictionQuery());
+                }
+            }
+        }
+        return restrictionQueryBuilder;
+    }
+
+    /**
      * Get currently logged in User or null if no user is logged in.
      * 
      * @return User loggen id user

@@ -61,6 +61,14 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
         return restrictionQueryBuilder;
     }
 
+    @Override
+    public QueryBuilder getUsersRestrictionQuery() {
+        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        //restrict to nothing
+        restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
+        return restrictionQueryBuilder;
+    }
+
     /**
      * Generate a subquery that restrict to a certain permission and entities with certain state
      * 
@@ -93,7 +101,7 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), EntityType.PERMISSION.name()));
         if (StringUtils.isNotBlank(permissionId)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.ID.getFieldName(),
+            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(),
                     permissionId));
         }
         return subRestrictionQueryBuilder;

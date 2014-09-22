@@ -120,9 +120,6 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public List<User> retrieveUsers() throws IOException {
         return backendCredentialsService.retrieveUsers();
     }
@@ -223,9 +220,6 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/credentials", method = RequestMethod.GET, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public ModelAndView retrieveCredentials() throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("users", this.backendCredentialsService.retrieveUsers());

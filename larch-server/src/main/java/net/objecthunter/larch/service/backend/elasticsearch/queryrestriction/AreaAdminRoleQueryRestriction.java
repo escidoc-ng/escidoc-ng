@@ -48,6 +48,14 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
         return restrictionQueryBuilder;
     }
 
+    @Override
+    public QueryBuilder getUsersRestrictionQuery() {
+        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        //restrict to nothing
+        restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
+        return restrictionQueryBuilder;
+    }
+
     /**
      * Generate a subquery that restrict to a certain permission and entities with certain state
      * 

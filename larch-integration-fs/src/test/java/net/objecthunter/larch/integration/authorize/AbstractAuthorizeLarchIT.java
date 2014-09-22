@@ -86,13 +86,15 @@ import com.fasterxml.jackson.core.JsonParser;
  */
 public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
-    protected static String areaId = null;
-
     protected static String permissionId = null;
 
-    protected static String unusedAreaId = null;
+    protected static String areaId1 = null;
+
+    protected static String areaId2 = null;
 
     protected static String unusedUserId = null;
+
+    protected static String permissionId1 = null;
 
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
@@ -124,7 +126,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      */
     protected void preparePermission() throws Exception {
         //create area
-        final Entity area = new Entity();
+        Entity area = new Entity();
         area.setId(RandomStringUtils.randomAlphanumeric(16));
         area.setType(EntityType.AREA);
         area.setParentId(null);
@@ -132,27 +134,27 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
                 .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        areaId = EntityUtils.toString(resp.getEntity());
+        areaId1 = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(areaId);
-        assertEquals(area.getId(), areaId);
+        assertNotNull(areaId1);
+        assertEquals(area.getId(), areaId1);
         
-        //create unused area
-        final Entity unusedArea = new Entity();
-        unusedArea.setId(RandomStringUtils.randomAlphanumeric(16));
-        unusedArea.setType(EntityType.AREA);
-        unusedArea.setParentId(null);
-        unusedArea.setLabel("bar");
+        //create area
+        area = new Entity();
+        area.setId(RandomStringUtils.randomAlphanumeric(16));
+        area.setType(EntityType.AREA);
+        area.setParentId(null);
+        area.setLabel("bar");
         resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(unusedArea), ContentType.APPLICATION_JSON));
+                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
         test = EntityUtils.toString(resp.getEntity());
-        unusedAreaId = EntityUtils.toString(resp.getEntity());
+        areaId2 = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(unusedAreaId);
-        assertEquals(unusedArea.getId(), unusedAreaId);
+        assertNotNull(areaId2);
+        assertEquals(area.getId(), areaId2);
         
         // create Permission
-        final Entity permission = new Entity();
+        Entity permission = new Entity();
         permission.setId(RandomStringUtils.randomAlphanumeric(16));
         permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
@@ -166,10 +168,27 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         assertNotNull(permissionId);
         assertEquals(permission.getId(), permissionId);
 
+        // create Permission
+        permission = new Entity();
+        permission.setId(RandomStringUtils.randomAlphanumeric(16));
+        permission.setType(EntityType.PERMISSION);
+        permission.setParentId(areaId1);
+        permission.setLabel("bar");
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
+
+        test = EntityUtils.toString(resp.getEntity());
+        permissionId1 = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(permissionId1);
+        assertEquals(permission.getId(), permissionId1);
+
         //create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
             userRoleUsernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
+        unusedUserId = createUser(null, userPassword);
+
         // create permissions for users in workspace
         for (Entry<MissingPermission, String[]> e : userRoleUsernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
@@ -214,16 +233,25 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         
         //create users with areaAdmin + userAdmin Roles
-        unusedUserId = createUser(null, userPassword);
-
         areaAdminRoleUsernames.put("AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
-        areaAdminRoleUsernames.put("AREA_ADMIN" + areaId, new String[] { createUser(null, userPassword), userPassword });
+        areaAdminRoleUsernames.put("AREA_ADMIN" + areaId1, new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
         createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId)[0], new AreaAdminRole(), areaId);
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY)[0]);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserAdminRole(), unusedUserId);
+
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new AreaAdminRole(), areaId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserAdminRole(), unusedUserId);
+
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), permissionId1);
+
         createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserAdminRole(), "");
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserRole(), permissionId1);
         
     }
 
@@ -321,7 +349,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
             areaAdminRoleRights.add(areaAdminRoleRight);
         }
-        areaAdminRights.put(unusedAreaId, areaAdminRoleRights);
+        areaAdminRights.put(areaId2, areaAdminRoleRights);
         areaAdminRole.setRights(areaAdminRights);
         roles.add(areaAdminRole);
 

@@ -103,7 +103,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUsers() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "user")
-                .roleRestriction(RoleRestriction.ADMIN)
                 .build());
     }
 
@@ -156,7 +155,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveCredentials() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "credentials")
-                .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
     }

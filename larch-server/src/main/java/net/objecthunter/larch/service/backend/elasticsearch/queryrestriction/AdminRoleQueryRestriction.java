@@ -26,4 +26,9 @@ public class AdminRoleQueryRestriction extends RoleQueryRestriction {
         return restrictionQueryBuilder;
     }
 
+    @Override
+    public QueryBuilder getUsersRestrictionQuery() {
+        return QueryBuilders.matchAllQuery();
+    }
+
 }
