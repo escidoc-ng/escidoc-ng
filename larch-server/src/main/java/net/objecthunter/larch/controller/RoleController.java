@@ -98,7 +98,7 @@ public class RoleController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 1, permissions = {
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 2, permissions = {
         @Permission(rolename = RoleName.ADMIN),
         @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,

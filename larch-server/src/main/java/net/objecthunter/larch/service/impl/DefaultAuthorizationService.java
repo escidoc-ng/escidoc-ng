@@ -163,17 +163,21 @@ public class DefaultAuthorizationService implements AuthorizationService {
         if (StringUtils.isBlank(id)) {
             throw new AccessDeniedException("No id provided");
         }
-        if (ObjectType.ENTITY.equals(objectType) ||
-                ObjectType.BINARY.equals(objectType)) {
-            // get entity
-            if (versionId != null) {
-                checkObject = backendVersionService.getOldVersion(id, versionId);
-            } else {
-                checkObject = backendEntityService.retrieve(id);
+        try {
+            if (ObjectType.ENTITY.equals(objectType) ||
+                    ObjectType.BINARY.equals(objectType)) {
+                // get entity
+                if (versionId != null) {
+                    checkObject = backendVersionService.getOldVersion(id, versionId);
+                } else {
+                    checkObject = backendEntityService.retrieve(id);
+                }
+            } else if (ObjectType.USER.equals(objectType)) {
+                // get User
+                checkObject = backendCredentialsService.retrieveUser(id);
             }
-        } else if (ObjectType.USER.equals(objectType)) {
-            // get User
-            checkObject = backendCredentialsService.retrieveUser(id);
+        } catch (IOException e) {
+            throw new AccessDeniedException("Object to check not found");
         }
         if (checkObject == null) {
             throw new AccessDeniedException("Object to check not found");
