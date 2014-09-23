@@ -5,7 +5,6 @@ package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import net.objecthunter.larch.model.security.role.Role;
 
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 
@@ -22,8 +21,7 @@ public class AdminRoleQueryRestriction extends RoleQueryRestriction {
 
     @Override
     public QueryBuilder getEntitiesRestrictionQuery() {
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        return restrictionQueryBuilder;
+        return QueryBuilders.matchAllQuery();
     }
 
     @Override

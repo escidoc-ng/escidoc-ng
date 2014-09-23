@@ -132,4 +132,12 @@ public interface BackendCredentialsService {
      */
     boolean isExistingUser(String name) throws IOException;
 
+    /**
+     * Add default rights to the users roles
+     * 
+     * @param user the user
+     * @return User the user with added default roles
+     */
+    User addDefaultRights(User user);
+
 }
