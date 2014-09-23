@@ -50,10 +50,7 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
 
     @Override
     public QueryBuilder getUsersRestrictionQuery() {
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        //restrict to nothing
-        restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
-        return restrictionQueryBuilder;
+        return QueryBuilders.matchAllQuery();
     }
 
     /**

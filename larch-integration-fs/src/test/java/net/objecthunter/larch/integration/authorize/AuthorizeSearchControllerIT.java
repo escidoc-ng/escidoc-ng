@@ -391,7 +391,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testListUsers() throws Exception {
         String url = hostUrl + "user";
-        // user with no workspace rights
+        // user with no rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
@@ -401,7 +401,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertNotNull(users);
         assertEquals(1, users.size());
 
-        // user with read workspace rights
+        // user with read workspace rights + area_admin rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
@@ -409,7 +409,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
-        assertEquals(2, users.size());
+        assertEquals(totalUsersCount, users.size());
 
         // area-admin
         response =
@@ -419,7 +419,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
-        assertEquals(2, users.size());
+        assertEquals(totalUsersCount, users.size());
 
         // area-admin
         response =
@@ -429,7 +429,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
-        assertEquals(2, users.size());
+        assertEquals(totalUsersCount, users.size());
 
         // user-admin
         response =

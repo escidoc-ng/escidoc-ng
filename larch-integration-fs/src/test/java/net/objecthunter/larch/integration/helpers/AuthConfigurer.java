@@ -183,6 +183,8 @@ public class AuthConfigurer {
     public enum RoleRestriction {
         ADMIN,
         USER,
+        USER_ADMIN,
+        AREA_ADMIN,
         LOGGED_IN;
     }
 
