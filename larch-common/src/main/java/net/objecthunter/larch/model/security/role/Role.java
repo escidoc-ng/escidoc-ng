@@ -39,6 +39,8 @@ public abstract class Role {
 
     public abstract List<PermissionAnchorType> anchorTypes();
 
+    public abstract List<RoleRight> allowedRights();
+
     public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
     
     public static Role getRoleObject(RoleName roleName) throws IOException {

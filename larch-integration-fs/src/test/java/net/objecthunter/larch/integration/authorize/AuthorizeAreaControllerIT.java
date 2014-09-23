@@ -17,12 +17,20 @@
 package net.objecthunter.larch.integration.authorize;
 
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.security.role.AreaAdminRole;
+import net.objecthunter.larch.test.util.Fixtures;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,74 +45,178 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         String patchData = "{\"label\":\"otherLabel\"}";
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PATCH, entityUrl + entity.getId())
                 .body(patchData)
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PATCH, entityUrl + Fixtures.AREA_ID, patchData,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PATCH, entityUrl + areaId1, patchData,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveEntity() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveEntityHtml() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1, null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveVersion() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID + "/version/1", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1 + "/version/1", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveVersionHtml() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID + "/version/1", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1 + "/version/1", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveVersions() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID + "/versions", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1 + "/versions", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testRetrieveVersionsHtml() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.AREA_ID + "/versions", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.GET, entityUrl + areaId1 + "/versions", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -112,11 +224,26 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
         Entity e = createFixtureEntity();
         e.setParentId(null);
         e.setType(EntityType.AREA);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl)
                 .body(mapper.writeValueAsString(e))
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.POST, entityUrl, mapper.writeValueAsString(e),
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, entityUrl, mapper.writeValueAsString(e),
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -124,72 +251,223 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
         entity.setLabel("otherLabel");
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId())
                 .body(mapper.writeValueAsString(entity))
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
+
+        // area admin
+        HttpResponse resp = this.executeAsAdmin(Request.Get(entityUrl + Fixtures.AREA_ID));
+        Entity area = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        area.setLabel("changed");
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID, mapper.writeValueAsString(area),
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1, mapper.writeValueAsString(area),
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testDeleteEntity() throws Exception {
         // create submitted entity
         Entity entity = createEntity(EntityState.SUBMITTED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
+        
+        // area admin
+        entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
+        String username = createUser(null, userPassword);
+        createRoleForUser(username, new AreaAdminRole(), entity.getId());
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.DELETE, entityUrl + entity.getId(), null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                        .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.DELETE, entityUrl + entity.getId(), null,
+                        username, userPassword, false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+        
     }
 
     @Test
     public void testPublishEntity() throws Exception {
         // create submitted entity
         Entity entity = createEntity(EntityState.SUBMITTED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/publish")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/publish", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/publish", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testPublishEntityHtml() throws Exception {
         // create submitted entity
         Entity entity = createEntity(EntityState.SUBMITTED, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/publish")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .html(true)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/publish", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/publish", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testSubmitEntity() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/submit")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/submit", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/submit", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testSubmitEntityHtml() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.AREA, null);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/submit")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .html(true)
                 .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/submit", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/submit", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testWithdrawEntity() throws Exception {
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/withdraw", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/withdraw", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testWithdrawEntityHtml() throws Exception {
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, EntityType.AREA, null);
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
+                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
+                .roleRestriction(RoleRestriction.ADMIN)
+                .resetState(true)
+                .resetStateId(entity.getId())
+                .html(true)
+                .build());
+
+        // area admin
+        HttpResponse resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.AREA_ID + "/withdraw", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        String response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.PUT, entityUrl + areaId1 + "/withdraw", null,
+                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
     }
 }

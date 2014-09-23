@@ -35,7 +35,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateIdentifier() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -44,7 +44,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -53,7 +53,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
@@ -66,7 +66,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateIdentifierHtml() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -76,7 +76,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -86,7 +86,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
                 .body("type=DOI&value=123")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
@@ -100,7 +100,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     public void testDeleteIdentifier() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -109,7 +109,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -118,7 +118,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
@@ -131,7 +131,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     public void testDeleteIdentifierHtml() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -141,7 +141,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -151,7 +151,7 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)

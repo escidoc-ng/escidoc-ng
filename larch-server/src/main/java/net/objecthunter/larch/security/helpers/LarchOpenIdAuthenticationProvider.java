@@ -71,6 +71,7 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
             if (status == OpenIDAuthenticationStatus.SUCCESS) {
                 // Lookup user details
                 User user = loadUserDetails(response);
+                user = backendCredentialsService.addDefaultRights(user);
 
                 return createSuccessfulAuthentication(user, response);
 

@@ -18,10 +18,6 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityType;
@@ -30,10 +26,7 @@ import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
-import net.objecthunter.larch.model.security.role.Role.RoleRight;
-import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -109,35 +102,31 @@ public class DefaultAuthorizationService implements AuthorizationService {
         Object checkObject = result;
         EntityHierarchy entityHierarchy = null;
         boolean entityHierarchySet = false;
-        List<Role> userRoles = currentUser.getRoles();
         if (objectType != null && ObjectType.INPUT_ENTITY.equals(objectType)) {
             objectType = ObjectType.ENTITY;
         }
-        if (userRoles == null) {
-            userRoles = new ArrayList<Role>();
-        }
-        userRoles.addAll(getDefaultRoles(currentUser.getName()));
         for (Permission permission : permissions) {
             if (RoleName.ANY.equals(permission.rolename())) {
                 return;
             } else if (permission.permissionType().equals(PermissionType.NULL)) {
-                if (userHasRole(permission.rolename(), userRoles)) {
+                if (currentUser.hasRole(permission.rolename())) {
                     return;
                 }
             } else {
-                if (!userHasRole(permission.rolename(), userRoles)) {
+                if (!currentUser.hasRole(permission.rolename())) {
                     continue;
                 }
                 if (checkObject == null) {
                     checkObject = getCheckObject(objectType, id, versionId);
                 }
-                if(checkObject instanceof Entity) {
+                if (checkObject instanceof Entity) {
                     if (!entityHierarchySet) {
-                        Entity entityObject = (Entity)checkObject;
+                        Entity entityObject = (Entity) checkObject;
                         if (entityObject.getType() != null && entityObject.getType().equals(EntityType.AREA)) {
                             entityHierarchy = new EntityHierarchy();
                             entityHierarchy.setAreaId(entityObject.getId());
-                        } else if (entityObject.getType() != null && entityObject.getType().equals(EntityType.PERMISSION)) {
+                        } else if (entityObject.getType() != null &&
+                                entityObject.getType().equals(EntityType.PERMISSION)) {
                             entityHierarchy = new EntityHierarchy();
                             entityHierarchy.setPermissionId(entityObject.getId());
                             entityHierarchy.setAreaId(entityObject.getParentId());
@@ -148,10 +137,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
                         }
                     }
                 }
-                for (Role userRole : userRoles) {
-                    if (userRole.compare(permission, objectType, checkObject, entityHierarchy)) {
-                        return;
-                    }
+                if (currentUser.getRole(permission.rolename()).compare(permission, objectType, checkObject,
+                        entityHierarchy)) {
+                    return;
                 }
             }
         }
@@ -163,44 +151,26 @@ public class DefaultAuthorizationService implements AuthorizationService {
         if (StringUtils.isBlank(id)) {
             throw new AccessDeniedException("No id provided");
         }
-        if (ObjectType.ENTITY.equals(objectType) ||
-                ObjectType.BINARY.equals(objectType)) {
-            // get entity
-            if (versionId != null) {
-                checkObject = backendVersionService.getOldVersion(id, versionId);
-            } else {
-                checkObject = backendEntityService.retrieve(id);
+        try {
+            if (ObjectType.ENTITY.equals(objectType) ||
+                    ObjectType.BINARY.equals(objectType)) {
+                // get entity
+                if (versionId != null) {
+                    checkObject = backendVersionService.getOldVersion(id, versionId);
+                } else {
+                    checkObject = backendEntityService.retrieve(id);
+                }
+            } else if (ObjectType.USER.equals(objectType)) {
+                // get User
+                checkObject = backendCredentialsService.retrieveUser(id);
             }
-        } else if (ObjectType.USER.equals(objectType)) {
-            // get User
-            checkObject = backendCredentialsService.retrieveUser(id);
+        } catch (IOException e) {
+            throw new AccessDeniedException("Object to check not found");
         }
         if (checkObject == null) {
             throw new AccessDeniedException("Object to check not found");
         }
         return checkObject;
-    }
-
-    private List<Role> getDefaultRoles(String username) throws IOException {
-        List<Role> userDefaultRoles = new ArrayList<Role>();
-        UserAdminRole userAdminRole = new UserAdminRole();
-        Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
-        rights.put(username, new ArrayList<RoleRight>() {{add(RoleRight.READ);add(RoleRight.WRITE);}});
-        userAdminRole.setRights(rights);
-        userDefaultRoles.add(userAdminRole);
-        return userDefaultRoles;
-    }
-    
-    private boolean userHasRole(RoleName roleName, List<Role> userRoles) {
-        if (roleName == null || userRoles == null) {
-            return false;
-        }
-        for (Role role : userRoles) {
-            if (roleName.equals(role.getRoleName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

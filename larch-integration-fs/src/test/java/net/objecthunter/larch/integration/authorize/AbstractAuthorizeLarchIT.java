@@ -39,8 +39,10 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.AreaAdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
@@ -86,10 +88,22 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
     protected static String permissionId = null;
 
+    protected static String areaId1 = null;
+
+    protected static String areaId2 = null;
+
+    protected static String unusedUserId = null;
+
+    protected static String permissionId1 = null;
+
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
      */
-    protected static Map<MissingPermission, String[]> usernames = new HashMap<MissingPermission, String[]>();
+    protected static Map<MissingPermission, String[]> userRoleUsernames = new HashMap<MissingPermission, String[]>();
+
+    protected static Map<String, String[]> areaAdminRoleUsernames = new HashMap<String, String[]>();
+
+    protected static Map<String, String[]> userAdminRoleUsernames = new HashMap<String, String[]>();
 
     protected static String userPassword = "ttestt";
 
@@ -111,27 +125,72 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @throws Exception
      */
     protected void preparePermission() throws Exception {
+        //create area
+        Entity area = new Entity();
+        area.setId(RandomStringUtils.randomAlphanumeric(16));
+        area.setType(EntityType.AREA);
+        area.setParentId(null);
+        area.setLabel("bar");
+        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        areaId1 = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(areaId1);
+        assertEquals(area.getId(), areaId1);
+        
+        //create area
+        area = new Entity();
+        area.setId(RandomStringUtils.randomAlphanumeric(16));
+        area.setType(EntityType.AREA);
+        area.setParentId(null);
+        area.setLabel("bar");
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
+        test = EntityUtils.toString(resp.getEntity());
+        areaId2 = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(areaId2);
+        assertEquals(area.getId(), areaId2);
+        
         // create Permission
-        final Entity permission = new Entity();
+        Entity permission = new Entity();
         permission.setId(RandomStringUtils.randomAlphanumeric(16));
         permission.setType(EntityType.PERMISSION);
         permission.setParentId(AREA_ID);
         permission.setLabel("bar");
-        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
                 .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
 
-        String test = EntityUtils.toString(resp.getEntity());
+        test = EntityUtils.toString(resp.getEntity());
         permissionId = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         assertNotNull(permissionId);
         assertEquals(permission.getId(), permissionId);
 
-        // create users
+        // create Permission
+        permission = new Entity();
+        permission.setId(RandomStringUtils.randomAlphanumeric(16));
+        permission.setType(EntityType.PERMISSION);
+        permission.setParentId(areaId1);
+        permission.setLabel("bar");
+        resp = this.executeAsAdmin(Request.Post(entityUrl)
+                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
+
+        test = EntityUtils.toString(resp.getEntity());
+        permissionId1 = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(permissionId1);
+        assertEquals(permission.getId(), permissionId1);
+
+        //create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
-            usernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
+            userRoleUsernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
+        unusedUserId = createUser(null, userPassword);
+
         // create permissions for users in workspace
-        for (Entry<MissingPermission, String[]> e : usernames.entrySet()) {
+        for (Entry<MissingPermission, String[]> e : userRoleUsernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
                 createMissingPermissionRightsForUser(e.getValue()[0], permissionId, null);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_BINARY)) {
@@ -172,6 +231,28 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PERMISSION);
             }
         }
+        
+        //create users with areaAdmin + userAdmin Roles
+        areaAdminRoleUsernames.put("AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
+        areaAdminRoleUsernames.put("AREA_ADMIN" + areaId1, new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserAdminRole(), unusedUserId);
+
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new AreaAdminRole(), areaId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserAdminRole(), unusedUserId);
+
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), permissionId1);
+
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserAdminRole(), "");
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserRole(), permissionId1);
+        
     }
 
     /**
@@ -250,9 +331,78 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userRole.setRights(rights);
         roles.add(userRole);
 
+        //set other roles
+        // user-admin
+        UserAdminRole userAdminRole = new UserAdminRole();
+        Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> userAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight userAdminRoleRight : userAdminRole.allowedRights()) {
+            userAdminRoleRights.add(userAdminRoleRight);
+        }
+        userAdminRights.put(unusedUserId, userAdminRoleRights);
+        userAdminRole.setRights(userAdminRights);
+        roles.add(userAdminRole);
+        //area-admin
+        AreaAdminRole areaAdminRole = new AreaAdminRole();
+        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
+            areaAdminRoleRights.add(areaAdminRoleRight);
+        }
+        areaAdminRights.put(areaId2, areaAdminRoleRights);
+        areaAdminRole.setRights(areaAdminRights);
+        roles.add(areaAdminRole);
+
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
+        result = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+    }
+
+    /**
+     * Create Workspace-Rights where user with provided username has all rights except for provided permission.
+     * 
+     * @param username
+     * @param permission permission
+     * @return String workspaceId
+     * @throws Exception
+     */
+    protected void createRoleForUser(String username, Role role, String anchorId)
+            throws Exception {
+        // try to retrieve user
+        HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
+        String result = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
+
+        List<Role> userRoles = (ArrayList) fetched.getRoles();
+        if (userRoles == null) {
+            userRoles = new ArrayList<Role>();
+        }
+        for (Role userRole : userRoles) {
+            if (userRole.getRoleName().equals(role.getRoleName())) {
+                userRoles.remove(userRole);
+            }
+        }
+
+        if (anchorId != null) {
+            List<RoleRight> roleRights = new ArrayList<RoleRight>();
+            for (RoleRight roleRight : role.allowedRights()) {
+                roleRights.add(roleRight);
+            }
+            if (!roleRights.isEmpty()) {
+                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+                newRights.put(anchorId, roleRights);
+                role.setRights(newRights);
+                userRoles.add(role);
+            }
+        }
+
+        // set roles
+        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
+                .bodyString(this.mapper.writeValueAsString(userRoles), ContentType.APPLICATION_JSON));
         result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
@@ -354,7 +504,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param adminOnly
      * @throws Exception
      */
-    protected void testAuth(AuthConfigurer authConfigurer)
+    protected void testUserRoleAuth(AuthConfigurer authConfigurer)
             throws Exception {
         // get entity for reset
         Object resetObject = getResetObject(authConfigurer);
@@ -371,7 +521,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
-                        usernames.get(MissingPermission.NONE)[0], usernames
+                        userRoleUsernames.get(MissingPermission.NONE)[0], userRoleUsernames
                                 .get(MissingPermission.NONE)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
@@ -385,7 +535,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
                 this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
-                        usernames.get(MissingPermission.ALL)[0], usernames
+                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], authConfigurer.isHtml());
         response = EntityUtils.toString(resp.getEntity());
         if (authConfigurer.getRoleRestriction() != null &&
@@ -422,9 +572,9 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // try as user with wrong workspace rights
         String[] userparams = null;
         if (authConfigurer.getNeededPermission() != null) {
-            userparams = usernames.get(authConfigurer.getNeededPermission());
+            userparams = userRoleUsernames.get(authConfigurer.getNeededPermission());
         } else {
-            userparams = usernames.get(MissingPermission.ALL);
+            userparams = userRoleUsernames.get(MissingPermission.ALL);
         }
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
@@ -440,7 +590,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         resetState(authConfigurer.isResetState(), resetObject);
         // try as user with correct workspace rights
-        // for (Entry<MissingPermission, String[]> entry : usernames.entrySet()) {
+        // for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
         // if (authConfigurer.getNeededPermission() == null || (!entry.getKey().equals(MissingPermission.ALL) &&
         // !entry.getKey().equals(authConfigurer.getNeededPermission()))) {
         // url = manipulateUrl(authConfigurer.getUrl(), resetObject);
@@ -550,6 +700,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             urlSuffix = "submit";
         } else if (resetEntity.getState().equals(EntityState.PUBLISHED)) {
             urlSuffix = "publish";
+        } else if (resetEntity.getState().equals(EntityState.WITHDRAWN)) {
+            urlSuffix = "withdraw";
         } else {
             return;
         }

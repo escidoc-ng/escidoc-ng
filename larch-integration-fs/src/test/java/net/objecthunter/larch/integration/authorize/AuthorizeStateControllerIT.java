@@ -30,7 +30,7 @@ public class AuthorizeStateControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveState() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "state")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
@@ -38,7 +38,7 @@ public class AuthorizeStateControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testRetrieveStateHtml() throws Exception {
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, hostUrl + "state")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)

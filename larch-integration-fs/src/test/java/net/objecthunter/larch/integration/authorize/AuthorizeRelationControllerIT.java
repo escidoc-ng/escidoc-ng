@@ -35,7 +35,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateRelation() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -44,7 +44,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -53,7 +53,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
@@ -66,7 +66,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
     public void testCreateRelationHtml() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
@@ -76,7 +76,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
@@ -86,7 +86,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testAuth(new AuthConfigurer.AuthConfigurerBuilder(
+        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)

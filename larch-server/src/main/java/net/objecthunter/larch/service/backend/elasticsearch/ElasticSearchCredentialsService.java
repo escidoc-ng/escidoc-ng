@@ -39,6 +39,7 @@ import net.objecthunter.larch.model.security.role.AdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
@@ -51,9 +52,12 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -71,6 +75,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class ElasticSearchCredentialsService extends AbstractElasticSearchService
         implements AuthenticationManager, BackendCredentialsService {
+
+    private static final Logger log = LoggerFactory.getLogger(ElasticSearchCredentialsService.class);
 
     public static final String INDEX_USERS = "users";
 
@@ -149,7 +155,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         if (get.isExists()) {
             try {
-                final User u = mapper.readValue(get.getSourceAsBytes(), User.class);
+                User u = mapper.readValue(get.getSourceAsBytes(), User.class);
+                u = addDefaultRights(u);
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
                     roles = new String[] { "ROLE_IDENTIFIED" };
@@ -263,6 +270,15 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
             role.validate();
             if (role.getRights() != null) {
+                for (List<RoleRight> rights : role.getRights().values()) {
+                    List<RoleRight> existingRights = new ArrayList<RoleRight>();
+                    for (RoleRight right : rights) {
+                        if (existingRights.contains(right)) {
+                            throw new InvalidParameterException("duplicate right " + right);
+                        }
+                        existingRights.add(right);
+                    }
+                }
                 checkAnchorTypes(role.getRights().keySet(), role.anchorTypes());
             }
             existingRoleNames.add(role.getRoleName());
@@ -305,6 +321,14 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         if (rights == null) {
             throw new InvalidParameterException("rights may not be null");
+        }
+
+        List<RoleRight> existingRights = new ArrayList<RoleRight>();
+        for (RoleRight right : rights) {
+            if (existingRights.contains(right)) {
+                throw new InvalidParameterException("duplicate right " + right);
+            }
+            existingRights.add(right);
         }
 
         try {
@@ -411,9 +435,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     @Override
     public List<User> retrieveUsers() throws IOException {
         final SearchResponse resp;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(getUsersUserRestrictionQuery());
         try {
             resp =
-                    this.client.prepareSearch(INDEX_USERS).setQuery(QueryBuilders.matchAllQuery()).execute()
+                    this.client.prepareSearch(INDEX_USERS).setQuery(queryBuilder).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -474,6 +500,33 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
+    public User addDefaultRights(User user) {
+        // Right to read and write self.
+        UserAdminRole userAdminRole = (UserAdminRole) user.getRole(RoleName.USER_ADMIN);
+        if (userAdminRole == null) {
+            userAdminRole = new UserAdminRole();
+        }
+        Map<String, List<RoleRight>> rights = userAdminRole.getRights();
+        if (rights == null) {
+            rights = new HashMap<String, List<RoleRight>>();
+        }
+        rights.put(user.getName(), new ArrayList<RoleRight>() {
+
+            {
+                add(RoleRight.READ);
+                add(RoleRight.WRITE);
+            }
+        });
+        try {
+            userAdminRole.setRights(rights);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+        user.setRole(userAdminRole);
+        return user;
+    }
+
+    @Override
     public boolean isExistingUser(String name) throws IOException {
         try {
             return this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, name).execute().actionGet().isExists();
@@ -494,7 +547,9 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (anchorTypes.contains(PermissionAnchorType.USER)) {
             for (String objectId : objectIds) {
                 try {
-                    retrieveUser(objectId);
+                    if (objectId == null || !objectId.equals("")) {
+                        retrieveUser(objectId);
+                    }
                     usernames.add(objectId);
                 } catch (IOException e) {
                 }
@@ -517,7 +572,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
         for (EntityType entityType : entityTypes) {
             if ((EntityType.AREA.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.AREA)) ||
-                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.PERMISSION)) ||
+                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes
+                            .contains(PermissionAnchorType.PERMISSION)) ||
                     (!EntityType.AREA.equals(entityType)) && !EntityType.PERMISSION.equals(entityType)) {
                 throw new IOException("At least one Object has wrong type for permission-anchor");
             }
