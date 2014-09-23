@@ -51,6 +51,19 @@ public class SearchController extends AbstractLarchController {
     private EntityService entityService;
 
     /**
+     * Controller method for displaying a HTML search page
+     * 
+     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
+     */
+    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView searchHtml() {
+        final ModelMap model = new ModelMap();
+        return new ModelAndView("search", model);
+    }
+
+    /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
      * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}
      * 
@@ -63,19 +76,6 @@ public class SearchController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
         return entityService.searchEntities(fillSearchFields(request));
-    }
-
-    /**
-     * Controller method for displaying a HTML search page
-     * 
-     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchHtml() {
-        final ModelMap model = new ModelMap();
-        return new ModelAndView("search", model);
     }
 
     /**
