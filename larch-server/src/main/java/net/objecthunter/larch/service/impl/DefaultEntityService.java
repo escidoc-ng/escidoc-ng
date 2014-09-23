@@ -516,33 +516,18 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult scanEntities(EntityType entityType, int offset) throws IOException {
-        return backendEntityService.scanIndex(entityType, offset);
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset) throws IOException {
+        return backendEntityService.searchEntities(searchFields, offset);
     }
 
     @Override
-    public SearchResult scanEntities(EntityType entityType, int offset, int numRecords) throws IOException {
-        return backendEntityService.scanIndex(entityType, offset, numRecords);
-    }
-
-    @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException {
-        return backendEntityService.searchEntities(searchFields);
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords) throws IOException {
+        return backendEntityService.searchEntities(searchFields, offset, maxRecords);
     }
 
     @Override
     public Entities getOldVersions(String id) throws IOException {
         return backendVersionService.getOldVersions(id);
-    }
-
-    @Override
-    public SearchResult scanChildEntities(String permissionId, EntityType type, int offset) throws IOException {
-        return backendEntityService.scanChildren(permissionId, type, offset);
-    }
-
-    @Override
-    public SearchResult scanChildEntities(String permissionId, EntityType type, int offset, int numRecords) throws IOException {
-        return backendEntityService.scanChildren(permissionId, type, offset, numRecords);
     }
 
     /**

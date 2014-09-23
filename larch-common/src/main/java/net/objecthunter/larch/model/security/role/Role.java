@@ -37,12 +37,16 @@ public abstract class Role {
     
     public abstract Map<String, List<RoleRight>> getRights();
 
+    public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
+    
     public abstract List<PermissionAnchorType> anchorTypes();
 
     public abstract List<RoleRight> allowedRights();
 
-    public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
-    
+    public abstract boolean compare(Permission permission, ObjectType objectType, Object checkObject, EntityHierarchy entityHierarchy);
+
+    public abstract void validate() throws IOException;
+
     public static Role getRoleObject(RoleName roleName) throws IOException {
         if (RoleName.ADMIN.equals(roleName)) {
             return new AdminRole();
@@ -57,10 +61,6 @@ public abstract class Role {
         }
     }
     
-    public abstract boolean compare(Permission permission, ObjectType objectType, Object checkObject, EntityHierarchy entityHierarchy);
-
-    public abstract void validate() throws IOException;
-
     public enum RoleName {
         ADMIN,
         USER,

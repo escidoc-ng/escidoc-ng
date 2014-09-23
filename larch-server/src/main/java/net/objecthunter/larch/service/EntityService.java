@@ -24,7 +24,6 @@ import net.objecthunter.larch.model.AuditRecord;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
@@ -78,37 +77,23 @@ public interface EntityService {
     void createAuditRecord(AuditRecord auditRecord) throws IOException;
 
     /**
-     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
-     * {@link net.objecthunter.larch.model .Entity}s from the index from a given offset with the default number of
-     * {@link net.objecthunter.larch.model.Entity}s returned
+     * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
-     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
-     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
+     * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
+     * @param offset the offset
+     * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult scanEntities(EntityType type, int offset) throws IOException;
-
-    /**
-     * Retrieve a {@link net.objecthunter.larch.model.SearchResult} containing all
-     * {@link net.objecthunter.larch.model .Entity}s from the index from a given offset with a given maximum number of
-     * {@link net.objecthunter.larch.model.Entity}s returned
-     * 
-     * @param offset the offset from which to return {@link net.objecthunter.larch.model.Entity}s from
-     * @param numRecords the number of {@link net.objecthunter.larch.model.Entity}s to return
-     * @return a list of {@link net.objecthunter.larch.model.Entity}s available in the repository
-     */
-    SearchResult scanEntities(EntityType type, int offset, int numRecords) throws IOException;
-
-    SearchResult scanChildEntities(String ancestorId, EntityType type, int offset) throws IOException;
-
-    SearchResult scanChildEntities(String ancestorId, EntityType type, int offset, int numRecords) throws IOException;
+    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
      * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
+     * @param offset the offset
+     * @param maxRecords maxRecords to return
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException;
+    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords) throws IOException;
 
     /**
      * Retrieve all old versions of an entity from the version storage

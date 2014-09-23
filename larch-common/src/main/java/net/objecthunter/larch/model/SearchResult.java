@@ -43,7 +43,7 @@ public class SearchResult {
     private List<?> data;
 
     /**
-     * Get the total hot number
+     * Get the total hit number
      * 
      * @return the total number of hits
      */
@@ -52,7 +52,7 @@ public class SearchResult {
     }
 
     /**
-     * Set the totalnumberr of hits
+     * Set the totalnumber of hits
      * 
      * @param totalHits the number of hits to set
      */

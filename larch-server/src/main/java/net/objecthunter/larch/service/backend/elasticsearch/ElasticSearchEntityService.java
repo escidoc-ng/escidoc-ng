@@ -67,7 +67,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityService.class);
 
-    private int maxRecords = 50;
+    private int maxRecords;
 
     @Autowired
     private ObjectMapper mapper;
@@ -75,6 +75,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @PostConstruct
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
+        this.maxRecords = Integer.parseInt(env.getProperty("search.maxRecords", "20"));
         this.checkAndOrCreateIndex(INDEX_ENTITIES);
         this.waitForIndex(INDEX_ENTITIES);
     }
@@ -232,71 +233,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult scanIndex(EntityType entityType, int offset) throws IOException {
-        return scanIndex(entityType, offset, maxRecords);
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset)
+            throws IOException {
+        return searchEntities(searchFields, offset, maxRecords);
     }
 
     @Override
-    public SearchResult scanIndex(EntityType entityType, int offset, int numRecords) throws IOException {
-        final long time = System.currentTimeMillis();
-        numRecords = numRecords > maxRecords ? maxRecords : numRecords;
-        final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(QueryBuilders.termQuery("type", entityType.name()));
-        queryBuilder.must(getEntitesUserRestrictionQuery());
-        try {
-            resp =
-                    this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                                    queryBuilder)
-                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "parentId", "version", "label", "type", "tags", "state").execute()
-                            .actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-
-        final SearchResult result = new SearchResult();
-        result.setOffset(offset);
-        result.setNumRecords(numRecords);
-        result.setHits(resp.getHits().getHits().length);
-        result.setTotalHits(resp.getHits().getTotalHits());
-        result.setNextOffset(offset + numRecords);
-        result.setPrevOffset(Math.max(offset - numRecords, 0));
-        result.setMaxRecords(maxRecords);
-
-        final List<Entity> entites = new ArrayList<>(numRecords);
-        for (final SearchHit hit : resp.getHits()) {
-            // TODO: check if JSON docuemnt is prefetched or laziliy initialised
-            int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
-            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
-            String label = hit.field("label") != null ? hit.field("label").getValue() : "";
-            String type = hit.field("type") != null ? hit.field("type").getValue() : "";
-            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
-            final Entity e = new Entity();
-            e.setId(hit.field("id").getValue());
-            e.setParentId(parentId);
-            e.setVersion(version);
-            e.setLabel(label);
-            e.setType(EntityType.valueOf(type));
-            e.setState(EntityState.valueOf(state));
-            List<String> tags = new ArrayList<>();
-            if (hit.field("tags") != null) {
-                for (Object o : hit.field("tags").values()) {
-                    tags.add((String) o);
-                }
-            }
-            e.setTags(tags);
-            entites.add(e);
-        }
-
-        result.setData(entites);
-        result.setDuration(System.currentTimeMillis() - time);
-        return result;
-    }
-
-    @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields) throws IOException {
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords)
+            throws IOException {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
         for (Entry<EntitiesSearchField, String[]> searchField : searchFields.entrySet()) {
             if (searchField.getValue() != null && searchField.getValue().length > 0) {
@@ -305,7 +249,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                     if (StringUtils.isNotBlank(searchField.getValue()[i])) {
                         String value = searchField.getValue()[i].toLowerCase();
                         if (searchField.getKey().getFieldName().matches(
-                                "parentId|type|state|ancestorEntityIds|permissionId|areaId")) {
+                                "parentId|type|state|permissionId|areaId")) {
                             value = searchField.getValue()[i];
                         }
                         childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
@@ -317,7 +261,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         queryBuilder.must(getEntitesUserRestrictionQuery());
 
-        int numRecords = 20;
         final long time = System.currentTimeMillis();
         final ActionFuture<RefreshResponse> refresh =
                 this.client.admin().indices().refresh(new RefreshRequest(ElasticSearchEntityService.INDEX_ENTITIES));
@@ -332,7 +275,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                                     "label",
                                     "type",
                                     "tags")
-                            .setQuery(queryBuilder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).execute()
+                            .setQuery(queryBuilder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
+                            .setSize(maxRecords).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -366,81 +310,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         result.setData(entities);
         result.setTotalHits(resp.getHits().getTotalHits());
         result.setMaxRecords(maxRecords);
-        result.setHits(resp.getHits().getHits().length);
-        result.setNumRecords(numRecords);
-        result.setOffset(0);
+        result.setHits(entities.size());
+        result.setNumRecords(entities.size());
         result.setTerm(new String(queryBuilder.buildAsBytes().toBytes()));
-        result.setPrevOffset(0);
-        result.setNextOffset(0);
-        result.setTotalHits(resp.getHits().getTotalHits());
-        result.setDuration(System.currentTimeMillis() - time);
-        return result;
-    }
-
-    @Override
-    public SearchResult scanChildren(String permissionId, EntityType entityType, int offset) throws IOException {
-        return scanChildren(permissionId, entityType, offset, maxRecords);
-    }
-
-    @Override
-    public SearchResult scanChildren(String permissionId, EntityType entityType, int offset, int numRecords)
-            throws IOException {
-        final long time = System.currentTimeMillis();
-        numRecords = numRecords > maxRecords || numRecords < 1 ? maxRecords : numRecords;
-        final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder
-                .must(QueryBuilders.matchQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(), permissionId));
-        queryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), entityType.name()));
-        queryBuilder.must(getEntitesUserRestrictionQuery());
-        try {
-            resp =
-                    this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).setQuery(
-                                    queryBuilder)
-                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset).setSize(numRecords)
-                            .addFields("id", "parentId", "version", "label", "type", "tags", "state").execute()
-                            .actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
-
-        final SearchResult result = new SearchResult();
         result.setOffset(offset);
-        result.setNumRecords(numRecords);
-        result.setHits(resp.getHits().getHits().length);
-        result.setTotalHits(resp.getHits().getTotalHits());
-        result.setOffset(offset);
-        result.setNextOffset(offset + numRecords);
-        result.setPrevOffset(Math.max(offset - numRecords, 0));
-        result.setMaxRecords(maxRecords);
-
-        final List<Entity> entites = new ArrayList<>(numRecords);
-        for (final SearchHit hit : resp.getHits()) {
-            // TODO: check if JSON docuemnt is prefetched or laziliy initialised
-            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
-            int version = hit.field("version") != null ? hit.field("version").getValue() : 0;
-            String label = hit.field("label") != null ? hit.field("label").getValue() : "";
-            String type = hit.field("type") != null ? hit.field("type").getValue() : "";
-            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
-            final Entity e = new Entity();
-            e.setId(hit.field("id").getValue());
-            e.setParentId(parentId);
-            e.setVersion(version);
-            e.setLabel(label);
-            e.setType(EntityType.valueOf(type));
-            e.setState(EntityState.valueOf(state));
-            List<String> tags = new ArrayList<>();
-            if (hit.field("tags") != null) {
-                for (Object o : hit.field("tags").values()) {
-                    tags.add((String) o);
-                }
-            }
-            e.setTags(tags);
-            entites.add(e);
-        }
-
-        result.setData(entites);
+        result.setNextOffset(offset + maxRecords);
+        result.setPrevOffset(Math.max(offset - maxRecords, 0));
         result.setDuration(System.currentTimeMillis() - time);
         return result;
     }

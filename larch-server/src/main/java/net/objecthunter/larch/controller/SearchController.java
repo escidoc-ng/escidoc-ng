@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -75,7 +76,27 @@ public class SearchController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
-        return entityService.searchEntities(fillSearchFields(request));
+        int offset = 0;
+        int maxRecords = -1;
+        if (request.getParameter("offset") != null) {
+            try {
+                offset = Integer.parseInt(request.getParameter("offset"));
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException("offset must be a number");
+            }
+        }
+        if (request.getParameter("maxRecords") != null) {
+            try {
+                maxRecords = Integer.parseInt(request.getParameter("maxRecords"));
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException("maxRecords must be a number");
+            }
+        }
+        if (maxRecords > -1) {
+            return entityService.searchEntities(fillSearchFields(request), offset, maxRecords);
+        } else {
+            return entityService.searchEntities(fillSearchFields(request), offset);
+        }
     }
 
     /**

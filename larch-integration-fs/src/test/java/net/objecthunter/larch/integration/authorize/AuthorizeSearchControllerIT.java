@@ -35,6 +35,7 @@ import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,310 +82,6 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
             prepareSearch();
             methodCounter++;
         }
-    }
-
-    /**
-     * test retrieving list of all data-entities and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testDataList() throws Exception {
-        String url = hostUrl + "list/data";
-        // user with no workspace rights
-        HttpResponse response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
-                totalPermissionSubmittedEntitiesCount, getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
-                totalPermissionPendingEntitiesCount, getHitCount(response));
-
-        // user with no read published metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount +
-                totalPermissionPendingEntitiesCount, getHitCount(response));
-
-        // user with no read withdrawn metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPublishedEntitiesCount +
-                totalPermissionPendingEntitiesCount, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.GET, url, null,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPermissionPublishedEntitiesCount +
-                        totalPermissionPendingEntitiesCount +
-                        totalPermissionWithdrawnEntitiesCount +
-                        totalPermissionSubmittedEntitiesCount, getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // area-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0],
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // user-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, userAdminRoleUsernames.get("USER_ADMIN")[0],
-                        userAdminRoleUsernames.get("USER_ADMIN")[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalPermissionPublishedEntitiesCount + totalPendingEntitiesCount +
-                totalSubmittedEntitiesCount +
-                totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount +
-                totalWithdrawnEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving list of all permission-entities and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testPermissionList() throws Exception {
-        String url = hostUrl + "list/permission";
-        // user with no workspace rights
-        HttpResponse response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // user with read workspace rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // area-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalAreaPermissionCount + 1, getHitCount(response));
-
-        // area-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + areaId1)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // user-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionsCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving list of all permission-entities and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testAreaList() throws Exception {
-        String url = hostUrl + "list/area";
-        // user with no workspace rights
-        HttpResponse response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // user with read workspace rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // area-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // area-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + areaId1)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // user-admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(1, getHitCount(response));
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalAreasCount, getHitCount(response));
-    }
-
-    /**
-     * test retrieving list of all entities belonging to a workspace and check hit-count.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testDataListForWorkspace() throws Exception {
-        String url = hostUrl + permissionId + "/children/data/list";
-        // user with no workspace rights
-        HttpResponse response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
-                                .get(MissingPermission.ALL)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // user with no read pending metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PENDING_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionSubmittedEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount,
-                getHitCount(response));
-
-        // user with no read submitted metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount, getHitCount(response));
-
-        // user with no read published metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount, getHitCount(response));
-
-        // user with no read withdrawn metadata rights
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null,
-                        userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
-                                .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionSubmittedEntitiesCount, getHitCount(response));
-
-        // user with all read metadata rights
-        for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
-            if (!MissingPermission.READ_SUBMITTED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PENDING_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_PUBLISHED_METADATA.equals(entry.getKey())
-                    && !MissingPermission.READ_WITHDRAWN_METADATA.equals(entry.getKey())
-                    && !MissingPermission.ALL.equals(entry.getKey())) {
-                response =
-                        this.executeAsUser(HttpMethod.GET, url, null,
-                                entry.getValue()[0], entry.getValue()[1], false);
-                assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                        totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount,
-                        getHitCount(response));
-            }
-        }
-
-        // anonymous
-        response =
-                this.executeAsAnonymous(HttpMethod.GET, url, null, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(0, getHitCount(response));
-
-        // admin
-        response =
-                this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -606,7 +303,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1], false);
+                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -667,7 +365,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1], false);
+                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -683,7 +382,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalAreasCount, getHitCount(response));
     }
-    
+
     /**
      * test lising users and check hit-count.
      * 
@@ -735,7 +434,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1], false);
+                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -757,20 +457,27 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertNotNull(users);
         assertEquals(totalUsersCount, users.size());
     }
-    
+
     /**
      * Get all already indexed entities. Create entities with different status to test search. Save counts.
      */
     private void prepareSearch() throws Exception {
         // get total hits
-        HttpResponse response = this.executeAsAdmin(Request.Get(hostUrl + "list/data/0/0"));
+        String dataPostParameters = "type=DATA&maxRecords=50";
+        String permissionPostParameters = "type=PERMISSION&maxRecords=50";
+        String areaPostParameters = "type=AREA&maxRecords=50";
+        String url = hostUrl + "search";
+        HttpResponse response =
+                this.executeAsAdmin(Request.Post(url).bodyString(dataPostParameters,
+                        ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
         long totalHits = getHitCount(response);
 
         int counter = 0;
         List<HashMap> entities = new ArrayList<HashMap>();
         while (counter <= totalHits) {
-            response = this.executeAsAdmin(Request.Get(hostUrl + "list/data/" + counter + "/50"));
+            response = this.executeAsAdmin(Request.Post(url).bodyString(dataPostParameters + "&offset=" + counter,
+                    ContentType.APPLICATION_FORM_URLENCODED));
             counter += 50;
             assertEquals(200, response.getStatusLine().getStatusCode());
             SearchResult searchResult =
@@ -790,12 +497,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         }
 
         // get permissions
-        response = this.executeAsAdmin(Request.Get(hostUrl + "list/permission/" + counter + "/50"));
+        response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters,
+                ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
         totalPermissionsCount = (int) getHitCount(response);
         counter = 0;
         while (counter <= totalPermissionsCount) {
-            response = this.executeAsAdmin(Request.Get(hostUrl + "list/permission/" + counter + "/50"));
+            response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters + "&offset=" + counter,
+                    ContentType.APPLICATION_FORM_URLENCODED));
             counter += 50;
             assertEquals(200, response.getStatusLine().getStatusCode());
             SearchResult searchResult =
@@ -809,7 +518,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         }
 
         // get areas
-        response = this.executeAsAdmin(Request.Get(hostUrl + "list/area/" + counter + "/50"));
+        response = this.executeAsAdmin(Request.Post(url).bodyString(areaPostParameters,
+                ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
         totalAreasCount = (int) getHitCount(response);
 
