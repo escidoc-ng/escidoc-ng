@@ -89,12 +89,12 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for setting a right for an object to a User
+     * Controller method for setting a right for an anchorId to a User
      * 
      * @param username The name of the user
      * @param objectId The id of the object the user becomes a right for.
      */
-    @RequestMapping(value = "/role/{rolename}/right/{objectId}", method = RequestMethod.POST,
+    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
@@ -103,23 +103,23 @@ public class RoleController extends AbstractLarchController {
         @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
-            @PathVariable("objectId") final String objectId, final InputStream src) throws IOException {
+            @PathVariable("anchorId") final String anchorId, final InputStream src) throws IOException {
         List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
-        backendCredentialsService.setRight(username, RoleName.valueOf(rolename.toUpperCase()), objectId, rights);
+        backendCredentialsService.setRight(username, RoleName.valueOf(rolename.toUpperCase()), anchorId, rights);
     }
 
     /**
-     * Controller method for setting a right for an object to a User
+     * Controller method for setting a right for an anchorId to a User
      * 
      * @param username The name of the user
      */
-    @RequestMapping(value = "/role/{rolename}/right/{objectId}", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView setRightHtml(@PathVariable("username") final String username,
-            @PathVariable("rolename") final String rolename, @PathVariable("objectId") final String objectId,
+            @PathVariable("rolename") final String rolename, @PathVariable("anchorId") final String anchorId,
             final InputStream src) throws IOException {
-        setRight(username, rolename, objectId, src);
+        setRight(username, rolename, anchorId, src);
         return new ModelAndView("redirect:/user/" + username);
     }
 

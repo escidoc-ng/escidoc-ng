@@ -146,7 +146,7 @@ public class AbstractElasticSearchService {
     /**
      * Get currently logged in User or null if no user is logged in.
      * 
-     * @return User loggen id user
+     * @return User logged in user
      */
     private User getCurrentUser() {
         if (SecurityContextHolder.getContext() == null ||

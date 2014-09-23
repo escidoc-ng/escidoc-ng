@@ -12,9 +12,11 @@ import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.role.Role.RoleRight;
 
 /**
+ * Admin-Role.
+ * Not allowed to set any Rights.
+ * 
  * @author mih
  *
  */
@@ -23,6 +25,7 @@ public class AdminRole extends Role {
     
     private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>();
     
+    @Override
     public RoleName getRoleName() {
         return roleName;
     }

@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Interceptor used for securing the escidoc-ng framework.
  * <p/>
  * <p/>
- * This Interceptor is invoked every time an service calls one of its classes.
+ * This Interceptor is invoked every time a method in a class of package net.objecthunter.larch.controller is called.
  *
  * @author Michael Hoppe
  */

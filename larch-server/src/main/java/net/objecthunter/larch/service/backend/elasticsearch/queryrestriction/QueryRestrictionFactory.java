@@ -12,6 +12,8 @@ import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 
 /**
+ * Factory-Class that returns an instance of a class extending RoleQueryRestriction, dependent on the Role.
+ * 
  * @author mih
  *
  */

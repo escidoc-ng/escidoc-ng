@@ -76,6 +76,11 @@ public class DefaultAuthorizationService implements AuthorizationService {
         handlePermissions(method, permissions, objectType, id, versionId, result, u);
     }
 
+    /**
+     * Get currently logged in User or null if no user is logged in.
+     * 
+     * @return User logged in user
+     */
     private User getCurrentUser() {
         if (SecurityContextHolder.getContext() == null ||
                 SecurityContextHolder.getContext().getAuthentication() == null ||
@@ -87,7 +92,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
     }
 
     /**
-     * check if permissions match for user
+     * check if permissions match for user-roles
      * 
      * @param method
      * @param workspacePermission
@@ -146,6 +151,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
         throw new AccessDeniedException("User may not call method");
     }
 
+    /**
+     * Retrieve Object to evaluate.
+     * 
+     * @param objectType
+     * @param id
+     * @param versionId
+     * @return Object
+     * @throws IOException
+     */
     private Object getCheckObject(ObjectType objectType, String id, Integer versionId) throws IOException {
         Object checkObject = null;
         if (StringUtils.isBlank(id)) {

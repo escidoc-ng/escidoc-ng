@@ -27,6 +27,8 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 /**
+ * Defines the Permission (RoleName + PermissionType) a user has to have to be allowed to access the annotated method.
+ * 
  * @author mih
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
@@ -36,7 +38,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleName;
 public @interface Permission {
 
     PermissionType permissionType() default PermissionType.NULL;
-    
+
     RoleName rolename() default RoleName.ADMIN;
-    
+
 }

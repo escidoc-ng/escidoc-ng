@@ -304,7 +304,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights)
+    public void setRight(String username, RoleName roleName, String anchorId, List<RoleRight> rights)
             throws IOException {
         // check parameters
         if (StringUtils.isBlank(username)) {
@@ -316,8 +316,8 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (RoleName.ADMIN.equals(roleName)) {
             throw new InvalidParameterException("admin-role cannot be set with this method");
         }
-        if (objectId == null) {
-            throw new InvalidParameterException("objectId may not be null");
+        if (anchorId == null) {
+            throw new InvalidParameterException("anchorId may not be null");
         }
         if (rights == null) {
             throw new InvalidParameterException("rights may not be null");
@@ -344,25 +344,25 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 checkAnchorTypes(new HashSet<String>() {
 
                     {
-                        add(objectId);
+                        add(anchorId);
                     }
                 }, existingRole.anchorTypes());
                 Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
                 if (expandedRights == null) {
                     expandedRights = new HashMap<String, List<RoleRight>>();
                 }
-                expandedRights.put(objectId, rights);
+                expandedRights.put(anchorId, rights);
                 existingRole.setRights(expandedRights);
             } else {
                 Role newRole = Role.getRoleObject(roleName);
                 checkAnchorTypes(new HashSet<String>() {
 
                     {
-                        add(objectId);
+                        add(anchorId);
                     }
                 }, newRole.anchorTypes());
                 Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-                newRights.put(objectId, rights);
+                newRights.put(anchorId, rights);
                 newRole.setRights(newRights);
                 user.setRole(newRole);
             }
@@ -397,6 +397,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         this.refreshIndex(INDEX_USERS);
     }
 
+    /**
+     * Check if the User with the given username is the last user in the system that has the Role ADMIN.
+     * 
+     * @param name
+     * @return boolean.
+     * @throws IOException
+     */
     private boolean isLastAdminUser(String name) throws IOException {
         User user = this.retrieveUser(name);
         if (user.getRoles() == null || !user.hasRole(RoleName.ADMIN)) {
@@ -535,17 +542,25 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
     }
 
-    private void checkAnchorTypes(Set<String> objectIds, List<PermissionAnchorType> anchorTypes) throws IOException {
+    /**
+     * Checks if the given anchorIds all are of one of the types in anchorTypes.
+     * Throw IOException if one of the anchorIds does not belong to one of the anchorTypes.
+     * 
+     * @param anchorIds
+     * @param anchorTypes
+     * @throws IOException
+     */
+    private void checkAnchorTypes(Set<String> anchorIds, List<PermissionAnchorType> anchorTypes) throws IOException {
         List<String> usernames = new ArrayList<String>();
         List<EntityType> entityTypes = new ArrayList<EntityType>();
-        if (anchorTypes == null && objectIds != null && !objectIds.isEmpty()) {
+        if (anchorTypes == null && anchorIds != null && !anchorIds.isEmpty()) {
             throw new IOException("No object permissions supported");
         }
-        if (anchorTypes == null || objectIds == null) {
+        if (anchorTypes == null || anchorIds == null) {
             return;
         }
         if (anchorTypes.contains(PermissionAnchorType.USER)) {
-            for (String objectId : objectIds) {
+            for (String objectId : anchorIds) {
                 try {
                     if (objectId == null || !objectId.equals("")) {
                         retrieveUser(objectId);
@@ -556,7 +571,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
         }
         if (anchorTypes.contains(PermissionAnchorType.AREA) || anchorTypes.contains(PermissionAnchorType.PERMISSION)) {
-            for (String objectId : objectIds) {
+            for (String objectId : anchorIds) {
                 try {
                     Entity e = backendEntityService.retrieve(objectId);
                     if (e.getType() == null) {
@@ -567,7 +582,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 }
             }
         }
-        if (objectIds.size() != (usernames.size() + entityTypes.size())) {
+        if (anchorIds.size() != (usernames.size() + entityTypes.size())) {
             throw new IOException("At least one Object has wrong type for permission-anchor");
         }
         for (EntityType entityType : entityTypes) {

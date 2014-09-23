@@ -26,6 +26,10 @@ import java.lang.annotation.Target;
 import net.objecthunter.larch.model.security.ObjectType;
 
 /**
+ * Annotation for a Security-Check that has to get executed before a method is called.<br>
+ * Holds Attributes to define how to get the Object to check<br>
+ * + the Permissions a user has to have to be allowed to access the annotated method.
+ * 
  * @author mih
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
@@ -34,12 +38,16 @@ import net.objecthunter.larch.model.security.ObjectType;
 @Documented
 public @interface PreAuth {
 
+    // number of method-parameter that holds the id of the object to check
     int idIndex() default -1;
 
+    // number of method-parameter that holds the versionId of the object to check
     int versionIndex() default -1;
 
+    // objectType of the object to check
     ObjectType objectType() default ObjectType.ENTITY;
 
+    // Permissions the user has to have to be allowed to access the annotated method.
     Permission[] permissions();
 
 }

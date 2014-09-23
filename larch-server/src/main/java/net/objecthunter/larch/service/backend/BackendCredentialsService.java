@@ -68,11 +68,11 @@ public interface BackendCredentialsService {
      * 
      * @param username the name of the user
      * @param roleName the rolename
-     * @param objectId the objectId to set the right for
+     * @param anchorId the anchorId to set the right for
      * @param rights the rights to set
      * @throws IOException
      */
-    void setRight(String username, RoleName roleName, String objectId, List<RoleRight> rights) throws IOException;
+    void setRight(String username, RoleName roleName, String anchorId, List<RoleRight> rights) throws IOException;
 
     /**
      * Delete a User from the repository

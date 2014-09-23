@@ -18,7 +18,11 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
+ * AreaAdmin-Role.
+ * Set READ or WRITE-Rights for an AREA.
+ * 
  * @author mih
+ *
  */
 public class AreaAdminRole extends Role {
 
@@ -41,6 +45,7 @@ public class AreaAdminRole extends Role {
         }
     };
 
+    @Override
     public RoleName getRoleName() {
         return roleName;
     }
@@ -50,16 +55,12 @@ public class AreaAdminRole extends Role {
         return allowedRoleRights;
     }
 
-    /**
-     * @return the rights
-     */
+    @Override
     public Map<String, List<RoleRight>> getRights() {
         return rights;
     }
 
-    /**
-     * @param rights the rights to set
-     */
+    @Override
     public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
         validate(rights);
         this.rights = rights;

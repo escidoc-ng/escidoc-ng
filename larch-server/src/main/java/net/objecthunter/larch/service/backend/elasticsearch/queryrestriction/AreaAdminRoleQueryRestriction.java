@@ -6,7 +6,6 @@ package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
@@ -54,7 +53,7 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     /**
-     * Generate a subquery that restrict to a certain permission and entities with certain state
+     * Generate a subquery that restrict to permissions and areas belonging to a distinct area.
      * 
      * @param state
      * @param areaId

@@ -52,7 +52,7 @@ public class SearchController extends AbstractLarchController {
     private EntityService entityService;
 
     /**
-     * Controller method for displaying a HTML search page
+     * Controller method for displaying a HTML search form
      * 
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
      */
@@ -66,9 +66,14 @@ public class SearchController extends AbstractLarchController {
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
-     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}
+     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
+     * can contain parameters key:searchfield, value:searchvalue and 2 special parameters offset and maxRecords.<br>
+     * offset: hit-number to start searchresult-list with.<br>
+     * maxRecords: maximum number of records to return with searchresult-list.<br>
+     * values of different Search-Parameter-Names are concatenated with AND,<br>
+     * values of same search-parameter-names are concatenated with OR.<br>
      * 
-     * @param query The search query
+     * @param request The request with all parameters.
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.Entity}s as s JSON representation
      */
@@ -101,9 +106,14 @@ public class SearchController extends AbstractLarchController {
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
-     * POST which returns a HTML view of the {@link net.objecthunter.larch.model.SearchResult}
+     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
+     * can contain parameters key:searchfield, value:searchvalue and 2 special parameters offset and maxRecords.<br>
+     * offset: hit-number to start searchresult-list with.<br>
+     * maxRecords: maximum number of records to return with searchresult-list.<br>
+     * values of different Search-Parameter-Names are concatenated with AND,<br>
+     * values of same search-parameter-names are concatenated with OR.<br>
      * 
-     * @param query The search query
+     * @param request The request with all parameters.
      * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
      */
     @RequestMapping(produces = { "text/html" })
@@ -116,7 +126,7 @@ public class SearchController extends AbstractLarchController {
     }
 
     /**
-     * Fill all Parameters that are search-fields into Map.
+     * Fill all Parameters that are search-fields into a Map.
      * 
      * @param request HttpServletRequest
      * @return Map<EntitiesSearchField, String[]> key: searchField, value: searchStrings (Words)

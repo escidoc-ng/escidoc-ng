@@ -24,6 +24,20 @@ import net.objecthunter.larch.model.security.annotation.Permission;
 
 public interface AuthorizationService {
 
+    /**
+     * Take the Parameters from the PreAuth or PostAuth-Annotation + the called Method.
+     * Get calling user and try to evaluate the roles of the user against the Parameters.
+     * Throws AuthorizationException if user is null, has no roles or none of his roles evaluates with true.
+     * 
+     * @param method
+     * @param objectType
+     * @param id
+     * @param versionId
+     * @param result
+     * @param permissions
+     * @param methodArgs
+     * @throws IOException
+     */
     void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result, Permission[] permissions, Object[] methodArgs) throws IOException;
 
 }

@@ -20,6 +20,11 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
+ * User-Role. Set READ or WRITE-Rights for a Permission (anchorId = permissionId). Rights READ_PERMISSION and
+ * WRITE_PERMISSION enable Reading/Writing of the permission with the anchorId. The other Rights enable
+ * Reading/Writing Entities/Binaries of Entities<br>
+ * in a certain state that are somewhere in the tree below the permission with the anchorId.
+ * 
  * @author mih
  */
 public class UserRole extends Role {
@@ -90,6 +95,7 @@ public class UserRole extends Role {
         }
     };
 
+    @Override
     public RoleName getRoleName() {
         return roleName;
     }
@@ -99,17 +105,11 @@ public class UserRole extends Role {
         return allowedRoleRights;
     }
 
-    /**
-     * @return the rights
-     */
     @Override
     public Map<String, List<RoleRight>> getRights() {
         return rights;
     }
 
-    /**
-     * @param rights the rights to set
-     */
     @Override
     public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
         validate(rights);
