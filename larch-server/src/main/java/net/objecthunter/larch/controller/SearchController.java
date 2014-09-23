@@ -56,7 +56,7 @@ public class SearchController extends AbstractLarchController {
      * 
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
      */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/form", method = RequestMethod.GET, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView searchHtml() {
@@ -72,7 +72,7 @@ public class SearchController extends AbstractLarchController {
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.Entity}s as s JSON representation
      */
-    @RequestMapping(method = RequestMethod.POST, produces = { "application/json" })
+    @RequestMapping(produces = { "application/json" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
@@ -106,7 +106,7 @@ public class SearchController extends AbstractLarchController {
      * @param query The search query
      * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
      */
-    @RequestMapping(method = RequestMethod.POST, produces = { "text/html" })
+    @RequestMapping(produces = { "text/html" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView searchMatchFieldsHtml(final HttpServletRequest request) throws IOException {
