@@ -542,6 +542,48 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
     }
 
+    @Override
+    public void deleteRights(String anchorId) throws IOException {
+        List<User> users = retrieveUsersWithRight(anchorId);
+        for (User user : users) {
+            if (user.getRoles() != null) {
+                List<Role> rolesToRemove = new ArrayList<Role>();
+                List<Role> userRoles = user.getRoles();
+                for (Role role : userRoles) {
+                    if (role.getRights() != null && role.getRights().containsKey(anchorId)) {
+                        role.getRights().remove(anchorId);
+                        if (role.getRights().isEmpty()) {
+                            rolesToRemove.add(role);
+                        }
+                    }
+                }
+                if (!rolesToRemove.isEmpty()) {
+                    for (Role roleToRemove : rolesToRemove) {
+                        userRoles.remove(roleToRemove);
+                    }
+                }
+                setRoles(user.getName(), userRoles);
+            }
+        }
+    }
+    private List<User> retrieveUsersWithRight(String anchorId) throws IOException {
+        final SearchResponse resp;
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.should(QueryBuilders.wildcardQuery("roles.rights." + anchorId, "*"));
+        try {
+            resp =
+                    this.client.prepareSearch(INDEX_USERS).setQuery(queryBuilder).execute()
+                            .actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        final List<User> users = new ArrayList<>(resp.getHits().getHits().length);
+        for (SearchHit hit : resp.getHits()) {
+            users.add(mapper.readValue(hit.getSourceAsString(), User.class));
+        }
+        return users;
+     }
+
     /**
      * Checks if the given anchorIds all are of one of the types in anchorTypes.
      * Throw IOException if one of the anchorIds does not belong to one of the anchorTypes.

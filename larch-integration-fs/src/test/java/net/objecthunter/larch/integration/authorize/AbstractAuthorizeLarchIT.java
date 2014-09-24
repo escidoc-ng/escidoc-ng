@@ -125,63 +125,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @throws Exception
      */
     protected void preparePermission() throws Exception {
-        //create area
-        Entity area = new Entity();
-        area.setId(RandomStringUtils.randomAlphanumeric(16));
-        area.setType(EntityType.AREA);
-        area.setParentId(null);
-        area.setLabel("bar");
-        HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
-        String test = EntityUtils.toString(resp.getEntity());
-        areaId1 = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(areaId1);
-        assertEquals(area.getId(), areaId1);
+        //create areas
+        areaId1 = createArea();
+        areaId2 = createArea();
         
-        //create area
-        area = new Entity();
-        area.setId(RandomStringUtils.randomAlphanumeric(16));
-        area.setType(EntityType.AREA);
-        area.setParentId(null);
-        area.setLabel("bar");
-        resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
-        test = EntityUtils.toString(resp.getEntity());
-        areaId2 = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(areaId2);
-        assertEquals(area.getId(), areaId2);
-        
-        // create Permission
-        Entity permission = new Entity();
-        permission.setId(RandomStringUtils.randomAlphanumeric(16));
-        permission.setType(EntityType.PERMISSION);
-        permission.setParentId(AREA_ID);
-        permission.setLabel("bar");
-        resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
-
-        test = EntityUtils.toString(resp.getEntity());
-        permissionId = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(permissionId);
-        assertEquals(permission.getId(), permissionId);
-
-        // create Permission
-        permission = new Entity();
-        permission.setId(RandomStringUtils.randomAlphanumeric(16));
-        permission.setType(EntityType.PERMISSION);
-        permission.setParentId(areaId1);
-        permission.setLabel("bar");
-        resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
-
-        test = EntityUtils.toString(resp.getEntity());
-        permissionId1 = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(permissionId1);
-        assertEquals(permission.getId(), permissionId1);
+        // create Permissions
+        permissionId = createPermission(AREA_ID);
+        permissionId1 = createPermission(areaId1);
 
         //create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
@@ -356,53 +306,6 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
                 .bodyString(this.mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON));
-        result = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-
-    }
-
-    /**
-     * Create Workspace-Rights where user with provided username has all rights except for provided permission.
-     * 
-     * @param username
-     * @param permission permission
-     * @return String workspaceId
-     * @throws Exception
-     */
-    protected void createRoleForUser(String username, Role role, String anchorId)
-            throws Exception {
-        // try to retrieve user
-        HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
-        String result = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        User fetched = this.mapper.readValue(resp.getEntity().getContent(), User.class);
-
-        List<Role> userRoles = (ArrayList) fetched.getRoles();
-        if (userRoles == null) {
-            userRoles = new ArrayList<Role>();
-        }
-        for (Role userRole : userRoles) {
-            if (userRole.getRoleName().equals(role.getRoleName())) {
-                userRoles.remove(userRole);
-            }
-        }
-
-        if (anchorId != null) {
-            List<RoleRight> roleRights = new ArrayList<RoleRight>();
-            for (RoleRight roleRight : role.allowedRights()) {
-                roleRights.add(roleRight);
-            }
-            if (!roleRights.isEmpty()) {
-                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-                newRights.put(anchorId, roleRights);
-                role.setRights(newRights);
-                userRoles.add(role);
-            }
-        }
-
-        // set roles
-        resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
-                .bodyString(this.mapper.writeValueAsString(userRoles), ContentType.APPLICATION_JSON));
         result = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
 

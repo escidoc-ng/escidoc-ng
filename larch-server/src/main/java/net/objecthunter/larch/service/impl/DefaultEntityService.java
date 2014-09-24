@@ -51,6 +51,7 @@ import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
@@ -86,6 +87,9 @@ public class DefaultEntityService implements EntityService {
 
     @Autowired
     private BackendEntityService backendEntityService;
+
+    @Autowired
+    private BackendCredentialsService backendCredentialsService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -602,5 +606,8 @@ public class DefaultEntityService implements EntityService {
 
         // delete entity
         this.backendEntityService.delete(id);
+        
+        // delete rights having this entity as anchorId
+        this.backendCredentialsService.deleteRights(id);
     }
 }

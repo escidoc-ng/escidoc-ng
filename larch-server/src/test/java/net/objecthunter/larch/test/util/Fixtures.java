@@ -47,6 +47,23 @@ public abstract class Fixtures {
         return u;
     }
 
+    public static Entity createArea() {
+        Entity e = new Entity();
+        e.setId(RandomStringUtils.randomAlphanumeric(16));
+        e.setLabel("Test area");
+        e.setType(EntityType.AREA);
+        return e;
+    }
+
+    public static Entity createPermission(String areaId) {
+        Entity e = new Entity();
+        e.setId(RandomStringUtils.randomAlphanumeric(16));
+        e.setLabel("Test permission");
+        e.setType(EntityType.PERMISSION);
+        e.setParentId(areaId);
+        return e;
+    }
+
     public static Entity createEntity() {
         Entity e = new Entity();
         e.setId("testid");

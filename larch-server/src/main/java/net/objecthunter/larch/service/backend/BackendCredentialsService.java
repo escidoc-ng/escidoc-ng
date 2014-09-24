@@ -44,7 +44,7 @@ public interface BackendCredentialsService {
      * @param u the user for which a new confirmation request should be created
      * @throws IOException
      */
-    net.objecthunter.larch.model.security.UserRequest createNewUserRequest(User u) throws IOException;
+    UserRequest createNewUserRequest(User u) throws IOException;
 
     /**
      * Update a {@link net.objecthunter.larch.model.security.User} in the Repository
@@ -139,5 +139,12 @@ public interface BackendCredentialsService {
      * @return User the user with added default roles
      */
     User addDefaultRights(User user);
+
+    /**
+     * Delete all rights for given anchorId
+     * 
+     * @throws IOException
+     */
+    void deleteRights(String anchorId) throws IOException;
 
 }
