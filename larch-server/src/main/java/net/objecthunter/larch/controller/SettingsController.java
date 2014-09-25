@@ -57,18 +57,6 @@ public class SettingsController extends AbstractLarchController {
     private Environment environment;
 
     /**
-     * Retrieve the settings overview page from the repository
-     * 
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveHtml() throws IOException {
-        return new ModelAndView("settings", new ModelMap("settings", this.retrieve()));
-    }
-
-    /**
      * Retrieve the settings response
      */
     @RequestMapping(method = RequestMethod.GET)
@@ -78,6 +66,18 @@ public class SettingsController extends AbstractLarchController {
             @Permission(rolename = RoleName.ADMIN) })
     public Settings retrieve() throws IOException {
         return this.createSettings();
+    }
+
+    /**
+     * Retrieve the settings overview page from the repository
+     * 
+     * @throws IOException
+     */
+    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ModelAndView retrieveHtml() throws IOException {
+        return new ModelAndView("settings", new ModelMap("settings", this.retrieve()));
     }
 
     private Settings createSettings() throws IOException {

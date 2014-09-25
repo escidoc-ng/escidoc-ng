@@ -81,7 +81,7 @@ public class EntityController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ADMIN),
         @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE),
-        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE)})
+        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public void patch(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
         final JsonNode node = mapper.readTree(src);
@@ -105,9 +105,7 @@ public class EntityController extends AbstractLarchController {
         @Permission(rolename = RoleName.ADMIN),
         @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ),
         @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.READ) })
-    public Entity
-            retrieve(@PathVariable("id") final String id)
-                    throws IOException {
+    public Entity retrieve(@PathVariable("id") final String id) throws IOException {
         return entityService.retrieve(id);
     }
 
@@ -184,7 +182,7 @@ public class EntityController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ADMIN),
         @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.READ) })
-            public Entities retrieveVersions(@PathVariable("id") final String id) throws IOException {
+    public Entities retrieveVersions(@PathVariable("id") final String id) throws IOException {
         Entities entities = entityService.getOldVersions(id);
         entities.getEntities().add(0, entityService.retrieve(id));
         return entities;
@@ -222,9 +220,7 @@ public class EntityController extends AbstractLarchController {
     public String create(final InputStream src)
             throws IOException {
         Entity e = mapper.readValue(src, Entity.class);
-        if (e.getState() == null) {
-            e.setState(EntityState.PENDING);
-        }
+        e.setState(EntityState.PENDING);
         String entityId = create(e);
         return entityId;
     }
@@ -239,7 +235,7 @@ public class EntityController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.INPUT_ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ADMIN),
         @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE),
-        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE)})
+        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public String create(final Entity entity) throws IOException {
         final String id = this.entityService.create(entity);
         this.entityService.createAuditRecord(AuditRecordHelper.createEntityRecord(id));

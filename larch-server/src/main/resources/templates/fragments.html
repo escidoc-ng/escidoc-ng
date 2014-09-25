@@ -54,17 +54,9 @@
     <ul class="left_menu">
         <li><p class="icon" id="icon_dashboard"></p><a th:href="@{/}" th:text="'DASHBOARD'"></a>
         </li>
-        <li th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ADMIN')"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/browse/area}" th:text="'AREAS'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/browse/permission}" th:text="'PERMISSIONS'"></a></li>
-        <li th:if="!${isErrorPage}"><p class="icon" id="icon_browse"></p><a
-                th:href="@{/browse/data}" th:text="'BROWSE DATA'"></a></li>
-        <li th:if="!${isErrorPage}"><p class="icon" id="icon_list"></p><a
-                th:href="@{/list/data}" th:text="'LIST DATA'"></a></li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/search}" th:text="'SEARCH'"></a>
         </li>
-        <li th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ADMIN')"><p class="icon" id="icon_users"></p><a
+        <li th:if="!${isErrorPage}"><p class="icon" id="icon_users"></p><a
                 th:href="@{/credentials}" th:text="'USERS'"></a></li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
                                                     th:text="'METADATA TYPES'"></a></li>

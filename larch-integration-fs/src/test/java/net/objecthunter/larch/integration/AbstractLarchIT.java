@@ -134,7 +134,7 @@ public abstract class AbstractLarchIT {
         assertEquals(area.getId(), areaId);
         return areaId;
     }
-    
+
     protected String createPermission(String areaId) throws IOException {
         Entity permission = Fixtures.createPermission(areaId);
         HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
@@ -147,7 +147,7 @@ public abstract class AbstractLarchIT {
         assertEquals(permission.getId(), permissionId);
         return permissionId;
     }
-    
+
     protected String createUser(String name, String password) throws IOException {
         if (StringUtils.isBlank(name)) {
             name = RandomStringUtils.randomAlphabetic(5);
@@ -298,11 +298,11 @@ public abstract class AbstractLarchIT {
                 assertEquals(200, resp.getStatusLine().getStatusCode());
                 EntityUtils.toString(resp.getEntity());
                 if (!status.equals(EntityState.PUBLISHED)) {
-                     // withdraw
+                    // withdraw
                     resp =
                             this.executeAsAdmin(
                                     Request.Put(entityUrl + entityId + "/withdraw"));
-                     assertEquals(200, resp.getStatusLine().getStatusCode());
+                    assertEquals(200, resp.getStatusLine().getStatusCode());
                 }
             }
         }
@@ -338,6 +338,32 @@ public abstract class AbstractLarchIT {
     protected void showLog() {
         System.setOut(sysOut);
         System.setErr(sysErr);
+    }
+
+    protected static void assertStatusEquals(HttpResponse expected, HttpResponse actual) throws AssertionError {
+        int expectedStatus = expected.getStatusLine().getStatusCode();
+        int actualStatus = actual.getStatusLine().getStatusCode();
+        if (expectedStatus == 302 &&
+                (expected.getFirstHeader("Location") == null ||
+                        expected.getFirstHeader("Location").getValue() == null || !expected
+                        .getFirstHeader("Location")
+                        .getValue().contains("login"))) {
+            expectedStatus = 200;
+        }
+        if (actualStatus == 302 &&
+                (actual.getFirstHeader("Location") == null ||
+                        actual.getFirstHeader("Location").getValue() == null || !actual.getFirstHeader("Location")
+                        .getValue().contains("login"))) {
+            actualStatus = 200;
+        }
+        if ((int) (expectedStatus / 100) == 2 &&
+                (int) (actualStatus / 100) == 2) {
+            return;
+        }
+
+        if (expectedStatus != actualStatus) {
+            throw new AssertionError(expectedStatus + " not equals " + actualStatus);
+        }
     }
 
 }

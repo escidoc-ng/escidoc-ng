@@ -20,7 +20,6 @@ import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
-import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;

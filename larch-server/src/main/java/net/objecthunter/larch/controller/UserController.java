@@ -203,6 +203,7 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ADMIN),
+            @Permission(rolename = RoleName.AREA_ADMIN),
             @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {

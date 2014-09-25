@@ -38,6 +38,6 @@ public interface AuthorizationService {
      * @param methodArgs
      * @throws IOException
      */
-    void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result, Permission[] permissions, Object[] methodArgs) throws IOException;
+    void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result, Permission[] permissions) throws IOException;
 
 }

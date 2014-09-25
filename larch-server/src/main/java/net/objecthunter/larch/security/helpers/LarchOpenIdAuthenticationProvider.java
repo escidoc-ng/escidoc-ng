@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +106,16 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
     protected Authentication createSuccessfulAuthentication(User user, OpenIDAuthenticationToken auth) {
         String[] roles = null;
         if (user != null) {
-            roles = new String[] { "ROLE_IDENTIFIED" };
+            if (user.getRoles() != null && user.getRoles().size() > 0) {
+                roles = new String[user.getRoles().size()];
+                int i = 0;
+                for (Role role : user.getRoles()) {
+                    roles[i] = role.getRoleName().name();
+                    i++;
+                }
+            } else {
+                roles = new String[] { "IDENTIFIED" };
+            }
             return new OpenIDAuthenticationToken(user, AuthorityUtils.createAuthorityList(roles),
                     auth.getIdentityUrl(), auth.getAttributes());
         }

@@ -133,11 +133,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveUserHtml() throws Exception {
         // create user
         String username = createUser(null, userPassword);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "user/" + username)
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
 
         // try getting user as user
         HttpResponse resp =

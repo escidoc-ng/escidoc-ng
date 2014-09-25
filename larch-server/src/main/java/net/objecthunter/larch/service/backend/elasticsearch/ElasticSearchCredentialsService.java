@@ -159,7 +159,16 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 u = addDefaultRights(u);
                 if (u.getPwhash().equals(hash)) {
                     String[] roles = null;
-                    roles = new String[] { "ROLE_IDENTIFIED" };
+                    if (u.getRoles() != null && u.getRoles().size() > 0) {
+                        roles = new String[u.getRoles().size()];
+                        int i = 0;
+                        for (Role role : u.getRoles()) {
+                            roles[i] = role.getRoleName().name();
+                            i++;
+                        }
+                    } else {
+                        roles = new String[] { "IDENTIFIED" };
+                    }
                     return new UsernamePasswordAuthenticationToken(u, auth.getCredentials(),
                             AuthorityUtils.createAuthorityList(roles));
                 }

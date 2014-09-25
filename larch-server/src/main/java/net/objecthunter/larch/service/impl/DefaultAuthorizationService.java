@@ -62,7 +62,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
     @Override
     public void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result,
-            Permission[] permissions, Object[] methodArgs) throws IOException {
+            Permission[] permissions) throws IOException {
         final User u = this.getCurrentUser();
         if (u == null) {
             // no user logged in but authorization required
@@ -140,6 +140,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                                 entityHierarchy = backendEntityService.getHierarchy(entityObject.getParentId());
                             }
                         }
+                        entityHierarchySet = true;
                     }
                 }
                 if (currentUser.getRole(permission.rolename()).compare(permission, objectType, checkObject,
@@ -169,10 +170,9 @@ public class DefaultAuthorizationService implements AuthorizationService {
             if (ObjectType.ENTITY.equals(objectType) ||
                     ObjectType.BINARY.equals(objectType)) {
                 // get entity
-                if (versionId != null) {
+                checkObject = backendEntityService.retrieve(id);
+                if (versionId != null && versionId != ((Entity)checkObject).getVersion()) {
                     checkObject = backendVersionService.getOldVersion(id, versionId);
-                } else {
-                    checkObject = backendEntityService.retrieve(id);
                 }
             } else if (ObjectType.USER.equals(objectType)) {
                 // get User

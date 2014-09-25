@@ -74,6 +74,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -193,6 +194,16 @@ public class LarchServerConfiguration {
     @Bean
     public BackendEntityService elasticSearchIndexService() {
         return new ElasticSearchEntityService();
+    }
+
+    /**
+     * Get a {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping} Spring bean
+     *
+     * @return a RequestMappingHandlerMapping implementation
+     */
+    @Bean
+    public RequestMappingHandlerMapping handlerMapping() {
+        return new RequestMappingHandlerMapping();
     }
 
     /**
