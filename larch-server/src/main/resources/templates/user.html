@@ -14,13 +14,20 @@
         <div th:include="fragments :: banner" class="title">
         </div>
         <div class="panel clickable">
+                <script>
+                $(document).ready(function() {
+                $('#cwFirstname').watermark('Firstname', {className: 'inactive'});
+                $('#cwLastname').watermark('lastname', {className: 'inactive'});
+                $('#cwMail').watermark('eMail-address', {className: 'inactive'});
+                });
+                </script>
             <p class="panel_title" th:text="${user.name}"></p>
 
             <form method="POST" th:action="@{/user/} + ${user.name}" enctype="multipart/form-data">
-                <input type="text" name="firstName" th:value="${user.firstName}"/>
-                <input type="text" name="lastName" th:value="${user.lastName}"/>
-                <input type="text" name="email" th:value="${user.email}"/>
-                <input type="submit" class="button"/>
+                <input type="text" name="first_name" id="cwFirstname" th:value="${user.firstName}"/>
+                <input type="text" name="last_name" id="cwLastname" th:value="${user.lastName}"/>
+                <input type="text" name="email" id="cwMail" th:value="${user.email}"/>
+                <input type="submit" class="button" value="Update"/>
             </form>
         </div>
     </div>
