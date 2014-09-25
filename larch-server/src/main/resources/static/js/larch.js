@@ -209,6 +209,43 @@ function patchEntity() {
     });
 }
     
+function checkAuth(url, type, idToHide) {
+    $.ajax({
+        url : ctx + "/authorize" + url,
+        type : type,
+        data : data,
+        contentType : "application/json",
+        error : function() {
+        	$('#' + idToHide).css('display', 'none');
+        }
+    });
+}
+    
+function checkAuthCreateEntity(type, parentId, idToHide) {
+    var entity = {
+            'type' : type,
+            'label' : 'authtest',
+            'parentId' : parentId
+        };
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax ({
+        xhrFields: {
+           withCredentials: true
+        },
+        headers: {
+            "X-CSRF-TOKEN" : csrf_token
+        },
+        url: ctx + "/authorize/entity",
+        type: "POST",
+        data: JSON.stringify(entity),
+        dataType: "text",
+        contentType: "application/json; charset=utf-8",
+        error : function() {
+        	$('#' + idToHide).css('display', 'none');
+        }
+    });
+}
+
 function throwError(request) {
     var responseText = null;
     if (request != null && request.responseText != null && request.responseText.length > 0) {

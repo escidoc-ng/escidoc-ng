@@ -8,6 +8,11 @@
     <div class="three_dots"></div>
 </header>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+        checkAuthCreateEntity('AREA', null, 'areaCreatePanel');
+    /*]]>*/
+</script>
 <div class="content">
     <div th:include="fragments :: left" class="left">
     </div>
@@ -67,7 +72,7 @@
 
             <p class="value" th:text="${describe.larchClusterName}"></p>
         </div>
-        <div sec:authorize="hasRole('ADMIN')" class="right">
+        <div id="areaCreatePanel" class="right">
             <div class="panel">
                 <script>
                 $(document).ready(function() {
