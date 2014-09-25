@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.annotation.PostAuth;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.security.helpers.AuthorizeHttpServletRequest;
@@ -100,6 +99,7 @@ public class AuthController extends AbstractLarchController {
                 }
 
                 List<Object> methodArgs = new ArrayList<Object>();
+                Object[] methodArgsArr = null;
                 // special Handling for create-entity
                 if (method.getDeclaringClass().equals(EntityController.class) &&
                         method.getName().equals("create") && method.getParameters() != null &&
@@ -125,6 +125,7 @@ public class AuthController extends AbstractLarchController {
                         }
                     }
                 }
+                methodArgsArr = methodArgs.toArray();
 
                 // Call Authorization-Service
                 if (method != null) {
@@ -132,17 +133,25 @@ public class AuthController extends AbstractLarchController {
                     PostAuth postAuth = method.getAnnotation(PostAuth.class);
                     if (preAuth != null) {
                         authorizationService
-                                .authorize(method, preAuth.objectType(), getId(preAuth.idIndex(), preAuth
-                                        .objectType(),
-                                        methodArgs), getVersionId(preAuth.versionIndex(), methodArgs),
-                                        getObject(preAuth.idIndex(), preAuth.objectType(), methodArgs), preAuth
+                                .authorize(method, preAuth.objectType(), authorizationService
+                                        .getId(preAuth.idIndex(), preAuth
+                                                .objectType(),
+                                                methodArgsArr), authorizationService
+                                        .getVersionId(preAuth.versionIndex(), methodArgsArr),
+                                        authorizationService
+                                                .getObject(preAuth.idIndex(), preAuth.objectType(), methodArgsArr),
+                                        preAuth
                                                 .permissions());
                     }
                     if (postAuth != null) {
-                        authorizationService.authorize(method, postAuth.objectType(), getId(postAuth
-                                .idIndex(), postAuth.objectType(),
-                                methodArgs), getVersionId(postAuth.versionIndex(), methodArgs),
-                                getObject(postAuth.idIndex(), postAuth.objectType(), methodArgs), postAuth
+                        authorizationService.authorize(method, postAuth.objectType(), authorizationService
+                                .getId(postAuth
+                                        .idIndex(), postAuth.objectType(),
+                                        methodArgsArr), authorizationService
+                                .getVersionId(postAuth.versionIndex(), methodArgsArr),
+                                authorizationService
+                                        .getObject(postAuth.idIndex(), postAuth.objectType(), methodArgsArr),
+                                postAuth
                                         .permissions());
                     }
                 }
@@ -190,57 +199,6 @@ public class AuthController extends AbstractLarchController {
             requestUriMatchers.put(method, methodRequestUriMatchers);
         }
         return requestUriMatchers.get(method);
-    }
-
-    /**
-     * Get id from method-parameters
-     * 
-     * @param idIndex
-     * @param objectType
-     * @param args
-     * @return String or null
-     */
-    private String getId(final int idIndex, final ObjectType objectType, final List<Object> args) {
-        if (!ObjectType.INPUT_ENTITY.equals(objectType) && idIndex >= 0 && args != null && args.size() > idIndex &&
-                args.get(idIndex) instanceof String) {
-            return (String) args.get(idIndex);
-        }
-        return null;
-    }
-
-    /**
-     * Get version-Id from method-parameters
-     * 
-     * @param versionIndex
-     * @param args
-     * @return Integer versionId or null
-     */
-    private Integer getVersionId(final int versionIndex, final List<Object> args) throws IOException {
-        if (versionIndex >= 0 && args != null && args.size() > versionIndex &&
-                args.get(versionIndex) instanceof String) {
-            try {
-                return Integer.parseInt((String) args.get(versionIndex));
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException("versionId has to be a number: " + args.get(versionIndex));
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get Entity-Object from method-parameters
-     * 
-     * @param idIndex
-     * @param objectType
-     * @param args
-     * @return Entity or null
-     */
-    private Entity getObject(final int idIndex, final ObjectType objectType, final List<Object> args) {
-        if (ObjectType.INPUT_ENTITY.equals(objectType) && idIndex >= 0 && args != null && args.size() > idIndex &&
-                args.get(idIndex) instanceof Entity) {
-            return (Entity) args.get(idIndex);
-        }
-        return null;
     }
 
 }

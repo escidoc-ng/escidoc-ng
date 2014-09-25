@@ -18,7 +18,9 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
 
+import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
@@ -74,6 +76,52 @@ public class DefaultAuthorizationService implements AuthorizationService {
 
         // handle permissions
         handlePermissions(method, permissions, objectType, id, versionId, result, u);
+    }
+
+    @Override
+    public String getId(final int idIndex, final ObjectType objectType, final Object[] args) {
+        if (!ObjectType.INPUT_ENTITY.equals(objectType) && idIndex >= 0 && args != null && args.length > idIndex &&
+                args[idIndex] instanceof String) {
+            return (String) args[idIndex];
+        }
+        return null;
+    }
+
+    /**
+     * Get version-Id from method-parameters
+     * 
+     * @param versionIndex
+     * @param args
+     * @return Integer versionId or null
+     */
+    @Override
+    public Integer getVersionId(final int versionIndex, final Object[] args) throws IOException {
+        if (versionIndex >= 0 && args != null && args.length > versionIndex &&
+                args[versionIndex] instanceof String) {
+            try {
+                return Integer.parseInt((String) args[versionIndex]);
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException("versionId has to be a number: " + args[versionIndex]);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get Entity-Object from method-parameters
+     * 
+     * @param idIndex
+     * @param objectType
+     * @param args
+     * @return Entity or null
+     */
+    @Override
+    public Entity getObject(final int idIndex, final ObjectType objectType, final Object[] args) {
+        if (ObjectType.INPUT_ENTITY.equals(objectType) && idIndex >= 0 && args != null && args.length > idIndex &&
+                args[idIndex] instanceof Entity) {
+            return (Entity) args[idIndex];
+        }
+        return null;
     }
 
     /**

@@ -18,7 +18,9 @@ package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
 
+import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
@@ -40,4 +42,33 @@ public interface AuthorizationService {
      */
     void authorize(Method method, ObjectType objectType, String id, Integer versionId, Object result, Permission[] permissions) throws IOException;
 
+    /**
+     * Get id from method-parameters
+     * 
+     * @param idIndex
+     * @param objectType
+     * @param args
+     * @return String or null
+     */
+    String getId(final int idIndex, final ObjectType objectType, final Object[] args);
+    
+    /**
+     * Get version-Id from method-parameters
+     * 
+     * @param versionIndex
+     * @param args
+     * @return Integer versionId or null
+     */
+    Integer getVersionId(final int versionIndex, final Object[] args) throws IOException;
+    
+    /**
+     * Get Entity-Object from method-parameters
+     * 
+     * @param idIndex
+     * @param objectType
+     * @param args
+     * @return Entity or null
+     */
+    Entity getObject(final int idIndex, final ObjectType objectType, final Object[] args);
+    
 }

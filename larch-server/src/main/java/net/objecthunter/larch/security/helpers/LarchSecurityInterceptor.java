@@ -16,11 +16,8 @@
 
 package net.objecthunter.larch.security.helpers;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.annotation.PostAuth;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.service.AuthorizationService;
@@ -77,9 +74,9 @@ public class LarchSecurityInterceptor implements Ordered {
         PostAuth postAuth = calledMethod.getAnnotation(PostAuth.class);
 
         if (preAuth != null) {
-            authorizationService.authorize(calledMethod, preAuth.objectType(), getId(preAuth,
-                    joinPoint), getVersionId(preAuth, joinPoint),
-                    getObject(preAuth, joinPoint), preAuth.permissions());
+            authorizationService.authorize(calledMethod, preAuth.objectType(), authorizationService.getId(preAuth.idIndex(), preAuth.objectType(),
+                    joinPoint.getArgs()), authorizationService.getVersionId(preAuth.versionIndex(), joinPoint.getArgs()),
+                    authorizationService.getObject(preAuth.idIndex(), preAuth.objectType(), joinPoint.getArgs()), preAuth.permissions());
         }
         Object obj = joinPoint.proceed();
         if (postAuth != null) {
@@ -87,60 +84,6 @@ public class LarchSecurityInterceptor implements Ordered {
                     obj, postAuth.permissions());
         }
         return obj;
-    }
-
-    /**
-     * Get id from method-parameters
-     * 
-     * @param preAuth Annotation
-     * @param joinPoint
-     * @return String or null
-     */
-    private String getId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null && !ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
-                preAuth.idIndex() >= 0 && joinPoint != null &&
-                joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.idIndex() &&
-                joinPoint.getArgs()[preAuth.idIndex()] instanceof String) {
-            return (String) joinPoint.getArgs()[preAuth.idIndex()];
-        }
-        return null;
-    }
-
-    /**
-     * Get version-Id from method-parameters
-     * 
-     * @param preAuth Annotation
-     * @param joinPoint
-     * @return Integer versionId or null
-     */
-    private Integer getVersionId(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) {
-        if (preAuth != null &&
-                preAuth.versionIndex() >= 0 && joinPoint != null &&
-                joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.versionIndex() &&
-                joinPoint.getArgs()[preAuth.versionIndex()] instanceof Integer) {
-            return (Integer) joinPoint.getArgs()[preAuth.versionIndex()];
-        }
-        return null;
-    }
-
-    /**
-     * Get Entity-Object from method-parameters
-     * 
-     * @param preAuth Annotation
-     * @param joinPoint
-     * @return Entity or null
-     */
-    private Entity getObject(final PreAuth preAuth, final ProceedingJoinPoint joinPoint) throws IOException {
-        if (preAuth != null && ObjectType.INPUT_ENTITY.equals(preAuth.objectType()) &&
-                preAuth.idIndex() >= 0 && joinPoint != null &&
-                joinPoint.getArgs() != null &&
-                joinPoint.getArgs().length > preAuth.idIndex() &&
-                joinPoint.getArgs()[preAuth.idIndex()] instanceof Entity) {
-            return (Entity) joinPoint.getArgs()[preAuth.idIndex()];
-        }
-        return null;
     }
 
     /**
