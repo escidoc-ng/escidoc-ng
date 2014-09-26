@@ -33,7 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 @Controller
 @RequestMapping("/")
-public class DashboardController {
+public class DashboardController extends AbstractController {
 
     @Autowired
     private HttpClient httpClient;

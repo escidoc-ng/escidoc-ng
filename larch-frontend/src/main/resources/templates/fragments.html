@@ -42,7 +42,7 @@
 
         <p th:if="!${isErrorPage}"><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
 
-        <p th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ANONYMOUS')"><a th:href="@{/login-redirect}"><strong
+        <p th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ANONYMOUS')"><a th:href="@{/login}"><strong
                 th:text="LOGIN"></strong></a></p>
         <form th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')" th:action="@{/logout}" method="post" name="logoutForm">
             <p>

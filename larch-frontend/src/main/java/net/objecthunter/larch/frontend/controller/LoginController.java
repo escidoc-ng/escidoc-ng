@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * Web controller for login
  */
 @Controller
-public class LoginController {
+public class LoginController extends AbstractController {
 
     @Autowired
     private Environment env;
