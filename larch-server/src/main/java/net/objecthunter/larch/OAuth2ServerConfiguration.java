@@ -41,9 +41,6 @@ public class OAuth2ServerConfiguration {
     @EnableResourceServer
     protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
-        @Autowired
-        private Environment env;
-
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) {
             resources.resourceId("larch");
@@ -74,8 +71,16 @@ public class OAuth2ServerConfiguration {
         @Autowired
         private TokenStore tokenStore;
 
+        @Autowired
+        private Environment env;
+
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+            String redirectUris = env.getProperty("oauth.redirectUris");
+            String[] redirectUrisArr = new String[0];
+            if (redirectUris != null) {
+                redirectUrisArr = redirectUris.split("\\|");
+            }
             clients
                     .inMemory()
                     .withClient("larch_admin")
@@ -85,7 +90,7 @@ public class OAuth2ServerConfiguration {
                     .authorities("ROLE_ADMIN")
                     .scopes("read", "write")
                     .autoApprove(true)
-                    .redirectUris("http://localhost:8088/oauthclient/oauth?method=token");
+                    .redirectUris(redirectUrisArr);
         }
 
         @Bean

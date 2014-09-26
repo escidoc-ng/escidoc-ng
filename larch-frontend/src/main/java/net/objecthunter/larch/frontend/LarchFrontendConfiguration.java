@@ -44,7 +44,7 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 @Configuration
 @ComponentScan(basePackages = "net.objecthunter.larch.frontend.controller")
 @EnableAutoConfiguration
-public class LarchClientConfiguration {
+public class LarchFrontendConfiguration {
 
     @Autowired
     public Environment env;

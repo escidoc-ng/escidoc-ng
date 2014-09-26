@@ -21,7 +21,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 /**
  * Main class for running a Larch client instance from the command line
  */
-public class LarchClient {
+public class LarchFrontend {
 
     /**
      * The main entry point of the application when started from the Command line
@@ -32,7 +32,7 @@ public class LarchClient {
         new SpringApplicationBuilder()
                 .showBanner(false)
                 .web(true)
-                .sources(LarchClientConfiguration.class, LarchClientSecurityConfiguration.class)
+                .sources(LarchFrontendConfiguration.class, LarchFrontendSecurityConfiguration.class)
                 .run(args);
     }
 }

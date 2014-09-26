@@ -93,7 +93,7 @@ public class LoginController {
             nvps.add(new BasicNameValuePair("client_secret", env.getProperty("larch.oauth.clientSecret")));
             nvps.add(new BasicNameValuePair("code", code));
             nvps.add(new BasicNameValuePair("redirect_uri",
-                    env.getProperty("self.url") + ":" + env.getProperty("server.port") + "/login/token" + "/oauth?method=token"));
+                    env.getProperty("self.url") + ":" + env.getProperty("server.port") + "/login/token"));
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
             String authorization = env.getProperty("larch.oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");
             byte[] encodedBytes = Base64.encodeBase64(authorization.getBytes());
