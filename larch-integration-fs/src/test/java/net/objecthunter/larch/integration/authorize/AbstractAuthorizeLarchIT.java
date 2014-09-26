@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -181,25 +181,25 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         
         //create users with areaAdmin + userAdmin Roles
-        areaAdminRoleUsernames.put("AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
-        areaAdminRoleUsernames.put("AREA_ADMIN" + areaId1, new String[] { createUser(null, userPassword), userPassword });
-        userAdminRoleUsernames.put("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
-        userAdminRoleUsernames.put("USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserRole(), permissionId1);
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + AREA_ID)[0], new UserAdminRole(), unusedUserId);
+        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
+        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + areaId1, new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
+        userAdminRoleUsernames.put("ROLE_USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new UserAdminRole(), unusedUserId);
 
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new AreaAdminRole(), areaId1);
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserRole(), permissionId1);
-        createRoleForUser(areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new AreaAdminRole(), areaId1);
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new UserRole(), permissionId1);
+        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new UserAdminRole(), unusedUserId);
 
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), areaId2);
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), permissionId1);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), permissionId1);
 
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserAdminRole(), "");
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new AreaAdminRole(), areaId2);
-        createRoleForUser(userAdminRoleUsernames.get("USER_ADMIN")[0], new UserRole(), permissionId1);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserAdminRole(), "");
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new AreaAdminRole(), areaId2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserRole(), permissionId1);
         
     }
 

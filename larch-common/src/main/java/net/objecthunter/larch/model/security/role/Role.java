@@ -30,10 +30,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         include = JsonTypeInfo.As.PROPERTY,
         property = "roleName")
     @JsonSubTypes({
-        @Type(value = AdminRole.class, name = "ADMIN"),
-        @Type(value = UserRole.class, name = "USER"),
-        @Type(value = UserAdminRole.class, name = "USER_ADMIN"),
-        @Type(value = AreaAdminRole.class, name = "AREA_ADMIN")
+        @Type(value = AdminRole.class, name = "ROLE_ADMIN"),
+        @Type(value = UserRole.class, name = "ROLE_USER"),
+        @Type(value = UserAdminRole.class, name = "ROLE_USER_ADMIN"),
+        @Type(value = AreaAdminRole.class, name = "ROLE_AREA_ADMIN")
         })
 public abstract class Role {
     
@@ -100,13 +100,13 @@ public abstract class Role {
      * @throws IOException
      */
     public static Role getRoleObject(RoleName roleName) throws IOException {
-        if (RoleName.ADMIN.equals(roleName)) {
+        if (RoleName.ROLE_ADMIN.equals(roleName)) {
             return new AdminRole();
-        } else if (RoleName.USER.equals(roleName)) {
+        } else if (RoleName.ROLE_USER.equals(roleName)) {
             return new UserRole();
-        } else if (RoleName.USER_ADMIN.equals(roleName)) {
+        } else if (RoleName.ROLE_USER_ADMIN.equals(roleName)) {
             return new UserAdminRole();
-        } else if (RoleName.AREA_ADMIN.equals(roleName)) {
+        } else if (RoleName.ROLE_AREA_ADMIN.equals(roleName)) {
             return new AreaAdminRole();
         } else {
             throw new IOException("roleName not supported");
@@ -120,11 +120,11 @@ public abstract class Role {
      *
      */
     public enum RoleName {
-        ADMIN,
-        USER,
-        USER_ADMIN,
-        AREA_ADMIN,
-        ANY;
+        ROLE_ADMIN,
+        ROLE_USER,
+        ROLE_USER_ADMIN,
+        ROLE_AREA_ADMIN,
+        ROLE_ANY;
     }
 
     /**

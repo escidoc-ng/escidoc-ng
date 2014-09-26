@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -61,8 +61,8 @@ public class RelationController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String id,
             @RequestParam("predicate") final String predicate,
             @RequestParam("object") final String object) throws IOException {

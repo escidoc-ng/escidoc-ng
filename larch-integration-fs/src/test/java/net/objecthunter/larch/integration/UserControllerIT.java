@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -59,27 +59,27 @@ public class UserControllerIT extends AbstractLarchIT {
         User user = mapper.readValue(resp.getEntity().getContent(), User.class);
         assertNotNull(user.getRoles());
         assertEquals(2, user.getRoles().size());
-        assertNotNull(user.getRole(RoleName.AREA_ADMIN));
-        assertNotNull(user.getRole(RoleName.AREA_ADMIN).getRights());
-        assertEquals(1, user.getRole(RoleName.AREA_ADMIN).getRights().size());
-        assertNotNull(user.getRole(RoleName.AREA_ADMIN).getRights().get(areaId));
-        assertEquals(2, user.getRole(RoleName.AREA_ADMIN).getRights().get(areaId).size());
+        assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN));
+        assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN).getRights());
+        assertEquals(1, user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().size());
+        assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId));
+        assertEquals(2, user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId).size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username1));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         User user1 = mapper.readValue(resp.getEntity().getContent(), User.class);
         assertNotNull(user1.getRoles());
         assertEquals(2, user1.getRoles().size());
-        assertNotNull(user1.getRole(RoleName.AREA_ADMIN));
-        assertNotNull(user1.getRole(RoleName.AREA_ADMIN).getRights());
-        assertEquals(1, user1.getRole(RoleName.AREA_ADMIN).getRights().size());
-        assertNotNull(user1.getRole(RoleName.AREA_ADMIN).getRights().get(areaId));
-        assertEquals(2, user1.getRole(RoleName.AREA_ADMIN).getRights().get(areaId).size());
-        assertNotNull(user1.getRole(RoleName.USER));
-        assertNotNull(user1.getRole(RoleName.USER).getRights());
-        assertEquals(1, user1.getRole(RoleName.USER).getRights().size());
-        assertNotNull(user1.getRole(RoleName.USER).getRights().get(permissionId));
-        assertNotEquals(0, user1.getRole(RoleName.USER).getRights().get(permissionId).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN));
+        assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights());
+        assertEquals(1, user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().size());
+        assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId));
+        assertEquals(2, user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_USER));
+        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights());
+        assertEquals(1, user1.getRole(RoleName.ROLE_USER).getRights().size());
+        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights().get(permissionId));
+        assertNotEquals(0, user1.getRole(RoleName.ROLE_USER).getRights().get(permissionId).size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username2));
         assertEquals(200, resp.getStatusLine().getStatusCode());

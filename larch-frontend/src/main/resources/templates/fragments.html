@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<head th:fragment="header">
+    <meta charset="utf-8"/>
+    <meta id="contextPath"
+        th:src="${#httpServletRequest.getContextPath()}"/>
+    <title th:if="!${isErrorPage}">Larch repository</title>
+    <title th:if="${isErrorPage}">Error Page</title>
+    <script th:src="@{/js/jquery-1.11.0.min.js}"></script>
+    <script th:src="@{/js/jquery.watermark.min.js}"></script>
+    <script th:src="@{/js/larch.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/larch.css}" type="text/css"/>
+    <link href='https://fonts.googleapis.com/css?family=Alegreya+Sans' rel='stylesheet'
+          type='text/css'/>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet'
+          type='text/css'/>
+</head>
+<body>
+
+<div th:fragment="banner">
+    <span class="three_bars"></span>
+
+    <h1 th:if="!${isErrorPage}">Larch repository</h1>
+
+    <h1 th:if="${isErrorPage}">Error Page</h1>
+    <script>
+    $(document).ready(function() {
+        $('#search').watermark('Search', {className: 'inactive'});
+    });
+
+    </script>
+    <form th:if="!${isErrorPage}" method="post"
+          th:action="@{/search}" enctype="multipart/form-data"><input
+            type="text" id="search" name="term"/></form>
+</div>
+
+<div th:fragment="left">
+    <div class="user">
+        <p th:if="!${isErrorPage}" th:text="${user} ? ${user.name} : 'Anonymous'"/>
+
+        <p th:if="!${isErrorPage}"><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
+
+        <p th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ANONYMOUS')"><a th:href="@{/login-redirect}"><strong
+                th:text="LOGIN"></strong></a></p>
+        <form th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')" th:action="@{/logout}" method="post" name="logoutForm">
+            <p>
+                <a href="#" onclick="logoutForm.submit()"><strong>LOGOUT</strong></a>
+            </p>
+        </form>
+
+    </div>
+    <ul class="left_menu">
+        <li><p class="icon" id="icon_dashboard"></p><a th:href="@{/}" th:text="'DASHBOARD'"></a>
+        </li>
+        <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/search/form}" th:text="'SEARCH'"></a>
+        </li>
+        <li th:if="!${isErrorPage}"><p class="icon" id="icon_users"></p><a
+                th:href="@{/credentials}" th:text="'USERS'"></a></li>
+        <li th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
+                                                    th:text="'METADATA TYPES'"></a></li>
+    </ul>
+</div>
+
+<div th:fragment="footer">
+    <span>Larch</span><a href="https://github.com/fasseg/larch">Fork me on GitHub!</a>
+    <form id="errorform" th:action="@{/}" enctype="multipart/form-data" method="post" class="off"></form>
+</div>
+
+</body>
+</html>

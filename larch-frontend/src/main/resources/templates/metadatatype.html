@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="heading">Supported Metadata Schemas</div>
+        <div th:each="type : ${types}" class="panel clickable">
+            <p class="panel_title" th:text="${type.name}"></p>
+
+            <p class="property">Schema URL</p>
+
+            <p class="value" th:text="${type.schemaUrl}"></p>
+        </div>
+        <div class="right">
+            <script>
+                 $(document).ready(function() {
+                    $('#mdtName').watermark('Type name', {className: 'inactive'});
+                    $('#mdtSchemaUrl').watermark('Schema URL', {className: 'inactive'});
+                 });
+
+            </script>
+            <div class="panel">
+                <p class="panel_title">Create new meta data type</p>
+
+                <form method="POST" enctype="multipart/form-data"
+                      th:action="@{/metadatatype}">
+                    <input id="mdtName" type="text" name="name"
+                           title="Set the name of the meta data type"/>
+                    <input id="mdtSchemaUrl" type="text" name="schemaUrl"
+                           title="The URL of the meta data schema"/>
+                    <input type="submit" class="button" value="Create meta data type"/>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

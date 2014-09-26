@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -68,7 +68,7 @@ public class RoleController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-        @Permission(rolename = RoleName.ADMIN) })
+        @Permission(rolename = RoleName.ROLE_ADMIN) })
     public void setRoles(@PathVariable("username") final String username, final InputStream src) throws IOException {
         List<Role> roles = mapper.readValue(src, new TypeReference<List<Role>>() {});
         backendCredentialsService.setRoles(username, roles);
@@ -99,8 +99,8 @@ public class RoleController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 2, permissions = {
-        @Permission(rolename = RoleName.ADMIN),
-        @Permission(rolename = RoleName.AREA_ADMIN, permissionType = PermissionType.WRITE) })
+        @Permission(rolename = RoleName.ROLE_ADMIN),
+        @Permission(rolename = RoleName.ROLE_AREA_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("anchorId") final String anchorId, final InputStream src) throws IOException {

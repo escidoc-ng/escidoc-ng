@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -104,8 +104,8 @@ public class UserController extends AbstractLarchController {
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.WRITE) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
         this.backendCredentialsService.deleteUser(name);
     }
@@ -182,9 +182,9 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.AREA_ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
         return backendCredentialsService.retrieveUser(name);
@@ -202,9 +202,9 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.AREA_ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
@@ -241,7 +241,7 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     public List<RoleName> retrieveRoles() throws IOException {
         List<RoleName> roles = new ArrayList<RoleName>(Arrays.asList(RoleName.values()));
-        roles.remove(RoleName.ANY);
+        roles.remove(RoleName.ROLE_ANY);
         return roles;
     }
 
@@ -249,8 +249,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER_ADMIN, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.WRITE) })
     public ModelAndView updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,

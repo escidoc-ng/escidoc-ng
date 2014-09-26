@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <a th:each="record,iterStat : ${result.data}" th:class="${iterStat.odd}? 'odd'"  th:href="@{'/workspace/'} + ${record.id}">
+        <div class="panel clickable">
+            <p class="panel_title" th:text="${record.name}"></p>
+
+            <p class="property">Owner</p>
+
+            <p class="value" th:text="${record.owner}"></p>
+
+        </div>
+        </a>
+    </div>
+</div>
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

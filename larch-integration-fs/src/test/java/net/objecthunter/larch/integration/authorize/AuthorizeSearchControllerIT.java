@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -287,23 +287,23 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalAreaPermissionCount + 1, getHitCount(response));
 
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames.get("ROLE_USER_ADMIN")[1],
                         false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
@@ -349,23 +349,23 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames.get("ROLE_USER_ADMIN")[1],
                         false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
@@ -414,8 +414,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -424,8 +424,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -434,7 +434,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // user-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        userAdminRoleUsernames.get("USER_ADMIN")[0], userAdminRoleUsernames.get("USER_ADMIN")[1],
+                        userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames.get("ROLE_USER_ADMIN")[1],
                         false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});

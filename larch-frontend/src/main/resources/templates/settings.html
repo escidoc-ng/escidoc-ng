@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">ElasticSearch</p>
+
+            <p class="property">Master node name</p>
+
+            <p class="value" th:text="${settings.describe.esMasterNodeName}"></p>
+
+            <p class="property">Master node address</p>
+
+            <p class="value" th:text="${settings.describe.esMasterNodeAddress}"></p>
+
+            <p class="property">Local node name</p>
+
+            <p class="value" th:text="${settings.describe.esNodeName}"></p>
+
+            <p class="property">Number of data nodes</p>
+
+            <p class="value" th:text="${settings.describe.esNumDataNodes}"></p>
+
+            <p class="property">Number of indexed records</p>
+
+            <p class="value" th:text="${settings.describe.esNumIndexedRecords}"></p>
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">Blobstore</p>
+
+            <p class="property">Version</p>
+
+            <p class="value" th:text="${settings.describe.larchVersion}"></p>
+
+            <p class="property">Host</p>
+
+            <p class="value" th:text="${settings.describe.larchHost}"></p>
+
+            <p class="property">Cluster name</p>
+
+            <p class="value" th:text="${settings.describe.larchClusterName}"></p>
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">Settings</p>
+
+            <p class="property">Cluster name</p>
+
+            <p class="value" th:text="${settings.larchClusterName}"></p>
+
+            <p class="property">Version</p>
+
+            <p class="value" th:text="${settings.larchVersion}"></p>
+
+            <p class="property">Auto export enabled</p>
+
+            <p class="value" th:text="${settings.larchExportEnabled}"></p>
+
+            <p class="property">Export path</p>
+
+            <p class="value" th:text="${settings.larchExportPath}"></p>
+
+            <p class="property">Cross Site Forgery protection</p>
+
+            <p class="value" th:text="${settings.larchCsrfProtectionEnabled}"></p>
+
+            <p class="property">JMS Messaging enabled</p>
+
+            <p class="value" th:text="${settings.larchMessagingEnabled}"></p>
+
+            <p class="property">JMS broker URI</p>
+
+            <p class="value" th:text="${settings.larchMessagingBrokerUri}"></p>
+
+            <p class="property">JMS broker data path</p>
+
+            <p class="value" th:text="${settings.larchMessagingBrokerPath}"></p>
+
+            <p class="property">Mail service enabled</p>
+
+            <p class="value" th:text="${settings.larchMailEnabled}"></p>
+
+            <p class="property">Mail from</p>
+
+            <p class="value" th:text="${settings.larchMailFrom}"></p>
+
+            <p class="property">Mail SMTP host</p>
+
+            <p class="value" th:text="${settings.larchMailSmtpHost}"></p>
+
+            <p class="property">Mail SMTP port</p>
+
+            <p class="value" th:text="${settings.larchMailSmtpPort}"></p>
+
+            <p class="property">Mail SMTP user</p>
+
+            <p class="value" th:text="${settings.larchMailSmtpUser}"></p>
+
+            <p class="property">Mail SMTP pass</p>
+
+            <p class="value" th:text="${settings.larchMailSmtpPass}"></p>
+
+            <p class="property">ElasticSearch cluster name</p>
+
+            <p class="value" th:text="${settings.elasticSearchClusterName}"></p>
+
+            <p class="property">ElasticSearch log path</p>
+
+            <p class="value" th:text="${settings.elasticSearchLogPath}"></p>
+
+            <p class="property">ElasticSearch data path</p>
+
+            <p class="value" th:text="${settings.elasticSearchDataPath}"></p>
+
+            <p class="property">ElasticSearch bootstrap MLockAll</p>
+
+            <p class="value" th:text="${settings.elasticSearchBootstrapMlockAll}"></p>
+
+            <p class="property">ElasticSearch bind host</p>
+
+            <p class="value" th:text="${settings.elasticSearchBindHost}"></p>
+
+            <p class="property">ElasticSearch expected # of nodes</p>
+
+            <p class="value" th:text="${settings.elasticSearchExpectedNodes}"></p>
+
+            <p class="property">ElasticSearch Http service port</p>
+
+            <p class="value" th:text="${settings.elasticSearchHttpPort}"></p>
+
+            <p class="property">ElasticSearch Http service enabled</p>
+
+            <p class="value" th:text="${settings.elasticSearchHttpEnabled}"></p>
+
+            <p class="property">ElasticSearch gateway type</p>
+
+            <p class="value" th:text="${settings.elasticSearchGatewayType}"></p>
+
+            <p class="property">ElasticSearch config path</p>
+
+            <p class="value" th:text="${settings.elasticSearchConfigPath}"></p>
+
+            <p class="property">Spring active profile</p>
+
+            <p class="value" th:text="${settings.springActiveProfile}"></p>
+
+            <p class="property">Logging path</p>
+
+            <p class="value" th:text="${settings.larchLogPath}"></p>
+
+            <p class="property">Log file name</p>
+
+            <p class="value" th:text="${settings.larchLogFile}"></p>
+
+            <p class="property">Tomcat access log enabled</p>
+
+            <p class="value" th:text="${settings.tomcatAccessLogEnabled}"></p>
+
+            <p class="property">JSON pretty printer enabled</p>
+
+            <p class="value" th:text="${settings.jsonPrettyPrintEnabled}"></p>
+
+            <p class="property">Thymeleaf prefix</p>
+
+            <p class="value" th:text="${settings.thymeleafPrefix}"></p>
+
+            <p class="property">Thymeleaf suffix</p>
+
+            <p class="value" th:text="${settings.thymeleafSuffix}"></p>
+
+            <p class="property">Thymeleaf mode</p>
+
+            <p class="value" th:text="${settings.thymeleafMode}"></p>
+
+            <p class="property">Thymeleaf encoding</p>
+
+            <p class="value" th:text="${settings.thymeleafEncoding}"></p>
+
+            <p class="property">Thymeleaf cache enabled</p>
+
+            <p class="value" th:text="${settings.thymeleafCacheEnabled}"></p>
+
+            <p class="property">Spring JMX enabled</p>
+
+            <p class="value" th:text="${settings.springJmxEnabled}"></p>
+
+            <p class="property">Spring endpoint autoconfig enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointAutoconfigEnabled}"></p>
+
+            <p class="property">Spring endpoint beans enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointBeansEnabled}"></p>
+
+            <p class="property">Spring endpoint environment enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointEnvEnabled}"></p>
+
+            <p class="property">Spring endpoint config properties enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointConfigPropsEnabled}"></p>
+
+            <p class="property">Spring endpoint dump enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointDumpEnabled}"></p>
+
+            <p class="property">Spring endpoint health enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointHealthEnabled}"></p>
+
+            <p class="property">Spring endpoint info enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointInfoEnabled}"></p>
+
+            <p class="property">Spring endpoint metrics enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointMetricsEnabled}"></p>
+
+            <p class="property">Spring endpoint shutdown enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointShutdownEnabled}"></p>
+
+            <p class="property">Spring endpoint trace enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointTraceEnabled}"></p>
+
+            <p class="property">Spring endpoint Jolokia enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointJolokiaEnabled}"></p>
+
+            <p class="property">Spring endpoint JMX enabled</p>
+
+            <p class="value" th:text="${settings.springEndpointJMXEnabled}"></p>
+
+            <p class="property">Spring CraSH ssh shell enabled</p>
+
+            <p class="value" th:text="${settings.springShellEnabled}"></p>
+
+            <p class="property">Spring CraSH ssh shell path patterns</p>
+
+            <p class="value" th:text="${settings.springShellPathPatterns}"></p>
+
+        </div>
+    </div>
+</div>
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

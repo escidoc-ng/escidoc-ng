@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -69,7 +69,7 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .anonymous()
                 .authorities("ROLE_ANONYMOUS")
                 .and().authorizeRequests().requestMatchers(new AntPathRequestMatcher("/oauth/authorize")).hasAnyRole(
-                        "USER",
+                        "USER", "USER_ADMIN", "AREA_ADMIN",
                         "ADMIN", "IDENTIFIED")
                 .and().formLogin()
                 .loginPage("/login-page")

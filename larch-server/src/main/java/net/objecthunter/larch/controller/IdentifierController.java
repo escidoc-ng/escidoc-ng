@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -61,8 +61,8 @@ public class IdentifierController extends AbstractLarchController {
     @RequestMapping(value = "/identifier", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
             @RequestParam("value") final String value) throws IOException {
         this.entityService.createIdentifier(entityId, type, value);
@@ -99,8 +99,8 @@ public class IdentifierController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void delete(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
             @PathVariable("value") final String value) throws IOException {
         this.entityService.deleteIdentifier(entityId, type, value);

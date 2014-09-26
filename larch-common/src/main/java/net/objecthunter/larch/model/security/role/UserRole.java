@@ -29,7 +29,7 @@ import net.objecthunter.larch.model.security.annotation.Permission;
  */
 public class UserRole extends Role {
 
-    private RoleName roleName = RoleName.USER;
+    private RoleName roleName = RoleName.ROLE_USER;
 
     private Map<String, List<RoleRight>> rights;
 

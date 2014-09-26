@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -167,7 +167,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                             i++;
                         }
                     } else {
-                        roles = new String[] { "IDENTIFIED" };
+                        roles = new String[] { "ROLE_IDENTIFIED" };
                     }
                     return new UsernamePasswordAuthenticationToken(u, auth.getCredentials(),
                             AuthorityUtils.createAuthorityList(roles));
@@ -322,7 +322,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (roleName == null) {
             throw new InvalidParameterException("name of role may not be null");
         }
-        if (RoleName.ADMIN.equals(roleName)) {
+        if (RoleName.ROLE_ADMIN.equals(roleName)) {
             throw new InvalidParameterException("admin-role cannot be set with this method");
         }
         if (anchorId == null) {
@@ -407,7 +407,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     /**
-     * Check if the User with the given username is the last user in the system that has the Role ADMIN.
+     * Check if the User with the given username is the last user in the system that has the Role ROLE_ADMIN.
      * 
      * @param name
      * @return boolean.
@@ -415,7 +415,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
      */
     private boolean isLastAdminUser(String name) throws IOException {
         User user = this.retrieveUser(name);
-        if (user.getRoles() == null || !user.hasRole(RoleName.ADMIN)) {
+        if (user.getRoles() == null || !user.hasRole(RoleName.ROLE_ADMIN)) {
             return false;
         }
         final CountResponse resp;
@@ -426,7 +426,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                             .setQuery(
                                     QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
                                             FilterBuilders.termFilter("groups.name",
-                                                    RoleName.ADMIN))).execute()
+                                                    RoleName.ROLE_ADMIN))).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
@@ -518,7 +518,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     @Override
     public User addDefaultRights(User user) {
         // Right to read and write self.
-        UserAdminRole userAdminRole = (UserAdminRole) user.getRole(RoleName.USER_ADMIN);
+        UserAdminRole userAdminRole = (UserAdminRole) user.getRole(RoleName.ROLE_USER_ADMIN);
         if (userAdminRole == null) {
             userAdminRole = new UserAdminRole();
         }

@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -87,8 +87,8 @@ public class MetadataController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Entity e = entityService.retrieve(entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
@@ -119,8 +119,8 @@ public class MetadataController extends AbstractLarchController {
             consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String addMetadataHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
@@ -157,8 +157,8 @@ public class MetadataController extends AbstractLarchController {
             consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
 
@@ -198,8 +198,8 @@ public class MetadataController extends AbstractLarchController {
             consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String addBinaryMetadataHtml(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
@@ -248,8 +248,8 @@ public class MetadataController extends AbstractLarchController {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public void retrieveMetadataXml(@PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse resp) throws IOException {
@@ -278,8 +278,8 @@ public class MetadataController extends AbstractLarchController {
                 "application/xml", "text/xml" })
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public void retrieveBinaryMetadataXml(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName,
@@ -315,8 +315,8 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public MetadataValidationResult validate(@PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
         return this.schemaService.validate(id, metadataName);
@@ -338,8 +338,8 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public MetadataValidationResult validate(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName) throws IOException {
@@ -357,7 +357,7 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ANY) })
+            @Permission(rolename = RoleName.ROLE_ANY) })
     public List<MetadataType> retrieveTypes() throws IOException {
         return this.schemaService.getSchemaTypes();
     }
@@ -388,7 +388,7 @@ public class MetadataController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.POST, value = "/metadatatype", consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ROLE_ADMIN) })
     public void addSchemaType(final InputStream src) throws IOException {
         final MetadataType newType = mapper.readValue(src, MetadataType.class);
         this.schemaService.createSchemaType(newType);
@@ -405,7 +405,7 @@ public class MetadataController extends AbstractLarchController {
             produces = "text/html")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ADMIN) })
+            @Permission(rolename = RoleName.ROLE_ADMIN) })
     public String addSchemaType(@RequestParam("name") final String name,
             @RequestParam("schemaUrl") final String schemUrl) throws IOException {
         final MetadataType newType = new MetadataType();
@@ -421,8 +421,8 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public Metadata retrieveMetadata( @PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
@@ -453,8 +453,8 @@ public class MetadataController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.READ) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public Metadata retrieveBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
@@ -491,8 +491,8 @@ public class MetadataController extends AbstractLarchController {
             value = "/entity/{id}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void deleteMetadata(@PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         this.entityService.deleteMetadata(entityId, mdName);
@@ -504,8 +504,8 @@ public class MetadataController extends AbstractLarchController {
             value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ADMIN),
-            @Permission(rolename = RoleName.USER, permissionType = PermissionType.WRITE) })
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void deleteBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {

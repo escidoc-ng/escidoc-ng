@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+        checkAuthCreateEntity('AREA', null, 'areaCreatePanel');
+    /*]]>*/
+</script>
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">Larch</p>
+
+            <p class="property">Version</p>
+
+            <p class="value" th:text="${describe.larchVersion}"></p>
+
+            <p class="property">Host</p>
+
+            <p class="value" th:text="${describe.larchHost}"></p>
+
+            <p class="property">Cluster name</p>
+
+            <p class="value" th:text="${describe.larchClusterName}"></p>
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">ElasticSearch</p>
+
+            <p class="property">Master node name</p>
+
+            <p class="value" th:text="${describe.esMasterNodeName}"></p>
+
+            <p class="property">Master node address</p>
+
+            <p class="value" th:text="${describe.esMasterNodeAddress}"></p>
+
+            <p class="property">Local node name</p>
+
+            <p class="value" th:text="${describe.esNodeName}"></p>
+
+            <p class="property">Number of data nodes</p>
+
+            <p class="value" th:text="${describe.esNumDataNodes}"></p>
+
+            <p class="property">Number of indexed records</p>
+
+            <p class="value" th:text="${describe.esNumIndexedRecords}"></p>
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">Blobstore</p>
+
+            <p class="property">Version</p>
+
+            <p class="value" th:text="${describe.larchVersion}"></p>
+
+            <p class="property">Host</p>
+
+            <p class="value" th:text="${describe.larchHost}"></p>
+
+            <p class="property">Cluster name</p>
+
+            <p class="value" th:text="${describe.larchClusterName}"></p>
+        </div>
+        <div id="areaCreatePanel" class="right">
+            <div class="panel">
+                <script>
+                $(document).ready(function() {
+                $('#cwId').watermark('Generated Id', {className: 'inactive'});
+                $('#cwName').watermark('Unnamed Area', {className: 'inactive'});
+                $('#cwButton').click(function() {
+                    createEntity($('#cwId').val(), 'AREA', $('#cwName').val(), null, null);
+                    })
+                });
+                </script>
+                <p class="panel_title">Create Area</p>
+                <input id="cwId" type="text" name="id"
+                       title="Set the identifier of the area or leave empty for a generated value"/>
+                <input id="cwName" type="text" name="name" title="Set the name of the area"/>
+                <input class="button" id="cwButton" type="button" value="CREATE AREA"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

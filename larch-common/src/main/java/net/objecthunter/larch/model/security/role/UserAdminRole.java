@@ -25,7 +25,7 @@ import net.objecthunter.larch.model.security.annotation.Permission;
  */
 public class UserAdminRole extends Role {
 
-    private RoleName roleName = RoleName.USER_ADMIN;
+    private RoleName roleName = RoleName.ROLE_USER_ADMIN;
 
     private Map<String, List<RoleRight>> rights;
 

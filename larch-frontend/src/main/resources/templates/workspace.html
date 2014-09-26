@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="panel">
+            <p class="panel_title" th:text="${workspace.id}"></p>
+
+            <p class="property">Name</p>
+
+            <p class="value" th:text="${workspace.name}"></p>
+
+            <p class="property">Owner</p>
+
+            <p class="value" th:text="${workspace.owner}"></p>
+
+            <a th:href="'/workspace/' + ${workspace.id} + '/browse'">Browse entities</a>
+
+        </div>
+        <div class="panel" th:each="permissionset : ${workspace.permissions.permissions}">
+            <p class="panel_title">Permissions</p>
+            <p class="property" th:text="${permissionset.key}"></p>
+            <p th:each="permission : ${permissionset.value}" class="value" th:text="${permission}"></p>
+        </div>
+        <div class="right">
+            <div sec:authorize="!hasAnyRole('ROLE_ANONYMOUS', 'ROLE_IDENTIFIED')" class="right">
+                <div class="panel">
+                    <script>
+                $(document).ready(function() {
+                $('#ceId').watermark('Generated Id', {className: 'inactive'});
+                $('#ceLabel').watermark('Unnamed Entity', {className: 'inactive'});
+                $('#ceType').watermark('Type', {className: 'inactive'});
+                $('#ceTags').watermark('Tags', {className: 'inactive'});
+                $('#ceButton').click(function() {
+                    createEntity($('#ceId').val(), $('#ceWsId').val(), $('#ceType').val(),$('#ceLabel').val(),$('#ceTags').val());
+                    })
+                });
+
+                </script>
+                    <p class="panel_title">Create new entity</p>
+                    <input id="ceId" type="text" name="id"
+                           title="Set the identifier of the entity or leave empty for a generated value"/>
+                    <input id="ceWsId" type="hidden" name="workspaceId" th:value="${workspace.id}"/>
+                    <input id="ceType" type="hidden" name="type" th:value="DATA"/>
+                    <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
+                    <input id="ceTags" type="text" name="tags"
+                           title="Set a comma separated list of tags for this entity"/>
+                    <input class="button" id="ceButton" type="button" value="CREATE ENTITY"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>
+
+

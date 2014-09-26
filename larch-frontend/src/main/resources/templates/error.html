@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header(isErrorPage='true')">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left(isErrorPage='true')" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner(isErrorPage='true')" class="title">
+        </div>
+        <div class="heading">Error</div>
+        <div class="panel">
+            <p class="panel_title">An Error occured</p>
+            <p class="property">Page URL</p>
+            <p class="value" th:text="${path} ? ${path} : ''"></p>
+            <p class="property">Occured</p>
+            <p class="value" th:text="${timestamp} ? ${timestamp} : ''"></p>
+            <p class="property">Response Status</p>
+            <p class="value" th:text="${status} ? ${status} : ''"></p>
+            <p class="property">Response Status Name</p>
+            <p class="value" th:text="${error} ? ${error} : ''"></p>
+            <p class="property">Message</p>
+            <p class="value" th:text="${message} ? ${message} : ''"></p>
+            <p class="property">Cause</p>
+            <p class="value" th:text="${exception} ? ${exception} : ''"></p>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -39,7 +39,7 @@ public class LoginController extends AbstractLarchController {
      */
     @RequestMapping(value = "/login-redirect", method = RequestMethod.GET, produces = { "text/html" })
     @PreAuth(permissions = {
-            @Permission(rolename = RoleName.ANY) })
+            @Permission(rolename = RoleName.ROLE_ANY) })
     public String loginRedirect() {
         return "redirect:/";
     }

@@ -9,14 +9,13 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package net.objecthunter.larch;
 
-import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.security.helpers.LarchOauthRegexRequestMatcher;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +82,7 @@ public class OAuth2ServerConfiguration {
                     .resourceIds("larch")
                     .authorizedGrantTypes("authorization_code", "implicit")
                     .secret("secret")
-                    .authorities(RoleName.ADMIN.name())
+                    .authorities("ROLE_ADMIN")
                     .scopes("read", "write")
                     .autoApprove(true)
                     .redirectUris("http://localhost:8088/oauthclient/oauth?method=token");

@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
@@ -159,7 +159,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
             objectType = ObjectType.ENTITY;
         }
         for (Permission permission : permissions) {
-            if (RoleName.ANY.equals(permission.rolename())) {
+            if (RoleName.ROLE_ANY.equals(permission.rolename())) {
                 return;
             } else if (permission.permissionType().equals(PermissionType.NULL)) {
                 if (currentUser.hasRole(permission.rolename())) {

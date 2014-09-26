@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header">
+</head>
+<body>
+<div class="container">
+    <table>
+        <tr>
+            <td>Index name</td>
+            <td th:text="${state.indexState.name}"></td>
+        </tr>
+        <tr>
+            <td>Store size</td>
+            <td th:text="${state.indexState.storeSize}"></td>
+        </tr>
+        <tr>
+            <td>Shards</td>
+            <td th:text="${state.indexState.shardsSize}"></td>
+        </tr>
+        <tr>
+            <td>Number of documents</td>
+            <td th:text="${state.indexState.numDocs}"></td>
+        </tr>
+        <tr>
+            <td>Maximum number of documents</td>
+            <td th:text="${state.indexState.maxDocs}"></td>
+        </tr>
+        <tr>
+            <td>Total flush time</td>
+            <td th:text="${state.indexState.totalFlushTime}"></td>
+        </tr>
+        <tr>
+            <td>Total merge time</td>
+            <td th:text="${state.indexState.totalMergeTime}"></td>
+        </tr>
+        <tr>
+            <td>Number of documents to merge</td>
+            <td th:text="${state.indexState.numDocsToMerge}"></td>
+        </tr>
+        <tr>
+            <td>Size of documents to merge</td>
+            <td th:text="${state.indexState.sizeToMerge}"></td>
+        </tr>
+        <tr>
+            <td>Total refresh time</td>
+            <td th:text="${state.indexState.totalRefreshTime}"></td>
+        </tr>
+    </table>
+    <table th:if="${state.blobstoreState instanceof T(net.objecthunter.larch.model.state.WeedFsBlobstoreState)}">
+        <tr>
+            <td>Name</td>
+            <td th:text="${state.blobstoreState.name}"></td>
+        </tr>
+        <tr>
+            <td>Version</td>
+            <td th:text="${state.blobstoreState.version}"></td>
+        </tr>
+        <tr>
+            <td>Free bytes</td>
+            <td th:text="${state.blobstoreState.free}"></td>
+        </tr>
+        <tr>
+            <td>Max Bytes</td>
+            <td th:text="${state.blobstoreState.max}"></td>
+        </tr>
+    </table>
+    <table th:if="${state.blobstoreState instanceof T(net.objecthunter.larch.model.state.FilesystemBlobstoreState)}">
+        <tr>
+            <td>Name</td>
+            <td th:text="${state.blobstoreState.name}"></td>
+        </tr>
+        <tr>
+            <td>Path</td>
+            <td th:text="${state.blobstoreState.path}"></td>
+        </tr>
+        <tr>
+            <td>Total bytes</td>
+            <td th:text="${state.blobstoreState.totalSpace}"></td>
+        </tr>
+        <tr>
+            <td>Free bytes</td>
+            <td th:text="${state.blobstoreState.freeSpace}"></td>
+        </tr>
+        <tr>
+            <td>Usable bytess</td>
+            <td th:text="${state.blobstoreState.usableSpace}"></td>
+        </tr>
+    </table>
+</div>
+<footer th:include="fragments :: footer">
+</footer>
+</body>
+</html>
