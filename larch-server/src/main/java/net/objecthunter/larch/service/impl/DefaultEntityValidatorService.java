@@ -35,6 +35,13 @@ public class DefaultEntityValidatorService implements EntityValidatorService {
         validateHierarchy(entity);
     }
 
+    /**
+     * Validate if contentModelId is != null and if hierarchy is correct.
+     * Retrieve ContentModel and read allowedParentContentModels to validate.
+     * 
+     * @param entity
+     * @throws IOException
+     */
     private void validateHierarchy(Entity entity) throws IOException {
         if (StringUtils.isBlank(entity.getContentModelId())) {
             throw new InvalidParameterException("contentModelId may not be null");
