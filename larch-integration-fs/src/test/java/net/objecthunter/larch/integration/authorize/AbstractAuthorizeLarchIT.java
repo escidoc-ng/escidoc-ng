@@ -38,7 +38,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.AreaAdminRole;
+import net.objecthunter.larch.model.security.role.Level1AdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserAdminRole;
@@ -99,7 +99,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      */
     protected static Map<MissingPermission, String[]> userRoleUsernames = new HashMap<MissingPermission, String[]>();
 
-    protected static Map<String, String[]> areaAdminRoleUsernames = new HashMap<String, String[]>();
+    protected static Map<String, String[]> level1AdminRoleUsernames = new HashMap<String, String[]>();
 
     protected static Map<String, String[]> userAdminRoleUsernames = new HashMap<String, String[]>();
 
@@ -180,25 +180,25 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             }
         }
         
-        //create users with areaAdmin + userAdmin Roles
-        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + LEVEL1_ID, new String[] { createUser(null, userPassword), userPassword });
-        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + level1Id1, new String[] { createUser(null, userPassword), userPassword });
+        //create users with level1Admin + userAdmin Roles
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + LEVEL1_ID, new String[] { createUser(null, userPassword), userPassword });
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + level1Id1, new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("ROLE_USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + LEVEL1_ID)[0], new AreaAdminRole(), LEVEL1_ID);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + LEVEL1_ID)[0], new UserRole(), level2Id1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + LEVEL1_ID)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new Level1AdminRole(), LEVEL1_ID);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserRole(), level2Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserAdminRole(), unusedUserId);
 
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], new AreaAdminRole(), level1Id1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], new UserRole(), level2Id1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new Level1AdminRole(), level1Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserRole(), level2Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserAdminRole(), unusedUserId);
 
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), level1Id2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new Level1AdminRole(), level1Id2);
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), level2Id1);
 
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserAdminRole(), "");
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new AreaAdminRole(), level1Id2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new Level1AdminRole(), level1Id2);
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserRole(), level2Id1);
         
     }
@@ -302,16 +302,16 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userAdminRights.put(unusedUserId, userAdminRoleRights);
         userAdminRole.setRights(userAdminRights);
         roles.add(userAdminRole);
-        //area-admin
-        AreaAdminRole areaAdminRole = new AreaAdminRole();
-        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
-        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
-        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
-            areaAdminRoleRights.add(areaAdminRoleRight);
+        //level1-admin
+        Level1AdminRole level1AdminRole = new Level1AdminRole();
+        Map<String, List<RoleRight>> level1AdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> level1AdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight level1AdminRoleRight : level1AdminRole.allowedRights()) {
+            level1AdminRoleRights.add(level1AdminRoleRight);
         }
-        areaAdminRights.put(level1Id2, areaAdminRoleRights);
-        areaAdminRole.setRights(areaAdminRights);
-        roles.add(areaAdminRole);
+        level1AdminRights.put(level1Id2, level1AdminRoleRights);
+        level1AdminRole.setRights(level1AdminRights);
+        roles.add(level1AdminRole);
 
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")

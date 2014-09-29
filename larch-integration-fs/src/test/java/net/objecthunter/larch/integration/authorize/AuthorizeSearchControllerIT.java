@@ -178,7 +178,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      * @throws Exception
      */
     @Test
-    public void testSearchInPermission() throws Exception {
+    public void testSearchInLevel2() throws Exception {
         String postParameters =
                 "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&contentModel=data&level2=" +
                         level2Id;
@@ -265,7 +265,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      * @throws Exception
      */
     @Test
-    public void testSearchForPermissions() throws Exception {
+    public void testSearchForLevel2s() throws Exception {
         String postParameters = "contentModel=level2";
         String url = hostUrl + "search";
         // user with no level2 rights
@@ -284,19 +284,19 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(totalLevel1Level2Count + 1, getHitCount(response));
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -327,7 +327,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      * @throws Exception
      */
     @Test
-    public void testSearchForAreas() throws Exception {
+    public void testSearchForLevel1s() throws Exception {
         String postParameters = "contentModel=level1";
         String url = hostUrl + "search";
         // user with no level2 rights
@@ -346,19 +346,19 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -401,7 +401,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertNotNull(users);
         assertEquals(1, users.size());
 
-        // user with read level2 rights + area_admin rights
+        // user with read level2 rights + level1_admin rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
@@ -411,21 +411,21 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertNotNull(users);
         assertEquals(totalUsersCount, users.size());
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
         assertEquals(totalUsersCount, users.size());
 
-        // area-admin
+        // level1-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -464,8 +464,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
     private void prepareSearch() throws Exception {
         // get total hits
         String dataPostParameters = "contentModel=data&maxRecords=50";
-        String permissionPostParameters = "contentModel=level2&maxRecords=50";
-        String areaPostParameters = "contentModel=level1&maxRecords=50";
+        String level2PostParameters = "contentModel=level2&maxRecords=50";
+        String level1PostParameters = "contentModel=level1&maxRecords=50";
         String url = hostUrl + "search";
         HttpResponse response =
                 this.executeAsAdmin(Request.Post(url).bodyString(dataPostParameters,
@@ -497,13 +497,13 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         }
 
         // get permissions
-        response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters,
+        response = this.executeAsAdmin(Request.Post(url).bodyString(level2PostParameters,
                 ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
         totalLevel2sCount = (int) getHitCount(response);
         counter = 0;
         while (counter <= totalLevel2sCount) {
-            response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters + "&offset=" + counter,
+            response = this.executeAsAdmin(Request.Post(url).bodyString(level2PostParameters + "&offset=" + counter,
                     ContentType.APPLICATION_FORM_URLENCODED));
             counter += 50;
             assertEquals(200, response.getStatusLine().getStatusCode());
@@ -517,8 +517,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
             }
         }
 
-        // get areas
-        response = this.executeAsAdmin(Request.Post(url).bodyString(areaPostParameters,
+        // get level1s
+        response = this.executeAsAdmin(Request.Post(url).bodyString(level1PostParameters,
                 ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
         totalLevel1sCount = (int) getHitCount(response);

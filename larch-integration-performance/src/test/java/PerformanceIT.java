@@ -106,19 +106,19 @@ public class PerformanceIT {
             throw new Exception("WeedFS not ready after " + count * 150 + " ms");
         }
         if (!wsCreated) {
-            // create default area
-            Entity area = new Entity();
-            area.setContentModelId(FixedContentModel.LEVEL1.getName());
+            // create default level1
+            Entity level1 = new Entity();
+            level1.setContentModelId(FixedContentModel.LEVEL1.getName());
             Request r = Request.Post(hostUrl + "entity")
-                    .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
+                    .bodyString(mapper.writeValueAsString(level1), ContentType.APPLICATION_JSON);
             HttpResponse resp = this.execute(r).returnResponse();
             assertEquals(201, resp.getStatusLine().getStatusCode());
-            String areaId = EntityUtils.toString(resp.getEntity());
+            String level1Id = EntityUtils.toString(resp.getEntity());
             // create default level2
             Entity level2 = new Entity();
             level2.setId(LEVEL2_ID);
             level2.setLabel("Test Level2");
-            level2.setParentId(areaId);
+            level2.setParentId(level1Id);
             level2.setContentModelId(FixedContentModel.LEVEL2.getName());
             r = Request.Post(hostUrl + "entity")
                     .bodyString(mapper.writeValueAsString(level2), ContentType.APPLICATION_JSON);

@@ -33,9 +33,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
 
-    public static final String LEVEL2_ID = "perm-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String LEVEL2_ID = "level2-" + RandomStringUtils.randomAlphabetic(16);
 
-    public static final String LEVEL1_ID = "area-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String LEVEL1_ID = "level1-" + RandomStringUtils.randomAlphabetic(16);
 
     public static User createUser() {
         User u = new User();
@@ -50,17 +50,17 @@ public abstract class Fixtures {
     public static Entity createLevel1() {
         Entity e = new Entity();
         e.setId(RandomStringUtils.randomAlphanumeric(16));
-        e.setLabel("Test area");
+        e.setLabel("Test level1");
         e.setContentModelId(FixedContentModel.LEVEL1.getName());
         return e;
     }
 
-    public static Entity createLevel2(String areaId) {
+    public static Entity createLevel2(String level1Id) {
         Entity e = new Entity();
         e.setId(RandomStringUtils.randomAlphanumeric(16));
         e.setLabel("Test permission");
         e.setContentModelId(FixedContentModel.LEVEL2.getName());
-        e.setParentId(areaId);
+        e.setParentId(level1Id);
         return e;
     }
 

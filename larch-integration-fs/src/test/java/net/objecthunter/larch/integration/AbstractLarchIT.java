@@ -124,15 +124,15 @@ public abstract class AbstractLarchIT {
     }
 
     protected String createLevel1() throws IOException {
-        Entity area = Fixtures.createLevel1();
+        Entity level1 = Fixtures.createLevel1();
         HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
+                .bodyString(this.mapper.writeValueAsString(level1), ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        String areaId = EntityUtils.toString(resp.getEntity());
+        String level1Id = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(areaId);
-        assertEquals(area.getId(), areaId);
-        return areaId;
+        assertNotNull(level1Id);
+        assertEquals(level1.getId(), level1Id);
+        return level1Id;
     }
 
     protected String createLevel2(String level1Id) throws IOException {

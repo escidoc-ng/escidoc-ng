@@ -18,15 +18,15 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
- * AreaAdmin-Role.
+ * Level1Admin-Role.
  * Set READ or WRITE-Rights for an LEVEL1_ENTITY.
  * 
  * @author mih
  *
  */
-public class AreaAdminRole extends Role {
+public class Level1AdminRole extends Role {
 
-    private RoleName roleName = RoleName.ROLE_AREA_ADMIN;
+    private RoleName roleName = RoleName.ROLE_LEVEL1_ADMIN;
 
     private Map<String, List<RoleRight>> rights;
 

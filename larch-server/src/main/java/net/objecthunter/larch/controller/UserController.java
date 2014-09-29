@@ -183,7 +183,7 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
@@ -203,7 +203,7 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {

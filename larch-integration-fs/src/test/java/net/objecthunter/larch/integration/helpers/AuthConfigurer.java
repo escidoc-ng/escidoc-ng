@@ -184,7 +184,7 @@ public class AuthConfigurer {
         ADMIN,
         USER,
         USER_ADMIN,
-        AREA_ADMIN,
+        LEVEL1_ADMIN,
         LOGGED_IN;
     }
 

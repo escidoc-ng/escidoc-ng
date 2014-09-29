@@ -24,7 +24,7 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.security.role.AreaAdminRole;
+import net.objecthunter.larch.model.security.role.Level1AdminRole;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.http.HttpResponse;
@@ -35,9 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
+public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthorizeAreaControllerIT.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeLevel1ControllerIT.class);
 
     @Test
     public void testPatchEntity() throws Exception {
@@ -50,18 +50,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PATCH, entityUrl + Fixtures.LEVEL1_ID, patchData,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PATCH, entityUrl + level1Id1, patchData,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -75,18 +75,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -101,18 +101,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -126,18 +126,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID + "/version/1", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1 + "/version/1", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -152,18 +152,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID + "/version/1", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1 + "/version/1", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -177,18 +177,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID + "/versions", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1 + "/versions", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -202,18 +202,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
                 .build());
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + Fixtures.LEVEL1_ID + "/versions", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.GET, entityUrl + level1Id1 + "/versions", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -229,18 +229,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.POST, entityUrl, mapper.writeValueAsString(e),
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
         resp =
                 this.executeAsUser(HttpMethod.POST, entityUrl, mapper.writeValueAsString(e),
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -256,21 +256,21 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp = this.executeAsAdmin(Request.Get(entityUrl + Fixtures.LEVEL1_ID));
-        Entity area = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        area.setLabel("changed");
+        Entity level1 = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        level1.setLabel("changed");
         resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID, mapper.writeValueAsString(area),
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID, mapper.writeValueAsString(level1),
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1, mapper.writeValueAsString(area),
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1, mapper.writeValueAsString(level1),
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -286,14 +286,14 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         
-        // area admin
+        // level1 admin
         entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null);
         String username = createUser(null, userPassword);
-        createRoleForUser(username, new AreaAdminRole(), entity.getId());
+        createRoleForUser(username, new Level1AdminRole(), entity.getId());
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.DELETE, entityUrl + entity.getId(), null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                        .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                        .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
@@ -316,18 +316,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/publish", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/publish", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -344,18 +344,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/publish", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/publish", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -371,18 +371,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/submit", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/submit", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -399,18 +399,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/submit", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/submit", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -426,18 +426,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/withdraw", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/withdraw", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -454,18 +454,18 @@ public class AuthorizeAreaControllerIT extends AbstractAuthorizeLarchIT {
                 .html(true)
                 .build());
 
-        // area admin
+        // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/withdraw", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
                 this.executeAsUser(HttpMethod.PUT, entityUrl + level1Id1 + "/withdraw", null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }

@@ -100,7 +100,7 @@ public class RoleController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 2, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
-        @Permission(rolename = RoleName.ROLE_AREA_ADMIN, permissionType = PermissionType.WRITE) })
+        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
     public void setRight(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("anchorId") final String anchorId, final InputStream src) throws IOException {

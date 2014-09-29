@@ -21,9 +21,9 @@ import org.elasticsearch.index.query.QueryBuilders;
  * @author mih
  *
  */
-public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
+public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
 
-    public AreaAdminRoleQueryRestriction(Role role) {
+    public Level1AdminRoleQueryRestriction(Role role) {
         super(role);
     }
 

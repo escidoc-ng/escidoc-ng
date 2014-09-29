@@ -69,7 +69,7 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .anonymous()
                 .authorities("ROLE_ANONYMOUS")
                 .and().authorizeRequests().requestMatchers(new AntPathRequestMatcher("/oauth/authorize")).hasAnyRole(
-                        "USER", "USER_ADMIN", "AREA_ADMIN",
+                        "USER", "USER_ADMIN", "LEVEL1_ADMIN",
                         "ADMIN", "IDENTIFIED")
                 .and().formLogin()
                 .loginPage("/login-page")

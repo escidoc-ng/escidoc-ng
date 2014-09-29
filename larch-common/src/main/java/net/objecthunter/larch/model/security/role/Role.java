@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @Type(value = AdminRole.class, name = "ROLE_ADMIN"),
         @Type(value = UserRole.class, name = "ROLE_USER"),
         @Type(value = UserAdminRole.class, name = "ROLE_USER_ADMIN"),
-        @Type(value = AreaAdminRole.class, name = "ROLE_AREA_ADMIN")
+        @Type(value = Level1AdminRole.class, name = "ROLE_LEVEL1_ADMIN")
         })
 public abstract class Role {
     
@@ -106,8 +106,8 @@ public abstract class Role {
             return new UserRole();
         } else if (RoleName.ROLE_USER_ADMIN.equals(roleName)) {
             return new UserAdminRole();
-        } else if (RoleName.ROLE_AREA_ADMIN.equals(roleName)) {
-            return new AreaAdminRole();
+        } else if (RoleName.ROLE_LEVEL1_ADMIN.equals(roleName)) {
+            return new Level1AdminRole();
         } else {
             throw new IOException("roleName not supported");
         }
@@ -123,7 +123,7 @@ public abstract class Role {
         ROLE_ADMIN,
         ROLE_USER,
         ROLE_USER_ADMIN,
-        ROLE_AREA_ADMIN,
+        ROLE_LEVEL1_ADMIN,
         ROLE_ANY;
     }
 
