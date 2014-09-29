@@ -25,16 +25,19 @@ import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider
 import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.EntityService;
+import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.RepositoryService;
 import net.objecthunter.larch.service.SchemaService;
 import net.objecthunter.larch.service.backend.BackendAuditService;
+import net.objecthunter.larch.service.backend.BackendContentModelService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContentModelService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
@@ -46,6 +49,7 @@ import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
 import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
 import net.objecthunter.larch.service.impl.DefaultEntityService;
+import net.objecthunter.larch.service.impl.DefaultEntityValidatorService;
 import net.objecthunter.larch.service.impl.DefaultExportService;
 import net.objecthunter.larch.service.impl.DefaultMailService;
 import net.objecthunter.larch.service.impl.DefaultMessagingService;
@@ -156,6 +160,16 @@ public class LarchServerConfiguration {
     }
 
     /**
+     * Get a {@link net.objecthunter.larch.service.impl.DefaultEntityValidatorService} Spring bean
+     *
+     * @return the {@link net.objecthunter.larch.service.impl.DefaultEntityValidatorService} implementation
+     */
+    @Bean
+    public EntityValidatorService defaultEntityValidatorService() {
+        return new DefaultEntityValidatorService();
+    }
+
+    /**
      * Get a ElasticSearch {@link org.elasticsearch.client.Client} Spring bean
      *
      * @return the {@link org.elasticsearch.client.Client} implementation
@@ -214,6 +228,16 @@ public class LarchServerConfiguration {
     @Bean
     public BackendVersionService backendVersionService() {
         return new ElasticSearchVersionService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.BackendContentModelService} Spring bean
+     *
+     * @return a BackendContentModelService implementation
+     */
+    @Bean
+    public BackendContentModelService backendContentService() {
+        return new ElasticSearchContentModelService();
     }
 
     /**

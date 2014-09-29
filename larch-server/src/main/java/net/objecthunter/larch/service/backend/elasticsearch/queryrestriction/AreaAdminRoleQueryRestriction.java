@@ -6,7 +6,7 @@ package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -39,7 +39,7 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
                 List<RoleRight> userRights = rightSet.getValue();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
-                        restrictionQueryBuilder.should(getAreaAndPermissionEntitiesRestrictionQuery(rightSet.getKey()));
+                        restrictionQueryBuilder.should(getLevel1AndLevel2EntitiesRestrictionQuery(rightSet.getKey()));
                     }
                 }
             }
@@ -53,23 +53,22 @@ public class AreaAdminRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     /**
-     * Generate a subquery that restrict to permissions and areas belonging to a distinct area.
+     * Generate a subquery that restrict to level2s and level1s belonging to a distinct level1Id.
      * 
-     * @param state
-     * @param areaId
+     * @param level1Id
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getAreaAndPermissionEntitiesRestrictionQuery(String areaId) {
+    private BoolQueryBuilder getLevel1AndLevel2EntitiesRestrictionQuery(String level1Id) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
         BoolQueryBuilder subSubRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
-                EntityType.AREA.getName()));
-        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
-                EntityType.PERMISSION.getName()));
+        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+                FixedContentModel.LEVEL1.getName()));
+        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+                FixedContentModel.LEVEL2.getName()));
         subRestrictionQueryBuilder.must(subSubRestrictionQueryBuilder);
-        if (StringUtils.isNotBlank(areaId)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.AREA_ID.getFieldName(),
-                    areaId));
+        if (StringUtils.isNotBlank(level1Id)) {
+            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.LEVEL1.getFieldName(),
+                    level1Id));
         }
         return subRestrictionQueryBuilder;
     }

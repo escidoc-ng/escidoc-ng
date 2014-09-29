@@ -16,8 +16,8 @@
 
 package net.objecthunter.larch.integration;
 
-import static net.objecthunter.larch.test.util.Fixtures.AREA_ID;
-import static net.objecthunter.larch.test.util.Fixtures.PERMISSION_ID;
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL1_ID;
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,9 +33,9 @@ import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Role;
@@ -103,28 +103,28 @@ public abstract class AbstractLarchIT {
     public void resetSystOutErr() throws Exception {
         this.showLog();
         if (!wsCreated) {
-            // create default area
-            Entity area = new Entity();
-            area.setId(AREA_ID);
-            area.setType(EntityType.AREA);
+            // create default level1
+            Entity level1 = new Entity();
+            level1.setId(LEVEL1_ID);
+            level1.setContentModelId(FixedContentModel.LEVEL1.getName());
             Request r = Request.Post(entityUrl)
-                    .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
+                    .bodyString(mapper.writeValueAsString(level1), ContentType.APPLICATION_JSON);
             HttpResponse response = this.executeAsAdmin(r);
-            // create default workspace
-            Entity permission = new Entity();
-            permission.setId(PERMISSION_ID);
-            permission.setType(EntityType.PERMISSION);
-            permission.setLabel("Test Workspace");
-            permission.setParentId(AREA_ID);
+            // create default level2
+            Entity level2 = new Entity();
+            level2.setId(LEVEL2_ID);
+            level2.setContentModelId(FixedContentModel.LEVEL2.getName());
+            level2.setLabel("Test Level2");
+            level2.setParentId(LEVEL1_ID);
             r = Request.Post(entityUrl)
-                    .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
+                    .bodyString(mapper.writeValueAsString(level2), ContentType.APPLICATION_JSON);
             response = this.executeAsAdmin(r);
             wsCreated = true;
         }
     }
 
-    protected String createArea() throws IOException {
-        Entity area = Fixtures.createArea();
+    protected String createLevel1() throws IOException {
+        Entity area = Fixtures.createLevel1();
         HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
                 .bodyString(this.mapper.writeValueAsString(area), ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
@@ -135,17 +135,17 @@ public abstract class AbstractLarchIT {
         return areaId;
     }
 
-    protected String createPermission(String areaId) throws IOException {
-        Entity permission = Fixtures.createPermission(areaId);
+    protected String createLevel2(String level1Id) throws IOException {
+        Entity level2 = Fixtures.createLevel2(level1Id);
         HttpResponse resp = this.executeAsAdmin(Request.Post(entityUrl)
-                .bodyString(this.mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON));
+                .bodyString(this.mapper.writeValueAsString(level2), ContentType.APPLICATION_JSON));
 
         String test = EntityUtils.toString(resp.getEntity());
-        String permissionId = EntityUtils.toString(resp.getEntity());
+        String level2Id = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(permissionId);
-        assertEquals(permission.getId(), permissionId);
-        return permissionId;
+        assertNotNull(level2Id);
+        assertEquals(level2.getId(), level2Id);
+        return level2Id;
     }
 
     protected String createUser(String name, String password) throws IOException {
@@ -253,7 +253,7 @@ public abstract class AbstractLarchIT {
      * @param status
      * @return String entityId
      */
-    protected Entity createEntity(EntityState status, EntityType type, String parentId) throws Exception {
+    protected Entity createEntity(EntityState status, String contentModelId, String parentId) throws Exception {
         if (status == null ||
                 (!status.equals(EntityState.PENDING) && !status.equals(EntityState.SUBMITTED) &&
                         !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
@@ -261,7 +261,7 @@ public abstract class AbstractLarchIT {
         }
         Entity e = createFixtureEntity();
         e.setParentId(parentId);
-        e.setType(type);
+        e.setContentModelId(contentModelId);
         AlternativeIdentifier identifier = new AlternativeIdentifier();
         identifier.setType(IdentifierType.DOI.name);
         identifier.setValue("testdoi");

@@ -19,17 +19,10 @@ package net.objecthunter.larch.service.elasticsearch;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-import net.objecthunter.larch.model.Entity.EntityType;
-import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -162,7 +155,7 @@ public class ElasticSearchSearchServiceTest {
 //                mockSearchResponse, mockHits, mockHit, mockField);
 //        Map<EntitiesSearchField, String[]> searchFields = new HashMap<EntitiesSearchField, String[]>();
 //        searchFields.put(EntitiesSearchField.ALL, new String[] { "*" });
-//        SearchResult result = entityService.searchEntities(EntityType.DATA, searchFields);
+//        SearchResult result = entityService.searchEntities(FixedContentModel.DATA.getName(), searchFields);
 //        verify(mockClient, mockAdminClient, mockIndicesAdminClient, mockSearchRequestBuilder, mockFuture,
 //                mockSearchResponse, mockHits, mockHit, mockField);
     }

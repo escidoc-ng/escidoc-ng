@@ -30,8 +30,8 @@ import javax.annotation.PostConstruct;
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -575,6 +575,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
         }
     }
+
     private List<User> retrieveUsersWithRight(String anchorId) throws IOException {
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -591,11 +592,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             users.add(mapper.readValue(hit.getSourceAsString(), User.class));
         }
         return users;
-     }
+    }
 
     /**
-     * Checks if the given anchorIds all are of one of the types in anchorTypes.
-     * Throw IOException if one of the anchorIds does not belong to one of the anchorTypes.
+     * Checks if the given anchorIds all are of one of the types in anchorTypes. Throw IOException if one of the
+     * anchorIds does not belong to one of the anchorTypes.
      * 
      * @param anchorIds
      * @param anchorTypes
@@ -603,7 +604,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
      */
     private void checkAnchorTypes(Set<String> anchorIds, List<PermissionAnchorType> anchorTypes) throws IOException {
         List<String> usernames = new ArrayList<String>();
-        List<EntityType> entityTypes = new ArrayList<EntityType>();
+        List<String> contentModelIds = new ArrayList<String>();
         if (anchorTypes == null && anchorIds != null && !anchorIds.isEmpty()) {
             throw new IOException("No object permissions supported");
         }
@@ -621,26 +622,29 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 }
             }
         }
-        if (anchorTypes.contains(PermissionAnchorType.AREA) || anchorTypes.contains(PermissionAnchorType.PERMISSION)) {
+        if (anchorTypes.contains(PermissionAnchorType.LEVEL1_ENTITY) ||
+                anchorTypes.contains(PermissionAnchorType.LEVEL2_ENTITY)) {
             for (String objectId : anchorIds) {
                 try {
                     Entity e = backendEntityService.retrieve(objectId);
-                    if (e.getType() == null) {
+                    if (e.getContentModelId() == null) {
                         throw new IOException("Object " + objectId + " has wrong type for permission-anchor");
                     }
-                    entityTypes.add(e.getType());
+                    contentModelIds.add(e.getContentModelId());
                 } catch (IOException e) {
                 }
             }
         }
-        if (anchorIds.size() != (usernames.size() + entityTypes.size())) {
+        if (anchorIds.size() != (usernames.size() + contentModelIds.size())) {
             throw new IOException("At least one Object has wrong type for permission-anchor");
         }
-        for (EntityType entityType : entityTypes) {
-            if ((EntityType.AREA.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.AREA)) ||
-                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes
-                            .contains(PermissionAnchorType.PERMISSION)) ||
-                    (!EntityType.AREA.equals(entityType)) && !EntityType.PERMISSION.equals(entityType)) {
+        for (String contentModelId : contentModelIds) {
+            if ((FixedContentModel.LEVEL1.getName().equals(contentModelId) && !anchorTypes
+                    .contains(PermissionAnchorType.LEVEL1_ENTITY)) ||
+                    (FixedContentModel.LEVEL2.getName().equals(contentModelId) && !anchorTypes
+                            .contains(PermissionAnchorType.LEVEL2_ENTITY)) ||
+                    (!FixedContentModel.LEVEL1.getName().equals(contentModelId) && !FixedContentModel.LEVEL2
+                            .getName().equals(contentModelId))) {
                 throw new IOException("At least one Object has wrong type for permission-anchor");
             }
         }

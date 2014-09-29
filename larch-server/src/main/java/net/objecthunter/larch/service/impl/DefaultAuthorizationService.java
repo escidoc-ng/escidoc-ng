@@ -18,11 +18,10 @@ package net.objecthunter.larch.service.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 import net.objecthunter.larch.exceptions.InvalidParameterException;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
@@ -144,7 +143,6 @@ public class DefaultAuthorizationService implements AuthorizationService {
      * 
      * @param method
      * @param workspacePermission
-     * @param workspaceId
      * @param entityId
      * @param result
      * @param currentUser logged in user
@@ -175,14 +173,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
                 if (checkObject instanceof Entity) {
                     if (!entityHierarchySet) {
                         Entity entityObject = (Entity) checkObject;
-                        if (entityObject.getType() != null && entityObject.getType().equals(EntityType.AREA)) {
+                        if (entityObject.getContentModelId() != null &&
+                                entityObject.getContentModelId().equals(FixedContentModel.LEVEL1.getName())) {
                             entityHierarchy = new EntityHierarchy();
-                            entityHierarchy.setAreaId(entityObject.getId());
-                        } else if (entityObject.getType() != null &&
-                                entityObject.getType().equals(EntityType.PERMISSION)) {
+                            entityHierarchy.setLevel1Id(entityObject.getId());
+                        } else if (entityObject.getContentModelId() != null &&
+                                entityObject.getContentModelId().equals(FixedContentModel.LEVEL2.getName())) {
                             entityHierarchy = new EntityHierarchy();
-                            entityHierarchy.setPermissionId(entityObject.getId());
-                            entityHierarchy.setAreaId(entityObject.getParentId());
+                            entityHierarchy.setLevel2Id(entityObject.getId());
+                            entityHierarchy.setLevel1Id(entityObject.getParentId());
                         } else {
                             if (StringUtils.isNotBlank(entityObject.getParentId())) {
                                 entityHierarchy = backendEntityService.getHierarchy(entityObject.getParentId());
@@ -219,7 +218,7 @@ public class DefaultAuthorizationService implements AuthorizationService {
                     ObjectType.BINARY.equals(objectType)) {
                 // get entity
                 checkObject = backendEntityService.retrieve(id);
-                if (versionId != null && versionId != ((Entity)checkObject).getVersion()) {
+                if (versionId != null && versionId != ((Entity) checkObject).getVersion()) {
                     checkObject = backendVersionService.getOldVersion(id, versionId);
                 }
             } else if (ObjectType.USER.equals(objectType)) {

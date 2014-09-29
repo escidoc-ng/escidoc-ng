@@ -6,8 +6,8 @@ package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -51,8 +51,8 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
                     } else if (RoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.should(getDataEntitiesRestrictionQuery(EntityState.WITHDRAWN,
                                 rightSet.getKey()));
-                    } else if (RoleRight.READ_PERMISSION.equals(userRight)) {
-                        restrictionQueryBuilder.should(getPermissionEntitiesRestrictionQuery(rightSet.getKey()));
+                    } else if (RoleRight.READ_LEVEL2.equals(userRight)) {
+                        restrictionQueryBuilder.should(getLevel2EntitiesRestrictionQuery(rightSet.getKey()));
                     }
                 }
             }
@@ -70,39 +70,39 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     /**
-     * Generate a subquery that restrict to a certain permission and entities with certain state
+     * Generate a subquery that restrict to a certain level2 and entities with certain state
      * 
      * @param state
-     * @param permissionId
+     * @param level2Id
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getDataEntitiesRestrictionQuery(EntityState state, String permissionId) {
+    private BoolQueryBuilder getDataEntitiesRestrictionQuery(EntityState state, String level2Id) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
         subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), state
                 .name()));
-        subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
-                EntityType.AREA.getName()));
-        subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(),
-                EntityType.PERMISSION.getName()));
-        if (StringUtils.isNotBlank(permissionId)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(),
-                    permissionId));
+        subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+                FixedContentModel.LEVEL1.getName()));
+        subRestrictionQueryBuilder.mustNot(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+                FixedContentModel.LEVEL2.getName()));
+        if (StringUtils.isNotBlank(level2Id)) {
+            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.LEVEL2.getFieldName(),
+                    level2Id));
         }
         return subRestrictionQueryBuilder;
     }
 
     /**
-     * Generate a subquery that restrict to a certain permission
+     * Generate a subquery that restrict to a certain level2
      * 
-     * @param permissionId
+     * @param level2Id
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getPermissionEntitiesRestrictionQuery(String permissionId) {
+    private BoolQueryBuilder getLevel2EntitiesRestrictionQuery(String level2Id) {
         BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.TYPE.getFieldName(), EntityType.PERMISSION.name()));
-        if (StringUtils.isNotBlank(permissionId)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.PERMISSION_ID.getFieldName(),
-                    permissionId));
+        subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(), FixedContentModel.LEVEL2.getName()));
+        if (StringUtils.isNotBlank(level2Id)) {
+            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.LEVEL2.getFieldName(),
+                    level2Id));
         }
         return subRestrictionQueryBuilder;
     }

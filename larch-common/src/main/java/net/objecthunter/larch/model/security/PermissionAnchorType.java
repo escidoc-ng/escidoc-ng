@@ -11,7 +11,7 @@ package net.objecthunter.larch.model.security;
  *
  */
 public enum PermissionAnchorType {
-    AREA,
-    PERMISSION,
+    LEVEL1_ENTITY,
+    LEVEL2_ENTITY,
     USER;
 }

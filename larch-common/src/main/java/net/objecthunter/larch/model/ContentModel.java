@@ -16,6 +16,8 @@
 
 package net.objecthunter.larch.model;
 
+import java.util.List;
+
 /**
  * A DTO for wrapping content model data of a larch repository object.
  */
@@ -24,6 +26,9 @@ public class ContentModel {
     private String id;
 
     private String name;
+    
+    private List<String> allowedParentContentModels;
+    
     
     /**
      * @return the id
@@ -53,4 +58,38 @@ public class ContentModel {
         this.name = name;
     }
 
+    
+    /**
+     * @return the allowedParentContentModels
+     */
+    public List<String> getAllowedParentContentModels() {
+        return allowedParentContentModels;
+    }
+
+    
+    /**
+     * @param allowedParentContentModels the allowedParentContentModels to set
+     */
+    public void setAllowedParentContentModels(List<String> allowedParentContentModels) {
+        this.allowedParentContentModels = allowedParentContentModels;
+    }
+
+    public enum FixedContentModel {
+        LEVEL1("level1"),
+        LEVEL2("level2"),
+        DATA("data");
+        
+        private final String name;
+        
+        FixedContentModel(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+        
+    }
+
+    
 }

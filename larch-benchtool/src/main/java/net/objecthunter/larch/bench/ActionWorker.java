@@ -42,14 +42,14 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private final String permissionId;
+    private final String level2Id;
 
-    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String larchUri, String permissionId) {
+    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String larchUri, String level2Id) {
         this.action = action;
         this.size = size;
         this.larchClient = larchClient;
         this.larchUri = larchUri;
-        this.permissionId = permissionId;
+        this.level2Id = level2Id;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private BenchToolResult doDelete() throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(permissionId);
+        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
         final String entityId = this.larchClient.postEntity(e);
 
         /* add a binary */
@@ -88,7 +88,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private BenchToolResult doUpdate() throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(permissionId);
+        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
         final String entityId = this.larchClient.postEntity(e);
 
         /* add a binary */
@@ -111,7 +111,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private BenchToolResult doRetrieve() throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(permissionId);
+        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
         final String entityId = this.larchClient.postEntity(e);
 
         /* add a binary */
@@ -128,7 +128,7 @@ public class ActionWorker implements Callable<BenchToolResult> {
     }
 
     private BenchToolResult doIngest() throws IOException {
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(permissionId);
+        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
 
         long time = System.currentTimeMillis();
         /* create an entity */

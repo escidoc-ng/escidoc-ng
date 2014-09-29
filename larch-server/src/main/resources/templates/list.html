@@ -32,8 +32,8 @@
                 <tr th:each="record,iterStat : ${result.data}" th:class="${iterStat.odd}? 'odd'">
                     <td><a th:href="@{/entity/} + ${record.id}" th:text="${record.id}"></a></td>
                     <td th:text="${record.label}"></td>
-                    <td th:if="${#strings.isEmpty(record.type)}" th:text="'No Type'"></td>
-                    <td th:unless="${#strings.isEmpty(record.type)}" th:text="${record.type}"></td>
+                    <td th:if="${#strings.isEmpty(record.contentModelId)}" th:text="'No Content Model'"></td>
+                    <td th:unless="${#strings.isEmpty(record.contentModelId)}" th:text="${record.contentModelId}"></td>
                     <td th:text="${record.tags}"></td>
                     <td><input type="button" id="bDelete" value="Delete"
                                th:onclick="'javascript:deleteEntity(\'' + ${record.id} + '\');'"/>

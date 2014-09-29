@@ -189,7 +189,6 @@ public class AuthConfigurer {
     }
 
     public enum ObjectType {
-        WORKSPACE,
         ENTITY,
         USER,
         USER_REQUEST;

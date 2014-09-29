@@ -34,24 +34,24 @@ public class UserControllerIT extends AbstractLarchIT {
 
     @Test
     public void testDeleteRights() throws Exception {
-        //create areas + permissions
-        String areaId = createArea();
-        String areaId1 = createArea();
-        String permissionId = createPermission(areaId);
+        //create level1s + level2s
+        String level1Id = createLevel1();
+        String level1Id1 = createLevel1();
+        String level2Id = createLevel2(level1Id);
         
         // createUsers + roles
         String username = createUser(null, "ttestt");
         String username1 = createUser(null, "ttestt");
         String username2 = createUser(null, "ttestt");
-        createRoleForUser(username, new AreaAdminRole(), areaId);
-        createRoleForUser(username, new AreaAdminRole(), areaId1);
-        createRoleForUser(username, new UserRole(), permissionId);
-        createRoleForUser(username1, new UserRole(), permissionId);
-        createRoleForUser(username1, new AreaAdminRole(), areaId);
-        createRoleForUser(username2, new AreaAdminRole(), areaId1);
+        createRoleForUser(username, new AreaAdminRole(), level1Id);
+        createRoleForUser(username, new AreaAdminRole(), level1Id1);
+        createRoleForUser(username, new UserRole(), level2Id);
+        createRoleForUser(username1, new UserRole(), level2Id);
+        createRoleForUser(username1, new AreaAdminRole(), level1Id);
+        createRoleForUser(username2, new AreaAdminRole(), level1Id1);
         
         // delete area1
-        HttpResponse resp = this.executeAsAdmin(Request.Delete(entityUrl + areaId1));
+        HttpResponse resp = this.executeAsAdmin(Request.Delete(entityUrl + level1Id1));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         // check user rights
         resp = this.executeAsAdmin(Request.Get(userUrl + username));
@@ -62,8 +62,8 @@ public class UserControllerIT extends AbstractLarchIT {
         assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN));
         assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN).getRights());
         assertEquals(1, user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().size());
-        assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId));
-        assertEquals(2, user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId).size());
+        assertNotNull(user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(level1Id));
+        assertEquals(2, user.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(level1Id).size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username1));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -73,13 +73,13 @@ public class UserControllerIT extends AbstractLarchIT {
         assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN));
         assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights());
         assertEquals(1, user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().size());
-        assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId));
-        assertEquals(2, user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(areaId).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(level1Id));
+        assertEquals(2, user1.getRole(RoleName.ROLE_AREA_ADMIN).getRights().get(level1Id).size());
         assertNotNull(user1.getRole(RoleName.ROLE_USER));
         assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights());
         assertEquals(1, user1.getRole(RoleName.ROLE_USER).getRights().size());
-        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights().get(permissionId));
-        assertNotEquals(0, user1.getRole(RoleName.ROLE_USER).getRights().get(permissionId).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights().get(level2Id));
+        assertNotEquals(0, user1.getRole(RoleName.ROLE_USER).getRights().get(level2Id).size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username2));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -88,7 +88,7 @@ public class UserControllerIT extends AbstractLarchIT {
         assertEquals(0, user2.getRoles().size());
 
         // delete area
-        resp = this.executeAsAdmin(Request.Delete(entityUrl + areaId));
+        resp = this.executeAsAdmin(Request.Delete(entityUrl + level1Id));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         // check user rights
         resp = this.executeAsAdmin(Request.Get(userUrl + username));

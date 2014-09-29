@@ -61,7 +61,7 @@ public class AuditRecord {
 
     private String id;
 
-    private String workspaceId;
+    private String level2Id;
 
     private String entityId;
 
@@ -161,17 +161,17 @@ public class AuditRecord {
         this.timestamp = timestamp;
     }
 
-    public String getWorkspaceId() {
-        return workspaceId;
+    public String getLevel2Id() {
+        return level2Id;
     }
 
-    public void setWorkspaceId(String workspaceId) {
-        this.workspaceId = workspaceId;
+    public void setLevel2Id(String level2Id) {
+        this.level2Id = level2Id;
     }
 
     @Override
     public String toString() {
-        return "ID:" + this.id + ",WS: " + this.workspaceId + " TS:" + this.timestamp + ", EVENT:" + this.action +
+        return "ID:" + this.id + ",WS: " + this.level2Id + " TS:" + this.timestamp + ", EVENT:" + this.action +
                 ", ENTITY:" + this.entityId;
     }
 }

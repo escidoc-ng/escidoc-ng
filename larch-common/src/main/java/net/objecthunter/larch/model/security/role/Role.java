@@ -150,8 +150,8 @@ public abstract class Role {
         WRITE_SUBMITTED_BINARY,
         WRITE_PUBLISHED_BINARY,
         WRITE_WITHDRAWN_BINARY,
-        READ_PERMISSION,
-        WRITE_PERMISSION,
+        READ_LEVEL2,
+        WRITE_LEVEL2,
         READ,
         WRITE;
 

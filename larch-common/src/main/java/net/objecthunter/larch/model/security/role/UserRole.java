@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
@@ -20,8 +20,8 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
- * User-Role. Set READ or WRITE-Rights for a Permission (anchorId = permissionId). Rights READ_PERMISSION and
- * WRITE_PERMISSION enable Reading/Writing of the permission with the anchorId. The other Rights enable
+ * User-Role. Set READ or WRITE-Rights for a Permission (anchorId = level2Id). Rights READ_LEVEL2 and
+ * WRITE_LEVEL2 enable Reading/Writing of the permission with the anchorId. The other Rights enable
  * Reading/Writing Entities/Binaries of Entities<br>
  * in a certain state that are somewhere in the tree below the permission with the anchorId.
  * 
@@ -52,15 +52,15 @@ public class UserRole extends Role {
             add(RoleRight.WRITE_SUBMITTED_BINARY);
             add(RoleRight.WRITE_PUBLISHED_BINARY);
             add(RoleRight.WRITE_WITHDRAWN_BINARY);
-            add(RoleRight.READ_PERMISSION);
-            add(RoleRight.WRITE_PERMISSION);
+            add(RoleRight.READ_LEVEL2);
+            add(RoleRight.WRITE_LEVEL2);
         }
     };
 
     private List<PermissionAnchorType> allowedPermissionAnchors = new ArrayList<PermissionAnchorType>() {
 
         {
-            add(PermissionAnchorType.PERMISSION);
+            add(PermissionAnchorType.LEVEL2_ENTITY);
         }
     };
 
@@ -134,28 +134,28 @@ public class UserRole extends Role {
             return false;
         }
         Entity checkEntity = (Entity) checkObject;
-        if (entityHierarchy == null || entityHierarchy.getPermissionId() == null) {
+        if (entityHierarchy == null || entityHierarchy.getLevel2Id() == null) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getPermissionId()) ||
-                this.rights.get(entityHierarchy.getPermissionId()) == null) {
+        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getLevel2Id()) ||
+                this.rights.get(entityHierarchy.getLevel2Id()) == null) {
             return false;
         }
-        if (this.rights.get(entityHierarchy.getPermissionId()) == null) {
+        if (this.rights.get(entityHierarchy.getLevel2Id()) == null) {
             return false;
         }
-        if (EntityType.PERMISSION.equals(checkEntity.getType())) {
+        if (FixedContentModel.LEVEL2.getName().equals(checkEntity.getContentModelId())) {
             if (permission.permissionType().equals(PermissionType.READ)) {
-                if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.READ_PERMISSION)) {
+                if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(RoleRight.READ_LEVEL2)) {
                     return false;
                 }
             } else if (permission.permissionType().equals(PermissionType.WRITE)) {
-                if (!this.rights.get(entityHierarchy.getPermissionId()).contains(RoleRight.WRITE_PERMISSION)) {
+                if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(RoleRight.WRITE_LEVEL2)) {
                     return false;
                 }
             }
         } else {
-            if (!this.rights.get(entityHierarchy.getPermissionId()).contains(
+            if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(
                     validateMatrix.get("" + permission.permissionType() + checkEntity.getState() + objectType))) {
                 return false;
             }

@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.EntityHierarchy;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.PermissionType;
@@ -19,7 +19,7 @@ import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
  * AreaAdmin-Role.
- * Set READ or WRITE-Rights for an AREA.
+ * Set READ or WRITE-Rights for an LEVEL1_ENTITY.
  * 
  * @author mih
  *
@@ -41,7 +41,7 @@ public class AreaAdminRole extends Role {
     private List<PermissionAnchorType> allowedPermissionAnchors = new ArrayList<PermissionAnchorType>() {
 
         {
-            add(PermissionAnchorType.AREA);
+            add(PermissionAnchorType.LEVEL1_ENTITY);
         }
     };
 
@@ -81,24 +81,24 @@ public class AreaAdminRole extends Role {
             return false;
         }
         Entity checkEntity = (Entity) checkObject;
-        if (entityHierarchy == null || entityHierarchy.getAreaId() == null) {
+        if (entityHierarchy == null || entityHierarchy.getLevel1Id() == null) {
             return false;
         }
-        // Only do something with AREA or PERMISSION
-        if (!EntityType.AREA.equals(checkEntity.getType()) &&
-                !EntityType.PERMISSION.equals(checkEntity.getType())) {
+        // Only do something with LEVEL1_ENTITY or LEVEL2_ENTITY
+        if (!FixedContentModel.LEVEL1.getName().equals(checkEntity.getContentModelId()) &&
+                !FixedContentModel.LEVEL2.getName().equals(checkEntity.getContentModelId())) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getAreaId()) ||
-                this.rights.get(entityHierarchy.getAreaId()) == null) {
+        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getLevel1Id()) ||
+                this.rights.get(entityHierarchy.getLevel1Id()) == null) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.READ) &&
-                !this.rights.get(entityHierarchy.getAreaId()).contains(RoleRight.READ)) {
+                !this.rights.get(entityHierarchy.getLevel1Id()).contains(RoleRight.READ)) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.WRITE) &&
-                !this.rights.get(entityHierarchy.getAreaId()).contains(RoleRight.WRITE)) {
+                !this.rights.get(entityHierarchy.getLevel1Id()).contains(RoleRight.WRITE)) {
             return false;
         }
         return true;

@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -51,11 +51,11 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
 
     private static int methodCounter = 0;
 
-    private static int totalAreasCount = 0;
+    private static int totalLevel1sCount = 0;
 
-    private static int totalAreaPermissionCount = 0;
+    private static int totalLevel1Level2Count = 0;
 
-    private static int totalPermissionsCount = 0;
+    private static int totalLevel2sCount = 0;
 
     private static int totalPendingEntitiesCount = 0;
 
@@ -65,20 +65,20 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
 
     private static int totalWithdrawnEntitiesCount = 0;
 
-    private static int totalPermissionPendingEntitiesCount = 3;
+    private static int totalLevel2PendingEntitiesCount = 3;
 
-    private static int totalPermissionSubmittedEntitiesCount = 4;
+    private static int totalLevel2SubmittedEntitiesCount = 4;
 
-    private static int totalPermissionPublishedEntitiesCount = 2;
+    private static int totalLevel2PublishedEntitiesCount = 2;
 
-    private static int totalPermissionWithdrawnEntitiesCount = 1;
+    private static int totalLevel2WithdrawnEntitiesCount = 1;
 
     private static int totalUsersCount = 0;
 
     @Before
     public void initialize() throws Exception {
         if (methodCounter == 0) {
-            preparePermission();
+            prepareLevel2();
             prepareSearch();
             methodCounter++;
         }
@@ -91,10 +91,10 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearch() throws Exception {
-        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA";
+        String postParameters = "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&contentModel=data";
         String url = hostUrl + "search";
 
-        // user with no workspace rights
+        // user with no level2 rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
@@ -108,8 +108,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount +
-                totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount +
+                totalLevel2SubmittedEntitiesCount + totalLevel2WithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read submitted metadata rights
         response =
@@ -117,8 +117,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount +
-                totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount +
+                totalLevel2PendingEntitiesCount + totalLevel2WithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read published metadata rights
         response =
@@ -126,8 +126,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionSubmittedEntitiesCount +
-                totalPermissionPendingEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2SubmittedEntitiesCount +
+                totalLevel2PendingEntitiesCount + totalLevel2WithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read withdrawn metadata rights
         response =
@@ -135,8 +135,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount +
-                totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount +
+                totalLevel2PendingEntitiesCount + totalLevel2SubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
@@ -149,9 +149,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPermissionPublishedEntitiesCount +
-                        totalPermissionPendingEntitiesCount +
-                        totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount,
+                assertEquals(totalLevel2PublishedEntitiesCount +
+                        totalLevel2PendingEntitiesCount +
+                        totalLevel2SubmittedEntitiesCount + totalLevel2WithdrawnEntitiesCount,
                         getHitCount(response));
             }
         }
@@ -166,10 +166,10 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPublishedEntitiesCount + totalPermissionPublishedEntitiesCount + totalPendingEntitiesCount +
+        assertEquals(totalPublishedEntitiesCount + totalLevel2PublishedEntitiesCount + totalPendingEntitiesCount +
                 totalSubmittedEntitiesCount +
-                totalPermissionPendingEntitiesCount + totalPermissionSubmittedEntitiesCount +
-                totalWithdrawnEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+                totalLevel2PendingEntitiesCount + totalLevel2SubmittedEntitiesCount +
+                totalWithdrawnEntitiesCount + totalLevel2WithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -180,10 +180,10 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testSearchInPermission() throws Exception {
         String postParameters =
-                "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&type=DATA&permissionId=" +
-                        permissionId;
+                "state=PENDING&state=SUBMITTED&state=PUBLISHED&state=WITHDRAWN&contentModel=data&level2=" +
+                        level2Id;
         String url = hostUrl + "search";
-        // user with no workspace rights
+        // user with no level2 rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
@@ -197,8 +197,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionSubmittedEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount,
+        assertEquals(totalLevel2PublishedEntitiesCount + totalLevel2SubmittedEntitiesCount +
+                totalLevel2WithdrawnEntitiesCount,
                 getHitCount(response));
 
         // user with no read submitted metadata rights
@@ -207,8 +207,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_SUBMITTED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_SUBMITTED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount + totalLevel2PendingEntitiesCount +
+                totalLevel2WithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read published metadata rights
         response =
@@ -216,8 +216,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_PUBLISHED_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PUBLISHED_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionSubmittedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2SubmittedEntitiesCount + totalLevel2PendingEntitiesCount +
+                totalLevel2WithdrawnEntitiesCount, getHitCount(response));
 
         // user with no read withdrawn metadata rights
         response =
@@ -225,8 +225,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_WITHDRAWN_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_WITHDRAWN_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionSubmittedEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount + totalLevel2PendingEntitiesCount +
+                totalLevel2SubmittedEntitiesCount, getHitCount(response));
 
         // user with all read metadata rights
         for (Entry<MissingPermission, String[]> entry : userRoleUsernames.entrySet()) {
@@ -239,8 +239,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         this.executeAsUser(HttpMethod.POST, url, postParameters,
                                 entry.getValue()[0], entry.getValue()[1], false);
                 assertEquals(200, response.getStatusLine().getStatusCode());
-                assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                        totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount,
+                assertEquals(totalLevel2PublishedEntitiesCount + totalLevel2PendingEntitiesCount +
+                        totalLevel2SubmittedEntitiesCount + totalLevel2WithdrawnEntitiesCount,
                         getHitCount(response));
             }
         }
@@ -255,8 +255,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionPublishedEntitiesCount + totalPermissionPendingEntitiesCount +
-                totalPermissionSubmittedEntitiesCount + totalPermissionWithdrawnEntitiesCount, getHitCount(response));
+        assertEquals(totalLevel2PublishedEntitiesCount + totalLevel2PendingEntitiesCount +
+                totalLevel2SubmittedEntitiesCount + totalLevel2WithdrawnEntitiesCount, getHitCount(response));
     }
 
     /**
@@ -266,9 +266,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearchForPermissions() throws Exception {
-        String postParameters = "type=PERMISSION";
+        String postParameters = "contentModel=level2";
         String url = hostUrl + "search";
-        // user with no workspace rights
+        // user with no level2 rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
@@ -276,7 +276,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
 
-        // user with read workspace rights
+        // user with read level2 rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
@@ -287,16 +287,16 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalAreaPermissionCount + 1, getHitCount(response));
+        assertEquals(totalLevel1Level2Count + 1, getHitCount(response));
 
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -318,7 +318,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalPermissionsCount, getHitCount(response));
+        assertEquals(totalLevel2sCount, getHitCount(response));
     }
 
     /**
@@ -328,9 +328,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testSearchForAreas() throws Exception {
-        String postParameters = "type=AREA";
+        String postParameters = "contentModel=level1";
         String url = hostUrl + "search";
-        // user with no workspace rights
+        // user with no level2 rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
@@ -338,7 +338,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(0, getHitCount(response));
 
-        // user with read workspace rights
+        // user with read level2 rights
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
@@ -349,16 +349,16 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         assertEquals(1, getHitCount(response));
 
@@ -380,7 +380,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response =
                 this.executeAsUser(HttpMethod.POST, url, postParameters, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        assertEquals(totalAreasCount, getHitCount(response));
+        assertEquals(totalLevel1sCount, getHitCount(response));
     }
 
     /**
@@ -401,7 +401,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         assertNotNull(users);
         assertEquals(1, users.size());
 
-        // user with read workspace rights + area_admin rights
+        // user with read level2 rights + area_admin rights
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
@@ -414,8 +414,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + Fixtures.AREA_ID)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -424,8 +424,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         // area-admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null,
-                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], areaAdminRoleUsernames
-                                .get("ROLE_AREA_ADMIN" + areaId1)[1], false);
+                        areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + level1Id1)[0], areaAdminRoleUsernames
+                                .get("ROLE_AREA_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
         users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
         assertNotNull(users);
@@ -463,9 +463,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     private void prepareSearch() throws Exception {
         // get total hits
-        String dataPostParameters = "type=DATA&maxRecords=50";
-        String permissionPostParameters = "type=PERMISSION&maxRecords=50";
-        String areaPostParameters = "type=AREA&maxRecords=50";
+        String dataPostParameters = "contentModel=data&maxRecords=50";
+        String permissionPostParameters = "contentModel=level2&maxRecords=50";
+        String areaPostParameters = "contentModel=level1&maxRecords=50";
         String url = hostUrl + "search";
         HttpResponse response =
                 this.executeAsAdmin(Request.Post(url).bodyString(dataPostParameters,
@@ -500,9 +500,9 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters,
                 ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
-        totalPermissionsCount = (int) getHitCount(response);
+        totalLevel2sCount = (int) getHitCount(response);
         counter = 0;
-        while (counter <= totalPermissionsCount) {
+        while (counter <= totalLevel2sCount) {
             response = this.executeAsAdmin(Request.Post(url).bodyString(permissionPostParameters + "&offset=" + counter,
                     ContentType.APPLICATION_FORM_URLENCODED));
             counter += 50;
@@ -511,8 +511,8 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                     mapper.readValue(EntityUtils.toString(response.getEntity()), SearchResult.class);
             for (HashMap hit : (List<HashMap>) searchResult.getData()) {
                 if (hit.get(EntitiesSearchField.PARENT.getFieldName()) != null &&
-                        hit.get(EntitiesSearchField.PARENT.getFieldName()).equals(Fixtures.AREA_ID)) {
-                    totalAreaPermissionCount++;
+                        hit.get(EntitiesSearchField.PARENT.getFieldName()).equals(Fixtures.LEVEL1_ID)) {
+                    totalLevel1Level2Count++;
                 }
             }
         }
@@ -521,19 +521,19 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         response = this.executeAsAdmin(Request.Post(url).bodyString(areaPostParameters,
                 ContentType.APPLICATION_FORM_URLENCODED));
         assertEquals(200, response.getStatusLine().getStatusCode());
-        totalAreasCount = (int) getHitCount(response);
+        totalLevel1sCount = (int) getHitCount(response);
 
-        for (int i = 0; i < totalPermissionPendingEntitiesCount; i++) {
-            createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
+        for (int i = 0; i < totalLevel2PendingEntitiesCount; i++) {
+            createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
         }
-        for (int i = 0; i < totalPermissionSubmittedEntitiesCount; i++) {
-            createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
+        for (int i = 0; i < totalLevel2SubmittedEntitiesCount; i++) {
+            createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
         }
-        for (int i = 0; i < totalPermissionPublishedEntitiesCount; i++) {
-            createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        for (int i = 0; i < totalLevel2PublishedEntitiesCount; i++) {
+            createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
         }
-        for (int i = 0; i < totalPermissionWithdrawnEntitiesCount; i++) {
-            createEntity(EntityState.WITHDRAWN, EntityType.DATA, permissionId);
+        for (int i = 0; i < totalLevel2WithdrawnEntitiesCount; i++) {
+            createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id);
         }
 
         // get users

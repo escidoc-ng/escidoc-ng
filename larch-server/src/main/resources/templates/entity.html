@@ -13,7 +13,7 @@
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading" th:text="${entity.type.name}" />
+        <div class="heading" th:text="${entity.contentModelId}" />
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state.name != 'PUBLISHED'}" class="property" th:text="Actions" />
@@ -28,7 +28,7 @@
 
             <p class="property">Type</p>
 
-            <p class="value" th:text="${entity.type} ? ${entity.type} : 'No Type'"></p>
+            <p class="value" th:text="${entity.contentModelId} ? ${entity.contentModelId} : 'No Content Model'"></p>
 
             <p class="property">Parent</p>
 
@@ -184,13 +184,13 @@
                 });
 
                 </script>
-                <p th:if="${entity.type.name == 'AREA'}" class="panel_title">Create new Permission</p>
-                <p th:if="${entity.type.name == 'PERMISSION'}" class="panel_title">Create new Data</p>
-                <p th:if="${entity.type.name == 'DATA'}" class="panel_title">Create new Child</p>
+                <p th:if="${entity.contentModelId == 'level1'}" class="panel_title">Create new Level2</p>
+                <p th:if="${entity.contentModelId == 'level2'}" class="panel_title">Create new Data</p>
+                <p th:if="${entity.contentModelId == 'data'}" class="panel_title">Create new Child</p>
                 <input id="ceId" type="text" name="id"
                        title="Set the identifier of the entity or leave empty for a generated value"/>
-                <input th:if="${entity.type.name == 'AREA'}" id="ceType" type="hidden" name="type" th:value="PERMISSION"/>
-                <input th:if="${entity.type.name != 'AREA'}" id="ceType" type="hidden" name="type" th:value="DATA"/>
+                <input th:if="${entity.contentModelId == 'level1'}" id="ceType" type="hidden" name="type" th:value="PERMISSION"/>
+                <input th:if="${entity.contentModelId != 'level1'}" id="ceType" type="hidden" name="type" th:value="DATA"/>
                 <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
                 <input id="ceParentId" type="hidden" name="parentId" th:value="${entity.id}"/>
                 <input id="ceTags" type="text" name="tags"

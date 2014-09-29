@@ -42,12 +42,13 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.LarchConstants;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.EntityService;
+import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
@@ -92,6 +93,9 @@ public class DefaultEntityService implements EntityService {
     private BackendCredentialsService backendCredentialsService;
 
     @Autowired
+    private EntityValidatorService defaultEntityValidatorService;
+
+    @Autowired
     private ObjectMapper mapper;
 
     @Autowired
@@ -122,6 +126,8 @@ public class DefaultEntityService implements EntityService {
                         + " could not be created because it already exists in the index");
             }
         }
+        // validate
+        defaultEntityValidatorService.validate(e);
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
                 md.setUtcCreated(now);
@@ -198,6 +204,8 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void update(Entity e) throws IOException {
         final Entity oldVersion = retrieve(e.getId());
+        // check
+        checkNonUpdateableFields(e, oldVersion);
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         e.setVersionAndResetState(oldVersion.getVersion() + 1);
@@ -336,9 +344,6 @@ public class DefaultEntityService implements EntityService {
             switch (field.getKey()) {
             case "label":
                 e.setLabel(field.getValue().asText());
-                break;
-            case "type":
-                e.setType(EntityType.valueOf(field.getValue().asText()));
                 break;
             case "parentId":
                 final String parentId = field.getValue().asText();
@@ -520,18 +525,54 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset) throws IOException {
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset)
+            throws IOException {
         return backendEntityService.searchEntities(searchFields, offset);
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords) throws IOException {
+    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords)
+            throws IOException {
         return backendEntityService.searchEntities(searchFields, offset, maxRecords);
     }
 
     @Override
     public Entities getOldVersions(String id) throws IOException {
         return backendVersionService.getOldVersions(id);
+    }
+
+    /**
+     * checks non updateable Fields.
+     * 
+     * @param newVersion newVersion of Entity
+     * @param oldVersion oldVersion of Entity
+     * @throws IOException
+     */
+    private void checkNonUpdateableFields(Entity newVersion, Entity oldVersion) throws IOException {
+        if (!newVersion.getContentModelId().equals(oldVersion.getContentModelId())) {
+            throw new IOException("entity may not be moved to different content-model");
+        }
+        if (StringUtils.isBlank(newVersion.getParentId()) && StringUtils.isBlank(oldVersion.getParentId())) {
+            return;
+        }
+        if (StringUtils.isNotBlank(newVersion.getParentId()) && StringUtils.isNotBlank(oldVersion.getParentId())) {
+            EntityHierarchy oldHierarchy = this.backendEntityService.getHierarchy(oldVersion.getParentId());
+            EntityHierarchy newHierarchy = this.backendEntityService.getHierarchy(newVersion.getParentId());
+            if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
+                throw new IOException("entity may not be moved to different level1");
+            }
+            if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
+                return;
+            }
+            if ((StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isNotBlank(newHierarchy
+                    .getLevel2Id())) ||
+                    (StringUtils.isNotBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy
+                            .getLevel2Id())) || !oldHierarchy.getLevel2Id().equals(newHierarchy.getLevel2Id())) {
+                throw new IOException("entity may not be moved to different level2");
+            }
+        } else {
+            throw new IOException("parentId may not get changed from/to null");
+        }
     }
 
     /**
@@ -606,7 +647,7 @@ public class DefaultEntityService implements EntityService {
 
         // delete entity
         this.backendEntityService.delete(id);
-        
+
         // delete rights having this entity as anchorId
         this.backendCredentialsService.deleteRights(id);
     }
