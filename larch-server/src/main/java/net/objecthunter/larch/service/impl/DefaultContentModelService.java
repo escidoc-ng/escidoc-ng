@@ -22,6 +22,7 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.service.ContentModelService;
 import net.objecthunter.larch.service.backend.BackendContentModelService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -31,13 +32,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * The default implementation of {@link net.objecthunter.larch.service.ContentModelService} responsible for perofrming CRUD
- * operations of {@link net.objecthunter.larch.model.ContentModel} objects
+ * The default implementation of {@link net.objecthunter.larch.service.ContentModelService} responsible for perofrming
+ * CRUD operations of {@link net.objecthunter.larch.model.ContentModel} objects
  */
 public class DefaultContentModelService implements ContentModelService {
 
@@ -58,6 +56,13 @@ public class DefaultContentModelService implements ContentModelService {
                 throw new AlreadyExistsException("ContentModel with id " + c.getId()
                         + " could not be created because it already exists in the index");
             }
+        }
+        if (c.getAllowedParentContentModels() == null || c.getAllowedParentContentModels().isEmpty()) {
+            throw new InvalidParameterException("AllowedParentContentModels may not be empty");
+        }
+        if (c.getAllowedParentContentModels().contains("") ||
+                c.getAllowedParentContentModels().contains(FixedContentModel.LEVEL1)) {
+            throw new InvalidParameterException("AllowedParentContentModels may not contain level1 or empty string");
         }
         final String id = this.backendContentModelService.create(c);
         log.debug("finished creating ContentModel {}", id);
@@ -81,8 +86,9 @@ public class DefaultContentModelService implements ContentModelService {
 
     @Override
     public void delete(String id) throws IOException {
-        //check if content-model is used by any entity
-        SearchResult searchResult = backendEntityService.searchEntities(EntitiesSearchField.CONTENT_MODEL + ":" + id, 0);
+        // check if content-model is used by any entity
+        SearchResult searchResult =
+                backendEntityService.searchEntities(EntitiesSearchField.CONTENT_MODEL + ":" + id, 0);
         if (searchResult.getHits() > 0) {
             throw new InvalidParameterException("ContentModel " + id + " is used by entities");
         }

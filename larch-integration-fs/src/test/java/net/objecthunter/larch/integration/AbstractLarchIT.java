@@ -33,6 +33,7 @@ import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
+import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
@@ -77,6 +78,8 @@ public abstract class AbstractLarchIT {
     protected static final String entityUrl = hostUrl + "entity/";
 
     protected static final String userUrl = hostUrl + "user/";
+
+    protected static final String contentModelUrl = hostUrl + "content-model/";
 
     protected static final String confirmUrl = hostUrl + "confirm/";
 
@@ -146,6 +149,17 @@ public abstract class AbstractLarchIT {
         assertNotNull(level2Id);
         assertEquals(level2.getId(), level2Id);
         return level2Id;
+    }
+
+    protected String createContentModel() throws IOException {
+        ContentModel contentModel = Fixtures.createContentModel();
+        HttpResponse resp = this.executeAsAdmin(Request.Post(contentModelUrl)
+                .bodyString(this.mapper.writeValueAsString(contentModel), ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        String contentModelId = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertNotNull(contentModelId);
+        return contentModelId;
     }
 
     protected String createUser(String name, String password) throws IOException {

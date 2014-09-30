@@ -54,24 +54,6 @@ public class ContentModelController extends AbstractLarchController {
     private ObjectMapper mapper;
 
     /**
-     * Controller method for retrieval of a JSON representation of the current version of an
-     * {@link net.objecthunter .larch.model.Entity}
-     * 
-     * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @return An Entity object which gets transformed into a JSON response by Spring MVC
-     * @throws IOException
-     */
-    @RequestMapping("/{id}")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuth(permissions = {
-        @Permission(rolename = RoleName.ROLE_ADMIN),
-        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN) })
-    public ContentModel retrieve(@PathVariable("id") final String id) throws IOException {
-        return contentModelService.retrieve(id);
-    }
-
-    /**
      * Controller method for creation of a new {@link net.objecthunter.larch.model.Entity} using a HTTP POST with the
      * JSON representation of the entity as the request body
      * 
@@ -91,6 +73,24 @@ public class ContentModelController extends AbstractLarchController {
         final String id = this.contentModelService.create(c);
         this.messagingService.publishCreateEntity(id);
         return id;
+    }
+
+    /**
+     * Controller method for retrieval of a JSON representation of the current version of an
+     * {@link net.objecthunter .larch.model.Entity}
+     * 
+     * @param id the {@link net.objecthunter.larch.model.Entity}'s id
+     * @return An Entity object which gets transformed into a JSON response by Spring MVC
+     * @throws IOException
+     */
+    @RequestMapping("/{id}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuth(permissions = {
+        @Permission(rolename = RoleName.ROLE_ADMIN),
+        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN) })
+    public ContentModel retrieve(@PathVariable("id") final String id) throws IOException {
+        return contentModelService.retrieve(id);
     }
 
     /**

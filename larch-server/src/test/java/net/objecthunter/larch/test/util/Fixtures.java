@@ -16,12 +16,14 @@
 
 package net.objecthunter.larch.test.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
@@ -58,10 +60,23 @@ public abstract class Fixtures {
     public static Entity createLevel2(String level1Id) {
         Entity e = new Entity();
         e.setId(RandomStringUtils.randomAlphanumeric(16));
-        e.setLabel("Test permission");
+        e.setLabel("Test level2");
         e.setContentModelId(FixedContentModel.LEVEL2.getName());
         e.setParentId(level1Id);
         return e;
+    }
+
+    public static ContentModel createContentModel() {
+        ContentModel contentModel = new ContentModel();
+        contentModel.setName("test");
+        contentModel.setAllowedParentContentModels(new ArrayList<String>() {
+
+            {
+                add(FixedContentModel.LEVEL2.getName());
+                add(FixedContentModel.DATA.getName());
+            }
+        });
+        return contentModel;
     }
 
     public static Entity createEntity() {
