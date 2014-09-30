@@ -14,7 +14,7 @@
  * limitations under the License. 
  */
 
-package net.objecthunter.larch.service.backend;
+package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,7 +29,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleRight;
 /**
  * Service definition for the AuthZ/AuthN service
  */
-public interface BackendCredentialsService {
+public interface CredentialsService {
 
     /**
      * Create a new User in the repository
@@ -93,9 +93,9 @@ public interface BackendCredentialsService {
     User retrieveUser(String name) throws IOException;
 
     /**
-     * Retrieve a SearchResult containing a list of {@link net.objecthunter.larch.model.security.User}s existing in the repository
+     * Retrieve a SearchResult of {@link net.objecthunter.larch.model.security.User}s existing in the repository
      * 
-     * @return a SearchResult containing list of {@link net.objecthunter.larch.model.security.User} objects
+     * @return a SearchResult containing a list of {@link net.objecthunter.larch.model.security.User} objects
      * @throws IOException
      */
     SearchResult searchUsers(String query, int offset, int maxRecords) throws IOException;
@@ -124,28 +124,5 @@ public interface BackendCredentialsService {
      * @param token the token value of the {@link net.objecthunter.larch.model.security.UserRequest}
      */
     void deleteUserRequest(String token) throws IOException;
-
-    /**
-     * Check if a user name is already existing in the index
-     * 
-     * @param name the name to check
-     * @return true if the user does exist, otherwise false
-     */
-    boolean isExistingUser(String name) throws IOException;
-
-    /**
-     * Add default rights to the users roles
-     * 
-     * @param user the user
-     * @return User the user with added default roles
-     */
-    User addDefaultRights(User user);
-
-    /**
-     * Delete all rights for given anchorId
-     * 
-     * @throws IOException
-     */
-    void deleteRights(String anchorId) throws IOException;
 
 }

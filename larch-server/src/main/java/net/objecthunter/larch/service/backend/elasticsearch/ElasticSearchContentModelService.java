@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import javax.annotation.PostConstruct;
 
+import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
@@ -80,6 +81,29 @@ public class ElasticSearchContentModelService extends AbstractElasticSearchServi
     }
 
     @Override
+    public String create(ContentModel c) throws IOException {
+        log.debug("creating new content-model");
+        if (c.getId() != null) {
+            final GetResponse resp =
+                    client.prepareGet(INDEX_CONTENT_MODELS, TYPE_CONTENT_MODELS, c.getId()).execute().actionGet();
+            if (resp.isExists()) {
+                throw new AlreadyExistsException("ContentModel with id " + c.getId() + " already exists");
+            }
+        }
+
+        try {
+            client
+                    .prepareIndex(INDEX_CONTENT_MODELS, TYPE_CONTENT_MODELS, c.getId()).setSource(
+                            mapper.writeValueAsBytes(c))
+                    .execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        refreshIndex(INDEX_CONTENT_MODELS);
+        return c.getId();
+    }
+
+    @Override
     public ContentModel retrieve(String contentModelId) throws IOException {
         log.debug("fetching ContentModel " + contentModelId);
         final GetResponse resp;
@@ -92,6 +116,33 @@ public class ElasticSearchContentModelService extends AbstractElasticSearchServi
             throw new NotFoundException("ContentModel with id " + contentModelId + " not found");
         }
         return mapper.readValue(resp.getSourceAsBytes(), ContentModel.class);
+    }
+
+    @Override
+    public void delete(String id) throws IOException {
+        log.debug("deleting content-model " + id);
+        final GetResponse resp;
+        try {
+            resp = client.prepareGet(INDEX_CONTENT_MODELS, TYPE_CONTENT_MODELS, id).execute().actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+        final ContentModel c = this.mapper.readValue(resp.getSourceAsBytes(), ContentModel.class);
+        try {
+            client.prepareDelete(INDEX_CONTENT_MODELS, TYPE_CONTENT_MODELS, id).execute().actionGet();
+            refreshIndex(INDEX_CONTENT_MODELS);
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+    }
+
+    @Override
+    public boolean exists(String id) throws IOException {
+        try {
+            return client.prepareGet(INDEX_CONTENT_MODELS, TYPE_CONTENT_MODELS, id).execute().actionGet().isExists();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
     }
 
 }

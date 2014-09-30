@@ -17,19 +17,11 @@
 package net.objecthunter.larch.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.servlet.http.HttpServletRequest;
 
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.service.CredentialsService;
 import net.objecthunter.larch.service.EntityService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -50,6 +42,9 @@ public class SearchController extends AbstractLarchController {
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private CredentialsService credentialsService;
 
     /**
      * Controller method for displaying a HTML search form
@@ -81,7 +76,7 @@ public class SearchController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchMatchFields(@RequestParam(
-            value = "query") final String query, @RequestParam(
+            value = "query", defaultValue = "*:*") final String query, @RequestParam(
             value = "offset", defaultValue = "0") final int offset, @RequestParam(
             value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         if (maxRecords > -1) {
@@ -107,7 +102,7 @@ public class SearchController extends AbstractLarchController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView searchMatchFieldsHtml(@RequestParam(
-            value = "query") final String query, @RequestParam(
+            value = "query", defaultValue = "*:*") final String query, @RequestParam(
             value = "offset", defaultValue = "0") final int offset, @RequestParam(
             value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         final ModelMap model = new ModelMap();
@@ -116,35 +111,24 @@ public class SearchController extends AbstractLarchController {
     }
 
     /**
-     * Fill all Parameters that are search-fields into a Map.
+     * Controller method for searching {@link net.objecthunter.larch.model.security.User}s in the repository using an HTTP
+     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
+     * can contain a parameter query and 2 parameters offset and maxRecords.<br>
+     * offset: hit-number to start searchresult-list with.<br>
+     * maxRecords: maximum number of records to return with searchresult-list.<br>
      * 
-     * @param request HttpServletRequest
-     * @return Map<EntitiesSearchField, String[]> key: searchField, value: searchStrings (Words)
+     * @param request The request with all parameters.
+     * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
+     *         {@link net.objecthunter.larch .model.User}s as s JSON representation
      */
-    private Map<EntitiesSearchField, String[]> fillSearchFields(HttpServletRequest request) {
-        Map<EntitiesSearchField, String[]> queryMap = new HashMap<EntitiesSearchField, String[]>();
-        Map<String, String[]> parameters = request.getParameterMap();
-        for (Entry<String, String[]> parameter : parameters.entrySet()) {
-            EntitiesSearchField entitiesSearchField = EntitiesSearchField.getWithRequestParameter(parameter.getKey());
-            if (entitiesSearchField != null) {
-                List<String> values = new ArrayList<String>();
-                if (parameter.getValue() != null && parameter.getValue().length > 0) {
-                    for (int i = 0; i < parameter.getValue().length; i++) {
-                        if (StringUtils.isNotBlank(parameter.getValue()[i])) {
-                            String[] words = parameter.getValue()[i].split("\\s");
-                            for (int j = 0; j < words.length; j++) {
-                                if (StringUtils.isNotBlank(words[j])) {
-                                    values.add(words[j]);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (!values.isEmpty()) {
-                    queryMap.put(entitiesSearchField, values.toArray(new String[values.size()]));
-                }
-            }
-        }
-        return queryMap;
+    @RequestMapping(value="/users", produces = { "application/json" })
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public SearchResult searchUsers(@RequestParam(
+            value = "query", defaultValue = "*:*") final String query, @RequestParam(
+            value = "offset", defaultValue = "0") final int offset, @RequestParam(
+            value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
+        return credentialsService.searchUsers(query, offset, maxRecords);
     }
+
 }

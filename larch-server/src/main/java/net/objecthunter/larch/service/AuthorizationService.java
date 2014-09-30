@@ -22,6 +22,7 @@ import java.util.List;
 
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 public interface AuthorizationService {
@@ -70,5 +71,12 @@ public interface AuthorizationService {
      * @return Entity or null
      */
     Entity getObject(final int idIndex, final ObjectType objectType, final Object[] args);
+    
+    /**
+     * Get currently logged in User or null if no user is logged in.
+     * 
+     * @return User logged in user
+     */
+    User getCurrentUser();
     
 }

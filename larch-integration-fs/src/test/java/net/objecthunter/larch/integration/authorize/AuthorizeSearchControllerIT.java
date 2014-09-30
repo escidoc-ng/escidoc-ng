@@ -388,16 +388,14 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
      */
     @Test
     public void testListUsers() throws Exception {
-        String url = hostUrl + "user";
+        String url = hostUrl + "/search/users";
         // user with no rights
         HttpResponse response =
                 this.executeAsUser(HttpMethod.GET, url, null,
                         userRoleUsernames.get(MissingPermission.ALL)[0], userRoleUsernames
                                 .get(MissingPermission.ALL)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        List<User> users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(1, users.size());
+        assertEquals(1, getHitCount(response));
 
         // user with read level2 rights + level1_admin rights
         response =
@@ -405,9 +403,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userRoleUsernames.get(MissingPermission.READ_PENDING_METADATA)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_METADATA)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(totalUsersCount, users.size());
+        assertEquals(totalUsersCount, getHitCount(response));
 
         // level1-admin
         response =
@@ -415,9 +411,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(totalUsersCount, users.size());
+        assertEquals(totalUsersCount, getHitCount(response));
 
         // level1-admin
         response =
@@ -425,9 +419,7 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(totalUsersCount, users.size());
+        assertEquals(totalUsersCount, getHitCount(response));
 
         // user-admin
         response =
@@ -435,25 +427,19 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
                         userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames.get("ROLE_USER_ADMIN")[1],
                         false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(totalUsersCount, users.size());
+        assertEquals(totalUsersCount, getHitCount(response));
 
         // anonymous
         response =
                 this.executeAsAnonymous(HttpMethod.GET, url, null, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(0, users.size());
+        assertEquals(0, getHitCount(response));
 
         // admin
         response =
                 this.executeAsUser(HttpMethod.GET, url, null, adminUsername, adminPassword, false);
         assertEquals(200, response.getStatusLine().getStatusCode());
-        users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-        assertNotNull(users);
-        assertEquals(totalUsersCount, users.size());
+        assertEquals(totalUsersCount, getHitCount(response));
     }
 
     /**
@@ -530,13 +516,11 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         }
 
         // get users
-        response = this.executeAsAdmin(Request.Get(hostUrl + "user"));
+        String usersUrl = hostUrl + "search/users";
+        response =
+                this.executeAsAdmin(Request.Get(usersUrl));
         assertEquals(200, response.getStatusLine().getStatusCode());
-        List<User> users = mapper.readValue(response.getEntity().getContent(), new TypeReference<List<User>>() {});
-
-        if (users != null) {
-            totalUsersCount = users.size();
-        }
+        totalUsersCount = (int)getHitCount(response);
 
     }
 

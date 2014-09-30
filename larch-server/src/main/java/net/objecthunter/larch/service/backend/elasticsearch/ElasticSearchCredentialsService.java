@@ -32,6 +32,7 @@ import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -450,10 +451,13 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public List<User> retrieveUsers() throws IOException {
+    public SearchResult searchUsers(String query, int offset, int maxRecords) throws IOException {
+        final long time = System.currentTimeMillis();
         final SearchResponse resp;
-        StringBuilder queryBuilder = new StringBuilder("(").append(getUsersUserRestrictionQuery()).append(")");
-        QueryStringQueryBuilder builder = QueryBuilders.queryString(queryBuilder.toString());
+        if (StringUtils.isBlank(query)) {
+            query = "*:*";
+        }
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(query);
         try {
             resp =
                     this.client.prepareSearch(INDEX_USERS).setQuery(builder).execute()
@@ -461,11 +465,24 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        final List<User> users = new ArrayList<>(resp.getHits().getHits().length);
-        for (SearchHit hit : resp.getHits()) {
+
+        final SearchResult result = new SearchResult();
+
+        final List<User> users = new ArrayList<>();
+        for (final SearchHit hit : resp.getHits()) {
             users.add(mapper.readValue(hit.getSourceAsString(), User.class));
         }
-        return users;
+        result.setData(users);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setMaxRecords(maxRecords);
+        result.setHits(users.size());
+        result.setNumRecords(users.size());
+        result.setTerm(new String(builder.buildAsBytes().toBytes()));
+        result.setOffset(offset);
+        result.setNextOffset(offset + maxRecords);
+        result.setPrevOffset(Math.max(offset - maxRecords, 0));
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
     }
 
     @Override

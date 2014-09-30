@@ -100,13 +100,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveUsers() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "user")
-                .build());
-    }
-
-    @Test
     public void testCreateUserRequest() throws Exception {
         // TODO
     }
@@ -140,14 +133,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                         username, userPassword, true);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
-    }
-
-    @Test
-    public void testRetrieveCredentials() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "credentials")
-                .html(true)
-                .build());
     }
 
     @Test

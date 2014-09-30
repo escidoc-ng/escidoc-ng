@@ -28,7 +28,7 @@ import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
-import net.objecthunter.larch.service.backend.BackendCredentialsService;
+import net.objecthunter.larch.service.CredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class UserController extends AbstractLarchController {
 
     @Autowired
-    private BackendCredentialsService backendCredentialsService;
+    private CredentialsService credentialsService;
 
     /**
      * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
@@ -58,7 +58,7 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String confirmUserRequest(@PathVariable("token") final String token) throws IOException {
-        this.backendCredentialsService.retrieveUserRequest(token);
+        this.credentialsService.retrieveUserRequest(token);
         return token;
     }
 
@@ -82,7 +82,7 @@ public class UserController extends AbstractLarchController {
     public void confirmUserRequest(@PathVariable("token") final String token,
             @RequestParam("password") final String password,
             @RequestParam("passwordRepeat") final String passwordRepeat) throws IOException {
-        this.backendCredentialsService.createUser(token, password, passwordRepeat);
+        this.credentialsService.createUser(token, password, passwordRepeat);
     }
 
     /**
@@ -94,7 +94,7 @@ public class UserController extends AbstractLarchController {
     public ModelAndView confirmUserRequestHtml(@PathVariable("token") final String token,
             @RequestParam("password") final String password,
             @RequestParam("passwordRepeat") final String passwordRepeat) throws IOException {
-        final User u = this.backendCredentialsService.createUser(token, password, passwordRepeat);
+        final User u = this.credentialsService.createUser(token, password, passwordRepeat);
         return success("The user " + u.getName() + " has been created.");
     }
 
@@ -107,21 +107,7 @@ public class UserController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.WRITE) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
-        this.backendCredentialsService.deleteUser(name);
-    }
-
-    /**
-     * Controller method for retrieving a List of existing {@link net.objecthunter.larch.model.security.User}s in the
-     * repository as a JSON representation
-     * 
-     * @return A JSON representation of the user list
-     * @throws IOException
-     */
-    @RequestMapping(value = "/user", method = RequestMethod.GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public List<User> retrieveUsers() throws IOException {
-        return backendCredentialsService.retrieveUsers();
+        this.credentialsService.deleteUser(name);
     }
 
     /**
@@ -146,7 +132,7 @@ public class UserController extends AbstractLarchController {
         u.setFirstName(firstName);
         u.setLastName(lastName);
         u.setEmail(email);
-        UserRequest request = this.backendCredentialsService.createNewUserRequest(u);
+        UserRequest request = this.credentialsService.createNewUserRequest(u);
         return request.getToken();
     }
 
@@ -187,7 +173,7 @@ public class UserController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
-        return backendCredentialsService.retrieveUser(name);
+        return credentialsService.retrieveUser(name);
     }
 
     /**
@@ -208,25 +194,9 @@ public class UserController extends AbstractLarchController {
     public
             ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("user", backendCredentialsService.retrieveUser(name));
+        model.addAttribute("user", credentialsService.retrieveUser(name));
         model.addAttribute("roles", retrieveRoles());
         return new ModelAndView("user", model);
-    }
-
-    /**
-     * Controller method for retrieving a HTML view via HTTP GET of all Users and Groups in the repository
-     * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used for rendering the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/credentials", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveCredentials() throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
-        model.addAttribute("roles", retrieveRoles());
-        return new ModelAndView("credentials", model);
     }
 
     /**
@@ -255,11 +225,11 @@ public class UserController extends AbstractLarchController {
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email) throws IOException {
-        final User u = this.backendCredentialsService.retrieveUser(username);
+        final User u = this.credentialsService.retrieveUser(username);
         u.setLastName(lastName);
         u.setFirstName(firstName);
         u.setEmail(email);
-        this.backendCredentialsService.updateUser(u);
+        this.credentialsService.updateUser(u);
         return success("The user " + username + " has been updated");
     }
 

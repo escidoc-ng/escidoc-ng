@@ -33,6 +33,7 @@ import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
@@ -237,13 +238,16 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Override
     public SearchResult searchEntities(String query, int offset, int maxRecords)
             throws IOException {
-        StringBuilder queryBuilder = new StringBuilder("(").append(query).append(") AND ").append(getEntitesUserRestrictionQuery());
-        QueryStringQueryBuilder builder = QueryBuilders.queryString(queryBuilder.toString());
-
         final long time = System.currentTimeMillis();
         final ActionFuture<RefreshResponse> refresh =
                 this.client.admin().indices().refresh(new RefreshRequest(ElasticSearchEntityService.INDEX_ENTITIES));
         final SearchResponse resp;
+
+        if (StringUtils.isBlank(query)) {
+            query = "*:*";
+        }
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(query);
+
         try {
             refresh.actionGet();
 

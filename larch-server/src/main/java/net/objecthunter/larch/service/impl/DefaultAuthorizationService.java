@@ -123,12 +123,8 @@ public class DefaultAuthorizationService implements AuthorizationService {
         return null;
     }
 
-    /**
-     * Get currently logged in User or null if no user is logged in.
-     * 
-     * @return User logged in user
-     */
-    private User getCurrentUser() {
+    @Override
+    public User getCurrentUser() {
         if (SecurityContextHolder.getContext() == null ||
                 SecurityContextHolder.getContext().getAuthentication() == null ||
                 SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ||

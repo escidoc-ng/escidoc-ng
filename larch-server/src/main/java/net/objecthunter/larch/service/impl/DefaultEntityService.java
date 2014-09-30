@@ -46,7 +46,10 @@ import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.LarchConstants;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.source.UrlSource;
+import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
@@ -57,6 +60,8 @@ import net.objecthunter.larch.service.backend.BackendEntityService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
+import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
+import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +105,9 @@ public class DefaultEntityService implements EntityService {
 
     @Autowired
     private ExportService exportService;
+
+    @Autowired
+    private AuthorizationService defaultAuthorizationService;
 
     @Autowired
     private BackendSchemaService backendSchemaService;
@@ -527,18 +535,58 @@ public class DefaultEntityService implements EntityService {
     @Override
     public SearchResult searchEntities(String query, int offset)
             throws IOException {
-        return backendEntityService.searchEntities(query, offset);
+        // add user restriction
+        StringBuilder queryBuilder = new StringBuilder("");
+        if (StringUtils.isNotBlank(query)) {
+            queryBuilder.append("(").append(query).append(") AND ");
+        }
+        queryBuilder.append(getEntitesUserRestrictionQuery());
+        return backendEntityService.searchEntities(queryBuilder.toString(), offset);
     }
 
     @Override
     public SearchResult searchEntities(String query, int offset, int maxRecords)
             throws IOException {
-        return backendEntityService.searchEntities(query, offset, maxRecords);
+        // add user restriction
+        StringBuilder queryBuilder = new StringBuilder("");
+        if (StringUtils.isNotBlank(query)) {
+            queryBuilder.append("(").append(query).append(") AND ");
+        }
+        queryBuilder.append(getEntitesUserRestrictionQuery());
+        return backendEntityService.searchEntities(queryBuilder.toString(), offset, maxRecords);
     }
 
     @Override
     public Entities getOldVersions(String id) throws IOException {
         return backendVersionService.getOldVersions(id);
+    }
+
+    /**
+     * Get Query that restricts a search to entities the user may see.
+     * 
+     * @return QueryBuilder with user-restriction query
+     */
+    private String getEntitesUserRestrictionQuery() throws IOException {
+        User currentUser = defaultAuthorizationService.getCurrentUser();
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        if (currentUser == null || currentUser.getRoles() == null || currentUser.getRoles().isEmpty()) {
+            // restrict to nothing
+            restrictionQueryBuilder.append(EntitiesSearchField.STATE.getFieldName()).append(":NONEXISTING");
+            restrictionQueryBuilder.append(")");
+            return restrictionQueryBuilder.toString();
+        } else {
+            int counter = 0;
+            for (Role role : currentUser.getRoles()) {
+                if (counter > 0) {
+                    restrictionQueryBuilder.append(" OR ");
+                }
+                RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
+                restrictionQueryBuilder.append(roleQueryRestriction.getEntitiesRestrictionQuery());
+                counter++;
+            }
+        }
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
     /**

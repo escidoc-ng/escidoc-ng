@@ -24,6 +24,8 @@ import javax.jms.Queue;
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
 import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
 import net.objecthunter.larch.service.AuthorizationService;
+import net.objecthunter.larch.service.ContentModelService;
+import net.objecthunter.larch.service.CredentialsService;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
@@ -48,6 +50,8 @@ import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
 import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
+import net.objecthunter.larch.service.impl.DefaultContentModelService;
+import net.objecthunter.larch.service.impl.DefaultCredentialsService;
 import net.objecthunter.larch.service.impl.DefaultEntityService;
 import net.objecthunter.larch.service.impl.DefaultEntityValidatorService;
 import net.objecthunter.larch.service.impl.DefaultExportService;
@@ -120,8 +124,28 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.impl.DefaultEntityService} implementation
      */
     @Bean
-    public EntityService defaultEntityService() {
+    public EntityService entityService() {
         return new DefaultEntityService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.impl.DefaultContentModelService} Spring bean
+     *
+     * @return the {@link net.objecthunter.larch.service.impl.DefaultContentModelService} implementation
+     */
+    @Bean
+    public ContentModelService contentModelService() {
+        return new DefaultContentModelService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.impl.DefaultCredentialsService} Spring bean
+     *
+     * @return the {@link net.objecthunter.larch.service.impl.DefaultCredentialsService} implementation
+     */
+    @Bean
+    public CredentialsService credentialsService() {
+        return new DefaultCredentialsService();
     }
 
     /**
@@ -130,7 +154,7 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.impl.DefaultSchemaService} implementation
      */
     @Bean
-    public SchemaService defaultSchemaService() {
+    public SchemaService schemaService() {
         return new DefaultSchemaService();
     }
 
@@ -140,7 +164,7 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.impl.DefaultRepositoryService} implementation
      */
     @Bean
-    public RepositoryService defaultRepositoryService() {
+    public RepositoryService repositoryService() {
         return new DefaultRepositoryService();
     }
 
@@ -165,7 +189,7 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.impl.DefaultEntityValidatorService} implementation
      */
     @Bean
-    public EntityValidatorService defaultEntityValidatorService() {
+    public EntityValidatorService entityValidatorService() {
         return new DefaultEntityValidatorService();
     }
 
