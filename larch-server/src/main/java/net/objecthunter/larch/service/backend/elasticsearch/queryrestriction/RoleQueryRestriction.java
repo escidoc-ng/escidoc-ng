@@ -30,15 +30,15 @@ public abstract class RoleQueryRestriction {
     /**
      * Generate a Restriction-Query for a search for entities
      * 
-     * @return QueryBuilder QueryBuilder with restriction-Query
+     * @return String with restriction-Query
      */
-    public abstract QueryBuilder getEntitiesRestrictionQuery();
+    public abstract String getEntitiesRestrictionQuery();
 
     /**
      * Generate a Restriction-Query for a search for users
      * 
-     * @return QueryBuilder QueryBuilder with restriction-Query
+     * @return String with restriction-Query
      */
-    public abstract QueryBuilder getUsersRestrictionQuery();
+    public abstract String getUsersRestrictionQuery();
 
 }

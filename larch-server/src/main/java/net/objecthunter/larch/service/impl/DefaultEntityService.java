@@ -525,15 +525,15 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset)
+    public SearchResult searchEntities(String query, int offset)
             throws IOException {
-        return backendEntityService.searchEntities(searchFields, offset);
+        return backendEntityService.searchEntities(query, offset);
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords)
+    public SearchResult searchEntities(String query, int offset, int maxRecords)
             throws IOException {
-        return backendEntityService.searchEntities(searchFields, offset, maxRecords);
+        return backendEntityService.searchEntities(query, offset, maxRecords);
     }
 
     @Override

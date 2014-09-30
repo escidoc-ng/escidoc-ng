@@ -27,18 +27,19 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     @Override
-    public QueryBuilder getEntitiesRestrictionQuery() {
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        //restrict to nothing
-        restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
-        return restrictionQueryBuilder;
+    public String getEntitiesRestrictionQuery() {
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        // restrict to nothing
+        restrictionQueryBuilder.append(EntitiesSearchField.STATE.getFieldName()).append(":NONEXISTING");
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
     @Override
-    public QueryBuilder getUsersRestrictionQuery() {
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        //restrict to nothing
-        restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
+    public String getUsersRestrictionQuery() {
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        // restrict to nothing
+        restrictionQueryBuilder.append("name:NONEXISTING");
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
@@ -47,16 +48,16 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
                         if (StringUtils.isNotBlank(rightSet.getKey())) {
-                            restrictionQueryBuilder.should(QueryBuilders.termQuery("name",
-                                    rightSet.getKey()));
+                            restrictionQueryBuilder.append(" OR name:").append(rightSet.getKey());
                         } else {
-                            restrictionQueryBuilder.should(QueryBuilders.wildcardQuery("name", "*"));
+                            restrictionQueryBuilder.append(" OR name:*");
                         }
                     }
                 }
             }
         }
-        return restrictionQueryBuilder;
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
 }

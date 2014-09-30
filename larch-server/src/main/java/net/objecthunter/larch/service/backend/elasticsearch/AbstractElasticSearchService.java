@@ -18,9 +18,6 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -101,20 +98,27 @@ public class AbstractElasticSearchService {
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getEntitesUserRestrictionQuery() throws IOException {
+    protected String getEntitesUserRestrictionQuery() throws IOException {
         User currentUser = getCurrentUser();
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
         if (currentUser == null || currentUser.getRoles() == null || currentUser.getRoles().isEmpty()) {
-            //restrict to nothing
-            restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
-            return restrictionQueryBuilder;
+            // restrict to nothing
+            restrictionQueryBuilder.append(EntitiesSearchField.STATE.getFieldName()).append(":NONEXISTING");
+            restrictionQueryBuilder.append(")");
+            return restrictionQueryBuilder.toString();
         } else {
+            int counter = 0;
             for (Role role : currentUser.getRoles()) {
+                if (counter > 0) {
+                    restrictionQueryBuilder.append(" OR ");
+                }
                 RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
-                restrictionQueryBuilder.should(roleQueryRestriction.getEntitiesRestrictionQuery());
+                restrictionQueryBuilder.append(roleQueryRestriction.getEntitiesRestrictionQuery());
+                counter++;
             }
         }
-        return restrictionQueryBuilder;
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
     /**
@@ -122,25 +126,27 @@ public class AbstractElasticSearchService {
      * 
      * @return QueryBuilder with user-restriction query
      */
-    protected QueryBuilder getUsersUserRestrictionQuery() throws IOException {
+    protected String getUsersUserRestrictionQuery() throws IOException {
         User currentUser = getCurrentUser();
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
         if (currentUser == null) {
             //restrict to nothing
-            restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
-            return restrictionQueryBuilder;
+            restrictionQueryBuilder.append("name:NONEXISTING");
+            restrictionQueryBuilder.append(")");
+            return restrictionQueryBuilder.toString();
         } else {
             // user may see himself
-            restrictionQueryBuilder.should(QueryBuilders.termQuery("name",
-                    currentUser.getName()));
+            restrictionQueryBuilder.append("name:").append(currentUser.getName());
             if (currentUser.getRoles() != null) {
                 for (Role role : currentUser.getRoles()) {
                     RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
-                    restrictionQueryBuilder.should(roleQueryRestriction.getUsersRestrictionQuery());
+                    restrictionQueryBuilder.append(" OR ");
+                    restrictionQueryBuilder.append(roleQueryRestriction.getUsersRestrictionQuery());
                 }
             }
         }
-        return restrictionQueryBuilder;
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
     /**

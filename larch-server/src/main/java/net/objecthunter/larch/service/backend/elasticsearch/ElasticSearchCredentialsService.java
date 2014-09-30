@@ -55,6 +55,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -451,11 +452,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     @Override
     public List<User> retrieveUsers() throws IOException {
         final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(getUsersUserRestrictionQuery());
+        StringBuilder queryBuilder = new StringBuilder("(").append(getUsersUserRestrictionQuery()).append(")");
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(queryBuilder.toString());
         try {
             resp =
-                    this.client.prepareSearch(INDEX_USERS).setQuery(queryBuilder).execute()
+                    this.client.prepareSearch(INDEX_USERS).setQuery(builder).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());

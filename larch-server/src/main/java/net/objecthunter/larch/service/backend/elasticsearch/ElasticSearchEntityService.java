@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
@@ -34,7 +33,6 @@ import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
-import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
@@ -45,9 +43,9 @@ import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,37 +229,16 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset)
+    public SearchResult searchEntities(String query, int offset)
             throws IOException {
-        return searchEntities(searchFields, offset, maxRecords);
+        return searchEntities(query, offset, maxRecords);
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords)
+    public SearchResult searchEntities(String query, int offset, int maxRecords)
             throws IOException {
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        for (Entry<EntitiesSearchField, String[]> searchField : searchFields.entrySet()) {
-            if (searchField.getValue() != null && searchField.getValue().length > 0) {
-                BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
-                for (int i = 0; i < searchField.getValue().length; i++) {
-                    if (StringUtils.isNotBlank(searchField.getValue()[i])) {
-                        String value = searchField.getValue()[i].toLowerCase();
-                        if (searchField.getKey().getFieldName().matches(
-                                EntitiesSearchField.PARENT.getFieldName() + "|" +
-                                        EntitiesSearchField.CONTENT_MODEL.getFieldName() + "|" +
-                                        EntitiesSearchField.STATE.getFieldName() + "|" +
-                                        EntitiesSearchField.LEVEL2.getFieldName() + "|" +
-                                        EntitiesSearchField.LEVEL1.getFieldName())) {
-                            value = searchField.getValue()[i];
-                        }
-                        childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                value));
-                    }
-                }
-                queryBuilder.must(childQueryBuilder);
-            }
-        }
-        queryBuilder.must(getEntitesUserRestrictionQuery());
+        StringBuilder queryBuilder = new StringBuilder("(").append(query).append(") AND ").append(getEntitesUserRestrictionQuery());
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(queryBuilder.toString());
 
         final long time = System.currentTimeMillis();
         final ActionFuture<RefreshResponse> refresh =
@@ -278,13 +255,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                                     EntitiesSearchField.LABEL.getFieldName(),
                                     EntitiesSearchField.CONTENT_MODEL.getFieldName(),
                                     EntitiesSearchField.TAG.getFieldName())
-                            .setQuery(queryBuilder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
+                            .setQuery(builder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
                             .setSize(maxRecords).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        log.debug("ES returned {} results for '{}'", resp.getHits().getHits().length, new String(queryBuilder
+        log.debug("ES returned {} results for '{}'", resp.getHits().getHits().length, new String(builder
                 .buildAsBytes().toBytes()));
         final SearchResult result = new SearchResult();
 
@@ -315,7 +292,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         result.setMaxRecords(maxRecords);
         result.setHits(entities.size());
         result.setNumRecords(entities.size());
-        result.setTerm(new String(queryBuilder.buildAsBytes().toBytes()));
+        result.setTerm(new String(builder.buildAsBytes().toBytes()));
         result.setOffset(offset);
         result.setNextOffset(offset + maxRecords);
         result.setPrevOffset(Math.max(offset - maxRecords, 0));

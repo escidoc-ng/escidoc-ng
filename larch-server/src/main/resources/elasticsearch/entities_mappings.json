@@ -3,7 +3,6 @@
         "properties" : {
            "parentId" : {"type" : "string","index" : "not_analyzed"},
            "contentModelId" : {"type" : "string","index" : "not_analyzed"},
-           "state" : {"type" : "string","index" : "not_analyzed"},
            "level2" : {"type" : "string","index" : "not_analyzed"},
            "level1" : {"type" : "string","index" : "not_analyzed"}
            }

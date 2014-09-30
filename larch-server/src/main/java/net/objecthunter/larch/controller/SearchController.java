@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -37,6 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
@@ -80,27 +80,14 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(produces = { "application/json" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public SearchResult searchMatchFields(final HttpServletRequest request) throws IOException {
-        int offset = 0;
-        int maxRecords = -1;
-        if (request.getParameter("offset") != null) {
-            try {
-                offset = Integer.parseInt(request.getParameter("offset"));
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException("offset must be a number");
-            }
-        }
-        if (request.getParameter("maxRecords") != null) {
-            try {
-                maxRecords = Integer.parseInt(request.getParameter("maxRecords"));
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException("maxRecords must be a number");
-            }
-        }
+    public SearchResult searchMatchFields(@RequestParam(
+            value = "query") final String query, @RequestParam(
+            value = "offset", defaultValue = "0") final int offset, @RequestParam(
+            value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         if (maxRecords > -1) {
-            return entityService.searchEntities(fillSearchFields(request), offset, maxRecords);
+            return entityService.searchEntities(query, offset, maxRecords);
         } else {
-            return entityService.searchEntities(fillSearchFields(request), offset);
+            return entityService.searchEntities(query, offset);
         }
     }
 
@@ -119,9 +106,12 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(produces = { "text/html" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchMatchFieldsHtml(final HttpServletRequest request) throws IOException {
+    public ModelAndView searchMatchFieldsHtml(@RequestParam(
+            value = "query") final String query, @RequestParam(
+            value = "offset", defaultValue = "0") final int offset, @RequestParam(
+            value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", searchMatchFields(request));
+        model.addAttribute("result", searchMatchFields(query, offset, maxRecords));
         return new ModelAndView("searchresult", model);
     }
 

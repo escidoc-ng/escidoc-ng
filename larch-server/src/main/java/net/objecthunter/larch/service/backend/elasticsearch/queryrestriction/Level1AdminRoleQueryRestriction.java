@@ -1,6 +1,7 @@
 /**
  * 
  */
+
 package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import java.util.List;
@@ -12,14 +13,9 @@ import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-
 
 /**
  * @author mih
- *
  */
 public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
 
@@ -28,10 +24,10 @@ public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     @Override
-    public QueryBuilder getEntitiesRestrictionQuery() {
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        //restrict to nothing
-        restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
+    public String getEntitiesRestrictionQuery() {
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        // restrict to nothing
+        restrictionQueryBuilder.append(EntitiesSearchField.STATE.getFieldName()).append(":NONEXISTING");
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
@@ -39,17 +35,19 @@ public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
                 List<RoleRight> userRights = rightSet.getValue();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
-                        restrictionQueryBuilder.should(getLevel1AndLevel2EntitiesRestrictionQuery(rightSet.getKey()));
+                        restrictionQueryBuilder.append(" OR ").append(
+                                getLevel1AndLevel2EntitiesRestrictionQuery(rightSet.getKey()));
                     }
                 }
             }
         }
-        return restrictionQueryBuilder;
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
     }
 
     @Override
-    public QueryBuilder getUsersRestrictionQuery() {
-        return QueryBuilders.matchAllQuery();
+    public String getUsersRestrictionQuery() {
+        return "(*:*)";
     }
 
     /**
@@ -58,18 +56,18 @@ public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
      * @param level1Id
      * @return BoolQueryBuilder subRestrictionQuery
      */
-    private BoolQueryBuilder getLevel1AndLevel2EntitiesRestrictionQuery(String level1Id) {
-        BoolQueryBuilder subRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        BoolQueryBuilder subSubRestrictionQueryBuilder = QueryBuilders.boolQuery();
-        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
-                FixedContentModel.LEVEL1.getName()));
-        subSubRestrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.CONTENT_MODEL.getFieldName(),
-                FixedContentModel.LEVEL2.getName()));
-        subRestrictionQueryBuilder.must(subSubRestrictionQueryBuilder);
+    private StringBuilder getLevel1AndLevel2EntitiesRestrictionQuery(String level1Id) {
+        StringBuilder subRestrictionQueryBuilder = new StringBuilder("(");
+        subRestrictionQueryBuilder.append("(");
+        subRestrictionQueryBuilder.append(EntitiesSearchField.CONTENT_MODEL.getFieldName()).append(":").append(
+                FixedContentModel.LEVEL1.getName());
+        subRestrictionQueryBuilder.append(" OR ").append(EntitiesSearchField.CONTENT_MODEL.getFieldName())
+                .append(":").append(FixedContentModel.LEVEL2.getName());
+        subRestrictionQueryBuilder.append(")");
         if (StringUtils.isNotBlank(level1Id)) {
-            subRestrictionQueryBuilder.must(QueryBuilders.termQuery(EntitiesSearchField.LEVEL1.getFieldName(),
-                    level1Id));
+            subRestrictionQueryBuilder.append(" AND ").append(EntitiesSearchField.LEVEL1.getFieldName()).append(":").append(level1Id);
         }
+        subRestrictionQueryBuilder.append(")");
         return subRestrictionQueryBuilder;
     }
 
