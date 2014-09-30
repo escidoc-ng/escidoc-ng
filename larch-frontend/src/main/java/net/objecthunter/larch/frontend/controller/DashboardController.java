@@ -18,15 +18,17 @@ package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
 
+import net.objecthunter.larch.frontend.util.HttpHelper;
 import net.objecthunter.larch.model.Describe;
 
-import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Web controller class responsible for the dashboard overview of the larch repository
@@ -36,7 +38,10 @@ import org.springframework.web.servlet.ModelAndView;
 public class DashboardController extends AbstractController {
 
     @Autowired
-    private HttpClient httpClient;
+    private HttpHelper httpHelper;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * Controller method for creating a HTML view using Spring MVC templating mechanism showing a dashboard
@@ -48,8 +53,7 @@ public class DashboardController extends AbstractController {
     @ResponseBody
     public ModelAndView dashboardHtml() throws IOException {
         final ModelMap model = new ModelMap();
-        Describe describe = new Describe();
-        model.addAttribute("describe", describe);
+        model.addAttribute("describe", mapper.readValue(httpHelper.doGet("/describe"), Describe.class));
         return new ModelAndView("dashboard", model);
     }
 }

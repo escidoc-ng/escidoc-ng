@@ -1,5 +1,5 @@
 /* 
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 Michael Hoppe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package net.objecthunter.larch.frontend.controller;
 
+import javax.servlet.http.HttpSession;
+
+import net.objecthunter.larch.frontend.Constants;
 import net.objecthunter.larch.model.security.User;
 
-import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 public abstract class AbstractController {
     
@@ -32,8 +36,13 @@ public abstract class AbstractController {
      *         SpringMVC
      */
     @ModelAttribute("user")
-    protected User addUserToModel(@AuthenticationPrincipal User user) {
-        return user;
+    protected User addUserToModel() {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        HttpSession session = attr.getRequest().getSession();
+        if (session.getAttribute(Constants.CURRENT_USER_NAME) != null) {
+            return (User)session.getAttribute(Constants.CURRENT_USER_NAME);
+        }
+        return null;
     }
 
 }

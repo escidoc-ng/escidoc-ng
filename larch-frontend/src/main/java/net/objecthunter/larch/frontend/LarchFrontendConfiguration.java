@@ -18,6 +18,8 @@ package net.objecthunter.larch.frontend;
 
 import javax.annotation.PostConstruct;
 
+import net.objecthunter.larch.frontend.util.HttpHelper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -111,6 +113,16 @@ public class LarchFrontendConfiguration {
     @Bean
     public CommonsMultipartResolver multipartResolver() {
         return new CommonsMultipartResolver();
+    }
+
+    /**
+     * A HttpHelper {@link net.objecthunter.larch.frontend.util.HttpHelper} for requesting urls
+     *
+     * @return a {@link net.objecthunter.larch.frontend.util.HttpHelper} object
+     */
+    @Bean
+    public HttpHelper httpHelper() {
+        return new HttpHelper();
     }
 
     /**

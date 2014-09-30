@@ -180,6 +180,20 @@ public class UserController extends AbstractLarchController {
      * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User}s in the
      * repository as a JSON representation
      * 
+     * @return A JSON representation of the user
+     * @throws IOException
+     */
+    @RequestMapping(value = "/current-user", method = RequestMethod.GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public User retrieveCurrentUser() throws IOException {
+        return credentialsService.retrieveCurrentUser();
+    }
+
+    /**
+     * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User}s in the
+     * repository as a JSON representation
+     * 
      * @param name The user's name
      * @return A JSON representation of the user
      * @throws IOException

@@ -37,14 +37,14 @@
 </div>
 
 <div th:fragment="left">
-    <div class="user">
-        <p th:if="!${isErrorPage}" th:text="${user} ? ${user.name} : 'Anonymous'"/>
+    <div class="user" th:if="!${isErrorPage}">
+        <p th:text="${user} ? ${user.name} : 'Anonymous'"/>
 
-        <p th:if="!${isErrorPage}"><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
+        <p><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
 
-        <p th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ANONYMOUS')"><a th:href="@{/login}"><strong
+        <p th:if="!${#httpSession.current-user}"><a th:href="@{/login}"><strong
                 th:text="LOGIN"></strong></a></p>
-        <form th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')" th:action="@{/logout}" method="post" name="logoutForm">
+        <form th:if="${#httpSession.current-user}" th:action="@{/logout}" method="post" name="logoutForm">
             <p>
                 <a href="#" onclick="logoutForm.submit()"><strong>LOGOUT</strong></a>
             </p>

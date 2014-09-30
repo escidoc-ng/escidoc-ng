@@ -14,7 +14,7 @@
         <module>larch-integration-weedfs</module>
         <module>larch-benchtool</module>
         <module>larch-integration-performance</module>
-    <module>larch-frontend</module>
+        <module>larch-frontend</module>
   </modules>
 
     <properties>

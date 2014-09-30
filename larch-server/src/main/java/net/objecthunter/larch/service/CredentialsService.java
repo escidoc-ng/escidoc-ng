@@ -93,6 +93,14 @@ public interface CredentialsService {
     User retrieveUser(String name) throws IOException;
 
     /**
+     * Retrieve the {@link net.objecthunter.larch.model.security.User} object of the currently logged in user
+     * 
+     * @return The {@link net.objecthunter.larch.model.security.User} object of the corresponding user
+     * @throws IOException
+     */
+    User retrieveCurrentUser() throws IOException;
+
+    /**
      * Retrieve a SearchResult of {@link net.objecthunter.larch.model.security.User}s existing in the repository
      * 
      * @return a SearchResult containing a list of {@link net.objecthunter.larch.model.security.User} objects

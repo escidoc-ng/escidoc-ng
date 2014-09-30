@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.impl;
 import java.io.IOException;
 import java.util.List;
 
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -78,6 +79,15 @@ public class DefaultCredentialsService implements CredentialsService {
     @Override
     public User retrieveUser(String name) throws IOException {
         return backendCredentialsService.retrieveUser(name);
+    }
+
+    @Override
+    public User retrieveCurrentUser() throws IOException {
+        User user = defaultAuthorizationService.getCurrentUser();
+        if (user == null) {
+            throw new NotFoundException("No user logged in");
+        }
+        return user;
     }
 
     @Override
