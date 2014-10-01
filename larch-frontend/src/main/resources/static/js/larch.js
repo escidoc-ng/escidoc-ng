@@ -240,7 +240,8 @@ function checkAuthCreateEntity(contentModelId, parentId, idToHide) {
         data: JSON.stringify(entity),
         dataType: "text",
         contentType: "application/json; charset=utf-8",
-        error : function() {
+        error : function(request, msg, error) {
+        	alert(msg + error);
         	$('#' + idToHide).css('display', 'none');
         }
     });

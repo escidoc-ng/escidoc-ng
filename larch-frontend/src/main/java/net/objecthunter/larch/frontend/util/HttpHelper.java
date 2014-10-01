@@ -44,6 +44,7 @@ public class HttpHelper {
 
     public String doGet(String url) throws IOException {
         HttpGet httpGet = new HttpGet(env.getProperty("larch.server.url") + url);
+        httpGet.setHeader("Content-Type", "application/json");
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
             httpGet.setHeader("Authorization", "Bearer " + token);
@@ -54,8 +55,19 @@ public class HttpHelper {
         return EntityUtils.toString(entity);
     }
 
+    public HttpResponse doGetAsResponse(String url) throws IOException {
+        HttpGet httpGet = new HttpGet(env.getProperty("larch.server.url") + url);
+        httpGet.setHeader("Content-Type", "application/json");
+        String token = getOauthToken();
+        if (StringUtils.isNotBlank(token)) {
+            httpGet.setHeader("Authorization", "Bearer " + token);
+        }
+        return httpClient.execute(httpGet);
+    }
+
     public String doPost(String url, HttpEntity content) throws IOException {
         HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + url);
+        httpPost.setHeader("Content-Type", "application/json");
         httpPost.setEntity(content);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
@@ -65,6 +77,17 @@ public class HttpHelper {
         handleStatusCode(response);
         HttpEntity entity = response.getEntity();
         return EntityUtils.toString(entity);
+    }
+
+    public HttpResponse doPostAsResponse(String url, HttpEntity content) throws IOException {
+        HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + url);
+        httpPost.setHeader("Content-Type", "application/json");
+        httpPost.setEntity(content);
+        String token = getOauthToken();
+        if (StringUtils.isNotBlank(token)) {
+            httpPost.setHeader("Authorization", "Bearer " + token);
+        }
+        return httpClient.execute(httpPost);
     }
 
     public String doPost(String url, HttpEntity content, String authHeader) throws IOException {
@@ -79,6 +102,7 @@ public class HttpHelper {
 
     public String doPut(String url, HttpEntity content) throws IOException {
         HttpPut httpPut = new HttpPut(env.getProperty("larch.server.url") + url);
+        httpPut.setHeader("Content-Type", "application/json");
         httpPut.setEntity(content);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
@@ -104,6 +128,7 @@ public class HttpHelper {
 
     public String doPatch(String url, HttpEntity content) throws IOException {
         HttpPatch httpPatch = new HttpPatch(env.getProperty("larch.server.url") + url);
+        httpPatch.setHeader("Content-Type", "application/json");
         httpPatch.setEntity(content);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
@@ -129,6 +154,11 @@ public class HttpHelper {
            ex = ((Exception)Class.forName(exceptionClass).getConstructor(String.class).newInstance(message));
         } catch (Exception e) {}
         if (ex != null) {
+            if (ex instanceof IOException) {
+                throw (IOException)ex;
+            } else if (ex instanceof RuntimeException) {
+                throw (RuntimeException)ex;
+            }
             throw (IOException)ex;
         } else {
             throw new IOException("invalid request");

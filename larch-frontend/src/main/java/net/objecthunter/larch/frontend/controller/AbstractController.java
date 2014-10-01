@@ -21,9 +21,11 @@ import javax.servlet.http.HttpSession;
 import net.objecthunter.larch.frontend.Constants;
 import net.objecthunter.larch.model.security.User;
 
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.ModelAndView;
 
 public abstract class AbstractController {
     
@@ -45,4 +47,13 @@ public abstract class AbstractController {
         return null;
     }
 
+    /**
+     * A method that return a success view indicating a completed operation
+     * 
+     * @param message the success message
+     * @return a {@link org.springframework.web.servlet.ModelAndView} that can be returned by web controller methods
+     */
+    protected ModelAndView success(final String message) {
+        return new ModelAndView("success", new ModelMap("successMessage", message));
+    }
 }

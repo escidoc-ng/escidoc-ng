@@ -31,7 +31,7 @@ public class ErrorController extends AbstractLarchController {
     /**
      * Controller method for error
      * 
-     * @return String forwward to error-endpoint
+     * @return String forward to error-endpoint
      */
     @RequestMapping(value = "/error-page")
     public String error(HttpServletRequest request) {
