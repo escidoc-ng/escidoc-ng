@@ -61,7 +61,7 @@ public class LarchExceptionHandler {
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ JsonParseException.class, JsonMappingException.class, InvalidParameterException.class })
+    @ExceptionHandler({ JsonParseException.class, JsonMappingException.class, InvalidParameterException.class, IllegalArgumentException.class })
     @ResponseBody
     public Object badRequestExceptionHandler(HttpServletRequest req, Exception e)
             throws Exception {

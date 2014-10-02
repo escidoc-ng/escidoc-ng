@@ -28,13 +28,18 @@
     <h1 th:if="${isErrorPage}">Error Page</h1>
     <script>
     $(document).ready(function() {
-        $('#search').watermark('Search', {className: 'inactive'});
+        $('#simpleSearchBox').watermark('Search', {className: 'inactive'});
+        $('#simpleSearchBox').keyup(function(e) {
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if (code==13) {
+                searchEntities($('#simpleSearchBox').val(), null, null, null, null, null, null, null, null, null);
+            }
+        })
     });
-
     </script>
-    <form th:if="!${isErrorPage}" method="post"
-          th:action="@{/search}" enctype="multipart/form-data"><input
-            type="text" id="search" name="term"/></form>
+    <span th:if="!${isErrorPage}">
+        <input type="text" id="simpleSearchBox" name="all"/>
+    </span>
 </div>
 
 <div th:fragment="left">
@@ -43,13 +48,12 @@
 
         <p th:if="!${isErrorPage}"><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
 
-        <p th:if="${user == null and isErrorPage == null}"><a th:href="@{/login}"><strong
-                th:text="LOGIN"></strong></a></p>
-        <form th:if="${user != null and isErrorPage == null}" th:action="@{/logout}" method="post" name="logoutForm">
-            <p>
-                <a href="#" onclick="logoutForm.submit()"><strong>LOGOUT</strong></a>
-            </p>
-        </form>
+        <p th:if="${user == null and isErrorPage == null}">
+            <a th:href="@{/login}"><strong th:text="LOGIN" /></a>
+        </p>
+        <p th:if="${user != null and isErrorPage == null}">
+            <a th:href="@{/logout}"><strong th:text="LOGOUT" /></a>
+        </p>
 
     </div>
     <ul class="left_menu">
@@ -58,7 +62,7 @@
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/search/form}" th:text="'SEARCH'"></a>
         </li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_users"></p><a
-                th:href="@{/credentials}" th:text="'USERS'"></a></li>
+                th:href="@{/search/users/form}" th:text="'USERS'"></a></li>
         <li th:if="${isErrorPage == null and user != null}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
                                                     th:text="'METADATA TYPES'"></a></li>
     </ul>

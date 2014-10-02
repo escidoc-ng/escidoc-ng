@@ -18,14 +18,12 @@ package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 import net.objecthunter.larch.model.AuditRecord;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

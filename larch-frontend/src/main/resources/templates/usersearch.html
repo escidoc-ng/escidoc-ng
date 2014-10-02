@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="panel clickable">
+            <p class="panel_title">Search for Users</p>
+            <script>
+              $(document).ready(function() {
+                $('#searchMain').watermark('Search', {className: 'inactive'});
+                $('#ceButton').click(function() {
+                    searchUsers($('#ceAll').val(), $('#ceName').val(), $('#ceFirstname').val(),$('#ceLastname').val(),$('#ceEmail').val());
+                    })
+              });
+
+            </script>
+            <form method="post" th:action="@{/search/users}"
+                  enctype="multipart/form-data">
+                <label for="searchMain">All Fields:</label><input type="text" id="ceAll"
+                                                                  name="all"/>
+                <label for="id">Name:</label><input type="text" id="ceName" name="name"/>
+                <label for="label">Firstname:</label><input type="text" id="ceFirstname" name="firstname"/>
+                <label for="parent">Lastname:</label><input type="text" id="ceLastname" name="lastname"/>
+                <label for="level1Id">eMail:</label><input type="text" id="ceEmail" name="email"/>
+                <input class="button" id="ceButton" type="button" value="Search"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

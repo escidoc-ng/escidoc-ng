@@ -17,6 +17,7 @@
 package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
 import net.objecthunter.larch.model.SearchResult;
@@ -80,9 +81,22 @@ public class SearchController extends AbstractController {
             value = "offset", defaultValue = "0") final int offset, @RequestParam(
             value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", mapper.readValue(httpHelper.doGet("/search?query=" + query + "&offset=" +
+        model.addAttribute("result", mapper.readValue(httpHelper.doGet("/search?query=" + URLEncoder.encode(query, "UTF-8") + "&offset=" +
                 offset + "&maxRecords=" + maxRecords), SearchResult.class));
         return new ModelAndView("searchresult", model);
+    }
+
+    /**
+     * Controller method for displaying a HTML usersearch form
+     * 
+     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
+     */
+    @RequestMapping(value = "/users/form", method = RequestMethod.GET, produces = "text/html")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView searchUsersHtml() {
+        final ModelMap model = new ModelMap();
+        return new ModelAndView("usersearch", model);
     }
 
     /**
@@ -104,9 +118,9 @@ public class SearchController extends AbstractController {
             value = "offset", defaultValue = "0") final int offset, @RequestParam(
             value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("result", mapper.readValue(httpHelper.doGet("/search/users?query=" + query + "&offset=" +
+        model.addAttribute("result", mapper.readValue(httpHelper.doGet("/search/users?query=" + URLEncoder.encode(query, "UTF-8") + "&offset=" +
                 offset + "&maxRecords=" + maxRecords), SearchResult.class));
-        return new ModelAndView("searchresult", model);
+        return new ModelAndView("usersearchresult", model);
     }
 
 }

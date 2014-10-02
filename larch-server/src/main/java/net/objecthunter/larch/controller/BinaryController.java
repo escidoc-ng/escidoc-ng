@@ -78,8 +78,7 @@ public class BinaryController extends AbstractLarchController {
      */
     @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
             consumes = {
-                "multipart/form-data",
-                "application/x-www-form-urlencoded" })
+                "multipart/form-data" })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),

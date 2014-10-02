@@ -154,6 +154,29 @@ function deleteBinaryMetadata(entityId, binaryName, name) {
 	    });
 	}
 
+function createRight(username, rolename, anchorId, rolerights) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax ({
+        xhrFields: {
+           withCredentials: true
+        },
+        headers: {
+            "X-CSRF-TOKEN" : csrf_token
+        },
+        url: ctx + "/user/" + username + "/role/" + rolename + "/rights/" + anchorId,
+        type: "POST",
+        data: JSON.stringify(rolerights),
+        dataType: "text",
+        contentType: "application/json; charset=utf-8",
+        success: function(){
+            document.location.href = ctx + '/user/' + username;
+        },
+        error : function(request, msg, error) {
+            throwError(request);
+        }
+    });
+}
+
 function openUser(name) {
     document.location.href = ctx + '/user/' + name;
 }
@@ -209,6 +232,75 @@ function patchEntity() {
     });
 }
     
+function searchEntities(all, contentModelId, id, label, parent, level1, level2, tags, state, version) {
+	var query = "";
+	query = appendToQuery("_all", all, query);
+	query = appendToQuery("contentModelId", contentModelId, query);
+	query = appendToQuery("id", id, query);
+	query = appendToQuery("label", label, query);
+	query = appendToQuery("parentId", parent, query);
+	query = appendToQuery("level1", level1, query);
+	query = appendToQuery("level2", level2, query);
+	query = appendToQuery("tags", tags, query);
+	query = appendToQuery("state", state, query);
+	query = appendToQuery("version", version, query);
+	query = encodeURIComponent(query);
+	document.location.href = ctx + "/search?query=" + query;
+}
+
+function searchUsers(all, name, firstname, lastname, email) {
+	var query = "";
+	query = appendToQuery("_all", all, query);
+	query = appendToQuery("name", name, query);
+	query = appendToQuery("firstName", firstname, query);
+	query = appendToQuery("lastName", lastname, query);
+	query = appendToQuery("email", email, query);
+	query = encodeURIComponent(query);
+	document.location.href = ctx + "/search/users?query=" + query;
+}
+
+function appendToQuery(name, value, query) {
+	if (value != null && value != "") {
+		if (query.length > 0) {
+			query += " AND ";
+		}
+		var parts = value.trim().split(" ");
+		if (parts.length > 1) {
+			var sub = "";
+			sub += "(";
+			for (var i = 0; i < parts.length; i++) {
+			    if (sub.length > 1) {
+			    	sub += " OR ";
+			    }
+			    sub += name + ":" + parts[i];
+			}
+			sub += ")";
+			query += sub;
+		} else {
+			query += name + ":" + value;
+		}
+	}
+	return query;
+}
+    
+function loadRights(rolename) {
+    $.ajax({
+        url : ctx + "/role/" + rolename + "/rights",
+        type : "GET",
+        contentType : "application/json",
+        success : function(json) {
+        	$("#ceRoleRights").empty();
+        	$('#ceRoleRights').attr('size', json.length)
+           $.each(json, function(idx, right){
+        	   $("#ceRoleRights").prepend('<option label="' + right + '">' + right + '</option>');
+           });
+        },
+        error : function(request, msg, error) {
+            throwError(request);
+        }
+    });
+}
+    
 function checkAuth(url, type, idToHide) {
     $.ajax({
         url : ctx + "/authorize" + url,
@@ -240,8 +332,7 @@ function checkAuthCreateEntity(contentModelId, parentId, idToHide) {
         data: JSON.stringify(entity),
         dataType: "text",
         contentType: "application/json; charset=utf-8",
-        error : function(request, msg, error) {
-        	alert(msg + error);
+        error : function() {
         	$('#' + idToHide).css('display', 'none');
         }
     });

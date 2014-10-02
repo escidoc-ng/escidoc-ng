@@ -61,7 +61,7 @@ public class LarchExceptionHandler {
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ JsonParseException.class, JsonMappingException.class, InvalidParameterException.class })
+    @ExceptionHandler({ JsonParseException.class, JsonMappingException.class, InvalidParameterException.class, IllegalArgumentException.class })
     @ResponseBody
     public Object badRequestExceptionHandler(HttpServletRequest req, Exception e)
             throws Exception {
@@ -99,7 +99,7 @@ public class LarchExceptionHandler {
             Exception e)
             throws Exception {
         if (req.getHeader("Accept") != null && req.getHeader("Accept").contains("html")) {
-            resp.sendRedirect(req.getContextPath() + "/login-page");
+            resp.sendRedirect(req.getContextPath() + "/login");
         } else {
             return handleException(req, e, HttpStatus.UNAUTHORIZED);
         }

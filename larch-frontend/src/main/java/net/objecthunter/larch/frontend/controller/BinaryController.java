@@ -19,6 +19,7 @@ package net.objecthunter.larch.frontend.controller;
 import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
@@ -82,12 +83,14 @@ public class BinaryController extends AbstractController {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
-            @RequestParam("binary") final MultipartFile file) throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("name", name, ContentType.TEXT_PLAIN);
-        builder.addBinaryBody("binary", file.getBytes(), ContentType.APPLICATION_OCTET_STREAM, "file.ext");
-        HttpEntity multipart = builder.build();
-        httpHelper.doPost("/entity/" + entityId + "/binary/file", multipart);
+            @RequestParam("binary") final MultipartFile file, HttpServletRequest request) throws IOException {
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("name", name)
+                .addTextBody("mimetype", file.getContentType())
+                .addBinaryBody("binary", file.getBytes())
+                .build();
+
+        httpHelper.doPost("/entity/" + entityId + "/binary", multipart, null);
         return "redirect:/entity/" + entityId;
     }
 
@@ -129,9 +132,6 @@ public class BinaryController extends AbstractController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-        @Permission(rolename = RoleName.ROLE_ADMIN),
-        @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
     public void download(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String name,
             final HttpServletResponse response) throws IOException {

@@ -17,7 +17,6 @@
 package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
@@ -26,14 +25,11 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -81,11 +77,11 @@ public class UserController extends AbstractController {
     public ModelAndView confirmUserRequestHtml(@PathVariable("token") final String token,
             @RequestParam("password") final String password,
             @RequestParam("passwordRepeat") final String passwordRepeat) throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("password", password, ContentType.TEXT_PLAIN);
-        builder.addTextBody("passwordRepeat", passwordRepeat, ContentType.TEXT_PLAIN);
-        HttpEntity multipart = builder.build();
-        httpHelper.doPost("/confirm/" + token, multipart);
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("password", password)
+                .addTextBody("passwordRepeat", passwordRepeat)
+                .build();
+        httpHelper.doPost("/confirm/" + token, multipart, null);
         return success("The user has been created.");
     }
 
@@ -116,12 +112,13 @@ public class UserController extends AbstractController {
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email) throws IOException {
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("name", userName));
-        nvps.add(new BasicNameValuePair("first_name", firstName));
-        nvps.add(new BasicNameValuePair("last_name", lastName));
-        nvps.add(new BasicNameValuePair("email", email));
-        String username = httpHelper.doPost("/user", new UrlEncodedFormEntity(nvps));
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("name", userName)
+                .addTextBody("first_name", firstName)
+                .addTextBody("last_name", lastName)
+                .addTextBody("email", email)
+                .build();
+        String username = httpHelper.doPost("/user", multipart, null);
         return new ModelAndView("redirect:/confirm/" + username);
     }
 
@@ -174,13 +171,27 @@ public class UserController extends AbstractController {
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email) throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("first_name", firstName, ContentType.TEXT_PLAIN);
-        builder.addTextBody("last_name", lastName, ContentType.TEXT_PLAIN);
-        builder.addTextBody("email", email, ContentType.TEXT_PLAIN);
-        HttpEntity multipart = builder.build();
-        httpHelper.doPost("/user/" + username, multipart);
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("first_name", firstName)
+                .addTextBody("last_name", lastName)
+                .addTextBody("email", email)
+                .build();
+        httpHelper.doPost("/user/" + username, multipart, null);
         return success("The user " + username + " has been updated");
+    }
+
+    /**
+     * Controller method to retrieve a Role that exists in the
+     * repository as a JSON representation
+     * 
+     * @return the list of {@link net.objecthunter.larch.model.security.Role}s as a JSON representation
+     * @throws IOException
+     */
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String retrieveRoleRights(@PathVariable("rolename") final String rolename) throws IOException {
+        return httpHelper.doGet("/role/" + rolename + "/rights");
     }
 
 }

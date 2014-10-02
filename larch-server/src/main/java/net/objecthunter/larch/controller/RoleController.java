@@ -18,6 +18,8 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.objecthunter.larch.model.security.ObjectType;
@@ -94,14 +96,14 @@ public class RoleController extends AbstractLarchController {
      * @param username The name of the user
      * @param objectId The id of the object the user becomes a right for.
      */
-    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST,
+    @RequestMapping(value = "/role/{rolename}/rights/{anchorId}", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 2, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
-    public void setRight(@PathVariable("username") final String username,
+    public void setRightWithAnchor(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("anchorId") final String anchorId, final InputStream src) throws IOException {
         List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
@@ -109,17 +111,35 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
+     * Controller method for setting a right without anchorId to a User
+     * 
+     * @param username The name of the user
+     * @param objectId The id of the object the user becomes a right for.
+     */
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.POST,
+            consumes = "application/json")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuth(permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN) })
+    public void setRightWithoutAnchor(@PathVariable("username") final String username,
+            @PathVariable("rolename") final String rolename, final InputStream src) throws IOException {
+        List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
+        backendCredentialsService.setRight(username, RoleName.valueOf(rolename.toUpperCase()), "", rights);
+    }
+
+    /**
      * Controller method for setting a right for an anchorId to a User
      * 
      * @param username The name of the user
      */
-    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/role/{rolename}/rights/{anchorId}", method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView setRightHtml(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename, @PathVariable("anchorId") final String anchorId,
             final InputStream src) throws IOException {
-        setRight(username, rolename, anchorId, src);
+        setRightWithAnchor(username, rolename, anchorId, src);
         return new ModelAndView("redirect:/user/" + username);
     }
 

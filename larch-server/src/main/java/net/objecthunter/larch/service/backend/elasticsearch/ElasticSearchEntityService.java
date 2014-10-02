@@ -355,43 +355,21 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
      * @author mih
      */
     public static enum EntitiesSearchField {
-        ID("id", "id"),
-        LABEL("label", "label"),
-        CONTENT_MODEL("contentModel", "contentModelId"),
-        PARENT("parent", "parentId"),
-        TAG("tag", "tags"),
-        STATE("state", "state"),
-        VERSION("version", "version"),
-        LEVEL1("level1", "level1"),
-        LEVEL2("level2", "level2"),
-        ALL("term", "_all");
-
-        private final String requestParameterName;
+        ID("id"),
+        LABEL("label"),
+        CONTENT_MODEL("contentModelId"),
+        PARENT("parentId"),
+        TAG("tags"),
+        STATE("state"),
+        VERSION("version"),
+        LEVEL1("level1"),
+        LEVEL2("level2"),
+        ALL("_all");
 
         private final String searchFieldName;
 
-        EntitiesSearchField(final String requestParameterName, final String searchFieldName) {
-            this.requestParameterName = requestParameterName;
+        EntitiesSearchField(final String searchFieldName) {
             this.searchFieldName = searchFieldName;
-        }
-
-        /**
-         * EntitiesSearchField anhand requestParameterName ermitteln.
-         * 
-         * @param requestParameterName requestParameterName
-         * @return EntitiesSearchField oder null, falls nicht gefunden.
-         */
-        public static EntitiesSearchField getWithRequestParameter(String requestParameterName) {
-            for (EntitiesSearchField entitiesSearchField : EntitiesSearchField.values()) {
-                if (entitiesSearchField.getRequestParameterName().equals(requestParameterName)) {
-                    return entitiesSearchField;
-                }
-            }
-            return null;
-        }
-
-        public String getRequestParameterName() {
-            return requestParameterName;
         }
 
         public String getFieldName() {

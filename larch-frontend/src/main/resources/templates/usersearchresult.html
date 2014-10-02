@@ -14,24 +14,24 @@
         <div th:include="fragments :: banner" class="title">
         </div>
         <div class="heading">Users</div>
-        <div th:each="user : ${users}" class="panel clickable">
-            <p class="panel_title" th:text="${user.name}"></p>
+        <div th:each="record : ${result.data}" class="panel clickable">
+            <p class="panel_title" th:text="${record.name}"></p>
 
             <p class="property">First name</p>
 
-            <p class="value" th:text="${user.firstName}"></p>
+            <p class="value" th:text="${record.firstName}"></p>
 
             <p class="property">Last name</p>
 
-            <p class="value" th:text="${user.lastName}"></p>
+            <p class="value" th:text="${record.lastName}"></p>
 
             <p class="property">Email</p>
 
-            <p class="value" th:text="${user.email}"></p>
+            <p class="value" th:text="${record.email}"></p>
 
-            <p><a th:href="@{/user/} + ${user.name}">Edit</a></p>
+            <p><a th:href="@{/user/} + ${record.name}">Edit</a></p>
 
-            <p><a href="#" th:onclick="'javascript:deleteUser(\'' + ${user.name} + '\')'">Delete</a>
+            <p><a href="#" th:onclick="'javascript:deleteUser(\'' + ${record.name} + '\')'">Delete</a>
             </p>
         </div>
         <div class="right">

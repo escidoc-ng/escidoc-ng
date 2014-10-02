@@ -78,6 +78,16 @@ public class LoginController extends AbstractController {
     }
 
     /**
+     * Controller method for logging in
+     */
+    @RequestMapping(value = "/logout", method = RequestMethod.GET, produces = { "text/html" })
+    public String logout(HttpServletRequest request) throws IOException {
+        httpHelper.doPost("/logout", null, null);
+        request.getSession().invalidate();
+        return "redirect:/";
+    }
+
+    /**
      * Controller method for getting the oauth-token
      * 
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
@@ -102,7 +112,7 @@ public class LoginController extends AbstractController {
             byte[] encodedBytes = Base64.encodeBase64(authorization.getBytes());
             authorization = "Basic " + new String(encodedBytes);
 
-            String response = httpHelper.doPost("/oauth/token", new UrlEncodedFormEntity(nvps), authorization);
+            String response = httpHelper.doPost("/oauth/token", new UrlEncodedFormEntity(nvps), authorization, null);
 
             JSONObject obj = new JSONObject(response);
             request.getSession().setAttribute(Constants.ACCESS_TOKEN_ATTRIBUTE_NAME, obj.getString("access_token"));

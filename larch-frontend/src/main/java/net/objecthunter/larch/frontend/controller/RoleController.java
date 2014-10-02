@@ -54,7 +54,7 @@ public class RoleController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView setRolesHtml(@PathVariable("username") final String username, final InputStream src)
             throws IOException {
-        httpHelper.doPost("/user/" + username + "/roles", new InputStreamEntity(src, -1));
+        httpHelper.doPost("/user/" + username + "/roles", new InputStreamEntity(src, -1), null);
         return new ModelAndView("redirect:/user/" + username);
     }
 
@@ -63,13 +63,28 @@ public class RoleController extends AbstractController {
      * 
      * @param username The name of the user
      */
-    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/role/{rolename}/rights/{anchorId}", method = RequestMethod.POST, produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView setRightHtml(@PathVariable("username") final String username,
+    public ModelAndView setRightWithAnchorHtml(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename, @PathVariable("anchorId") final String anchorId,
             final InputStream src) throws IOException {
-        httpHelper.doPost("/user/" + username + "/role" + rolename + "/right/" + anchorId, new InputStreamEntity(src, -1));
+        httpHelper.doPost("/user/" + username + "/role/" + rolename + "/rights/" + anchorId, new InputStreamEntity(src, -1), "application/json");
+        return new ModelAndView("redirect:/user/" + username);
+    }
+
+    /**
+     * Controller method for setting a right without anchorId to a User
+     * 
+     * @param username The name of the user
+     */
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.POST, produces = "text/html")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView setRightWithoutAnchorHtml(@PathVariable("username") final String username,
+            @PathVariable("rolename") final String rolename,
+            final InputStream src) throws IOException {
+        httpHelper.doPost("/user/" + username + "/role/" + rolename + "/rights", new InputStreamEntity(src, -1), "application/json");
         return new ModelAndView("redirect:/user/" + username);
     }
 

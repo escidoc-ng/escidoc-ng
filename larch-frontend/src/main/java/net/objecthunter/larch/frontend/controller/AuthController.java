@@ -59,13 +59,13 @@ public class AuthController extends AbstractController {
             }
             httpHelper.doGet(request.getRequestURI() + "?" + request.getQueryString());
         } else if (request.getMethod().equals("PUT")) {
-            httpHelper.doPut(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1));
+            httpHelper.doPut(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
         } else if (request.getMethod().equals("POST")) {
-            httpHelper.doPost(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1));
+            httpHelper.doPost(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
         } else if (request.getMethod().equals("DELETE")) {
             httpHelper.doDelete(request.getRequestURI());
         } else if (request.getMethod().equals("PATCH")) {
-            httpHelper.doPatch(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1));
+            httpHelper.doPatch(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
         }
     }
 

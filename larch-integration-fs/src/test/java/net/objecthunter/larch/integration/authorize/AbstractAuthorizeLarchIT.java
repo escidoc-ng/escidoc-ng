@@ -227,8 +227,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             request.setHeader("Authorization", authorization);
             HttpResponse authresp = httpClient.execute(authrequest);
             HttpResponse resp = httpClient.execute(request);
-//            String response = EntityUtils.toString(resp.getEntity());
-//            String authresponse = EntityUtils.toString(authresp.getEntity());
+            int respstatus = resp.getStatusLine().getStatusCode();
+            int authrespstatus = authresp.getStatusLine().getStatusCode();
+//            if (respstatus > 400 && authrespstatus > 400 && respstatus != authrespstatus) {
+//              String response = EntityUtils.toString(resp.getEntity());
+//              String authresponse = EntityUtils.toString(authresp.getEntity());
+//              System.out.println("");
+//            }
             assertStatusEquals(resp, authresp);
             return resp;
         }

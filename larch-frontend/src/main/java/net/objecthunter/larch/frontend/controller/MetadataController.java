@@ -17,7 +17,6 @@
 package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -32,11 +31,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleName;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -83,12 +78,14 @@ public class MetadataController extends AbstractController {
             @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("name", mdName, ContentType.TEXT_PLAIN);
-        builder.addTextBody("type", type, ContentType.TEXT_PLAIN);
-        builder.addBinaryBody("metadata", file.getBytes(), ContentType.APPLICATION_OCTET_STREAM, "file.ext");
-        HttpEntity multipart = builder.build();
-        httpHelper.doPost("/entity/" + entityId + "/metadata", multipart);
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("name", mdName)
+                .addTextBody("type", type)
+                .addTextBody("mimetype", file.getContentType())
+                .addTextBody("filename", file.getOriginalFilename())
+                .addBinaryBody("data", file.getBytes())
+                .build();
+        httpHelper.doPost("/entity/" + entityId + "/metadata", multipart, null);
         return "redirect:/entity/" + entityId;
     }
 
@@ -111,12 +108,14 @@ public class MetadataController extends AbstractController {
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("name", mdName, ContentType.TEXT_PLAIN);
-        builder.addTextBody("type", type, ContentType.TEXT_PLAIN);
-        builder.addBinaryBody("metadata", file.getBytes(), ContentType.APPLICATION_OCTET_STREAM, "file.ext");
-        HttpEntity multipart = builder.build();
-        httpHelper.doPost("/entity/" + entityId + "/binary/" + binaryName + "/metadata", multipart);
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("name", mdName)
+                .addTextBody("type", type)
+                .addTextBody("mimetype", file.getContentType())
+                .addTextBody("filename", file.getOriginalFilename())
+                .addBinaryBody("data", file.getBytes())
+                .build();
+        httpHelper.doPost("/entity/" + entityId + "/binary/" + binaryName + "/metadata", multipart, null);
         return "redirect:/entity/" + entityId + "/binary/" + binaryName;
     }
 
@@ -207,10 +206,11 @@ public class MetadataController extends AbstractController {
         @Permission(rolename = RoleName.ROLE_ADMIN) })
     public String addSchemaType(@RequestParam("name") final String name,
             @RequestParam("schemaUrl") final String schemaUrl) throws IOException {
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("name", name));
-        nvps.add(new BasicNameValuePair("schemaUrl", schemaUrl));
-        httpHelper.doPost("/metadatatype", new UrlEncodedFormEntity(nvps));
+        HttpEntity multipart = MultipartEntityBuilder.create()
+                .addTextBody("name", name)
+                .addTextBody("schemaUrl", schemaUrl)
+                .build();
+        httpHelper.doPost("/metadatatype", multipart, null);
         return "redirect:/metadatatype";
     }
 

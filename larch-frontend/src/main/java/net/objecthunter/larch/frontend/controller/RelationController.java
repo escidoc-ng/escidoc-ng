@@ -61,7 +61,7 @@ public class RelationController extends AbstractController {
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
         nvps.add(new BasicNameValuePair("predicate", predicate));
         nvps.add(new BasicNameValuePair("object", object));
-        httpHelper.doPost("/entity/" + id + "/relation", new UrlEncodedFormEntity(nvps));
+        httpHelper.doPost("/entity/" + id + "/relation", new UrlEncodedFormEntity(nvps), null);
         return "redirect:/entity/" + id;
     }
 }

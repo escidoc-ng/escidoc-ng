@@ -207,14 +207,14 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testSetRight() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, userUrl + username + "/role/role_user_admin/right/" + username)
+                HttpMethod.POST, userUrl + username + "/role/role_user_admin/rights/" + username)
                 .body(this.mapper.writeValueAsString(userAdminRole.getRights().get("")))
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
         // level1 admin
         HttpResponse resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/right/" + level1Id1,
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1,
                         this.mapper.writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
@@ -222,7 +222,14 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/right/" + level1Id1, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1, this.mapper
                         .writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
@@ -230,7 +237,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
@@ -238,7 +245,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
@@ -247,10 +254,17 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         // userAdmin
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
                                 .get("ROLE_USER_ADMIN")[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
+                        userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
+                        .get("ROLE_USER_ADMIN")[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
@@ -259,7 +273,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testSetRightHtml() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, userUrl + username + "/role/role_user_admin/right/" + username)
+                HttpMethod.POST, userUrl + username + "/role/role_user_admin/rights/" + username)
                 .body(this.mapper.writeValueAsString(userAdminRole.getRights().get("")))
                 .roleRestriction(RoleRestriction.ADMIN)
                 .html(true)
@@ -267,7 +281,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         // level1 admin
         HttpResponse resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/right/" + level1Id1,
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1,
                         this.mapper.writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
@@ -275,7 +289,14 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/right/" + level1Id1, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
+                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
+                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1, this.mapper
                         .writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
@@ -283,7 +304,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
@@ -291,7 +312,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
@@ -300,10 +321,17 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         // userAdmin
         resp =
-                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/right/" + level2Id, this.mapper
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
                         .writeValueAsString(userRole.getRights().get(level2Id)),
                         userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
                                 .get("ROLE_USER_ADMIN")[1], true);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
+                        userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
+                        .get("ROLE_USER_ADMIN")[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
 

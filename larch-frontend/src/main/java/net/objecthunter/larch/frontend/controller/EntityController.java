@@ -25,11 +25,6 @@ import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.MetadataType;
-import net.objecthunter.larch.model.security.ObjectType;
-import net.objecthunter.larch.model.security.PermissionType;
-import net.objecthunter.larch.model.security.annotation.Permission;
-import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 import org.apache.http.entity.InputStreamEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +67,7 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity" + id), Entity.class));
+        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id), Entity.class));
         model.addAttribute("metadataTypes", mapper.readValue(httpHelper.doGet("/metadatatype"), new TypeReference<List<MetadataType>>() {}));
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
@@ -127,7 +122,7 @@ public class EntityController extends AbstractController {
     @ResponseBody
     public String create(final InputStream src)
             throws IOException {
-        return httpHelper.doPost("/entity", new InputStreamEntity(src, -1));
+        return httpHelper.doPost("/entity", new InputStreamEntity(src, -1), "application/json");
     }
 
     /**
@@ -142,7 +137,7 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public void update(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
-        httpHelper.doPut("/entity" + id, new InputStreamEntity(src, -1));
+        httpHelper.doPut("/entity" + id, new InputStreamEntity(src, -1), "application/json");
     }
 
     /**
@@ -153,10 +148,6 @@ public class EntityController extends AbstractController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
-        @Permission(rolename = RoleName.ROLE_ADMIN),
-        @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE),
-        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
     public void delete(@PathVariable("id") final String id)
             throws IOException {
         httpHelper.doDelete("/entity" + id);
@@ -165,21 +156,21 @@ public class EntityController extends AbstractController {
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView publishHtml(@PathVariable("id") final String id) throws IOException {
-        httpHelper.doPut("/entity/" + id + "/publish", null);
+        httpHelper.doPut("/entity/" + id + "/publish", null, null);
         return this.retrieveHtml(id);
     }
 
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView submitHtml(@PathVariable("id") final String id) throws IOException {
-        httpHelper.doPut("/entity/" + id + "/submit", null);
+        httpHelper.doPut("/entity/" + id + "/submit", null, null);
         return this.retrieveHtml(id);
     }
 
     @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView withdrawHtml(@PathVariable("id") final String id) throws IOException {
-        httpHelper.doPut("/entity/" + id + "/withdraw", null);
+        httpHelper.doPut("/entity/" + id + "/withdraw", null, null);
         return this.retrieveHtml(id);
     }
 

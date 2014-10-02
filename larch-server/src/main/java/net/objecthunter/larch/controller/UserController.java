@@ -27,7 +27,9 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.CredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,6 +229,20 @@ public class UserController extends AbstractLarchController {
         List<RoleName> roles = new ArrayList<RoleName>(Arrays.asList(RoleName.values()));
         roles.remove(RoleName.ROLE_ANY);
         return roles;
+    }
+
+    /**
+     * Controller method to retrieve a Role that exist in the
+     * repository as a JSON representation
+     * 
+     * @return the list of {@link net.objecthunter.larch.model.security.Role}s as a JSON representation
+     * @throws IOException
+     */
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<RoleRight> retrieveRoleRights(@PathVariable("rolename") final String rolename) throws IOException {
+        return Role.getRoleObject(RoleName.valueOf(rolename.toUpperCase())).allowedRights();
     }
 
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")

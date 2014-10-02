@@ -7,13 +7,19 @@
     <div class="three_dots"></div>
 </header>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+        checkAuth('/entity/' + ${entity.id} + '/audit', 'GET', 'auditLink');
+        checkAuth('/entity/' + ${entity.id} + '/versions', 'GET', 'versionsLink');
+    /*]]>*/
+</script>
 <div class="content">
     <div th:include="fragments :: left" class="left">
     </div>
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading" th:text="${entity.type.name}" />
+        <div class="heading" th:text="${entity.contentModelId}" />
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
             <p th:if="${entity.state.name != 'PUBLISHED'}" class="property" th:text="Actions" />
@@ -26,9 +32,9 @@
 
             <p class="value" th:text="${entity.label}"></p>
 
-            <p class="property">Type</p>
+            <p class="property">ContentModelId</p>
 
-            <p class="value" th:text="${entity.type} ? ${entity.type} : 'No Type'"></p>
+            <p class="value" th:text="${entity.contentModelId} ? ${entity.contentModelId} : 'No ContentModel'"></p>
 
             <p class="property">Parent</p>
 
@@ -56,10 +62,10 @@
             <p class="property">Last modified</p>
 
             <p class="value" th:text="${entity.utcLastModified}"></p>
-            <a th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
+            <a id="auditLink" th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
 
             <p/>
-            <a th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
+            <a id="versionsLink" th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
 
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">

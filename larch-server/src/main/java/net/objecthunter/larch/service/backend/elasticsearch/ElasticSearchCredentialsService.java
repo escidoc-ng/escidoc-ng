@@ -324,22 +324,18 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (roleName == null) {
             throw new InvalidParameterException("name of role may not be null");
         }
-        if (RoleName.ROLE_ADMIN.equals(roleName)) {
-            throw new InvalidParameterException("admin-role cannot be set with this method");
-        }
         if (anchorId == null) {
             throw new InvalidParameterException("anchorId may not be null");
         }
-        if (rights == null) {
-            throw new InvalidParameterException("rights may not be null");
-        }
 
-        List<RoleRight> existingRights = new ArrayList<RoleRight>();
-        for (RoleRight right : rights) {
-            if (existingRights.contains(right)) {
-                throw new InvalidParameterException("duplicate right " + right);
+        List<RoleRight> orderedRights = new ArrayList<RoleRight>();
+        if (rights != null) {
+            for (RoleRight right : rights) {
+                if (orderedRights.contains(right)) {
+                    throw new InvalidParameterException("duplicate right " + right);
+                }
+                orderedRights.add(right);
             }
-            existingRights.add(right);
         }
 
         try {
@@ -350,32 +346,58 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
 
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            
             Role existingRole = user.getRole(roleName);
-            if (existingRole != null) {
-                checkAnchorTypes(new HashSet<String>() {
-
-                    {
-                        add(anchorId);
-                    }
-                }, existingRole.anchorTypes());
-                Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
-                if (expandedRights == null) {
-                    expandedRights = new HashMap<String, List<RoleRight>>();
+            if (RoleName.ROLE_ADMIN.equals(roleName)) {
+                // handle admin role
+                if (existingRole == null) {
+                    user.setRole(Role.getRoleObject(roleName));
+                } else {
+                    user.removeRole(roleName);
                 }
-                expandedRights.put(anchorId, rights);
-                existingRole.setRights(expandedRights);
             } else {
-                Role newRole = Role.getRoleObject(roleName);
-                checkAnchorTypes(new HashSet<String>() {
+                // handle other roles
+                if (existingRole != null && !orderedRights.isEmpty()) {
+                    checkAnchorTypes(new HashSet<String>() {
 
-                    {
-                        add(anchorId);
+                        {
+                            add(anchorId);
+                        }
+                    }, existingRole.anchorTypes());
+                    Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
+                    if (expandedRights == null) {
+                        expandedRights = new HashMap<String, List<RoleRight>>();
                     }
-                }, newRole.anchorTypes());
-                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-                newRights.put(anchorId, rights);
-                newRole.setRights(newRights);
-                user.setRole(newRole);
+                    expandedRights.put(anchorId, orderedRights);
+                    existingRole.setRights(expandedRights);
+                } else if (existingRole != null && orderedRights.isEmpty()) {
+                    checkAnchorTypes(new HashSet<String>() {
+
+                        {
+                            add(anchorId);
+                        }
+                    }, existingRole.anchorTypes());
+                    Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
+                    if (expandedRights == null) {
+                        expandedRights = new HashMap<String, List<RoleRight>>();
+                    }
+                    expandedRights.remove(anchorId);
+                    if (expandedRights.isEmpty()) {
+                        user.removeRole(existingRole.getRoleName());
+                    }
+                } else if (existingRole == null && !orderedRights.isEmpty()) {
+                    Role newRole = Role.getRoleObject(roleName);
+                    checkAnchorTypes(new HashSet<String>() {
+
+                        {
+                            add(anchorId);
+                        }
+                    }, newRole.anchorTypes());
+                    Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+                    newRights.put(anchorId, orderedRights);
+                    newRole.setRights(newRights);
+                    user.setRole(newRole);
+                }
             }
 
             this.client

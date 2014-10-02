@@ -61,7 +61,7 @@ public class IdentifierController extends AbstractController {
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
         nvps.add(new BasicNameValuePair("type", type));
         nvps.add(new BasicNameValuePair("value", value));
-        httpHelper.doPost("/entity/" + entityId + "/identifier", new UrlEncodedFormEntity(nvps));
+        httpHelper.doPost("/entity/" + entityId + "/identifier", new UrlEncodedFormEntity(nvps), null);
         return "redirect:/entity/" + entityId;
     }
 

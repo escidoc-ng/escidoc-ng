@@ -80,6 +80,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -97,6 +99,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -114,6 +118,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -170,6 +176,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -188,6 +196,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
@@ -206,6 +216,8 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .body(MultipartEntityBuilder.create()
                         .addTextBody("name", "test")
                         .addTextBody("type", "DC")
+                        .addTextBody("mimetype", "text/xml")
+                        .addTextBody("filename", "dc.xml")
                         .addPart(
                                 "metadata",
                                 new FileBody(new File(Fixtures.class.getClassLoader().getResource(
