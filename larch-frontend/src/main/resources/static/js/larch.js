@@ -9,13 +9,23 @@ $(document).ready(function() {
 });
 
 function submitPut(url, redirectUrl) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
 	$.ajax({
+        xhrFields: {
+            withCredentials: true
+         },
+         headers: {
+             "X-CSRF-TOKEN" : csrf_token
+         },
 		  type: 'PUT',
 		  accepts: 'text/html',
 		  url: url,
 		  success: function(data){
 			  document.location.href = redirectUrl;
-		  }
+		  },
+	      error : function(request, msg, error) {
+	        throwError(request);
+	      }
 		});}
 
 function createEntity(id, contentModelId, label, tags, parentId) {
@@ -301,14 +311,23 @@ function loadRights(rolename) {
     });
 }
     
-function checkAuth(url, type, idToHide) {
+function checkAuth(url, type, idsToHide) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
     $.ajax({
+        xhrFields: {
+            withCredentials: true
+         },
+         headers: {
+             "X-CSRF-TOKEN" : csrf_token
+         },
         url : ctx + "/authorize" + url,
         type : type,
-        data : data,
+        data : "",
         contentType : "application/json",
         error : function() {
-        	$('#' + idToHide).css('display', 'none');
+        	for	(i = 0; i < idsToHide.length; i++) {
+            	$('#' + idsToHide[i]).css('display', 'none');
+        	} 
         }
     });
 }

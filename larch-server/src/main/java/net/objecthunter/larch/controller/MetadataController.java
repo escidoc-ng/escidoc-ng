@@ -120,7 +120,7 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String addMetadataHtml(@PathVariable("id") final String entityId,
+    public String addMetadata(@PathVariable("id") final String entityId,
             @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("mimetype") final String mimetype,
             @RequestParam("filename") final String filename, final InputStream src)
@@ -201,7 +201,7 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String addBinaryMetadataHtml(@PathVariable("id") final String entityId,
+    public String addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("mimetype") final String mimetype,
             @RequestParam("filename") final String filename, final InputStream src)

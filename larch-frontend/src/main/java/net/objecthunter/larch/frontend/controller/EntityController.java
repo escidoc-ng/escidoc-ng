@@ -88,7 +88,7 @@ public class EntityController extends AbstractController {
     public ModelAndView retrieveHtml(@PathVariable("id") final String id, @PathVariable("version") final int version)
             throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity" + id + "/version/" + version), Entity.class));
+        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id + "/version/" + version), Entity.class));
         return new ModelAndView("entity", model);
     }
 
@@ -105,7 +105,7 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView retrieveVersionsHtml(@PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entities", mapper.readValue(httpHelper.doGet("/entity" + id + "/versions"), Entities.class));
+        model.addAttribute("entities", mapper.readValue(httpHelper.doGet("/entity/" + id + "/versions"), Entities.class));
         return new ModelAndView("versions", model);
     }
 
@@ -137,7 +137,7 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public void update(@PathVariable("id") final String id,
             final InputStream src) throws IOException {
-        httpHelper.doPut("/entity" + id, new InputStreamEntity(src, -1), "application/json");
+        httpHelper.doPut("/entity/" + id, new InputStreamEntity(src, -1), "application/json");
     }
 
     /**
@@ -150,7 +150,7 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("id") final String id)
             throws IOException {
-        httpHelper.doDelete("/entity" + id);
+        httpHelper.doDelete("/entity/" + id);
     }
 
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")

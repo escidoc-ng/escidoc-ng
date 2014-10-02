@@ -37,7 +37,7 @@ public abstract class AbstractController {
      * @return The User object which gets added to the model by
      *         SpringMVC
      */
-    @ModelAttribute("user")
+    @ModelAttribute("currentuser")
     protected User addUserToModel() {
         ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         HttpSession session = attr.getRequest().getSession();
