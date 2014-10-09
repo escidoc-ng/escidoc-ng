@@ -14,8 +14,9 @@
         <module>larch-integration-weedfs</module>
         <module>larch-benchtool</module>
         <module>larch-integration-performance</module>
-    <module>larch-frontend</module>
-  </modules>
+        <module>larch-frontend</module>
+        <module>larch-integration-sftp</module>
+    </modules>
 
     <properties>
         <java.version>1.8</java.version>

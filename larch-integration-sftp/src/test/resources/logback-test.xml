@@ -1,0 +1,45 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>::sftp-it [%thread] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LARCH-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>::sftp-it [ larch] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ES-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>::sftp-it [ es] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="SPRING-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>::sftp-it [spring] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="net.objecthunter.larch" level="INFO" additivity="false">
+        <appender-ref ref="LARCH-STDOUT"/>
+    </logger>
+
+    <logger name="org.elasticsearch" level="INFO" additivity="false">
+        <appender-ref ref="LARCH-STDOUT"/>
+    </logger>
+
+    <logger name="org.springframework" level="INFO">
+        <appender-ref ref="SPRING-STDOUT"/>
+    </logger>
+
+    <logger name="org.springframework.security" level="INFO">
+        <appender-ref ref="SPRING-STDOUT"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

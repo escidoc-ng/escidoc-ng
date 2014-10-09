@@ -56,7 +56,6 @@ public class DefaultMessagingService implements MessagingService {
             throw new RuntimeException("Text for JMS Message can not be empty");
         }
         this.template.send(new MessageCreator() {
-
             @Override
             public Message createMessage(Session session) throws JMSException {
                 return session.createTextMessage(text);

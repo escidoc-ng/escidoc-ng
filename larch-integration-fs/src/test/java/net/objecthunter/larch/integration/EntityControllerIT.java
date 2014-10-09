@@ -182,13 +182,13 @@ public class EntityControllerIT extends AbstractLarchIT {
         // assertTrue(txt.getText().startsWith("Created entity"));
         while (listener.isMessageReceived()) {
             Message msg = listener.getMessage();
-            log.warn("NULL ERROR ---------------------------");
-            log.warn("Checking message {}", msg.toString());
-            log.warn("Is text message? {}", (msg instanceof TextMessage));
+            if (msg == null) {
+                fail("Null message object detected");
+            }
             if (msg instanceof TextMessage) {
                 if (((TextMessage) msg).getText() == null) {
                     log.warn("!!!!!! HIT: NULL message", ((TextMessage) msg).getText());
-                    fail("null message detected");
+                    fail("Null message detected");
                 }
             }
         }

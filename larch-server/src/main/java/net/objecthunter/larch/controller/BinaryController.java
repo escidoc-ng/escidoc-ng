@@ -79,7 +79,8 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
-                "application/x-www-form-urlencoded" })
+                "application/x-www-form-urlencoded",
+                "application/octet-stream"})
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
@@ -126,7 +127,7 @@ public class BinaryController extends AbstractLarchController {
     @RequestMapping(value = "/entity/{id}/binary/file", method = RequestMethod.POST,
             consumes = {
                 "multipart/form-data",
-                "application/x-www-form-urlencoded" }, produces = "text/html")
+                "application/x-www-form-urlencoded"}, produces = "text/html")
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
