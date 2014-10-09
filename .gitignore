@@ -6,3 +6,4 @@ larch-data/
 !.gitignore
 dependency-reduced-pom.xml
 hostkey.ser
+activemq-data/

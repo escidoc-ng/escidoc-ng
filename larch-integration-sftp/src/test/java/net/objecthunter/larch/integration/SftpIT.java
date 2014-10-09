@@ -76,7 +76,7 @@ public class SftpIT extends AbstractSftpIT {
         Entity e = new Entity();
         e.setId(UUID.randomUUID().toString());
         e.setLabel(RandomStringUtils.randomAlphabetic(64));
-        e.setState(Entity.STATE_PENDING);
+        e.setState(Entity.EntityState.PENDING);
         e.setVersion(1);
         final String path = sftpBlobstoreService.createOldVersionBlob(e);
         assertNotNull(path);
@@ -87,7 +87,7 @@ public class SftpIT extends AbstractSftpIT {
         Entity e = new Entity();
         e.setId(UUID.randomUUID().toString());
         e.setLabel(RandomStringUtils.randomAlphabetic(64));
-        e.setState(Entity.STATE_PENDING);
+        e.setState(Entity.EntityState.PENDING);
         e.setVersion(1);
         final String path = sftpBlobstoreService.createOldVersionBlob(e);
         assertNotNull(path);
