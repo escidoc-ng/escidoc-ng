@@ -76,6 +76,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -93,6 +94,7 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
  * General JavaConfig class for the larch repository containing all the necessary beans for a larch repository
  */
 @Configuration
+@PropertySource("classpath:escidoc-ng.server.properties")
 @ComponentScan(basePackages = "net.objecthunter.larch.controller")
 @EnableAutoConfiguration
 @EnableAspectJAutoProxy

@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
  * General JavaConfig class for the larch frontend containing all the necessary beans for a larch frontend
  */
 @Configuration
+@PropertySource("classpath:escidoc-ng.frontend.properties")
 @ComponentScan(basePackages = "net.objecthunter.larch.frontend.controller")
 @EnableAutoConfiguration
 public class LarchFrontendConfiguration {
