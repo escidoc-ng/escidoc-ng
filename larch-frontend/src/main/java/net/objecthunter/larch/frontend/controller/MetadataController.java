@@ -31,6 +31,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleName;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -78,13 +79,13 @@ public class MetadataController extends AbstractController {
             @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
-        HttpEntity multipart = MultipartEntityBuilder.create()
-                .addTextBody("name", mdName)
-                .addTextBody("type", type)
-                .addTextBody("mimetype", file.getContentType())
-                .addTextBody("filename", file.getOriginalFilename())
-                .addBinaryBody("data", file.getBytes())
-                .build();
+        HttpEntity multipart =
+                MultipartEntityBuilder.create()
+                        .addTextBody("name", mdName)
+                        .addTextBody("type", type)
+                        .addBinaryBody("data", file.getInputStream(), ContentType.create(file.getContentType()),
+                                file.getOriginalFilename())
+                        .build();
         httpHelper.doPost("/entity/" + entityId + "/metadata", multipart, null);
         return "redirect:/entity/" + entityId;
     }
@@ -111,9 +112,8 @@ public class MetadataController extends AbstractController {
         HttpEntity multipart = MultipartEntityBuilder.create()
                 .addTextBody("name", mdName)
                 .addTextBody("type", type)
-                .addTextBody("mimetype", file.getContentType())
-                .addTextBody("filename", file.getOriginalFilename())
-                .addBinaryBody("data", file.getBytes())
+                .addBinaryBody("data", file.getInputStream(), ContentType.create(file.getContentType()),
+                        file.getOriginalFilename())
                 .build();
         httpHelper.doPost("/entity/" + entityId + "/binary/" + binaryName + "/metadata", multipart, null);
         return "redirect:/entity/" + entityId + "/binary/" + binaryName;

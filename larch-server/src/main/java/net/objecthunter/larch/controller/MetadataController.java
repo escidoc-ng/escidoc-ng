@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,8 +123,7 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String addMetadata(@PathVariable("id") final String entityId,
             @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("mimetype") final String mimetype,
-            @RequestParam("filename") final String filename, final InputStream src)
+            @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
             throws IOException {
         final Entity e = entityService.retrieve(entityId);
         if (e.getMetadata() == null) {
@@ -134,10 +134,10 @@ public class MetadataController extends AbstractLarchController {
         }
         final Metadata md = new Metadata();
         md.setName(mdName);
-        md.setData(IOUtils.toString(src));
-        md.setMimetype(mimetype);
+        md.setData(IOUtils.toString(file.getInputStream()));
+        md.setMimetype(file.getContentType());
         md.setType(type);
-        md.setOriginalFilename(filename);
+        md.setOriginalFilename(file.getOriginalFilename());
         e.getMetadata().put(mdName, md);
         entityService.update(e);
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
@@ -203,17 +203,16 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("mimetype") final String mimetype,
-            @RequestParam("filename") final String filename, final InputStream src)
+            @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
             throws IOException {
 
         final Entity e = this.entityService.retrieve(entityId);
         final Metadata md = new Metadata();
         md.setName(mdName);
         md.setType(type);
-        md.setData(IOUtils.toString(src));
-        md.setOriginalFilename(filename);
-        md.setUtcCreated(mimetype);
+        md.setData(IOUtils.toString(file.getInputStream()));
+        md.setOriginalFilename(file.getOriginalFilename());
+        md.setMimetype(file.getContentType());
 
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on the entity " + entityId);

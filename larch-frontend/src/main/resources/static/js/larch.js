@@ -164,6 +164,44 @@ function deleteBinaryMetadata(entityId, binaryName, name) {
 	    });
 	}
 
+function deleteIdentifier(entityId, type, value) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/identifier/" + type + "/" + value,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function deleteRelation(entityId, predicate, object) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/relation/" + predicate + "/" + object,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
 function createRight(username, rolename, anchorId, rolerights) {
     var csrf_token = $("meta[name='_csrf']").attr("content");
     $.ajax ({

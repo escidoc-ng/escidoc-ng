@@ -19,7 +19,6 @@ package net.objecthunter.larch.frontend.controller;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
@@ -83,11 +82,11 @@ public class BinaryController extends AbstractController {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
-            @RequestParam("binary") final MultipartFile file, HttpServletRequest request) throws IOException {
+            @RequestParam("binary") final MultipartFile file) throws IOException {
         HttpEntity multipart = MultipartEntityBuilder.create()
                 .addTextBody("name", name)
-                .addTextBody("mimetype", file.getContentType())
-                .addBinaryBody("binary", file.getBytes())
+                .addBinaryBody("binary", file.getInputStream(), ContentType.create(file.getContentType()),
+                        file.getOriginalFilename())
                 .build();
 
         httpHelper.doPost("/entity/" + entityId + "/binary", multipart, null);

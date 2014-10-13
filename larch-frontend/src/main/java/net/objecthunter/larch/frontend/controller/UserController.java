@@ -25,7 +25,6 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
-import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
 
 import org.apache.http.HttpEntity;

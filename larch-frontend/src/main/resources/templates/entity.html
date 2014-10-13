@@ -16,8 +16,8 @@
         checkAuth('/entity/' + /*[[${entity.id + '/withdraw'}]]*/, 'PUT', ['withdrawBtn']);
         checkAuth('/entity/' + /*[[${entity.id}]]*/, 'DELETE', ['deleteBtn']);
         checkAuthCreateEntity('data', /*[[${entity.id}]]*/, 'entityCreatePanel');
-        checkAuth('/entity/' + /*[[${entity.id + '/binary'}]]*/, 'POST', ['binaryCreatePanel']);
-        checkAuth('/entity/' + /*[[${entity.id + '/metadata'}]]*/, 'POST', ['metadataCreatePanel', 'identifierCreatePanel', 'relationCreatePanel']);
+        checkAuth('/entity/' + /*[[${entity.id + '/binary'}]]*/, 'POST', ['binaryCreatePanel', 'binaryDeleteButton']);
+        checkAuth('/entity/' + /*[[${entity.id + '/metadata'}]]*/, 'POST', ['metadataCreatePanel', 'identifierCreatePanel', 'relationCreatePanel', 'metadataDeleteButton', 'identifierDeleteButton', 'relationDeleteButton']);
 
     /*]]>*/
 </script>
@@ -81,7 +81,7 @@
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <input id="metadataDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
@@ -113,7 +113,11 @@
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
-            <p class="panel_title" th:text="'Identifiers: '"></p>
+            <p class="panel_title" th:text="'Identifier: '"></p>
+
+            <p class="property" th:text="Actions" />
+            <input id="identifierDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteIdentifier(\'' + ${entity.id} + '\', \'' + ${identifier.type} + '\', \'' + ${identifier.value} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Type</p>
 
@@ -127,7 +131,7 @@
             <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <input id="binaryDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Mime type</p>
@@ -162,6 +166,10 @@
             <p class="panel_title">Relations</p>
 
             <div th:each="rel : ${entity.relations}">
+            <p class="property" th:text="Actions" />
+            <input id="relationDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteRelation(\'' + ${entity.id} + '\', \'' + ${rel.key} + '\', \'' + ${rel.value} + '\')'"/>
+            <p class="panel_title" />
+
                 <p class="property" th:text="${rel.key}"></p>
 
                 <div th:each="obj : ${rel.value}">
