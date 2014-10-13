@@ -41,15 +41,4 @@ public class AuthorizeAuditRecordControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
     }
 
-    @Test
-    public void testRetrieveAuditRecordsHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/audit")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-    }
-
 }

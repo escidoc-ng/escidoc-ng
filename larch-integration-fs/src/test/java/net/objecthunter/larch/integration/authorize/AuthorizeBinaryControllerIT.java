@@ -97,61 +97,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateBinaryStreamHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addPart(
-                                "binary",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/image_1.png").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addPart(
-                                "binary",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/image_1.png").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary/file")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addPart(
-                                "binary",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/image_1.png").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-    }
-
-    @Test
     public void testCreateBinaryJson() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -185,42 +130,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateBinaryJsonHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary")
-                .body(mapper.writeValueAsString(getBinary()))
-                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary")
-                .body(mapper.writeValueAsString(getBinary()))
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary")
-                .body(mapper.writeValueAsString(getBinary()))
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testRetrieveBinary() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -240,33 +149,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
-                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
-                .build());
-    }
-
-    @Test
-    public void testRetrieveBinaryHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
-                .neededPermission(MissingPermission.READ_PENDING_BINARY)
-                .html(true)
-                .build());
-
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
-                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
-                .html(true)
-                .build());
-
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/binary/image-1")
-                .html(true)
                 .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }

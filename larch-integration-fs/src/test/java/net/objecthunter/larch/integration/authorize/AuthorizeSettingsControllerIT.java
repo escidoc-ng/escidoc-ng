@@ -36,13 +36,4 @@ public class AuthorizeSettingsControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
     }
 
-    @Test
-    public void testRetrieveSettingsHtml() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "settings")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-    }
-
 }

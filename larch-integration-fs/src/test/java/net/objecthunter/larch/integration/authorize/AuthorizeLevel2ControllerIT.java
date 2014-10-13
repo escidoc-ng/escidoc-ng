@@ -91,30 +91,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveLevel2Html() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + level2Id)
-                .neededPermission(MissingPermission.READ_PERMISSION)
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id, null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id, null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void testRetrieveVersion() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
@@ -140,32 +116,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveVersionHtml() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id + "/version/1", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id + "/version/1", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void testRetrieveVersions() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
@@ -186,32 +136,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.GET, entityUrl + level2Id + "/versions", null,
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void testRetrieveVersionsHtml() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/versions")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id + "/versions", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.GET, entityUrl + level2Id + "/versions", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }
@@ -326,34 +250,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testPublishEntityHtml() throws Exception {
-        // create submitted entity
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL2.getName(), level1Id1);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/publish")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/publish", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/publish", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void testSubmitEntity() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1);
@@ -381,34 +277,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testSubmitEntityHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/submit")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/submit", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/submit", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void testWithdrawEntity() throws Exception {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
@@ -431,34 +299,6 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw", null,
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(403, resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void testWithdrawEntityHtml() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-
-        // level1 admin
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-
-        resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], true);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
     }

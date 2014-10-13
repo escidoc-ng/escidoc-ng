@@ -63,40 +63,6 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateIdentifierHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
-                .body("type=DOI&value=123")
-                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
-                .body("type=DOI&value=123")
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
-                .body("type=DOI&value=123")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testDeleteIdentifier() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -124,40 +90,6 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
-                .build());
-    }
-
-    @Test
-    public void testDeleteIdentifierHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/identifier/DOI/testdoi")
-                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/identifier/DOI/testdoi")
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/identifier/DOI/testdoi")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
                 .build());
     }
 

@@ -16,8 +16,6 @@
 
 package net.objecthunter.larch.integration.authorize;
 
-import java.io.File;
-
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
@@ -29,8 +27,6 @@ import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,67 +68,6 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testCreateMetadataHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testCreateBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -163,70 +98,6 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
                 .resetState(true)
                 .resetStateId(entity.getId())
-                .build());
-    }
-
-    @Test
-    public void testCreateBinaryMetadataHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() +
-                        "/binary/image-1/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() +
-                        "/binary/image-1/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() +
-                        "/binary/image-1/metadata")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("type", "DC")
-                        .addTextBody("mimetype", "text/xml")
-                        .addTextBody("filename", "dc.xml")
-                        .addPart(
-                                "metadata",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/dc.xml").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
                 .build());
     }
 
@@ -347,31 +218,10 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveTypesHtml() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "metadatatype")
-                .roleRestriction(RoleRestriction.LOGGED_IN)
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testAddType() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, hostUrl + "metadatatype")
                 .body(mapper.writeValueAsString(getMetadataType()))
-                .roleRestriction(RoleRestriction.ADMIN)
-                .build());
-    }
-
-    @Test
-    public void testAddTypeHtml() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, hostUrl + "metadatatype")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", RandomStringUtils.randomAlphabetic(16))
-                        .addTextBody("schemaUrl", "http://www.somewhat.org")
-                        .build())
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
     }
@@ -402,34 +252,6 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveMetadataHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PENDING_METADATA)
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testRetrieveBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -455,38 +277,6 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                         "/binary/" + binaryName + "/metadata/" +
                         entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
                 .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
-                .build());
-    }
-
-    @Test
-    public void testRetrieveBinaryMetadataHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PENDING_BINARY)
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() +
-                        "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
-                .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
-                .html(true)
                 .build());
     }
 

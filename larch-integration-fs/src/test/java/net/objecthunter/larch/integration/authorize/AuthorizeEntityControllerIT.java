@@ -86,31 +86,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveEntityHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId())
-                .neededPermission(MissingPermission.READ_PENDING_METADATA)
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId())
-                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId())
-                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testRetrieveVersion() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -133,31 +108,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveVersionHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
-                .neededPermission(MissingPermission.READ_PENDING_METADATA)
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
-                .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
-                .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testRetrieveVersions() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -176,31 +126,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
-                .build());
-    }
-
-    @Test
-    public void testRetrieveVersionsHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/versions")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/versions")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/versions")
-                .roleRestriction(RoleRestriction.ADMIN)
-                .html(true)
                 .build());
     }
 
@@ -280,19 +205,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testPublishEntityHtml() throws Exception {
-        // create submitted entity
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/publish")
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testSubmitEntity() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
@@ -301,19 +213,6 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
-                .build());
-    }
-
-    @Test
-    public void testSubmitEntityHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/submit")
-                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
                 .build());
     }
 
@@ -329,16 +228,4 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
     }
 
-    @Test
-    public void testWithdrawEntityHtml() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-    }
 }
