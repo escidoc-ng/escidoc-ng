@@ -27,20 +27,20 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
-import net.objecthunter.larch.service.backend.BackendCredentialsService;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.service.CredentialsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Web controller class responsible for larch {@link net.objecthunter.larch.model.Binary} objects
@@ -49,7 +49,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class UserController extends AbstractLarchController {
 
     @Autowired
-    private BackendCredentialsService backendCredentialsService;
+    private CredentialsService credentialsService;
 
     /**
      * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
@@ -58,20 +58,8 @@ public class UserController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String confirmUserRequest(@PathVariable("token") final String token) throws IOException {
-        this.backendCredentialsService.retrieveUserRequest(token);
+        this.credentialsService.retrieveUserRequest(token);
         return token;
-    }
-
-    /**
-     * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
-     */
-    @RequestMapping(value = "/confirm/{token}", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView confirmUserRequestHtml(@PathVariable("token") final String token) throws IOException {
-        this.confirmUserRequest(token);
-        final ModelMap model = new ModelMap();
-        model.addAttribute("token", token);
-        return new ModelAndView("confirm", model);
     }
 
     /**
@@ -82,20 +70,7 @@ public class UserController extends AbstractLarchController {
     public void confirmUserRequest(@PathVariable("token") final String token,
             @RequestParam("password") final String password,
             @RequestParam("passwordRepeat") final String passwordRepeat) throws IOException {
-        this.backendCredentialsService.createUser(token, password, passwordRepeat);
-    }
-
-    /**
-     * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
-     */
-    @RequestMapping(value = "/confirm/{token}", method = RequestMethod.POST, consumes = "multipart/form-data",
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView confirmUserRequestHtml(@PathVariable("token") final String token,
-            @RequestParam("password") final String password,
-            @RequestParam("passwordRepeat") final String passwordRepeat) throws IOException {
-        final User u = this.backendCredentialsService.createUser(token, password, passwordRepeat);
-        return success("The user " + u.getName() + " has been created.");
+        this.credentialsService.createUser(token, password, passwordRepeat);
     }
 
     /**
@@ -107,21 +82,7 @@ public class UserController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.WRITE) })
     public void deleteUser(@PathVariable("name") final String name) throws IOException {
-        this.backendCredentialsService.deleteUser(name);
-    }
-
-    /**
-     * Controller method for retrieving a List of existing {@link net.objecthunter.larch.model.security.User}s in the
-     * repository as a JSON representation
-     * 
-     * @return A JSON representation of the user list
-     * @throws IOException
-     */
-    @RequestMapping(value = "/user", method = RequestMethod.GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public List<User> retrieveUsers() throws IOException {
-        return backendCredentialsService.retrieveUsers();
+        this.credentialsService.deleteUser(name);
     }
 
     /**
@@ -146,29 +107,8 @@ public class UserController extends AbstractLarchController {
         u.setFirstName(firstName);
         u.setLastName(lastName);
         u.setEmail(email);
-        UserRequest request = this.backendCredentialsService.createNewUserRequest(u);
+        UserRequest request = this.credentialsService.createNewUserRequest(u);
         return request.getToken();
-    }
-
-    /**
-     * Controller method for creating a new {@link net.objecthunter.larch.model.security.User}
-     * 
-     * @param userName the name of the user
-     * @param firstName the user's first name
-     * @param lastName the user's last name
-     * @param email the user's mail address
-     * @param groups the user's groups
-     * @throws IOException if the user could not be created
-     */
-    @RequestMapping(value = "/user", method = RequestMethod.POST, consumes = "multipart/form-data",
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView createUserHtml(@RequestParam("name") final String userName,
-            @RequestParam("first_name") final String firstName,
-            @RequestParam("last_name") final String lastName,
-            @RequestParam("email") final String email) throws IOException {
-        return new ModelAndView("redirect:/confirm/" + createUser(userName, firstName, lastName, email));
     }
 
     /**
@@ -183,50 +123,25 @@ public class UserController extends AbstractLarchController {
     @ResponseBody
     @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
     public
             User retrieveUser(@PathVariable("name") final String name) throws IOException {
-        return backendCredentialsService.retrieveUser(name);
+        return credentialsService.retrieveUser(name);
     }
 
     /**
      * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User}s in the
      * repository as a JSON representation
      * 
-     * @param name The user's name
      * @return A JSON representation of the user
      * @throws IOException
      */
-    @RequestMapping(value = "/user/{name}", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/current-user", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @PreAuth(objectType = ObjectType.USER, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_AREA_ADMIN),
-            @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.READ) })
-    public
-            ModelAndView retrieveUserHtml(@PathVariable("name") final String name) throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("user", backendCredentialsService.retrieveUser(name));
-        model.addAttribute("roles", retrieveRoles());
-        return new ModelAndView("user", model);
-    }
-
-    /**
-     * Controller method for retrieving a HTML view via HTTP GET of all Users and Groups in the repository
-     * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used for rendering the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/credentials", method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveCredentials() throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("users", this.backendCredentialsService.retrieveUsers());
-        model.addAttribute("roles", retrieveRoles());
-        return new ModelAndView("credentials", model);
+    public User retrieveCurrentUser() throws IOException {
+        return credentialsService.retrieveCurrentUser();
     }
 
     /**
@@ -245,22 +160,36 @@ public class UserController extends AbstractLarchController {
         return roles;
     }
 
+    /**
+     * Controller method to retrieve a Role that exist in the
+     * repository as a JSON representation
+     * 
+     * @return the list of {@link net.objecthunter.larch.model.security.Role}s as a JSON representation
+     * @throws IOException
+     */
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<RoleRight> retrieveRoleRights(@PathVariable("rolename") final String rolename) throws IOException {
+        return Role.getRoleObject(RoleName.valueOf(rolename.toUpperCase())).allowedRights();
+    }
+
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @PreAuth(permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER_ADMIN, permissionType = PermissionType.WRITE) })
-    public ModelAndView updateUserDetails(@PathVariable("name") final String username,
+    public String updateUserDetails(@PathVariable("name") final String username,
             @RequestParam("first_name") final String firstName,
             @RequestParam("last_name") final String lastName,
             @RequestParam("email") final String email) throws IOException {
-        final User u = this.backendCredentialsService.retrieveUser(username);
+        final User u = this.credentialsService.retrieveUser(username);
         u.setLastName(lastName);
         u.setFirstName(firstName);
         u.setEmail(email);
-        this.backendCredentialsService.updateUser(u);
-        return success("The user " + username + " has been updated");
+        this.credentialsService.updateUser(u);
+        return "The user " + username + " has been updated";
     }
 
 }

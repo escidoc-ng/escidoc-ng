@@ -18,17 +18,17 @@ package net.objecthunter.larch.frontend;
 
 import javax.annotation.PostConstruct;
 
+import net.objecthunter.larch.frontend.util.HttpHelper;
+import net.objecthunter.larch.frontend.util.LarchExceptionHandler;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -42,6 +42,7 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
  * General JavaConfig class for the larch frontend containing all the necessary beans for a larch frontend
  */
 @Configuration
+@PropertySource("classpath:escidoc-ng.frontend.properties")
 @ComponentScan(basePackages = "net.objecthunter.larch.frontend.controller")
 @EnableAutoConfiguration
 public class LarchFrontendConfiguration {
@@ -114,20 +115,23 @@ public class LarchFrontendConfiguration {
     }
 
     /**
-     * Get a HttpClient which uses a pooled connection factory
+     * A HttpHelper {@link net.objecthunter.larch.frontend.util.HttpHelper} for requesting urls
      *
-     * @return the {@link org.apache.http.client.HttpClient} implementation used by various services
+     * @return a {@link net.objecthunter.larch.frontend.util.HttpHelper} object
      */
     @Bean
-    @Primary
-    public HttpClient httpClient() {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(100);
+    public HttpHelper httpHelper() {
+        return new HttpHelper();
+    }
 
-        CloseableHttpClient httpclient = HttpClients.custom()
-                .setConnectionManager(cm)
-                .build();
-        return httpclient;
+    /**
+     * Get a {@link net.objecthunter.larch.frontend.util.LarchExceptionHandler} implementation for use by the repository
+     *
+     * @return a {@link net.objecthunter.larch.frontend.util.LarchExceptionHandler} implementation
+     */
+    @Bean
+    public LarchExceptionHandler larchExceptionHandler() {
+        return new LarchExceptionHandler();
     }
 
 }

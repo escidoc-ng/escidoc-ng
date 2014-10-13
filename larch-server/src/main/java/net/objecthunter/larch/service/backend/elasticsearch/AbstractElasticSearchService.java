@@ -6,24 +6,14 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
-import net.objecthunter.larch.model.security.User;
-import net.objecthunter.larch.model.security.role.Role;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
-import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
-import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
-
 import org.apache.commons.io.IOUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -94,68 +84,6 @@ public class AbstractElasticSearchService {
             return mapper.readValue(mappings, Map.class);
         }
         return null;
-    }
-
-    /**
-     * Get Query that restricts a search to entities the user may see.
-     * 
-     * @return QueryBuilder with user-restriction query
-     */
-    protected QueryBuilder getEntitesUserRestrictionQuery() throws IOException {
-        User currentUser = getCurrentUser();
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        if (currentUser == null || currentUser.getRoles() == null || currentUser.getRoles().isEmpty()) {
-            //restrict to nothing
-            restrictionQueryBuilder.should(QueryBuilders.termQuery(EntitiesSearchField.STATE.getFieldName(), "NONEXISTING"));
-            return restrictionQueryBuilder;
-        } else {
-            for (Role role : currentUser.getRoles()) {
-                RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
-                restrictionQueryBuilder.should(roleQueryRestriction.getEntitiesRestrictionQuery());
-            }
-        }
-        return restrictionQueryBuilder;
-    }
-
-    /**
-     * Get Query that restricts a search to users the user may see.
-     * 
-     * @return QueryBuilder with user-restriction query
-     */
-    protected QueryBuilder getUsersUserRestrictionQuery() throws IOException {
-        User currentUser = getCurrentUser();
-        BoolQueryBuilder restrictionQueryBuilder = QueryBuilders.boolQuery();
-        if (currentUser == null) {
-            //restrict to nothing
-            restrictionQueryBuilder.should(QueryBuilders.termQuery("name", "NONEXISTING"));
-            return restrictionQueryBuilder;
-        } else {
-            // user may see himself
-            restrictionQueryBuilder.should(QueryBuilders.termQuery("name",
-                    currentUser.getName()));
-            if (currentUser.getRoles() != null) {
-                for (Role role : currentUser.getRoles()) {
-                    RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
-                    restrictionQueryBuilder.should(roleQueryRestriction.getUsersRestrictionQuery());
-                }
-            }
-        }
-        return restrictionQueryBuilder;
-    }
-
-    /**
-     * Get currently logged in User or null if no user is logged in.
-     * 
-     * @return User logged in user
-     */
-    private User getCurrentUser() {
-        if (SecurityContextHolder.getContext() == null ||
-                SecurityContextHolder.getContext().getAuthentication() == null ||
-                SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ||
-                !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User)) {
-            return null;
-        }
-        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 
 }

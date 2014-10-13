@@ -18,7 +18,7 @@ function submitPut(url, redirectUrl) {
 		  }
 		});}
 
-function createEntity(id, type, label, tags, parentId) {
+function createEntity(id, contentModelId, label, tags, parentId) {
 	var tagList = null;
 	if (tags != null) {
 	    tagList = tags.split(',');
@@ -28,7 +28,7 @@ function createEntity(id, type, label, tags, parentId) {
 	}
     var entity = {
         'id' : id,
-        'type' : type,
+        'contentModelId' : contentModelId,
         'label' : label,
         'parentId' : parentId,
         'tags' : tagList
@@ -221,9 +221,9 @@ function checkAuth(url, type, idToHide) {
     });
 }
     
-function checkAuthCreateEntity(type, parentId, idToHide) {
+function checkAuthCreateEntity(contentModelId, parentId, idToHide) {
     var entity = {
-            'type' : type,
+            'contentModelId' : contentModelId,
             'label' : 'authtest',
             'parentId' : parentId
         };

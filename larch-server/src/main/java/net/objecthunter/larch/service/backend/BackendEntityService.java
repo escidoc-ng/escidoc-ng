@@ -18,14 +18,11 @@ package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 /**
  * Service definition for CRUD operations on index operations
@@ -49,21 +46,21 @@ public interface BackendEntityService {
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
-     * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
+     * @param query query as String.
      * @param offset the offset
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset) throws IOException;
+    SearchResult searchEntities(String query, int offset) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
-     * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
+     * @param query query as String.
      * @param offset the offset
      * @param maxRecords maxRecords to return
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords) throws IOException;
+    SearchResult searchEntities(String query, int offset, int maxRecords) throws IOException;
 
     EntityHierarchy getHierarchy(String entityId) throws IOException;
 

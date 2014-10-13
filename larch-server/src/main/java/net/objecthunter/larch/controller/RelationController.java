@@ -71,21 +71,4 @@ public class RelationController extends AbstractLarchController {
         this.messagingService.publishCreateRelation(id, predicate, object);
     }
 
-    /**
-     * Controller method for adding a new triple relating an {@link net.objecthunter.larch.model.Entity} via a
-     * predicate to an object using a HTTP POSTm that redirects to an HTML view of the
-     * {@link net.objecthunter.larch.model.Entity}
-     * 
-     * @param id the id of the Entity which should be the subject of this relation
-     * @param predicate the predicate of the relation
-     * @param object the object of the relation
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.POST, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public String createHtml(@PathVariable("id") final String id, @RequestParam("predicate") final String predicate,
-            @RequestParam("object") final String object) throws IOException {
-        create(id, predicate, object);
-        return "redirect:/entity/" + id;
-    }
 }

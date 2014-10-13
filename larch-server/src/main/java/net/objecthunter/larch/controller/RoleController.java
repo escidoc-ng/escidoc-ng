@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,33 +74,19 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for setting user-roles to a User
-     * 
-     * @param username The name of the user
-     */
-    @RequestMapping(value = "/roles", method = RequestMethod.POST, produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView setRolesHtml(@PathVariable("username") final String username, final InputStream src)
-            throws IOException {
-        setRoles(username, src);
-        return new ModelAndView("redirect:/user/" + username);
-    }
-
-    /**
      * Controller method for setting a right for an anchorId to a User
      * 
      * @param username The name of the user
      * @param objectId The id of the object the user becomes a right for.
      */
-    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST,
+    @RequestMapping(value = "/role/{rolename}/rights/{anchorId}", method = RequestMethod.POST,
             consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 2, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
-        @Permission(rolename = RoleName.ROLE_AREA_ADMIN, permissionType = PermissionType.WRITE) })
-    public void setRight(@PathVariable("username") final String username,
+        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
+    public void setRightWithAnchor(@PathVariable("username") final String username,
             @PathVariable("rolename") final String rolename,
             @PathVariable("anchorId") final String anchorId, final InputStream src) throws IOException {
         List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
@@ -109,18 +94,21 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for setting a right for an anchorId to a User
+     * Controller method for setting a right without anchorId to a User
      * 
      * @param username The name of the user
+     * @param objectId The id of the object the user becomes a right for.
      */
-    @RequestMapping(value = "/role/{rolename}/right/{anchorId}", method = RequestMethod.POST, produces = "text/html")
+    @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.POST,
+            consumes = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ModelAndView setRightHtml(@PathVariable("username") final String username,
-            @PathVariable("rolename") final String rolename, @PathVariable("anchorId") final String anchorId,
-            final InputStream src) throws IOException {
-        setRight(username, rolename, anchorId, src);
-        return new ModelAndView("redirect:/user/" + username);
+    @PreAuth(permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN) })
+    public void setRightWithoutAnchor(@PathVariable("username") final String username,
+            @PathVariable("rolename") final String rolename, final InputStream src) throws IOException {
+        List<RoleRight> rights = mapper.readValue(src, new TypeReference<List<RoleRight>>() {});
+        backendCredentialsService.setRight(username, RoleName.valueOf(rolename.toUpperCase()), "", rights);
     }
 
 }

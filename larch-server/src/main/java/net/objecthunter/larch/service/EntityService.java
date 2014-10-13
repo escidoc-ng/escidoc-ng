@@ -18,14 +18,12 @@ package net.objecthunter.larch.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 import net.objecthunter.larch.model.AuditRecord;
 import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.SearchResult;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -83,17 +81,17 @@ public interface EntityService {
      * @param offset the offset
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset) throws IOException;
+    SearchResult searchEntities(String query, int offset) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.
      * 
-     * @param searchFields Map with key: EntitiesSearchField and value searchStrings as array.
+     * @param query query as String.
      * @param offset the offset
      * @param maxRecords maxRecords to return
      * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
      */
-    SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords) throws IOException;
+    SearchResult searchEntities(String query, int offset, int maxRecords) throws IOException;
 
     /**
      * Retrieve all old versions of an entity from the version storage

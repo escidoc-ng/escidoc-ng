@@ -30,8 +30,9 @@ import javax.annotation.PostConstruct;
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.PermissionAnchorType;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
@@ -55,6 +56,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,22 +324,18 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (roleName == null) {
             throw new InvalidParameterException("name of role may not be null");
         }
-        if (RoleName.ROLE_ADMIN.equals(roleName)) {
-            throw new InvalidParameterException("admin-role cannot be set with this method");
-        }
         if (anchorId == null) {
             throw new InvalidParameterException("anchorId may not be null");
         }
-        if (rights == null) {
-            throw new InvalidParameterException("rights may not be null");
-        }
 
-        List<RoleRight> existingRights = new ArrayList<RoleRight>();
-        for (RoleRight right : rights) {
-            if (existingRights.contains(right)) {
-                throw new InvalidParameterException("duplicate right " + right);
+        List<RoleRight> orderedRights = new ArrayList<RoleRight>();
+        if (rights != null) {
+            for (RoleRight right : rights) {
+                if (orderedRights.contains(right)) {
+                    throw new InvalidParameterException("duplicate right " + right);
+                }
+                orderedRights.add(right);
             }
-            existingRights.add(right);
         }
 
         try {
@@ -348,32 +346,58 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
 
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
+            
             Role existingRole = user.getRole(roleName);
-            if (existingRole != null) {
-                checkAnchorTypes(new HashSet<String>() {
-
-                    {
-                        add(anchorId);
-                    }
-                }, existingRole.anchorTypes());
-                Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
-                if (expandedRights == null) {
-                    expandedRights = new HashMap<String, List<RoleRight>>();
+            if (RoleName.ROLE_ADMIN.equals(roleName)) {
+                // handle admin role
+                if (existingRole == null) {
+                    user.setRole(Role.getRoleObject(roleName));
+                } else {
+                    user.removeRole(roleName);
                 }
-                expandedRights.put(anchorId, rights);
-                existingRole.setRights(expandedRights);
             } else {
-                Role newRole = Role.getRoleObject(roleName);
-                checkAnchorTypes(new HashSet<String>() {
+                // handle other roles
+                if (existingRole != null && !orderedRights.isEmpty()) {
+                    checkAnchorTypes(new HashSet<String>() {
 
-                    {
-                        add(anchorId);
+                        {
+                            add(anchorId);
+                        }
+                    }, existingRole.anchorTypes());
+                    Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
+                    if (expandedRights == null) {
+                        expandedRights = new HashMap<String, List<RoleRight>>();
                     }
-                }, newRole.anchorTypes());
-                Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-                newRights.put(anchorId, rights);
-                newRole.setRights(newRights);
-                user.setRole(newRole);
+                    expandedRights.put(anchorId, orderedRights);
+                    existingRole.setRights(expandedRights);
+                } else if (existingRole != null && orderedRights.isEmpty()) {
+                    checkAnchorTypes(new HashSet<String>() {
+
+                        {
+                            add(anchorId);
+                        }
+                    }, existingRole.anchorTypes());
+                    Map<String, List<RoleRight>> expandedRights = existingRole.getRights();
+                    if (expandedRights == null) {
+                        expandedRights = new HashMap<String, List<RoleRight>>();
+                    }
+                    expandedRights.remove(anchorId);
+                    if (expandedRights.isEmpty()) {
+                        user.removeRole(existingRole.getRoleName());
+                    }
+                } else if (existingRole == null && !orderedRights.isEmpty()) {
+                    Role newRole = Role.getRoleObject(roleName);
+                    checkAnchorTypes(new HashSet<String>() {
+
+                        {
+                            add(anchorId);
+                        }
+                    }, newRole.anchorTypes());
+                    Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+                    newRights.put(anchorId, orderedRights);
+                    newRole.setRights(newRights);
+                    user.setRole(newRole);
+                }
             }
 
             this.client
@@ -449,22 +473,38 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
     }
 
     @Override
-    public List<User> retrieveUsers() throws IOException {
+    public SearchResult searchUsers(String query, int offset, int maxRecords) throws IOException {
+        final long time = System.currentTimeMillis();
         final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(getUsersUserRestrictionQuery());
+        if (StringUtils.isBlank(query)) {
+            query = "*:*";
+        }
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(query);
         try {
             resp =
-                    this.client.prepareSearch(INDEX_USERS).setQuery(queryBuilder).execute()
+                    this.client.prepareSearch(INDEX_USERS).setQuery(builder).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        final List<User> users = new ArrayList<>(resp.getHits().getHits().length);
-        for (SearchHit hit : resp.getHits()) {
+
+        final SearchResult result = new SearchResult();
+
+        final List<User> users = new ArrayList<>();
+        for (final SearchHit hit : resp.getHits()) {
             users.add(mapper.readValue(hit.getSourceAsString(), User.class));
         }
-        return users;
+        result.setData(users);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setMaxRecords(maxRecords);
+        result.setHits(users.size());
+        result.setNumRecords(users.size());
+        result.setTerm(new String(builder.buildAsBytes().toBytes()));
+        result.setOffset(offset);
+        result.setNextOffset(offset + maxRecords);
+        result.setPrevOffset(Math.max(offset - maxRecords, 0));
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
     }
 
     @Override
@@ -575,6 +615,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
         }
     }
+
     private List<User> retrieveUsersWithRight(String anchorId) throws IOException {
         final SearchResponse resp;
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -591,11 +632,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             users.add(mapper.readValue(hit.getSourceAsString(), User.class));
         }
         return users;
-     }
+    }
 
     /**
-     * Checks if the given anchorIds all are of one of the types in anchorTypes.
-     * Throw IOException if one of the anchorIds does not belong to one of the anchorTypes.
+     * Checks if the given anchorIds all are of one of the types in anchorTypes. Throw IOException if one of the
+     * anchorIds does not belong to one of the anchorTypes.
      * 
      * @param anchorIds
      * @param anchorTypes
@@ -603,7 +644,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
      */
     private void checkAnchorTypes(Set<String> anchorIds, List<PermissionAnchorType> anchorTypes) throws IOException {
         List<String> usernames = new ArrayList<String>();
-        List<EntityType> entityTypes = new ArrayList<EntityType>();
+        List<String> contentModelIds = new ArrayList<String>();
         if (anchorTypes == null && anchorIds != null && !anchorIds.isEmpty()) {
             throw new IOException("No object permissions supported");
         }
@@ -621,26 +662,29 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 }
             }
         }
-        if (anchorTypes.contains(PermissionAnchorType.AREA) || anchorTypes.contains(PermissionAnchorType.PERMISSION)) {
+        if (anchorTypes.contains(PermissionAnchorType.LEVEL1_ENTITY) ||
+                anchorTypes.contains(PermissionAnchorType.LEVEL2_ENTITY)) {
             for (String objectId : anchorIds) {
                 try {
                     Entity e = backendEntityService.retrieve(objectId);
-                    if (e.getType() == null) {
+                    if (e.getContentModelId() == null) {
                         throw new IOException("Object " + objectId + " has wrong type for permission-anchor");
                     }
-                    entityTypes.add(e.getType());
+                    contentModelIds.add(e.getContentModelId());
                 } catch (IOException e) {
                 }
             }
         }
-        if (anchorIds.size() != (usernames.size() + entityTypes.size())) {
+        if (anchorIds.size() != (usernames.size() + contentModelIds.size())) {
             throw new IOException("At least one Object has wrong type for permission-anchor");
         }
-        for (EntityType entityType : entityTypes) {
-            if ((EntityType.AREA.equals(entityType) && !anchorTypes.contains(PermissionAnchorType.AREA)) ||
-                    (EntityType.PERMISSION.equals(entityType) && !anchorTypes
-                            .contains(PermissionAnchorType.PERMISSION)) ||
-                    (!EntityType.AREA.equals(entityType)) && !EntityType.PERMISSION.equals(entityType)) {
+        for (String contentModelId : contentModelIds) {
+            if ((FixedContentModel.LEVEL1.getName().equals(contentModelId) && !anchorTypes
+                    .contains(PermissionAnchorType.LEVEL1_ENTITY)) ||
+                    (FixedContentModel.LEVEL2.getName().equals(contentModelId) && !anchorTypes
+                            .contains(PermissionAnchorType.LEVEL2_ENTITY)) ||
+                    (!FixedContentModel.LEVEL1.getName().equals(contentModelId) && !FixedContentModel.LEVEL2
+                            .getName().equals(contentModelId))) {
                 throw new IOException("At least one Object has wrong type for permission-anchor");
             }
         }

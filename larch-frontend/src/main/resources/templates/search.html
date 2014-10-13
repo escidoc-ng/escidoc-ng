@@ -17,29 +17,34 @@
         <div class="panel clickable">
             <p class="panel_title">Search</p>
             <script>
-            $(document).ready(function() {
+              $(document).ready(function() {
                 $('#searchMain').watermark('Search', {className: 'inactive'});
-            });
+                $('#ceButton').click(function() {
+                    searchEntities($('#ceAll').val(), $('#ceContentModelId').val(), $('#ceId').val(),$('#ceLabel').val(),$('#ceParent').val(),$('#ceLevel1').val(),$('#ceLevel2').val(),$('#ceTag').val(),$('#ceState').val(),$('#ceVersion').val());
+                    })
+              });
 
             </script>
             <form method="post" th:action="@{/search}"
                   enctype="multipart/form-data">
-                <label for="type">Type:</label>
-                <select id="type" name="type" title="Select a valid entity type">
-                    <option th:label="DATA" th:text="DATA" selected="selected"></option>
-                    <option th:label="AREA" th:text="AREA"></option>
-                    <option th:label="PERMISSION" th:text="PERMISSION"></option>
+                <label for="type">Content Model:</label>
+                <select id="ceContentModelId" name="contentModelId" title="Select a valid content model">
+                    <option th:label="level1" th:text="level1" selected="selected"></option>
+                    <option th:label="level2" th:text="level2"></option>
+                    <option th:label="data" th:text="data"></option>
                 </select>
-                <label for="searchMain">All Fields:</label><input type="text" id="searchMain"
-                                                                  name="term"/>
-                <label for="id">ID:</label><input type="text" id="id" name="id"/>
-                <label for="label">Label:</label><input type="text" id="label" name="label"/>
-                <label for="parent">Parent:</label><input type="text" id="parent" name="parent"/>
-                <label for="tag">Tag:</label><input type="text" id="tag" name="tag"/>
-                <label for="state">State:</label><input type="text" id="state" name="state"/>
-                <label for="version">Version:</label><input type="text" id="version"
+                <label for="searchMain">All Fields:</label><input type="text" id="ceAll"
+                                                                  name="all"/>
+                <label for="id">ID:</label><input type="text" id="ceId" name="id"/>
+                <label for="label">Label:</label><input type="text" id="ceLabel" name="label"/>
+                <label for="parent">Parent:</label><input type="text" id="ceParent" name="parent"/>
+                <label for="level1Id">Level1Id:</label><input type="text" id="ceLevel1" name="level1"/>
+                <label for="level2Id">Level2Id:</label><input type="text" id="ceLevel2" name="level2"/>
+                <label for="tag">Tag:</label><input type="text" id="ceTag" name="tag"/>
+                <label for="state">State:</label><input type="text" id="ceState" name="state"/>
+                <label for="version">Version:</label><input type="text" id="ceVersion"
                                                             name="version"/>
-                <input type="submit" value="Submit"/>
+                <input class="button" id="ceButton" type="button" value="Search"/>
             </form>
         </div>
     </div>

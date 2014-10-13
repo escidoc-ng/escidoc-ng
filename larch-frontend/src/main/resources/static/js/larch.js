@@ -9,16 +9,26 @@ $(document).ready(function() {
 });
 
 function submitPut(url, redirectUrl) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
 	$.ajax({
+        xhrFields: {
+            withCredentials: true
+         },
+         headers: {
+             "X-CSRF-TOKEN" : csrf_token
+         },
 		  type: 'PUT',
 		  accepts: 'text/html',
 		  url: url,
 		  success: function(data){
 			  document.location.href = redirectUrl;
-		  }
+		  },
+	      error : function(request, msg, error) {
+	        throwError(request);
+	      }
 		});}
 
-function createEntity(id, type, label, tags, parentId) {
+function createEntity(id, contentModelId, label, tags, parentId) {
 	var tagList = null;
 	if (tags != null) {
 	    tagList = tags.split(',');
@@ -28,7 +38,7 @@ function createEntity(id, type, label, tags, parentId) {
 	}
     var entity = {
         'id' : id,
-        'type' : type,
+        'contentModelId' : contentModelId,
         'label' : label,
         'parentId' : parentId,
         'tags' : tagList
@@ -154,6 +164,67 @@ function deleteBinaryMetadata(entityId, binaryName, name) {
 	    });
 	}
 
+function deleteIdentifier(entityId, type, value) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/identifier/" + type + "/" + value,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function deleteRelation(entityId, predicate, object) {
+	   $.ajax ({
+	        xhrFields: {
+	           withCredentials: true
+	        },
+	        headers: {
+	            "X-CSRF-TOKEN" : $("meta[name='_csrf']").attr("content")
+	        },
+	        url: ctx + "/entity/" + entityId + "/relation/" + predicate + "/" + object,
+	        type: "DELETE",
+	        success: function(createdId){
+		        document.location.href = ctx + "/entity/" + entityId;
+	        },
+	        error : function(request, msg, error) {
+	            throwError(request);
+	        }
+	    });
+	}
+
+function createRight(username, rolename, anchorId, rolerights) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax ({
+        xhrFields: {
+           withCredentials: true
+        },
+        headers: {
+            "X-CSRF-TOKEN" : csrf_token
+        },
+        url: ctx + "/user/" + username + "/role/" + rolename + "/rights/" + anchorId,
+        type: "POST",
+        data: JSON.stringify(rolerights),
+        dataType: "text",
+        contentType: "application/json; charset=utf-8",
+        success: function(){
+            document.location.href = ctx + '/user/' + username;
+        },
+        error : function(request, msg, error) {
+            throwError(request);
+        }
+    });
+}
+
 function openUser(name) {
     document.location.href = ctx + '/user/' + name;
 }
@@ -209,21 +280,99 @@ function patchEntity() {
     });
 }
     
-function checkAuth(url, type, idToHide) {
+function searchEntities(all, contentModelId, id, label, parent, level1, level2, tags, state, version) {
+	var query = "";
+	query = appendToQuery("_all", all, query);
+	query = appendToQuery("contentModelId", contentModelId, query);
+	query = appendToQuery("id", id, query);
+	query = appendToQuery("label", label, query);
+	query = appendToQuery("parentId", parent, query);
+	query = appendToQuery("level1", level1, query);
+	query = appendToQuery("level2", level2, query);
+	query = appendToQuery("tags", tags, query);
+	query = appendToQuery("state", state, query);
+	query = appendToQuery("version", version, query);
+	query = encodeURIComponent(query);
+	document.location.href = ctx + "/search?query=" + query;
+}
+
+function searchUsers(all, name, firstname, lastname, email) {
+	var query = "";
+	query = appendToQuery("_all", all, query);
+	query = appendToQuery("name", name, query);
+	query = appendToQuery("firstName", firstname, query);
+	query = appendToQuery("lastName", lastname, query);
+	query = appendToQuery("email", email, query);
+	query = encodeURIComponent(query);
+	document.location.href = ctx + "/search/users?query=" + query;
+}
+
+function appendToQuery(name, value, query) {
+	if (value != null && value != "") {
+		if (query.length > 0) {
+			query += " AND ";
+		}
+		var parts = value.trim().split(" ");
+		if (parts.length > 1) {
+			var sub = "";
+			sub += "(";
+			for (var i = 0; i < parts.length; i++) {
+			    if (sub.length > 1) {
+			    	sub += " OR ";
+			    }
+			    sub += name + ":" + parts[i];
+			}
+			sub += ")";
+			query += sub;
+		} else {
+			query += name + ":" + value;
+		}
+	}
+	return query;
+}
+    
+function loadRights(rolename) {
     $.ajax({
-        url : ctx + "/authorize" + url,
-        type : type,
-        data : data,
+        url : ctx + "/role/" + rolename + "/rights",
+        type : "GET",
         contentType : "application/json",
-        error : function() {
-        	$('#' + idToHide).css('display', 'none');
+        success : function(json) {
+        	$("#ceRoleRights").empty();
+        	$('#ceRoleRights').attr('size', json.length)
+           $.each(json, function(idx, right){
+        	   $("#ceRoleRights").prepend('<option label="' + right + '">' + right + '</option>');
+           });
+        },
+        error : function(request, msg, error) {
+            throwError(request);
         }
     });
 }
     
-function checkAuthCreateEntity(type, parentId, idToHide) {
+function checkAuth(url, type, idsToHide) {
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax({
+        xhrFields: {
+            withCredentials: true
+         },
+         headers: {
+             "X-CSRF-TOKEN" : csrf_token
+         },
+        url : ctx + "/authorize" + url,
+        type : type,
+        data : "",
+        contentType : "application/json",
+        error : function() {
+        	for	(i = 0; i < idsToHide.length; i++) {
+            	$('#' + idsToHide[i]).css('display', 'none');
+        	} 
+        }
+    });
+}
+    
+function checkAuthCreateEntity(contentModelId, parentId, idToHide) {
     var entity = {
-            'type' : type,
+            'contentModelId' : contentModelId,
             'label' : 'authtest',
             'parentId' : parentId
         };

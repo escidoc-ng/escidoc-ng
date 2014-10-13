@@ -14,7 +14,7 @@
  * limitations under the License. 
  */
 
-import static net.objecthunter.larch.test.util.Fixtures.PERMISSION_ID;
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -28,8 +28,8 @@ import net.objecthunter.larch.bench.BenchTool;
 import net.objecthunter.larch.bench.BenchToolResult;
 import net.objecthunter.larch.bench.BenchToolRunner;
 import net.objecthunter.larch.bench.ResultFormatter;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -106,22 +106,22 @@ public class PerformanceIT {
             throw new Exception("WeedFS not ready after " + count * 150 + " ms");
         }
         if (!wsCreated) {
-            // create default area
-            Entity area = new Entity();
-            area.setType(EntityType.AREA);
+            // create default level1
+            Entity level1 = new Entity();
+            level1.setContentModelId(FixedContentModel.LEVEL1.getName());
             Request r = Request.Post(hostUrl + "entity")
-                    .bodyString(mapper.writeValueAsString(area), ContentType.APPLICATION_JSON);
+                    .bodyString(mapper.writeValueAsString(level1), ContentType.APPLICATION_JSON);
             HttpResponse resp = this.execute(r).returnResponse();
             assertEquals(201, resp.getStatusLine().getStatusCode());
-            String areaId = EntityUtils.toString(resp.getEntity());
-            // create default workspace
-            Entity permission = new Entity();
-            permission.setId(PERMISSION_ID);
-            permission.setLabel("Test Workspace");
-            permission.setParentId(areaId);
-            permission.setType(EntityType.PERMISSION);
+            String level1Id = EntityUtils.toString(resp.getEntity());
+            // create default level2
+            Entity level2 = new Entity();
+            level2.setId(LEVEL2_ID);
+            level2.setLabel("Test Level2");
+            level2.setParentId(level1Id);
+            level2.setContentModelId(FixedContentModel.LEVEL2.getName());
             r = Request.Post(hostUrl + "entity")
-                    .bodyString(mapper.writeValueAsString(permission), ContentType.APPLICATION_JSON);
+                    .bodyString(mapper.writeValueAsString(level2), ContentType.APPLICATION_JSON);
             resp = this.execute(r).returnResponse();
             wsCreated = true;
         }
@@ -143,7 +143,7 @@ public class PerformanceIT {
                 num,
                 threads,
                 size,
-                PERMISSION_ID);
+                LEVEL2_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);
@@ -161,7 +161,7 @@ public class PerformanceIT {
                 num,
                 threads,
                 size,
-                PERMISSION_ID);
+                LEVEL2_ID);
         long time = System.currentTimeMillis();
         List<BenchToolResult> results = bench.run();
         ResultFormatter.printResults(results, System.currentTimeMillis() - time, num, size, threads, System.out, 30f);

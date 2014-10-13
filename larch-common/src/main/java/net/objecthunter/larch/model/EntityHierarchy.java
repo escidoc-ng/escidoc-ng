@@ -22,40 +22,40 @@ package net.objecthunter.larch.model;
  */
 public class EntityHierarchy {
 
-    private String areaId;
+    private String level1Id;
 
-    private String permissionId;
+    private String level2Id;
 
     
     /**
-     * @return the areaId
+     * @return the level1Id
      */
-    public String getAreaId() {
-        return areaId;
+    public String getLevel1Id() {
+        return level1Id;
     }
 
     
     /**
-     * @param areaId the areaId to set
+     * @param level1Id the level1Id to set
      */
-    public void setAreaId(String areaId) {
-        this.areaId = areaId;
+    public void setLevel1Id(String level1Id) {
+        this.level1Id = level1Id;
     }
 
     
     /**
-     * @return the permissionId
+     * @return the level2Id
      */
-    public String getPermissionId() {
-        return permissionId;
+    public String getLevel2Id() {
+        return level2Id;
     }
 
     
     /**
-     * @param permissionId the permissionId to set
+     * @param level2Id the level2Id to set
      */
-    public void setPermissionId(String permissionId) {
-        this.permissionId = permissionId;
+    public void setLevel2Id(String level2Id) {
+        this.level2Id = level2Id;
     }
 
 }

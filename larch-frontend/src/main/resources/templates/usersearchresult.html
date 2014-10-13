@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments :: header">
+</head>
+<body>
+<header>
+    <div class="three_dots"></div>
+</header>
+
+<div class="content">
+    <div th:include="fragments :: left" class="left">
+    </div>
+    <div class="main">
+        <div th:include="fragments :: banner" class="title">
+        </div>
+        <div class="heading">Users</div>
+        <div th:each="record : ${result.data}" class="panel clickable">
+            <p class="panel_title" th:text="${record.name}"></p>
+
+            <p class="property">First name</p>
+
+            <p class="value" th:text="${record.firstName}"></p>
+
+            <p class="property">Last name</p>
+
+            <p class="value" th:text="${record.lastName}"></p>
+
+            <p class="property">Email</p>
+
+            <p class="value" th:text="${record.email}"></p>
+
+            <p><a th:href="@{/user/} + ${record.name}">Edit</a></p>
+
+            <p><a href="#" th:onclick="'javascript:deleteUser(\'' + ${record.name} + '\')'">Delete</a>
+            </p>
+        </div>
+        <div class="right">
+            <div class="panel">
+                <script>
+                    $(document).ready(function() {
+                        $('#ceUsername').watermark('User name', {className: 'inactive'});
+                        $('#ceFirstName').watermark('First name', {className: 'inactive'});
+                        $('#ceLastName').watermark('Last name', {className: 'inactive'});
+                        $('#ceEmail').watermark('Email', {className: 'inactive'});
+                    });
+
+                </script>
+                <p class="panel_title">Create User</p>
+
+                <form th:action="@{/user}" method="post" enctype="multipart/form-data">
+                    <input id="ceUsername" type="text" name="name" title="Set the user name"/>
+                    <input id="ceFirstName" type="text" name="first_name"
+                           title="Set the user's first name"/>
+                    <input id="ceLastName" type="text" name="last_name"
+                           title="Set the user's last name"/>
+                    <input id="ceEmail" type="text" name="email"
+                           title="Set the user's mail address"/>
+                    <input class="button" id="ceButton" type="submit" value="CREATE USER"/>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments :: footer" class="footer">
+</div>
+</body>
+</html>

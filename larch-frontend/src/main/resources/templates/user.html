@@ -30,6 +30,42 @@
                 <input type="submit" class="button" value="Update"/>
             </form>
         </div>
+        <div th:each="role : ${user.roles}" class="panel clickable">
+            <p class="panel_title" th:text="${role.roleName}"></p>
+            <div th:each="rights : ${role.rights}">
+                <p class="property" th:text="anchorId + ': ' + ${rights.key}"></p>
+                <p class="value" th:each="value : ${rights.value}" th:text="${value}"></p>
+            </div>
+        </div>
+        <div class="right">
+            <div class="panel">
+                <script>
+                $(document).ready(function() {
+                $('#ceRolename').watermark('Rolename', {className: 'inactive'});
+                $('#ceAnchorId').watermark('anchorId', {className: 'inactive'});
+                $('#ceRoleRights').watermark('Role Rights', {className: 'inactive'});
+                $('#ceButton').click(function() {
+                    createRight($('#ceUsername').val(), $('#ceRolename').val(), $('#ceAnchorId').val(),$('#ceRoleRights').val());
+                    });
+                $('#ceRolename').change(function() {
+                	loadRights(this.value);
+                    })
+                });
+
+                </script>
+                <p class="panel_title">Create new Right</p>
+                <input type="hidden" id="ceUsername" th:value="${user.name}" />
+                <select id="ceRolename" name="rolename" title="Select a valid rolename">
+                    <option value="" disabled="disabled" selected="selected" style="display:none;">Please select Role</option>
+                    <option th:each="role : ${roles}" th:label="${role}" th:text="${role}" />
+                </select>
+                <input id="ceAnchorId" type="text" name="anchorId"
+                       title="Set the anchorId for the right"/>
+                <select id="ceRoleRights" name="rolerights" title="Select rolerights" multiple="multiple" size="1">
+                </select>
+                <input class="button" id="ceButton" type="button" value="CREATE"/>
+            </div>
+        </div>
     </div>
 </div>
 

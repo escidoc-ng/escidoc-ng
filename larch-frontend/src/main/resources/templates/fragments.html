@@ -4,6 +4,7 @@
 
 <head th:fragment="header">
     <meta charset="utf-8"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta id="contextPath"
         th:src="${#httpServletRequest.getContextPath()}"/>
     <title th:if="!${isErrorPage}">Larch repository</title>
@@ -27,28 +28,32 @@
     <h1 th:if="${isErrorPage}">Error Page</h1>
     <script>
     $(document).ready(function() {
-        $('#search').watermark('Search', {className: 'inactive'});
+        $('#simpleSearchBox').watermark('Search', {className: 'inactive'});
+        $('#simpleSearchBox').keyup(function(e) {
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if (code==13) {
+                searchEntities($('#simpleSearchBox').val(), null, null, null, null, null, null, null, null, null);
+            }
+        })
     });
-
     </script>
-    <form th:if="!${isErrorPage}" method="post"
-          th:action="@{/search}" enctype="multipart/form-data"><input
-            type="text" id="search" name="term"/></form>
+    <span th:if="!${isErrorPage}">
+        <input type="text" id="simpleSearchBox" name="all"/>
+    </span>
 </div>
 
 <div th:fragment="left">
     <div class="user">
-        <p th:if="!${isErrorPage}" th:text="${user} ? ${user.name} : 'Anonymous'"/>
+        <p th:if="!${isErrorPage}" th:text="${currentuser} ? ${currentuser.name} : 'Anonymous'"/>
 
-        <p th:if="!${isErrorPage}"><strong th:text="${user} ? ${user.firstName} + ' ' + ${user.lastName}"></strong></p>
+        <p th:if="!${isErrorPage}"><strong th:text="${currentuser} ? ${currentuser.firstName} + ' ' + ${currentuser.lastName}"></strong></p>
 
-        <p th:if="!${isErrorPage}" sec:authorize="hasRole('ROLE_ANONYMOUS')"><a th:href="@{/login}"><strong
-                th:text="LOGIN"></strong></a></p>
-        <form th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')" th:action="@{/logout}" method="post" name="logoutForm">
-            <p>
-                <a href="#" onclick="logoutForm.submit()"><strong>LOGOUT</strong></a>
-            </p>
-        </form>
+        <p th:if="${currentuser == null and isErrorPage == null}">
+            <a th:href="@{/login}"><strong th:text="LOGIN" /></a>
+        </p>
+        <p th:if="${currentuser != null and isErrorPage == null}">
+            <a th:href="@{/logout}"><strong th:text="LOGOUT" /></a>
+        </p>
 
     </div>
     <ul class="left_menu">
@@ -57,14 +62,14 @@
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_search"></p><a th:href="@{/search/form}" th:text="'SEARCH'"></a>
         </li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_users"></p><a
-                th:href="@{/credentials}" th:text="'USERS'"></a></li>
-        <li th:if="!${isErrorPage}" sec:authorize="!hasRole('ROLE_ANONYMOUS')"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
+                th:href="@{/search/users/form}" th:text="'USERS'"></a></li>
+        <li th:if="${isErrorPage == null and user != null}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
                                                     th:text="'METADATA TYPES'"></a></li>
     </ul>
 </div>
 
 <div th:fragment="footer">
-    <span>Larch</span><a href="https://github.com/fasseg/larch">Fork me on GitHub!</a>
+    <span>Larch</span><a href="https://github.com/escidoc-ng/escidoc-ng">Fork me on GitHub!</a>
     <form id="errorform" th:action="@{/}" enctype="multipart/form-data" method="post" class="off"></form>
 </div>
 

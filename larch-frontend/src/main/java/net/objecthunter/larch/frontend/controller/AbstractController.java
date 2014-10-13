@@ -1,5 +1,5 @@
 /* 
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 Michael Hoppe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 package net.objecthunter.larch.frontend.controller;
 
+import javax.servlet.http.HttpSession;
+
+import net.objecthunter.larch.frontend.Constants;
 import net.objecthunter.larch.model.security.User;
 
-import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.ModelAndView;
 
 public abstract class AbstractController {
     
@@ -31,9 +37,23 @@ public abstract class AbstractController {
      * @return The User object which gets added to the model by
      *         SpringMVC
      */
-    @ModelAttribute("user")
-    protected User addUserToModel(@AuthenticationPrincipal User user) {
-        return user;
+    @ModelAttribute("currentuser")
+    protected User addUserToModel() {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        HttpSession session = attr.getRequest().getSession();
+        if (session.getAttribute(Constants.CURRENT_USER_NAME) != null) {
+            return (User)session.getAttribute(Constants.CURRENT_USER_NAME);
+        }
+        return null;
     }
 
+    /**
+     * A method that return a success view indicating a completed operation
+     * 
+     * @param message the success message
+     * @return a {@link org.springframework.web.servlet.ModelAndView} that can be returned by web controller methods
+     */
+    protected ModelAndView success(final String message) {
+        return new ModelAndView("success", new ModelMap("successMessage", message));
+    }
 }

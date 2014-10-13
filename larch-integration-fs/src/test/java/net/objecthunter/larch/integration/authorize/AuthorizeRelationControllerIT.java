@@ -18,9 +18,9 @@ package net.objecthunter.larch.integration.authorize;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateRelation() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
@@ -43,7 +43,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
@@ -52,47 +52,13 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
-                .build());
-    }
-
-    @Test
-    public void testCreateRelationHtml() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, EntityType.DATA, permissionId);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/relation")
-                .body("predicate=pred&object=obj")
-                .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, EntityType.DATA, permissionId);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/relation")
-                .body("predicate=pred&object=obj")
-                .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, EntityType.DATA, permissionId);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/relation")
-                .body("predicate=pred&object=obj")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .html(true)
                 .build());
     }
 

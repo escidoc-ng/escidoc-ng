@@ -20,7 +20,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleName;
 public class QueryRestrictionFactory {
     private static Map<RoleName, Class> roleQueryRestrictionMap = new HashMap<RoleName, Class>() {{
         put(RoleName.ROLE_ADMIN, AdminRoleQueryRestriction.class);
-        put(RoleName.ROLE_AREA_ADMIN, AreaAdminRoleQueryRestriction.class);
+        put(RoleName.ROLE_LEVEL1_ADMIN, Level1AdminRoleQueryRestriction.class);
         put(RoleName.ROLE_USER, UserRoleQueryRestriction.class);
         put(RoleName.ROLE_USER_ADMIN, UserAdminRoleQueryRestriction.class);
     }};

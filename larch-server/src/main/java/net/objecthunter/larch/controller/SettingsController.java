@@ -30,12 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Web Controller responsible for Settings views
@@ -66,18 +64,6 @@ public class SettingsController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_ADMIN) })
     public Settings retrieve() throws IOException {
         return this.createSettings();
-    }
-
-    /**
-     * Retrieve the settings overview page from the repository
-     * 
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveHtml() throws IOException {
-        return new ModelAndView("settings", new ModelMap("settings", this.retrieve()));
     }
 
     private Settings createSettings() throws IOException {
@@ -129,12 +115,6 @@ public class SettingsController extends AbstractLarchController {
                 Boolean.parseBoolean(environment.getProperty("server.tomcat.access-log-enabled")));
         settings.setJsonPrettyPrintEnabled(
                 Boolean.parseBoolean(environment.getProperty("http.mappers.json-pretty-print")));
-        settings.setThymeleafPrefix(environment.getProperty("spring.thymeleaf.prefix"));
-        settings.setThymeleafSuffix(environment.getProperty("spring.thymeleaf.suffix"));
-        settings.setThymeleafMode(environment.getProperty("spring.thymeleaf.mode"));
-        settings.setThymeleafEncoding(environment.getProperty("spring.thymeleaf.encoding"));
-        settings.setThymeleafCacheEnabled(
-                Boolean.parseBoolean(environment.getProperty("spring.thymeleaf.cache")));
         settings.setSpringJmxEnabled(
                 Boolean.parseBoolean(environment.getProperty("spring.jmx.enabled")));
         settings.setSpringEndpointAutoconfigEnabled(

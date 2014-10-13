@@ -20,15 +20,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
@@ -45,9 +44,9 @@ import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,11 +89,10 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 throw new AlreadyExistsException("Entity with id " + e.getId() + " already exists");
             }
         }
-        this.validate(e);
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
         EntityHierarchy entityHierarchy = getHierarchy(e);
-        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), entityHierarchy.getAreaId());
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), entityHierarchy.getPermissionId());
+        entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
+        entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
 
         try {
             client
@@ -117,12 +115,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         log.debug("updating entity " + e.getId());
-        this.validate(e);
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
         EntityHierarchy entityHierarchy = getHierarchy(e);
-        entityData.put(EntitiesSearchField.AREA_ID.getFieldName(), entityHierarchy.getAreaId());
-        entityData.put(EntitiesSearchField.PERMISSION_ID.getFieldName(), entityHierarchy.getPermissionId());
+        entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
+        entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
         try {
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
@@ -161,7 +158,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
                 search = client.prepareSearch(INDEX_ENTITIES)
                         .setTypes(INDEX_ENTITY_TYPE)
                         .setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(),
-                                FilterBuilders.termFilter("parentId", id)))
+                                FilterBuilders.termFilter(EntitiesSearchField.PARENT.getFieldName(), id)))
                         .setFrom(offset)
                         .setSize(max)
                         .execute()
@@ -233,68 +230,55 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset)
+    public SearchResult searchEntities(String query, int offset)
             throws IOException {
-        return searchEntities(searchFields, offset, maxRecords);
+        return searchEntities(query, offset, maxRecords);
     }
 
     @Override
-    public SearchResult searchEntities(Map<EntitiesSearchField, String[]> searchFields, int offset, int maxRecords)
+    public SearchResult searchEntities(String query, int offset, int maxRecords)
             throws IOException {
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        for (Entry<EntitiesSearchField, String[]> searchField : searchFields.entrySet()) {
-            if (searchField.getValue() != null && searchField.getValue().length > 0) {
-                BoolQueryBuilder childQueryBuilder = QueryBuilders.boolQuery();
-                for (int i = 0; i < searchField.getValue().length; i++) {
-                    if (StringUtils.isNotBlank(searchField.getValue()[i])) {
-                        String value = searchField.getValue()[i].toLowerCase();
-                        if (searchField.getKey().getFieldName().matches(
-                                "parentId|type|state|permissionId|areaId")) {
-                            value = searchField.getValue()[i];
-                        }
-                        childQueryBuilder.should(QueryBuilders.wildcardQuery(searchField.getKey().getFieldName(),
-                                value));
-                    }
-                }
-                queryBuilder.must(childQueryBuilder);
-            }
-        }
-        queryBuilder.must(getEntitesUserRestrictionQuery());
-
         final long time = System.currentTimeMillis();
         final ActionFuture<RefreshResponse> refresh =
                 this.client.admin().indices().refresh(new RefreshRequest(ElasticSearchEntityService.INDEX_ENTITIES));
         final SearchResponse resp;
+
+        if (StringUtils.isBlank(query)) {
+            query = "*:*";
+        }
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(query);
+
         try {
             refresh.actionGet();
 
             resp =
                     this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields("id", "parentId",
-                                    "state",
-                                    "label",
-                                    "type",
-                                    "tags")
-                            .setQuery(queryBuilder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
+                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields(
+                                    EntitiesSearchField.ID.getFieldName(), EntitiesSearchField.PARENT.getFieldName(),
+                                    EntitiesSearchField.STATE.getFieldName(),
+                                    EntitiesSearchField.LABEL.getFieldName(),
+                                    EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+                                    EntitiesSearchField.TAG.getFieldName())
+                            .setQuery(builder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
                             .setSize(maxRecords).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        log.debug("ES returned {} results for '{}'", resp.getHits().getHits().length, new String(queryBuilder
+        log.debug("ES returned {} results for '{}'", resp.getHits().getHits().length, new String(builder
                 .buildAsBytes().toBytes()));
         final SearchResult result = new SearchResult();
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
-            String parentId = hit.field("parentId") != null ? hit.field("parentId").getValue() : null;
-            String label = hit.field("label") != null ? hit.field("label").getValue() : "";
-            String type = hit.field("type") != null ? hit.field("type").getValue() : "";
-            String state = hit.field("state") != null ? hit.field("state").getValue() : "";
+            String parentId = hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
+            String label = hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
+            String contentModelId = hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
+            String state = hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(EntitiesSearchField.STATE.getFieldName()).getValue() : "";
             final Entity e = new Entity();
-            e.setId(hit.field("id").getValue());
+            e.setId(hit.field(EntitiesSearchField.ID.getFieldName()).getValue());
             e.setParentId(parentId);
-            e.setType(EntityType.valueOf(type));
+            e.setContentModelId(contentModelId);
             e.setState(EntityState.valueOf(state));
             e.setLabel(label);
 
@@ -312,7 +296,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         result.setMaxRecords(maxRecords);
         result.setHits(entities.size());
         result.setNumRecords(entities.size());
-        result.setTerm(new String(queryBuilder.buildAsBytes().toBytes()));
+        result.setTerm(new String(builder.buildAsBytes().toBytes()));
         result.setOffset(offset);
         result.setNextOffset(offset + maxRecords);
         result.setPrevOffset(Math.max(offset - maxRecords, 0));
@@ -326,8 +310,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         try {
             resp =
                     client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).setFields(
-                            EntitiesSearchField.AREA_ID.getFieldName(),
-                            EntitiesSearchField.PERMISSION_ID.getFieldName()).execute().actionGet();
+                            EntitiesSearchField.LEVEL1.getFieldName(),
+                            EntitiesSearchField.LEVEL2.getFieldName()).execute().actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
@@ -335,40 +319,15 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new NotFoundException("Entity with id " + entityId + " not found");
         }
         EntityHierarchy entityHierarchy = new EntityHierarchy();
-        String areaId =
-                resp.getField(EntitiesSearchField.AREA_ID.getFieldName()) != null ? (String) resp.getField(
-                        EntitiesSearchField.AREA_ID.getFieldName()).getValue() : null;
-        String permissionId =
-                resp.getField(EntitiesSearchField.PERMISSION_ID.getFieldName()) != null ? (String) resp.getField(
-                        EntitiesSearchField.PERMISSION_ID.getFieldName()).getValue() : null;
-        entityHierarchy.setAreaId(areaId);
-        entityHierarchy.setPermissionId(permissionId);
+        String level1Id =
+                resp.getField(EntitiesSearchField.LEVEL1.getFieldName()) != null ? (String) resp.getField(
+                        EntitiesSearchField.LEVEL1.getFieldName()).getValue() : null;
+        String level2Id =
+                resp.getField(EntitiesSearchField.LEVEL2.getFieldName()) != null ? (String) resp.getField(
+                        EntitiesSearchField.LEVEL2.getFieldName()).getValue() : null;
+        entityHierarchy.setLevel1Id(level1Id);
+        entityHierarchy.setLevel2Id(level2Id);
         return entityHierarchy;
-    }
-
-    private void validate(Entity entity) throws IOException {
-        if (StringUtils.isBlank(entity.getParentId()) && !EntityType.AREA.equals(entity.getType())) {
-            throw new IOException("Top level entity has to be of type " + EntityType.AREA);
-        }
-        if (!StringUtils.isBlank(entity.getParentId())) {
-            if (EntityType.AREA.equals(entity.getType())) {
-                throw new IOException(EntityType.AREA + " has to be Top level entity");
-            }
-            Entity parentEntity = retrieve(entity.getParentId());
-            if (EntityType.PERMISSION.equals(entity.getType())) {
-                if (!EntityType.AREA.equals(parentEntity.getType())) {
-                    throw new IOException("Parent of " + EntityType.PERMISSION + " has to be " + EntityType.AREA);
-                }
-            } else if (EntityType.DATA.equals(entity.getType())) {
-                if (!EntityType.PERMISSION.equals(parentEntity.getType()) &&
-                        !EntityType.DATA.equals(parentEntity.getType())) {
-                    throw new IOException("Parent of " + EntityType.DATA + " has to be " + EntityType.PERMISSION +
-                            " or " + EntityType.DATA);
-                }
-            } else {
-                throw new IOException("Entity has wrong type: " + entity.getType());
-            }
-        }
     }
 
     private EntityHierarchy getHierarchy(Entity entity) throws IOException {
@@ -376,12 +335,12 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException("entity may not be null");
         }
         EntityHierarchy entityHierarchy = new EntityHierarchy();
-        if (EntityType.AREA.equals(entity.getType())) {
-            entityHierarchy.setAreaId(entity.getId());
-        } else if (EntityType.PERMISSION.equals(entity.getType())) {
-            entityHierarchy.setAreaId(entity.getParentId());
-            entityHierarchy.setPermissionId(entity.getId());
-        } else if (entity.getType() != null) {
+        if (FixedContentModel.LEVEL1.getName().equals(entity.getContentModelId())) {
+            entityHierarchy.setLevel1Id(entity.getId());
+        } else if (FixedContentModel.LEVEL2.getName().equals(entity.getContentModelId())) {
+            entityHierarchy.setLevel1Id(entity.getParentId());
+            entityHierarchy.setLevel2Id(entity.getId());
+        } else if (entity.getContentModelId() != null) {
             return getHierarchy(entity.getParentId());
         } else {
             throw new IOException("entityType may not be null");
@@ -396,43 +355,21 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
      * @author mih
      */
     public static enum EntitiesSearchField {
-        ID("id", "id"),
-        LABEL("label", "label"),
-        TYPE("type", "type"),
-        PARENT("parent", "parentId"),
-        TAG("tag", "tags"),
-        STATE("state", "state"),
-        VERSION("version", "version"),
-        PERMISSION_ID("permissionId", "permissionId"),
-        AREA_ID("areaId", "areaId"),
-        ALL("term", "_all");
-
-        private final String requestParameterName;
+        ID("id"),
+        LABEL("label"),
+        CONTENT_MODEL("contentModelId"),
+        PARENT("parentId"),
+        TAG("tags"),
+        STATE("state"),
+        VERSION("version"),
+        LEVEL1("level1"),
+        LEVEL2("level2"),
+        ALL("_all");
 
         private final String searchFieldName;
 
-        EntitiesSearchField(final String requestParameterName, final String searchFieldName) {
-            this.requestParameterName = requestParameterName;
+        EntitiesSearchField(final String searchFieldName) {
             this.searchFieldName = searchFieldName;
-        }
-
-        /**
-         * EntitiesSearchField anhand requestParameterName ermitteln.
-         * 
-         * @param requestParameterName requestParameterName
-         * @return EntitiesSearchField oder null, falls nicht gefunden.
-         */
-        public static EntitiesSearchField getWithRequestParameter(String requestParameterName) {
-            for (EntitiesSearchField entitiesSearchField : EntitiesSearchField.values()) {
-                if (entitiesSearchField.getRequestParameterName().equals(requestParameterName)) {
-                    return entitiesSearchField;
-                }
-            }
-            return null;
-        }
-
-        public String getRequestParameterName() {
-            return requestParameterName;
         }
 
         public String getFieldName() {

@@ -16,14 +16,16 @@
 
 package net.objecthunter.larch.test.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.model.Binary;
+import net.objecthunter.larch.model.ContentModel;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityType;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.security.User;
@@ -33,9 +35,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
 
-    public static final String PERMISSION_ID = "perm-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String LEVEL2_ID = "level2-" + RandomStringUtils.randomAlphabetic(16);
 
-    public static final String AREA_ID = "area-" + RandomStringUtils.randomAlphabetic(16);
+    public static final String LEVEL1_ID = "level1-" + RandomStringUtils.randomAlphabetic(16);
 
     public static User createUser() {
         User u = new User();
@@ -47,33 +49,46 @@ public abstract class Fixtures {
         return u;
     }
 
-    public static Entity createArea() {
+    public static Entity createLevel1() {
         Entity e = new Entity();
         e.setId(RandomStringUtils.randomAlphanumeric(16));
-        e.setLabel("Test area");
-        e.setType(EntityType.AREA);
+        e.setLabel("Test level1");
+        e.setContentModelId(FixedContentModel.LEVEL1.getName());
         return e;
     }
 
-    public static Entity createPermission(String areaId) {
+    public static Entity createLevel2(String level1Id) {
         Entity e = new Entity();
         e.setId(RandomStringUtils.randomAlphanumeric(16));
-        e.setLabel("Test permission");
-        e.setType(EntityType.PERMISSION);
-        e.setParentId(areaId);
+        e.setLabel("Test level2");
+        e.setContentModelId(FixedContentModel.LEVEL2.getName());
+        e.setParentId(level1Id);
         return e;
+    }
+
+    public static ContentModel createContentModel() {
+        ContentModel contentModel = new ContentModel();
+        contentModel.setName("test");
+        contentModel.setAllowedParentContentModels(new ArrayList<String>() {
+
+            {
+                add(FixedContentModel.LEVEL2.getName());
+                add(FixedContentModel.DATA.getName());
+            }
+        });
+        return contentModel;
     }
 
     public static Entity createEntity() {
         Entity e = new Entity();
         e.setId("testid");
         e.setLabel("Test label");
-        e.setType(EntityType.DATA);
+        e.setContentModelId(FixedContentModel.DATA.getName());
         e.setTags(Arrays.asList("tag1", "tag2"));
         e.setMetadata(createMetadataMap());
         e.setBinaries(createBinaryMap());
         e.setRelations(createRelations());
-        e.setParentId(PERMISSION_ID);
+        e.setParentId(LEVEL2_ID);
         return e;
     }
 
@@ -153,10 +168,10 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
-        e.setParentId(PERMISSION_ID);
+        e.setParentId(LEVEL2_ID);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType(EntityType.DATA);
+        e.setContentModelId(FixedContentModel.DATA.getName());
         e.setBinaries(binaries);
         e.setMetadata(metadata);
         return e;
@@ -189,9 +204,9 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType(EntityType.DATA);
+        e.setContentModelId(FixedContentModel.DATA.getName());
         e.setBinaries(binaries);
-        e.setParentId(PERMISSION_ID);
+        e.setParentId(LEVEL2_ID);
         return e;
     }
 
@@ -199,15 +214,15 @@ public abstract class Fixtures {
         Entity e = new Entity();
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
-        e.setType(EntityType.DATA);
-        e.setParentId(PERMISSION_ID);
+        e.setContentModelId(FixedContentModel.DATA.getName());
+        e.setParentId(LEVEL2_ID);
         return e;
     }
 
     public static Entity createFixtureCollectionEntity() throws Exception {
         Entity e = createSimpleFixtureEntity();
-        e.setType(EntityType.DATA);
-        e.setParentId(PERMISSION_ID);
+        e.setContentModelId(FixedContentModel.DATA.getName());
+        e.setParentId(LEVEL2_ID);
         return e;
     }
 

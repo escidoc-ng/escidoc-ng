@@ -7,28 +7,43 @@
     <div class="three_dots"></div>
 </header>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+        checkAuth('/entity/' + /*[[${entity.id + '/audit'}]]*/, 'GET', ['auditLink']);
+        checkAuth('/entity/' + /*[[${entity.id + '/versions'}]]*/, 'GET', ['versionsLink']);
+        checkAuth('/entity/' + /*[[${entity.id + '/submit'}]]*/, 'PUT', ['submitBtn']);
+        checkAuth('/entity/' + /*[[${entity.id + '/publish'}]]*/, 'PUT', ['publishBtn']);
+        checkAuth('/entity/' + /*[[${entity.id + '/withdraw'}]]*/, 'PUT', ['withdrawBtn']);
+        checkAuth('/entity/' + /*[[${entity.id}]]*/, 'DELETE', ['deleteBtn']);
+        checkAuthCreateEntity('data', /*[[${entity.id}]]*/, 'entityCreatePanel');
+        checkAuth('/entity/' + /*[[${entity.id + '/binary'}]]*/, 'POST', ['binaryCreatePanel', 'binaryDeleteButton']);
+        checkAuth('/entity/' + /*[[${entity.id + '/metadata'}]]*/, 'POST', ['metadataCreatePanel', 'identifierCreatePanel', 'relationCreatePanel', 'metadataDeleteButton', 'identifierDeleteButton', 'relationDeleteButton']);
+
+    /*]]>*/
+</script>
 <div class="content">
     <div th:include="fragments :: left" class="left">
     </div>
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading" th:text="${entity.type.name}" />
+        <div class="heading" th:text="${entity.contentModelId}" />
         <div class="panel">
             <p class="panel_title" th:text="${entity.id}" />
-            <p th:if="${entity.state.name != 'PUBLISHED'}" class="property" th:text="Actions" />
-                <input th:if="${entity.state.name != 'SUBMITTED' and entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/submit' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
-                <input th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/publish' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
-                <input  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
-            <p th:if="${entity.state.name != 'PUBLISHED'}" class="panel_title" />
+            <p th:if="${entity.state.name != 'WITHDRAWN'}" class="property" th:text="Actions" />
+                <input id="submitBtn" th:if="${entity.state.name == 'PENDING'}" class="button_small" type="submit" value="Submit" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/submit' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
+                <input id="publishBtn" th:if="${entity.state.name == 'SUBMITTED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/publish' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
+                <input id="withdrawBtn" th:if="${entity.state.name == 'PUBLISHED'}" class="button_small" type="submit" value="Withdraw" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/withdraw' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
+                <input id="deleteBtn"  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
+            <p th:if="${entity.state.name != 'WITHDRAWN'}" class="panel_title" />
 
             <p class="property">Label</p>
 
             <p class="value" th:text="${entity.label}"></p>
 
-            <p class="property">Type</p>
+            <p class="property">ContentModelId</p>
 
-            <p class="value" th:text="${entity.type} ? ${entity.type} : 'No Type'"></p>
+            <p class="value" th:text="${entity.contentModelId} ? ${entity.contentModelId} : 'No ContentModel'"></p>
 
             <p class="property">Parent</p>
 
@@ -56,17 +71,17 @@
             <p class="property">Last modified</p>
 
             <p class="value" th:text="${entity.utcLastModified}"></p>
-            <a th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
+            <a id="auditLink" th:text="'Audit record'" th:href="@{/entity/} + ${entity.id} + '/audit'"></a>
 
             <p/>
-            <a th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
+            <a id="versionsLink" th:text="'Versions'" th:href="@{/entity/} + ${entity.id} + '/versions'"></a>
 
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
             <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <input id="metadataDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
@@ -98,7 +113,11 @@
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
-            <p class="panel_title" th:text="'Identifiers: '"></p>
+            <p class="panel_title" th:text="'Identifier: '"></p>
+
+            <p class="property" th:text="Actions" />
+            <input id="identifierDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteIdentifier(\'' + ${entity.id} + '\', \'' + ${identifier.type} + '\', \'' + ${identifier.value} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Type</p>
 
@@ -112,7 +131,7 @@
             <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <input id="binaryDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Mime type</p>
@@ -147,6 +166,10 @@
             <p class="panel_title">Relations</p>
 
             <div th:each="rel : ${entity.relations}">
+            <p class="property" th:text="Actions" />
+            <input id="relationDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteRelation(\'' + ${entity.id} + '\', \'' + ${rel.key} + '\', \'' + ${rel.value} + '\')'"/>
+            <p class="panel_title" />
+
                 <p class="property" th:text="${rel.key}"></p>
 
                 <div th:each="obj : ${rel.value}">
@@ -170,7 +193,7 @@
                     th:href="@{/entity/} + ${child}" th:text="${child}"></a></p>
         </div>
         <div class="right">
-            <div class="panel">
+            <div id="entityCreatePanel" class="panel">
                 <script>
                 $(document).ready(function() {
                 $('#ceId').watermark('Generated Id', {className: 'inactive'});
@@ -184,20 +207,20 @@
                 });
 
                 </script>
-                <p th:if="${entity.type.name == 'AREA'}" class="panel_title">Create new Permission</p>
-                <p th:if="${entity.type.name == 'PERMISSION'}" class="panel_title">Create new Data</p>
-                <p th:if="${entity.type.name == 'DATA'}" class="panel_title">Create new Child</p>
+                <p th:if="${entity.contentModelId == 'level1'}" class="panel_title">Create new Level2</p>
+                <p th:if="${entity.contentModelId == 'level2'}" class="panel_title">Create new Data</p>
+                <p th:if="${entity.contentModelId == 'data'}" class="panel_title">Create new Child</p>
                 <input id="ceId" type="text" name="id"
                        title="Set the identifier of the entity or leave empty for a generated value"/>
-                <input th:if="${entity.type.name == 'AREA'}" id="ceType" type="hidden" name="type" th:value="PERMISSION"/>
-                <input th:if="${entity.type.name != 'AREA'}" id="ceType" type="hidden" name="type" th:value="DATA"/>
+                <input th:if="${entity.contentModelId == 'level1'}" id="ceType" type="hidden" name="type" th:value="level2"/>
+                <input th:if="${entity.contentModelId != 'level1'}" id="ceType" type="hidden" name="type" th:value="data"/>
                 <input id="ceLabel" type="text" name="label" title="Set the label of the entity"/>
                 <input id="ceParentId" type="hidden" name="parentId" th:value="${entity.id}"/>
                 <input id="ceTags" type="text" name="tags"
                        title="Set a comma separated list of tags for this entity"/>
                 <input class="button" id="ceButton" type="button" value="CREATE"/>
             </div>
-            <div class="panel">
+            <div id="binaryCreatePanel" class="panel">
                 <script>
                 $(document).ready(function() {
                     $('#binName').watermark('Name', {className: 'inactive'});
@@ -214,7 +237,7 @@
                     <input class="button" type="submit" value="Create new binary"/>
                 </form>
             </div>
-            <div class="panel">
+            <div id="metadataCreatePanel" class="panel">
                 <script>
                 $(document).ready(function() {
                     $('#mdName').watermark('Name', {className: 'inactive'});
@@ -236,7 +259,7 @@
                     <input class="button" type="submit" value="Create metadata"/>
                 </form>
             </div>
-            <div class="panel">
+            <div id="identifierCreatePanel" class="panel">
                 <script>
                 $(document).ready(function() {
                     $('#identifierValue').watermark('Value', {className: 'inactive'});
@@ -257,7 +280,7 @@
                     <input class="button" type="submit" value="Create identifier"/>
                 </form>
             </div>
-            <div class="panel">
+            <div id="relationCreatePanel" class="panel">
                 <script>
                 $(document).ready(function() {
                     $('#relPredicate').watermark('Predicate', {className: 'inactive'});

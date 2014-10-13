@@ -23,12 +23,12 @@
 
                 <p class="value" th:text="${entity.label}"></p>
 
-                <p class="property">Type</p>
+                <p class="property">ContentModelId</p>
 
-                <p class="value" th:if="${#strings.isEmpty(entity.type)}" th:text="'No Type'"></p>
+                <p class="value" th:if="${#strings.isEmpty(entity.contentModelId)}" th:text="'No ContentModelId'"></p>
 
-                <p class="value" th:unless="${#strings.isEmpty(entity.type)}"
-                   th:text="${entity.type}"></p>
+                <p class="value" th:unless="${#strings.isEmpty(entity.contentModelId)}"
+                   th:text="${entity.contentModelId}"></p>
 
                 <p class="property">State</p>
 

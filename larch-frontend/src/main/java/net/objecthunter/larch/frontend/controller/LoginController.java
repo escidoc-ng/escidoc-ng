@@ -17,24 +17,19 @@
 package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import net.objecthunter.larch.frontend.Constants;
+import net.objecthunter.larch.frontend.util.HttpHelper;
+import net.objecthunter.larch.model.security.User;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.client.response.OAuthAuthzResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
@@ -46,6 +41,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Web controller for login
  */
@@ -54,6 +51,12 @@ public class LoginController extends AbstractController {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private HttpHelper httpHelper;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * Controller method for logging in
@@ -75,6 +78,16 @@ public class LoginController extends AbstractController {
     }
 
     /**
+     * Controller method for logging in
+     */
+    @RequestMapping(value = "/logout", method = RequestMethod.GET, produces = { "text/html" })
+    public String logout(HttpServletRequest request) throws IOException {
+        httpHelper.doPost("/logout", null, null);
+        request.getSession().invalidate();
+        return "redirect:/";
+    }
+
+    /**
      * Controller method for getting the oauth-token
      * 
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
@@ -84,9 +97,8 @@ public class LoginController extends AbstractController {
         try {
             OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
             String code = oar.getCode();
-
-            CloseableHttpClient httpclient = HttpClients.createDefault();
-            HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + "/oauth/token");
+            
+            //content
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
             nvps.add(new BasicNameValuePair("grant_type", "authorization_code"));
             nvps.add(new BasicNameValuePair("client_id", env.getProperty("larch.oauth.clientId")));
@@ -94,25 +106,20 @@ public class LoginController extends AbstractController {
             nvps.add(new BasicNameValuePair("code", code));
             nvps.add(new BasicNameValuePair("redirect_uri",
                     env.getProperty("self.url") + ":" + env.getProperty("server.port") + "/login/token"));
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+
+            //auth header
             String authorization = env.getProperty("larch.oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");
             byte[] encodedBytes = Base64.encodeBase64(authorization.getBytes());
             authorization = "Basic " + new String(encodedBytes);
-            httpPost.setHeader("Authorization", authorization);
-            CloseableHttpResponse response2 = httpclient.execute(httpPost);
 
-            String test = null;
-            String token = null;
-            try {
-                HttpEntity entity2 = response2.getEntity();
-                test = EntityUtils.toString(entity2);
-                JSONObject obj = new JSONObject(test);
-                token = obj.getString("access_token");
-            } finally {
-                response2.close();
-            }
+            String response = httpHelper.doPost("/oauth/token", new UrlEncodedFormEntity(nvps), authorization, null);
 
-            request.getSession().setAttribute(Constants.ACCESS_TOKEN_ATTRIBUTE_NAME, token);
+            JSONObject obj = new JSONObject(response);
+            request.getSession().setAttribute(Constants.ACCESS_TOKEN_ATTRIBUTE_NAME, obj.getString("access_token"));
+            
+            String userJson = httpHelper.doGet("/current-user");
+            request.getSession().setAttribute(Constants.CURRENT_USER_NAME, mapper.readValue(userJson, User.class));
+            
         } catch (OAuthProblemException e) {
             throw new IOException(e.getMessage());
         }

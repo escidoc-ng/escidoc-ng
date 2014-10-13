@@ -184,12 +184,11 @@ public class AuthConfigurer {
         ADMIN,
         USER,
         USER_ADMIN,
-        AREA_ADMIN,
+        LEVEL1_ADMIN,
         LOGGED_IN;
     }
 
     public enum ObjectType {
-        WORKSPACE,
         ENTITY,
         USER,
         USER_REQUEST;

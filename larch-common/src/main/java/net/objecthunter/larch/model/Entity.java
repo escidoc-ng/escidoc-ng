@@ -30,7 +30,7 @@ public class Entity {
 
     private String parentId;
 
-    private EntityType type;
+    private String contentModelId;
 
     private EntityState state;
 
@@ -216,22 +216,20 @@ public class Entity {
         this.metadata = metadata;
     }
 
+    
     /**
-     * Get the entity's type
-     * 
-     * @return the type
+     * @return the contentModelId
      */
-    public EntityType getType() {
-        return type;
+    public String getContentModelId() {
+        return contentModelId;
     }
 
+    
     /**
-     * Set the entity's type
-     * 
-     * @param type the type to set
+     * @param contentModelId the contentModelId to set
      */
-    public void setType(EntityType type) {
-        this.type = type;
+    public void setContentModelId(String contentModelId) {
+        this.contentModelId = contentModelId;
     }
 
     /**
@@ -315,17 +313,6 @@ public class Entity {
         this.state = state;
     }
     
-    public enum EntityType {
-        AREA,
-        PERMISSION,
-        DATA;
-
-        public String getName() {
-            return this.toString();
-        }
-        
-    }
-
     public enum EntityState {
         PENDING,
         SUBMITTED,

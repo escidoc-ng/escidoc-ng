@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend;
 import java.io.IOException;
 import java.util.List;
 
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Role;
@@ -92,12 +93,12 @@ public interface BackendCredentialsService {
     User retrieveUser(String name) throws IOException;
 
     /**
-     * Retrieve a list of {@link net.objecthunter.larch.model.security.User}s existing in the repository
+     * Retrieve a SearchResult containing a list of {@link net.objecthunter.larch.model.security.User}s existing in the repository
      * 
-     * @return a list of {@link net.objecthunter.larch.model.security.User} objects
+     * @return a SearchResult containing list of {@link net.objecthunter.larch.model.security.User} objects
      * @throws IOException
      */
-    List<User> retrieveUsers() throws IOException;
+    SearchResult searchUsers(String query, int offset, int maxRecords) throws IOException;
 
     /**
      * Retrieve an existing {@link net.objecthunter.larch.model.security.UserRequest}

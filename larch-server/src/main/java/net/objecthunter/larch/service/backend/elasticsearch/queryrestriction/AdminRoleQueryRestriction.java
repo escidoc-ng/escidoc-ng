@@ -20,13 +20,13 @@ public class AdminRoleQueryRestriction extends RoleQueryRestriction {
     }
 
     @Override
-    public QueryBuilder getEntitiesRestrictionQuery() {
-        return QueryBuilders.matchAllQuery();
+    public String getEntitiesRestrictionQuery() {
+        return "(*:*)";
     }
 
     @Override
-    public QueryBuilder getUsersRestrictionQuery() {
-        return QueryBuilders.matchAllQuery();
+    public String getUsersRestrictionQuery() {
+        return "(*:*)";
     }
 
 }

@@ -25,12 +25,12 @@
 
                 <p class="value" th:text="${record.label}"></p>
 
-                <p class="property">Type</p>
+                <p class="property">ContentModelId</p>
 
-                <p class="value" th:if="${#strings.isEmpty(record.type)}" th:text="'No Type'"></p>
+                <p class="value" th:if="${#strings.isEmpty(record.contentModelId)}" th:text="'No ContentModel'"></p>
 
-                <p class="value" th:unless="${#strings.isEmpty(record.type)}"
-                   th:text="${record.type}"></p>
+                <p class="value" th:unless="${#strings.isEmpty(record.contentModelId)}"
+                   th:text="${record.contentModelId}"></p>
 
                 <p class="property">Parent</p>
 

@@ -16,7 +16,7 @@
 
 package net.objecthunter.larch.integration.authorize;
 
-import static net.objecthunter.larch.test.util.Fixtures.AREA_ID;
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL1_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -38,7 +38,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
-import net.objecthunter.larch.model.security.role.AreaAdminRole;
+import net.objecthunter.larch.model.security.role.Level1AdminRole;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserAdminRole;
@@ -76,7 +76,7 @@ import com.fasterxml.jackson.core.JsonParser;
 /**
  * Class holds methods used by auth-tests.<br>
  * <br>
- * -create workspace where different users have different rights <br>
+ * -create level2 where different users have different rights <br>
  * -execute http-request with different auth-headers <br>
  * -execute same request with different users and check response
  * 
@@ -84,22 +84,22 @@ import com.fasterxml.jackson.core.JsonParser;
  */
 public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
 
-    protected static String permissionId = null;
+    protected static String level2Id = null;
 
-    protected static String areaId1 = null;
+    protected static String level1Id1 = null;
 
-    protected static String areaId2 = null;
+    protected static String level1Id2 = null;
 
     protected static String unusedUserId = null;
 
-    protected static String permissionId1 = null;
+    protected static String level2Id1 = null;
 
     /**
      * Holds users with different rights. key: Permission the user does not have, value: String[2]: user password
      */
     protected static Map<MissingPermission, String[]> userRoleUsernames = new HashMap<MissingPermission, String[]>();
 
-    protected static Map<String, String[]> areaAdminRoleUsernames = new HashMap<String, String[]>();
+    protected static Map<String, String[]> level1AdminRoleUsernames = new HashMap<String, String[]>();
 
     protected static Map<String, String[]> userAdminRoleUsernames = new HashMap<String, String[]>();
 
@@ -110,26 +110,26 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     @Before
     public void initialize() throws Exception {
         if (methodCounter == 0) {
-            preparePermission();
+            prepareLevel2();
             methodCounter++;
         }
     }
 
     /**
-     * Create Permission.<br>
-     * Create users having different rights in the permission.<br>
+     * Create Level2.<br>
+     * Create users having different rights in the level2.<br>
      * store entityId in variable.<br>
      * 
      * @throws Exception
      */
-    protected void preparePermission() throws Exception {
-        //create areas
-        areaId1 = createArea();
-        areaId2 = createArea();
+    protected void prepareLevel2() throws Exception {
+        //create level1s
+        level1Id1 = createLevel1();
+        level1Id2 = createLevel1();
         
-        // create Permissions
-        permissionId = createPermission(AREA_ID);
-        permissionId1 = createPermission(areaId1);
+        // create level2s
+        level2Id = createLevel2(LEVEL1_ID);
+        level2Id1 = createLevel2(level1Id1);
 
         //create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
@@ -137,69 +137,69 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         }
         unusedUserId = createUser(null, userPassword);
 
-        // create permissions for users in workspace
+        // create permissions for users in level2
         for (Entry<MissingPermission, String[]> e : userRoleUsernames.entrySet()) {
             if (e.getKey().equals(MissingPermission.NONE)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, null);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, null);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_PENDING_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_PENDING_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_PUBLISHED_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_PUBLISHED_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_SUBMITTED_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_SUBMITTED_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_WITHDRAWN_BINARY);
             } else if (e.getKey().equals(MissingPermission.READ_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_WITHDRAWN_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_WITHDRAWN_METADATA);
             } else if (e.getKey().equals(MissingPermission.READ_PERMISSION)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.READ_PERMISSION);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.READ_LEVEL2);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PENDING_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_PENDING_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_PENDING_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PENDING_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_PENDING_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PUBLISHED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_PUBLISHED_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_PUBLISHED_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PUBLISHED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_PUBLISHED_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_SUBMITTED_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_SUBMITTED_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_SUBMITTED_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_SUBMITTED_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_SUBMITTED_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_BINARY)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_WITHDRAWN_BINARY);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_WITHDRAWN_BINARY);
             } else if (e.getKey().equals(MissingPermission.WRITE_WITHDRAWN_METADATA)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_WITHDRAWN_METADATA);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_WITHDRAWN_METADATA);
             } else if (e.getKey().equals(MissingPermission.WRITE_PERMISSION)) {
-                createMissingPermissionRightsForUser(e.getValue()[0], permissionId, RoleRight.WRITE_PERMISSION);
+                createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_LEVEL2);
             }
         }
         
-        //create users with areaAdmin + userAdmin Roles
-        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + AREA_ID, new String[] { createUser(null, userPassword), userPassword });
-        areaAdminRoleUsernames.put("ROLE_AREA_ADMIN" + areaId1, new String[] { createUser(null, userPassword), userPassword });
+        //create users with level1Admin + userAdmin Roles
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + LEVEL1_ID, new String[] { createUser(null, userPassword), userPassword });
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + level1Id1, new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("ROLE_USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new AreaAdminRole(), AREA_ID);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new UserRole(), permissionId1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + AREA_ID)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new Level1AdminRole(), LEVEL1_ID);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserRole(), level2Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserAdminRole(), unusedUserId);
 
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new AreaAdminRole(), areaId1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new UserRole(), permissionId1);
-        createRoleForUser(areaAdminRoleUsernames.get("ROLE_AREA_ADMIN" + areaId1)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new Level1AdminRole(), level1Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserRole(), level2Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserAdminRole(), unusedUserId);
 
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new AreaAdminRole(), areaId2);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), permissionId1);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new Level1AdminRole(), level1Id2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), level2Id1);
 
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserAdminRole(), "");
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new AreaAdminRole(), areaId2);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserRole(), permissionId1);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new Level1AdminRole(), level1Id2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserRole(), level2Id1);
         
     }
 
@@ -227,8 +227,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             request.setHeader("Authorization", authorization);
             HttpResponse authresp = httpClient.execute(authrequest);
             HttpResponse resp = httpClient.execute(request);
-//            String response = EntityUtils.toString(resp.getEntity());
-//            String authresponse = EntityUtils.toString(authresp.getEntity());
+            int respstatus = resp.getStatusLine().getStatusCode();
+            int authrespstatus = authresp.getStatusLine().getStatusCode();
+//            if (respstatus > 400 && authrespstatus > 400 && respstatus != authrespstatus) {
+//              String response = EntityUtils.toString(resp.getEntity());
+//              String authresponse = EntityUtils.toString(authresp.getEntity());
+//              System.out.println("");
+//            }
             assertStatusEquals(resp, authresp);
             return resp;
         }
@@ -262,14 +267,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     }
 
     /**
-     * Create Workspace-Rights where user with provided username has all rights except for provided permission.
+     * Create Level2-Rights where user with provided username has all rights except for provided permission.
      * 
      * @param username
-     * @param permission permission
-     * @return String workspaceId
+     * @param level2Id level2Id
      * @throws Exception
      */
-    protected void createMissingPermissionRightsForUser(String username, String permissionId, RoleRight roleRight)
+    protected void createMissingPermissionRightsForUser(String username, String level2Id, RoleRight roleRight)
             throws Exception {
         // try to retrieve user
         HttpResponse resp = this.executeAsAdmin(Request.Get(userUrl + username));
@@ -288,7 +292,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 roleRights.add(allowedRoleRight);
             }
         }
-        rights.put(permissionId, roleRights);
+        rights.put(level2Id, roleRights);
         userRole.setRights(rights);
         roles.add(userRole);
 
@@ -303,16 +307,16 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userAdminRights.put(unusedUserId, userAdminRoleRights);
         userAdminRole.setRights(userAdminRights);
         roles.add(userAdminRole);
-        //area-admin
-        AreaAdminRole areaAdminRole = new AreaAdminRole();
-        Map<String, List<RoleRight>> areaAdminRights = new HashMap<String, List<RoleRight>>();
-        List<RoleRight> areaAdminRoleRights = new ArrayList<RoleRight>();
-        for (RoleRight areaAdminRoleRight : areaAdminRole.allowedRights()) {
-            areaAdminRoleRights.add(areaAdminRoleRight);
+        //level1-admin
+        Level1AdminRole level1AdminRole = new Level1AdminRole();
+        Map<String, List<RoleRight>> level1AdminRights = new HashMap<String, List<RoleRight>>();
+        List<RoleRight> level1AdminRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight level1AdminRoleRight : level1AdminRole.allowedRights()) {
+            level1AdminRoleRights.add(level1AdminRoleRight);
         }
-        areaAdminRights.put(areaId2, areaAdminRoleRights);
-        areaAdminRole.setRights(areaAdminRights);
-        roles.add(areaAdminRole);
+        level1AdminRights.put(level1Id2, level1AdminRoleRights);
+        level1AdminRole.setRights(level1AdminRights);
+        roles.add(level1AdminRole);
 
         // add rights
         resp = this.executeAsAdmin(Request.Post(userUrl + username + "/roles")
@@ -407,7 +411,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * Tests calling the given url with different user-permissions.<br>
      * neededPermission indicates the permission that is needed to be allowed to call the request.<br>
      * If neededPermission is null, everybody may call the url. If adminOnly is true, only admin may call the url,
-     * independent of workspace-rights.
+     * independent of level2-rights.
      * 
      * @param method
      * @param url
@@ -479,7 +483,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             }
         }
         resetState(authConfigurer.isResetState(), resetObject);
-        // try as user with wrong workspace rights
+        // try as user with wrong level2 rights
         String[] userparams = null;
         if (authConfigurer.getNeededPermission() != null) {
             userparams = userRoleUsernames.get(authConfigurer.getNeededPermission());

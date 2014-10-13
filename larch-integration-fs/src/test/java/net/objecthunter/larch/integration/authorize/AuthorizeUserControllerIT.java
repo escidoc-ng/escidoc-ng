@@ -44,16 +44,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveUserRequestHtml() throws Exception {
-        // create user request
-        UserRequest userRequest = createUserRequest(null, userPassword);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "confirm/" + userRequest.getToken())
-                .html(true)
-                .build());
-    }
-
-    @Test
     public void testConfirmUserRequest() throws Exception {
         // create user request
         UserRequest userRequest = createUserRequest(null, userPassword);
@@ -66,23 +56,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                 .resetState(true)
                 .resetStateObjectType(ObjectType.USER_REQUEST)
                 .resetStateId(userRequest.getUser().getName() + "|" + userRequest.getToken())
-                .build());
-    }
-
-    @Test
-    public void testConfirmUserRequestHtml() throws Exception {
-        // create user request
-        UserRequest userRequest = createUserRequest(null, userPassword);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, hostUrl + "confirm/{token}")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("password", userPassword)
-                        .addTextBody("passwordRepeat", userPassword)
-                        .build())
-                .resetState(true)
-                .resetStateObjectType(ObjectType.USER_REQUEST)
-                .resetStateId(userRequest.getUser().getName() + "|" + userRequest.getToken())
-                .html(true)
                 .build());
     }
 
@@ -100,19 +73,7 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
     }
 
     @Test
-    public void testRetrieveUsers() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "user")
-                .build());
-    }
-
-    @Test
     public void testCreateUserRequest() throws Exception {
-        // TODO
-    }
-
-    @Test
-    public void testCreateUserHtml() throws Exception {
         // TODO
     }
 
@@ -127,27 +88,6 @@ public class AuthorizeUserControllerIT extends AbstractAuthorizeLarchIT {
                         username, userPassword, false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
-    }
-
-    @Test
-    public void testRetrieveUserHtml() throws Exception {
-        // create user
-        String username = createUser(null, userPassword);
-
-        // try getting user as user
-        HttpResponse resp =
-                this.executeAsUser(HttpMethod.GET, hostUrl + "user/" + username, null,
-                        username, userPassword, true);
-        String response = EntityUtils.toString(resp.getEntity());
-        assertTrue(resp.getStatusLine().getStatusCode() < 400);
-    }
-
-    @Test
-    public void testRetrieveCredentials() throws Exception {
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, hostUrl + "credentials")
-                .html(true)
-                .build());
     }
 
     @Test

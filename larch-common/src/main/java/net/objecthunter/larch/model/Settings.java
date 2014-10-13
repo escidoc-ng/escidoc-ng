@@ -92,16 +92,6 @@ public class Settings {
 
     private boolean jsonPrettyPrintEnabled;
 
-    private String thymeleafPrefix;
-
-    private String thymeleafSuffix;
-
-    private String thymeleafMode;
-
-    private String thymeleafEncoding;
-
-    private boolean thymeleafCacheEnabled;
-
     private boolean springJmxEnabled;
 
     private boolean springEndpointAutoconfigEnabled;
@@ -378,46 +368,6 @@ public class Settings {
 
     public void setJsonPrettyPrintEnabled(boolean jsonPrettyPrintEnabled) {
         this.jsonPrettyPrintEnabled = jsonPrettyPrintEnabled;
-    }
-
-    public String getThymeleafPrefix() {
-        return thymeleafPrefix;
-    }
-
-    public void setThymeleafPrefix(String thymeleafPrefix) {
-        this.thymeleafPrefix = thymeleafPrefix;
-    }
-
-    public String getThymeleafSuffix() {
-        return thymeleafSuffix;
-    }
-
-    public void setThymeleafSuffix(String thymeleafSuffix) {
-        this.thymeleafSuffix = thymeleafSuffix;
-    }
-
-    public String getThymeleafMode() {
-        return thymeleafMode;
-    }
-
-    public void setThymeleafMode(String thymeleafMode) {
-        this.thymeleafMode = thymeleafMode;
-    }
-
-    public String getThymeleafEncoding() {
-        return thymeleafEncoding;
-    }
-
-    public void setThymeleafEncoding(String thymeleafEncoding) {
-        this.thymeleafEncoding = thymeleafEncoding;
-    }
-
-    public boolean isThymeleafCacheEnabled() {
-        return thymeleafCacheEnabled;
-    }
-
-    public void setThymeleafCacheEnabled(boolean thymeleafCacheEnabled) {
-        this.thymeleafCacheEnabled = thymeleafCacheEnabled;
     }
 
     public boolean isSpringJmxEnabled() {
