@@ -44,7 +44,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -364,22 +362,6 @@ public class MetadataController extends AbstractLarchController {
     }
 
     /**
-     * Controller method to retrieve the available {@link net.objecthunter.larch.model.MetadataType}s in the
-     * repository in a HTML view
-     * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, value = "/metadatatype", produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveTypesHtml() throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("types", this.retrieveTypes());
-        return new ModelAndView("metadatatype", model);
-    }
-
-    /**
      * Add a new {@link net.objecthunter.larch.model.MetadataType} to the repository that can be used to validate
      * different kind of Metadata objects.
      * 
@@ -435,20 +417,6 @@ public class MetadataController extends AbstractLarchController {
     }
 
     @RequestMapping(method = RequestMethod.GET,
-            value = "/entity/{id}/metadata/{metadata-name}",
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveMetadataHtml(@PathVariable("id") final String entityId,
-            @PathVariable("metadata-name") final String mdName) throws IOException {
-        final Metadata md = retrieveMetadata(entityId, mdName);
-        final ModelMap model = new ModelMap();
-        model.addAttribute("entityId", entityId);
-        model.addAttribute("md", md);
-        return new ModelAndView("metadata", model);
-    }
-
-    @RequestMapping(method = RequestMethod.GET,
             value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
@@ -470,22 +438,6 @@ public class MetadataController extends AbstractLarchController {
                     + " of entity " + entityId);
         }
         return md;
-    }
-
-    @RequestMapping(method = RequestMethod.GET,
-            value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveBinaryMetadataHtml(@PathVariable("id") final String entityId,
-            @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
-            throws IOException {
-        final Metadata md = retrieveBinaryMetadata(entityId, binaryName, mdName);
-        final ModelMap model = new ModelMap();
-        model.addAttribute("entityId", entityId);
-        model.addAttribute("binaryName", entityId);
-        model.addAttribute("md", md);
-        return new ModelAndView("binarymetadata", model);
     }
 
     @RequestMapping(method = RequestMethod.DELETE,

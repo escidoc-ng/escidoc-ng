@@ -27,12 +27,10 @@ import net.objecthunter.larch.service.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Web controller responsible for creating repository state views
@@ -60,19 +58,4 @@ public class StateController extends AbstractLarchController {
         return repositoryService.status();
     }
 
-    /**
-     * Controller method for retrieving a {@link net.objecthunter.larch.model.state.LarchState} object describing the
-     * repository state using a HTTP GET, that returns a HTML ciew
-     * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView}
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView stateHtml() throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("state", state());
-        return new ModelAndView("state", model);
-    }
 }

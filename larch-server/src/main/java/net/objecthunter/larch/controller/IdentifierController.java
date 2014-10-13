@@ -71,23 +71,6 @@ public class IdentifierController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for adding a new identifier using a HTTP POST that redirects to an HTML view of the
-     * {@link net.objecthunter.larch.model.Entity}
-     * 
-     * @param entityId the id of the Entity to which the identifier is added
-     * @param type the type of the identifier
-     * @param value the value of the identifier
-     * @throws IOException
-     */
-    @RequestMapping(value = "/identifier", method = RequestMethod.POST, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public String createHtml(@PathVariable("id") final String entityId, @RequestParam("type") final String type,
-            @RequestParam("value") final String value) throws IOException {
-        this.create(entityId, type, value);
-        return "redirect:/entity/" + entityId;
-    }
-
-    /**
      * Controller method to delete an identifier
      * 
      * @param entityId the entity's id
@@ -106,24 +89,6 @@ public class IdentifierController extends AbstractLarchController {
         this.entityService.deleteIdentifier(entityId, type, value);
         this.entityService.createAuditRecord(AuditRecordHelper.deleteIdentifier(entityId));
         this.messagingService.publishDeleteIdentifier(entityId, type, value);
-    }
-
-    /**
-     * Controller method to delete an identifier
-     * 
-     * @param entityId the entity's id
-     * @param type the type of the identifier
-     * @param value the value of the identifier
-     * @throws IOException
-     */
-    @RequestMapping(value = "/identifier/{type}/{value}", method = RequestMethod.DELETE,
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public String deleteHtml(@PathVariable("id") final String entityId, @PathVariable("type") final String type,
-            @PathVariable("value") final String value) throws IOException {
-        this.delete(entityId, type, value);
-        return "redirect:/entity/" + entityId;
     }
 
 }

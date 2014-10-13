@@ -25,13 +25,10 @@ import net.objecthunter.larch.service.EntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Web controller responsible for search views
@@ -45,19 +42,6 @@ public class SearchController extends AbstractLarchController {
 
     @Autowired
     private CredentialsService credentialsService;
-
-    /**
-     * Controller method for displaying a HTML search form
-     * 
-     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     */
-    @RequestMapping(value = "/form", method = RequestMethod.GET, produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchHtml() {
-        final ModelMap model = new ModelMap();
-        return new ModelAndView("search", model);
-    }
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
@@ -84,30 +68,6 @@ public class SearchController extends AbstractLarchController {
         } else {
             return entityService.searchEntities(query, offset);
         }
-    }
-
-    /**
-     * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
-     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
-     * can contain parameters key:searchfield, value:searchvalue and 2 special parameters offset and maxRecords.<br>
-     * offset: hit-number to start searchresult-list with.<br>
-     * maxRecords: maximum number of records to return with searchresult-list.<br>
-     * values of different Search-Parameter-Names are concatenated with AND,<br>
-     * values of same search-parameter-names are concatenated with OR.<br>
-     * 
-     * @param request The request with all parameters.
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     */
-    @RequestMapping(produces = { "text/html" })
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView searchMatchFieldsHtml(@RequestParam(
-            value = "query", defaultValue = "*:*") final String query, @RequestParam(
-            value = "offset", defaultValue = "0") final int offset, @RequestParam(
-            value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("result", searchMatchFields(query, offset, maxRecords));
-        return new ModelAndView("searchresult", model);
     }
 
     /**

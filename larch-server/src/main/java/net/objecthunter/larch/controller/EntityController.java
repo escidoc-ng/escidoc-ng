@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import net.objecthunter.larch.helpers.AuditRecordHelper;
-import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
@@ -37,13 +36,11 @@ import net.objecthunter.larch.service.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,25 +107,6 @@ public class EntityController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for retrieval of a HTML view of the current version of an
-     * {@link net.objecthunter.larch.model.Entity}
-     * 
-     * @param id The is of the {@link net.objecthunter.larch.model.Entity} to retrieve
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/{id}", produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("entity", retrieve(id));
-        model.addAttribute("metadataTypes", this.schemaService.getSchemaTypes());
-        model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
-        return new ModelAndView("entity", model);
-    }
-
-    /**
      * Controller method for retrieval of a JSON representation of a given version of an
      * {@link net.objecthunter.larch.model.Entity}
      * 
@@ -150,25 +128,6 @@ public class EntityController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for retrieval of a HTML view of a given version of an
-     * {@link net.objecthunter.larch.model.Entity}
-     * 
-     * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @param version the version number of the Entity version to retrieve
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/{id}/version/{version}", produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView retrieveHtml(@PathVariable("id") final String id, @PathVariable("version") final int version)
-            throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("entity", retrieve(id, version));
-        return new ModelAndView("entity", model);
-    }
-
-    /**
      * Controller method for retrieval of a JSON representation of all versions of an
      * {@link net.objecthunter.larch.model.Entity}
      * 
@@ -186,24 +145,6 @@ public class EntityController extends AbstractLarchController {
         Entities entities = entityService.getOldVersions(id);
         entities.getEntities().add(0, entityService.retrieve(id));
         return entities;
-    }
-
-    /**
-     * Controller method for retrieval of a HTML view of all versions of an
-     * {@link net.objecthunter.larch.model.Entity}
-     * 
-     * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/{id}/versions", produces = "text/html")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView retrieveVersionsHtml(@PathVariable("id") final String id) throws IOException {
-        final ModelMap model = new ModelMap();
-        Entities entities = retrieveVersions(id);
-        model.addAttribute("entities", entities);
-        return new ModelAndView("versions", model);
     }
 
     /**
@@ -303,13 +244,6 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView publishHtml(@PathVariable("id") final String id) throws IOException {
-        this.publish(id);
-        return this.retrieveHtml(id);
-    }
-
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -324,13 +258,6 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
-    @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView submitHtml(@PathVariable("id") final String id) throws IOException {
-        this.submit(id);
-        return this.retrieveHtml(id);
-    }
-
     @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -343,13 +270,6 @@ public class EntityController extends AbstractLarchController {
         this.entityService.withdraw(id);
         this.entityService.createAuditRecord(AuditRecordHelper.publishEntityRecord(id));
         this.messagingService.publishWithdrawEntity(id);
-    }
-
-    @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView withdrawHtml(@PathVariable("id") final String id) throws IOException {
-        this.withdraw(id);
-        return this.retrieveHtml(id);
     }
 
 }

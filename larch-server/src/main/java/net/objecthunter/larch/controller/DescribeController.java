@@ -25,12 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Web controller class responsible for creating {@link net.objecthunter.larch.model.Describe} views
@@ -57,17 +55,4 @@ public class DescribeController extends AbstractLarchController {
         return repositoryService.describe();
     }
 
-    /**
-     * Controller method which creates a HTML representation of a {@link net.objecthunter.larch.model.Describe} object
-     * 
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} used to render the HTML view
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    public ModelAndView describeHtml() throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("describe", repositoryService.describe());
-        return new ModelAndView("describe", model);
-    }
 }

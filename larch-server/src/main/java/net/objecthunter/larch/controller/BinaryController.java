@@ -37,7 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -113,55 +111,6 @@ public class BinaryController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
-     * {@link net .objecthunter.larch.model.Entity} using a multipart/form-data encoded HTTP POST
-     * 
-     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
-     * @param name The name of the Binary
-     * @param file A {@link org.springframework.web.multipart.MultipartFile} containing the multipart encoded file
-     * @return The redirect address to view the updated Entity
-     * @throws IOException
-     */
-    @RequestMapping(value = "/entity/{id}/binary/file", method = RequestMethod.POST,
-            consumes = {
-                "multipart/form-data",
-                "application/x-www-form-urlencoded" }, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String createHtml(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
-            @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
-        entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
-        this.messagingService.publishCreateBinary(entityId, name);
-        return "redirect:/entity/" + entityId;
-    }
-
-    /**
-     * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
-     * {@link net .objecthunter.larch.model.Entity} using a application/json POST
-     * 
-     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
-     * @param src An Inputstream holding the request body's content
-     * @throws IOException
-     */
-    @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
-            consumes = "application/json", produces = "text/html")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
-            @Permission(rolename = RoleName.ROLE_ADMIN),
-            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String createHtml(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
-        final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
-                .getInputStream());
-        entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
-        this.messagingService.publishCreateBinary(entityId, b.getName());
-        return "redirect:/entity/" + entityId;
-    }
-
-    /**
      * Controller method to retrieve a JSON representation of a {@link net.objecthunter.larch.model.Binary} from the
      * repository
      * 
@@ -184,28 +133,6 @@ public class BinaryController extends AbstractLarchController {
             throw new IOException("The Binary " + name + " does not exist on the entity " + entityId);
         }
         return e.getBinaries().get(name);
-    }
-
-    /**
-     * Controller method to retrieve the HTML representation of a {@link net.objecthunter.larch.model.Binary}
-     * 
-     * @param entityId The {@link net.objecthunter.larch.model.Entity}'s id, which contains the requested Binary
-     * @param name The name of the Binary
-     * @return A Spring MVC {@link org.springframework.web.servlet.ModelAndView} object used for rendering the HTML
-     *         view
-     * @throws IOException
-     */
-    @RequestMapping(value = "/entity/{id}/binary/{name}", method = RequestMethod.GET,
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveHtml(@PathVariable("id") final String entityId,
-            @PathVariable("name") final String name) throws IOException {
-        final ModelMap model = new ModelMap();
-        model.addAttribute("binary", this.retrieve(entityId, name));
-        model.addAttribute("entityId", entityId);
-        model.addAttribute("metadataTypes", schemaService.getSchemaTypes());
-        return new ModelAndView("binary", model);
     }
 
     /**
