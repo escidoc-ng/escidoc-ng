@@ -69,7 +69,7 @@ public class LoginController extends AbstractController {
                     .authorizationLocation(env.getProperty("larch.server.url") + "/oauth/authorize")
                     .setClientId(env.getProperty("larch.oauth.clientId"))
                     .setResponseType("code")
-                    .setRedirectURI(env.getProperty("self.url") + ":" + env.getProperty("server.port") + "/login/token")
+                    .setRedirectURI(env.getProperty("self.url") + "/login/token")
                     .buildQueryMessage();
         } catch (OAuthSystemException e) {
             throw new IOException(e.getMessage());
@@ -105,7 +105,7 @@ public class LoginController extends AbstractController {
             nvps.add(new BasicNameValuePair("client_secret", env.getProperty("larch.oauth.clientSecret")));
             nvps.add(new BasicNameValuePair("code", code));
             nvps.add(new BasicNameValuePair("redirect_uri",
-                    env.getProperty("self.url") + ":" + env.getProperty("server.port") + "/login/token"));
+                    env.getProperty("self.url") + "/login/token"));
 
             //auth header
             String authorization = env.getProperty("larch.oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");

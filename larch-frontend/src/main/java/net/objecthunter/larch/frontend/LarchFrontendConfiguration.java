@@ -42,7 +42,6 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
  * General JavaConfig class for the larch frontend containing all the necessary beans for a larch frontend
  */
 @Configuration
-@PropertySource("classpath:escidoc-ng.frontend.properties")
 @ComponentScan(basePackages = "net.objecthunter.larch.frontend.controller")
 @EnableAutoConfiguration
 public class LarchFrontendConfiguration {

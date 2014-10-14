@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.InputStreamEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,20 +53,23 @@ public class AuthController extends AbstractController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public void isAuthorized(HttpServletRequest request) throws IOException {
+        String url = request.getRequestURI();
+        if (StringUtils.isNotBlank(request.getContextPath())) {
+            url = url.replaceFirst(request.getContextPath(), "");
+        }
         if (request.getMethod().equals("GET")) {
-            StringBuilder url = new StringBuilder(request.getRequestURI());
             if (request.getQueryString() != null) {
-                url.append("?").append(request.getQueryString());
+                url += "?" + request.getQueryString();
             }
-            httpHelper.doGet(request.getRequestURI() + "?" + request.getQueryString());
+            httpHelper.doGet(url);
         } else if (request.getMethod().equals("PUT")) {
-            httpHelper.doPut(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
+            httpHelper.doPut(url, new InputStreamEntity(request.getInputStream(), -1), "application/json");
         } else if (request.getMethod().equals("POST")) {
-            httpHelper.doPost(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
+            httpHelper.doPost(url, new InputStreamEntity(request.getInputStream(), -1), "application/json");
         } else if (request.getMethod().equals("DELETE")) {
-            httpHelper.doDelete(request.getRequestURI());
+            httpHelper.doDelete(url);
         } else if (request.getMethod().equals("PATCH")) {
-            httpHelper.doPatch(request.getRequestURI(), new InputStreamEntity(request.getInputStream(), -1), "application/json");
+            httpHelper.doPatch(url, new InputStreamEntity(request.getInputStream(), -1), "application/json");
         }
     }
 

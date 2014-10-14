@@ -8,11 +8,6 @@
     <div class="three_dots"></div>
 </header>
 
-<script th:inline="javascript">
-    /*<![CDATA[*/
-        checkAuthCreateEntity('level1', null, 'level1CreatePanel');
-    /*]]>*/
-</script>
 <div class="content">
     <div th:include="fragments :: left" class="left">
     </div>
@@ -95,5 +90,10 @@
 
 <div th:include="fragments :: footer" class="footer">
 </div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+        checkAuthCreateEntity('level1', null, 'level1CreatePanel');
+    /*]]>*/
+</script>
 </body>
 </html>

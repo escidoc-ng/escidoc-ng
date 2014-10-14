@@ -1,12 +1,21 @@
 var ctx = "";
+var contextSet = false;
 $(document).ready(function() {
-  var contextPath = $('#contextPath');
-  if (contextPath) {
-    if (contextPath.attr('src') && contextPath.attr('src') != '') {
-      ctx = contextPath.attr('src');
-    }
-  }
+  setContext();
 });
+
+function setContext() {
+	if (!contextSet) {
+		  var contextPath = $('#contextPath');
+		  if (contextPath) {
+		    if (contextPath.attr('src') && contextPath.attr('src') != '') {
+		      ctx = contextPath.attr('src');
+		    }
+		  }
+		  contextSet = true;
+	}
+}
+
 
 function submitPut(url, redirectUrl) {
     var csrf_token = $("meta[name='_csrf']").attr("content");
@@ -350,6 +359,7 @@ function loadRights(rolename) {
 }
     
 function checkAuth(url, type, idsToHide) {
+	setContext();
     var csrf_token = $("meta[name='_csrf']").attr("content");
     $.ajax({
         xhrFields: {
@@ -371,6 +381,7 @@ function checkAuth(url, type, idsToHide) {
 }
     
 function checkAuthCreateEntity(contentModelId, parentId, idToHide) {
+	setContext();
     var entity = {
             'contentModelId' : contentModelId,
             'label' : 'authtest',

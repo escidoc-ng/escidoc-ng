@@ -95,7 +95,6 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
  * General JavaConfig class for the larch repository containing all the necessary beans for a larch repository
  */
 @Configuration
-@PropertySource("classpath:escidoc-ng.server.properties")
 @ComponentScan(basePackages = "net.objecthunter.larch.controller")
 @EnableAutoConfiguration
 @EnableAspectJAutoProxy
