@@ -83,6 +83,8 @@ public class LoginController extends AbstractController {
     @RequestMapping(value = "/logout", method = RequestMethod.GET, produces = { "text/html" })
     public String logout(HttpServletRequest request) throws IOException {
         httpHelper.doPost("/logout", null, null);
+        request.getSession().removeAttribute(Constants.ACCESS_TOKEN_ATTRIBUTE_NAME);
+        request.getSession().removeAttribute(Constants.CURRENT_USER_NAME);
         request.getSession().invalidate();
         return "redirect:/";
     }

@@ -16,6 +16,8 @@
 
 package net.objecthunter.larch.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +39,16 @@ public class LoginController extends AbstractLarchController {
     public ModelAndView login() {
         final ModelMap model = new ModelMap();
         return new ModelAndView("login-page", model);
+    }
+
+    /**
+     * Controller method for logging in
+     * 
+     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
+     */
+    @RequestMapping(value = "/logout")
+    public void logout(HttpServletRequest request) {
+        request.getSession().invalidate();
     }
 
 }
