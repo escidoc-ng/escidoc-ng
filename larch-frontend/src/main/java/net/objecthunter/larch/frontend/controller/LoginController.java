@@ -66,7 +66,7 @@ public class LoginController extends AbstractController {
         OAuthClientRequest oauthRequest = null;
         try {
             oauthRequest = OAuthClientRequest
-                    .authorizationLocation(env.getProperty("larch.server.url") + "/oauth/authorize")
+                    .authorizationLocation(env.getProperty("larch.login.url") + "/oauth/authorize")
                     .setClientId(env.getProperty("larch.oauth.clientId"))
                     .setResponseType("code")
                     .setRedirectURI(env.getProperty("self.url") + "/login/token")
