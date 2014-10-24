@@ -182,6 +182,7 @@
     </dependencyManagement>
 
     <build>
+        <!-- Javadoc. Run with mvn javadoc:javadoc -->
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

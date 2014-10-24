@@ -77,7 +77,9 @@ public class RoleController extends AbstractLarchController {
      * Controller method for setting a right for an anchorId to a User
      * 
      * @param username The name of the user
-     * @param objectId The id of the object the user becomes a right for.
+     * @param rolename The name of the Role.
+     * @param anchorId The id of the anchor.
+     * @param src JSON-Representation of the Role-Rights to set.
      */
     @RequestMapping(value = "/role/{rolename}/rights/{anchorId}", method = RequestMethod.POST,
             consumes = "application/json")
@@ -94,10 +96,12 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for setting a right without anchorId to a User
+     * Controller method for setting a right without anchorId to a User.
+     * Only allowed for Roles that do not need an anchorId (ADMIN or ADMIN_USER for all Users)
      * 
      * @param username The name of the user
-     * @param objectId The id of the object the user becomes a right for.
+     * @param rolename The name of the Role.
+     * @param src JSON-Representation of the Role-Rights to set.
      */
     @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.POST,
             consumes = "application/json")
