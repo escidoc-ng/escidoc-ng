@@ -182,7 +182,6 @@
     </dependencyManagement>
 
     <build>
-        <!-- Javadoc. Run with mvn javadoc:javadoc -->
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -192,6 +191,7 @@
                     <target>${maven.compiler.version}</target>
                 </configuration>
             </plugin>
+        <!-- Javadoc. Run with mvn javadoc:javadoc -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
