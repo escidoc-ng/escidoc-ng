@@ -65,9 +65,9 @@ public class EntityController extends AbstractLarchController {
     private ObjectMapper mapper;
 
     /**
-     * Controller method for patching an {@link net.objecthunter.larch.model.Entity} stored in the repository. The
-     * patch method allows only a set of given fields to be updated and therefore allowing for more efficient resource
-     * usage
+     * Controller method for patching an {@link net.objecthunter.larch.model.Entity} stored in the repository.<br>
+     * The patch method allows only a set of given fields to be updated<br>
+     * and therefore allowing for more efficient resource usage.
      * 
      * @param id The id of the {@link net.objecthunter.larch.model.Entity} to patch
      * @param src The JSON representation of the subset of fields which should get updated on the Entity
@@ -132,7 +132,7 @@ public class EntityController extends AbstractLarchController {
      * {@link net.objecthunter.larch.model.Entity}
      * 
      * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @return An Entities object which gets transformed into a JSON response by Spring MVC
+     * @return An {@link net.objecthunter.larch.model.Entities} object which gets transformed into a JSON response by Spring MVC
      * @throws IOException
      */
     @RequestMapping("/{id}/versions")
@@ -230,6 +230,13 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishDeleteEntity(id);
     }
 
+    /**
+     * Controller method for publishing an {@link net.objecthunter.larch.model.Entity}.<br>
+     * Sets the state-attribute of the entity to "published".
+     * 
+     * @param id The id of the Entity to publish.
+     * @throws IOException
+     */
     @RequestMapping(value = "/{id}/publish", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -244,6 +251,13 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
+    /**
+     * Controller method for submitting an {@link net.objecthunter.larch.model.Entity}.<br>
+     * Sets the state-attribute of the entity to "submitted".
+     * 
+     * @param id The id of the Entity to submit.
+     * @throws IOException
+     */
     @RequestMapping(value = "/{id}/submit", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -258,6 +272,13 @@ public class EntityController extends AbstractLarchController {
         this.messagingService.publishPublishEntity(id);
     }
 
+    /**
+     * Controller method for withdrawing an {@link net.objecthunter.larch.model.Entity}.<br>
+     * Sets the state-attribute of the entity to "withdrawn".
+     * 
+     * @param id The id of the Entity to withdraw.
+     * @throws IOException
+     */
     @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

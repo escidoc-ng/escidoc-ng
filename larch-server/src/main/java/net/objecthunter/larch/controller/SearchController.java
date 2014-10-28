@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Web controller responsible for search views
+ * Web controller responsible for search.
  */
 @Controller
 @RequestMapping("/search")
@@ -45,14 +45,15 @@ public class SearchController extends AbstractLarchController {
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.Entity}s in the repository using an HTTP
-     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
-     * can contain parameters key:searchfield, value:searchvalue and 2 special parameters offset and maxRecords.<br>
+     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}.<br>
+     * The request can contain the following parameters:<br>
+     * query: search-query.<br>
      * offset: hit-number to start searchresult-list with.<br>
      * maxRecords: maximum number of records to return with searchresult-list.<br>
-     * values of different Search-Parameter-Names are concatenated with AND,<br>
-     * values of same search-parameter-names are concatenated with OR.<br>
      * 
-     * @param request The request with all parameters.
+     * @param query the search query.
+     * @param offset it-number to start searchresult-list with.
+     * @param maxRecords maximum number of records to return with searchresult-list
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.Entity}s as s JSON representation
      */
@@ -72,12 +73,15 @@ public class SearchController extends AbstractLarchController {
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.security.User}s in the repository using an HTTP
-     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The request
-     * can contain a parameter query and 2 parameters offset and maxRecords.<br>
+     * POST which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}.<br>
+     * The request can contain the following parameters:<br>
+     * query: search-query.<br>
      * offset: hit-number to start searchresult-list with.<br>
      * maxRecords: maximum number of records to return with searchresult-list.<br>
      * 
-     * @param request The request with all parameters.
+     * @param query the search query.
+     * @param offset it-number to start searchresult-list with.
+     * @param maxRecords maximum number of records to return with searchresult-list
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.User}s as s JSON representation
      */

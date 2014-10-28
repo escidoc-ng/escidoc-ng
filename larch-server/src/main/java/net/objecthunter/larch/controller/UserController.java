@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Web controller class responsible for larch {@link net.objecthunter.larch.model.Binary} objects
+ * Web controller class responsible for larch {@link net.objecthunter.larch.model.User} objects
  */
 @Controller
 public class UserController extends AbstractLarchController {
@@ -52,7 +52,11 @@ public class UserController extends AbstractLarchController {
     private CredentialsService credentialsService;
 
     /**
-     * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
+     * Controller method for checking token validity.
+     * 
+     * @param token confirmation token.
+     * @return String confirmation token.
+     * @throws IOException if anything goes wrong.
      */
     @RequestMapping(value = "/confirm/{token}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
@@ -64,6 +68,12 @@ public class UserController extends AbstractLarchController {
 
     /**
      * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
+     * Only after confirming a UserRequest, the user can login.
+     * 
+     * @param token confirmation token.
+     * @param password new password to set.
+     * @param passwordRepeat repetition of new password to set.
+     * @throws IOException if anything goes wrong.
      */
     @RequestMapping(value = "/confirm/{token}", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.OK)
@@ -75,6 +85,9 @@ public class UserController extends AbstractLarchController {
 
     /**
      * Controller method for deleting a given {@link net.objecthunter.larch.model.security.User}
+     * 
+     * @param name name (login) of the user.
+     * @throws IOException if anything goes wrong.
      */
     @RequestMapping(value = "/user/{name}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
@@ -88,11 +101,11 @@ public class UserController extends AbstractLarchController {
     /**
      * Controller method for creating a new {@link net.objecthunter.larch.model.security.User}
      * 
-     * @param userName the name of the user
+     * @param userName the name (login) of the user
      * @param firstName the user's first name
      * @param lastName the user's last name
      * @param email the user's mail address
-     * @param groups the user's groups
+     * @return String confirmation token.
      * @throws IOException if the user could not be created
      */
     @RequestMapping(value = "/user", method = RequestMethod.POST, consumes = "multipart/form-data")
@@ -112,9 +125,10 @@ public class UserController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User}s in the
+     * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User} in the
      * repository as a JSON representation
      * 
+     * @param name name (login) of the user.
      * @return A JSON representation of the user
      * @throws IOException
      */
@@ -131,10 +145,10 @@ public class UserController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for retrieving an existing {@link net.objecthunter.larch.model.security.User}s in the
-     * repository as a JSON representation
+     * Controller method for retrieving the currently logged in {@link net.objecthunter.larch.model.security.User} 
+     * as a JSON representation
      * 
-     * @return A JSON representation of the user
+     * @return A JSON representation of the user.
      * @throws IOException
      */
     @RequestMapping(value = "/current-user", method = RequestMethod.GET, produces = "application/json")
@@ -161,10 +175,11 @@ public class UserController extends AbstractLarchController {
     }
 
     /**
-     * Controller method to retrieve a Role that exist in the
-     * repository as a JSON representation
+     * Controller method to retrieve a List of allowed {@link net.objecthunter.larch.model.security.role.Role.RoleRight}s 
+     * for a given {@link net.objecthunter.larch.model.security.role.Role} as JSON representation.
      * 
-     * @return the list of {@link net.objecthunter.larch.model.security.Role}s as a JSON representation
+     * @param rolename the name of the role.
+     * @return the list of allowed {@link net.objecthunter.larch.model.security.role.Role.RoleRight}s as a JSON representation.
      * @throws IOException
      */
     @RequestMapping(value = "/role/{rolename}/rights", method = RequestMethod.GET, produces = "application/json")
@@ -174,6 +189,16 @@ public class UserController extends AbstractLarchController {
         return Role.getRoleObject(RoleName.valueOf(rolename.toUpperCase())).allowedRights();
     }
 
+    /**
+     * Controller method to update an existing {@link net.objecthunter.larch.model.User}.
+     * 
+     * @param name the name (login) of the user.
+     * @param firstName the new firstname of the user.
+     * @param lastName the new lastname of the user.
+     * @param email the new email-address of the user.
+     * @return String OK-message.
+     * @throws IOException
+     */
     @RequestMapping(value = "/user/{name}", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

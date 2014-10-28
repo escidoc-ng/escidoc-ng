@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Web controller responsible for interactions on the identifier level
+ * Web controller responsible for interactions with identifiers of Entities
  */
 @Controller
 @RequestMapping("/entity/{id}")
@@ -51,7 +51,7 @@ public class IdentifierController extends AbstractLarchController {
     private MessagingService messagingService;
 
     /**
-     * Controller method for adding a new identifier using a HTTP POST
+     * Controller method for adding a new identifier using a HTTP POST.
      * 
      * @param entityId the id of the Entity to which the identifier is added
      * @param type the type of the identifier

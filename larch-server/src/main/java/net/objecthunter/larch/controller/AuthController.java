@@ -72,13 +72,13 @@ public class AuthController extends AbstractLarchController {
     private Map<Method, List<Matcher>> requestUriMatchers = new HashMap<Method, List<Matcher>>();
 
     /**
-     * Controller method for checking if user may call request. Just send Request you want to check with prefixed url.
-     * Prefix is /is-authorized HttpServletRequest is wrapped in AuthorizeHttpServletRequest.
-     * AuthorizeHttpServletRequest cuts off /is-authorized to be able to determine called Method
-     * AuthorizeHttpServletRequest removes accept-header text/html --> All -html-Methods in the controller must call
-     * non-html-method which is annotated with PreAuth or PostAuth.
+     * Controller method for checking if user may call request.<br>
+     * Just send Request you want to check with prefixed url.<br>
+     * Prefix is "/is-authorized".<br>
+     * HttpServletRequest is wrapped in AuthorizeHttpServletRequest.<br>
+     * AuthorizeHttpServletRequest cuts off "/is-authorized" to be able to determine called Method.<br>
      * 
-     * @param username The name of the user
+     * @param request The HttpServletRequest
      */
     @RequestMapping(value = "/authorize/**")
     @ResponseBody

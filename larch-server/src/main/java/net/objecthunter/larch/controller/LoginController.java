@@ -25,13 +25,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Web controller for login
+ * Web controller for login.
  */
 @Controller
 public class LoginController extends AbstractLarchController {
 
     /**
-     * Controller method for logging in
+     * Controller method for logging in.
+     * Endpoint that returns the login-form that has to be used by frontend-services to login a user.<br>
+     * Login-Form should get returned to the client-browser, therefore this endpoint should be reachable from outside.<br>
      * 
      * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
      */
@@ -42,9 +44,7 @@ public class LoginController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for logging in
-     * 
-     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
+     * Controller method for logging out.
      */
     @RequestMapping(value = "/logout")
     public void logout(HttpServletRequest request) {

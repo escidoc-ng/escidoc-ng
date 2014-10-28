@@ -71,7 +71,7 @@ public class BinaryController extends AbstractLarchController {
      * 
      * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
      * @param name The name of the Binary
-     * @param src The request body containing the actual data
+     * @param file The request body containing the actual data
      * @throws IOException
      */
     @RequestMapping(value = "/entity/{id}/binary", method = RequestMethod.POST,
@@ -168,7 +168,7 @@ public class BinaryController extends AbstractLarchController {
     }
 
     /**
-     * Controller method to delete a binary
+     * Controller method to delete a binary.
      * 
      * @param entityId the entity's id
      * @param name the name of the binary to delete

@@ -43,7 +43,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Web controller responsible for search views
+ * Web controller responsible for Users Role-Assignment.
  */
 @Controller
 @RequestMapping("/user/{username}")
@@ -59,7 +59,7 @@ public class RoleController extends AbstractLarchController {
     private ObjectMapper mapper;
 
     /**
-     * Controller method for setting user-roles to a User
+     * Controller method for setting user-roles to a User.
      * 
      * @param username The name of the user
      */
@@ -74,7 +74,7 @@ public class RoleController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for setting a right for an anchorId to a User
+     * Controller method for setting a right for an anchorId to a User.
      * 
      * @param username The name of the user
      * @param rolename The name of the Role.

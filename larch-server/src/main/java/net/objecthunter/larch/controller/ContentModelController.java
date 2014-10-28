@@ -54,11 +54,11 @@ public class ContentModelController extends AbstractLarchController {
     private ObjectMapper mapper;
 
     /**
-     * Controller method for creation of a new {@link net.objecthunter.larch.model.Entity} using a HTTP POST with the
-     * JSON representation of the entity as the request body
+     * Controller method for creation of a new {@link net.objecthunter.larch.model.ContentModel} using a HTTP POST with the
+     * JSON representation of the ContentModel as the request body
      * 
-     * @param src The Stream injected by Spring MVC containing the JSON representation of the Entity to create.
-     * @return The id of the created entity.
+     * @param src The Stream injected by Spring MVC containing the JSON representation of the ContentModel to create.
+     * @return The id of the created ContentModel.
      * @throws IOException
      */
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "text/plain")
@@ -77,10 +77,10 @@ public class ContentModelController extends AbstractLarchController {
 
     /**
      * Controller method for retrieval of a JSON representation of the current version of an
-     * {@link net.objecthunter .larch.model.Entity}
+     * {@link net.objecthunter .larch.model.ContentModel}
      * 
-     * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @return An Entity object which gets transformed into a JSON response by Spring MVC
+     * @param id the {@link net.objecthunter.larch.model.ContentModel}'s id
+     * @return An ContentModel object which gets transformed into a JSON response by Spring MVC
      * @throws IOException
      */
     @RequestMapping("/{id}")
@@ -94,9 +94,9 @@ public class ContentModelController extends AbstractLarchController {
     }
 
     /**
-     * Controller method for deleting an {@link net.objecthunter.larch.model.Entity} using a HTTP DELETE request.
+     * Controller method for deleting an {@link net.objecthunter.larch.model.ContentModel} using a HTTP DELETE request.
      * 
-     * @param id The is of the Entity to delete
+     * @param id The is of the ContentModel to delete
      * @throws IOException
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)

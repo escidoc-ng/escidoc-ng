@@ -55,7 +55,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Web controller responsible for interaction on the meta data level
+ * Web controller responsible for interaction on the meta data level.
  */
 @Controller
 public class MetadataController extends AbstractLarchController {
@@ -74,7 +74,7 @@ public class MetadataController extends AbstractLarchController {
 
     /**
      * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
-     * {@link net .objecthunter.larch.model.Entity} using a HTTP POST with application/json
+     * {@link net.objecthunter.larch.model.Entity} using a HTTP POST with application/json
      * 
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param src the request body as an InputStream
@@ -261,7 +261,7 @@ public class MetadataController extends AbstractLarchController {
 
     /**
      * Controller method to retrieve the XML data of a {@link net.objecthunter.larch.model.Metadata} object of an
-     * {@link net.objecthunter.larch.model.Entity} using a HTTP GET
+     * {@link net.objecthunter.larch.model.Binary} using a HTTP GET
      * 
      * @param id The id of the Entity
      * @param binaryName the name the name of the binary
@@ -378,26 +378,15 @@ public class MetadataController extends AbstractLarchController {
     }
 
     /**
-     * Add a new {@link net.objecthunter.larch.model.MetadataType} to the repository that can be used to validate
-     * different kind of Metadata objects, using a HTML form
+     * Controller method to retrieve the XML data of a {@link net.objecthunter.larch.model.Metadata} object of an
+     * {@link net.objecthunter.larch.model.Entity} using a HTTP GET
      * 
-     * @param name The name of the new {@link net.objecthunter.larch.model.MetadataType}
+     * @param id The id of the Entity
+     * @param metadataName The name of the Metadata to retrieve
+     * @param resp the Spring MVC injected {@link javax.servlet.http.HttpServletResponse} to which the XML gets
+     *        directly written
      * @throws IOException
      */
-    @RequestMapping(method = RequestMethod.POST, value = "/metadatatype", consumes = "multipart/form-data",
-            produces = "text/html")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuth(permissions = {
-        @Permission(rolename = RoleName.ROLE_ADMIN) })
-    public String addSchemaType(@RequestParam("name") final String name,
-            @RequestParam("schemaUrl") final String schemUrl) throws IOException {
-        final MetadataType newType = new MetadataType();
-        newType.setName(name);
-        newType.setSchemaUrl(schemUrl);
-        this.schemaService.createSchemaType(newType);
-        return "redirect:/metadatatype";
-    }
-
     @RequestMapping(method = RequestMethod.GET,
             value = "/entity/{id}/metadata/{metadata-name}",
             produces = "application/json")
@@ -416,6 +405,17 @@ public class MetadataController extends AbstractLarchController {
         return md;
     }
 
+    /**
+     * Controller method to retrieve the XML data of a {@link net.objecthunter.larch.model.Metadata} object of an
+     * {@link net.objecthunter.larch.model.Binary} using a HTTP GET
+     * 
+     * @param id The id of the Entity
+     * @param binaryName The name of the Binary
+     * @param mdName The name of the Metadata to retrieve
+     * @param resp the Spring MVC injected {@link javax.servlet.http.HttpServletResponse} to which the XML gets
+     *        directly written
+     * @throws IOException
+     */
     @RequestMapping(method = RequestMethod.GET,
             value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}",
             produces = "application/json")
@@ -440,6 +440,16 @@ public class MetadataController extends AbstractLarchController {
         return md;
     }
 
+    /**
+     * Controller method to delete a {@link net.objecthunter.larch.model.Metadata} object of an
+     * {@link net.objecthunter.larch.model.Entity} using a HTTP DELETE
+     * 
+     * @param id The id of the Entity
+     * @param mdName The name of the Metadata to delete
+     * @param resp the Spring MVC injected {@link javax.servlet.http.HttpServletResponse} to which the XML gets
+     *        directly written
+     * @throws IOException
+     */
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/entity/{id}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)
@@ -453,6 +463,17 @@ public class MetadataController extends AbstractLarchController {
         this.messagingService.publishDeleteMetadata(entityId, mdName);
     }
 
+    /**
+     * Controller method to delete a {@link net.objecthunter.larch.model.Metadata} object of an
+     * {@link net.objecthunter.larch.model.Binary} using a HTTP DELETE
+     * 
+     * @param id The id of the Entity
+     * @param binaryName The name of the Binary
+     * @param mdName The name of the Metadata to delete
+     * @param resp the Spring MVC injected {@link javax.servlet.http.HttpServletResponse} to which the XML gets
+     *        directly written
+     * @throws IOException
+     */
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/entity/{id}/binary/{binary-name}/metadata/{metadata-name}")
     @ResponseStatus(HttpStatus.OK)

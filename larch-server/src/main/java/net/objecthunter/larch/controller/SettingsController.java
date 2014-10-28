@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Web Controller responsible for Settings views
+ * Web Controller responsible for Settings views.
  */
 @RequestMapping("/settings")
 @Controller
@@ -55,7 +55,9 @@ public class SettingsController extends AbstractLarchController {
     private Environment environment;
 
     /**
-     * Retrieve the settings response
+     * Controller method for retrieval of a JSON representation of the 
+     * {@link net.objecthunter .larch.model.Settings}.
+     * Settings contain all configuration-parameters of the system.
      */
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
@@ -66,6 +68,12 @@ public class SettingsController extends AbstractLarchController {
         return this.createSettings();
     }
 
+    /**
+     * Create Settings-Object.
+     * 
+     * @return Settings settings
+     * @throws IOException
+     */
     private Settings createSettings() throws IOException {
         final Settings settings = new Settings();
         settings.setLarchState(this.repositoryService.status());
