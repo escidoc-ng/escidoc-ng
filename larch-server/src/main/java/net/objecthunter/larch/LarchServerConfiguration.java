@@ -24,16 +24,7 @@ import javax.servlet.MultipartConfigElement;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
 import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
-import net.objecthunter.larch.service.AuthorizationService;
-import net.objecthunter.larch.service.ContentModelService;
-import net.objecthunter.larch.service.CredentialsService;
-import net.objecthunter.larch.service.EntityService;
-import net.objecthunter.larch.service.EntityValidatorService;
-import net.objecthunter.larch.service.ExportService;
-import net.objecthunter.larch.service.MailService;
-import net.objecthunter.larch.service.MessagingService;
-import net.objecthunter.larch.service.RepositoryService;
-import net.objecthunter.larch.service.SchemaService;
+import net.objecthunter.larch.service.*;
 import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendContentModelService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -51,16 +42,7 @@ import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
-import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
-import net.objecthunter.larch.service.impl.DefaultContentModelService;
-import net.objecthunter.larch.service.impl.DefaultCredentialsService;
-import net.objecthunter.larch.service.impl.DefaultEntityService;
-import net.objecthunter.larch.service.impl.DefaultEntityValidatorService;
-import net.objecthunter.larch.service.impl.DefaultExportService;
-import net.objecthunter.larch.service.impl.DefaultMailService;
-import net.objecthunter.larch.service.impl.DefaultMessagingService;
-import net.objecthunter.larch.service.impl.DefaultRepositoryService;
-import net.objecthunter.larch.service.impl.DefaultSchemaService;
+import net.objecthunter.larch.service.impl.*;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
 
@@ -485,5 +467,17 @@ public class LarchServerConfiguration {
     @Bean
     public MessagingService messagingService() {
         return new DefaultMessagingService();
+    }
+
+    @Bean
+    public ArchiveService archiveService() {
+        final String type = env.getProperty("larch.archive.type");
+        if (type.equalsIgnoreCase("filesystem")) {
+            return new FileSystemArchiveService();
+        }else if (type.equalsIgnoreCase("sftp")) {
+            return new SftpArchiveService();
+        }else {
+            throw new IllegalArgumentException("Unknown type for archival system. Please choose a valid value");
+        }
     }
 }
