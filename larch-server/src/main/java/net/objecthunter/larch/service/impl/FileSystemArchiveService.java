@@ -29,13 +29,11 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.xml.bind.Unmarshaller;
+import java.io.*;
+import java.util.*;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileSystemArchiveService implements ArchiveService {
@@ -45,6 +43,9 @@ public class FileSystemArchiveService implements ArchiveService {
 
     @Autowired
     private Marshaller marshaller;
+
+    @Autowired
+    private Unmarshaller unmarshaller;
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
@@ -126,8 +127,60 @@ public class FileSystemArchiveService implements ArchiveService {
 
     @Override
     public Entity retrieve(final Entity e) throws IOException {
-        log.info("Fetching archival package");
-        return null;
+        try {
+            final File zip = new File(directory, "aip_" + e.getId() + ".zip");
+            if (!zip.exists()) {
+                throw new FileNotFoundException("The zip file " + zip.getAbsolutePath() + " could not be found");
+            }
+            final ZipInputStream src = new ZipInputStream(new FileInputStream(zip));
+
+            ZipEntry entry;
+            Entity entity = null;
+            final List<Metadata> entityMetadata = new ArrayList<>();
+            final List<Binary> binaries = new ArrayList<>();
+            final Map<String, Map<String, Metadata>> binaryMetadata = new HashMap<String, Map<String, Metadata>>();
+
+            while ((entry = src.getNextEntry()) != null) {
+                final String entryName = entry.getName();
+                if (entryName.equals("entity_" + e.getId() + ".xml")) {
+                    entity = (Entity) this.unmarshaller.unmarshal(src);
+                }
+                if (entryName.startsWith("binaries/") && entryName.endsWith(".xml")) {
+                    final String binName = entryName.substring(9, entryName.indexOf('/',9));
+                    if (entryName.contains("/metadata_")) {
+                        /* read binary metadata */
+                        Metadata md = (Metadata) this.unmarshaller.unmarshal(src);
+                        if (binaryMetadata.containsKey(binName)) {
+                            binaryMetadata.put(binName, new HashMap<>());
+                        }
+                        binaryMetadata.get(binName).put(md.getName(), md);
+                    }else {
+                        /* read the binary xml */
+                        Binary bin = (Binary) this.unmarshaller.unmarshal(src);
+                        binaries.add(bin);
+                    }
+                }
+                if (entryName.startsWith("metadata_")) {
+                    entityMetadata.add((Metadata) this.unmarshaller.unmarshal(src));
+                }
+            }
+            src.close();
+
+            for (final Metadata md : entityMetadata) {
+                entity.getMetadata().put(md.getName(), md);
+                for (Binary bin: binaries) {
+                    if (binaryMetadata.containsKey(bin.getName())) {
+                        for (Metadata binMd : binaryMetadata.get(bin.getName()).values()) {
+                            bin.getMetadata().put(binMd.getName(), binMd);
+                        }
+                    }
+                    entity.getBinaries().put(bin.getName(), bin);
+                }
+            }
+        } catch (JAXBException ex) {
+            log.error("Unable to read entity from archive", ex);
+            throw new IOException(ex);
+        }
     }
 
     @Override
