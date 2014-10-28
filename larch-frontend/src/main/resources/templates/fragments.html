@@ -63,7 +63,7 @@
         </li>
         <li th:if="!${isErrorPage}"><p class="icon" id="icon_users"></p><a
                 th:href="@{/search/users/form}" th:text="'USERS'"></a></li>
-        <li th:if="${isErrorPage == null and user != null}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
+        <li th:if="${isErrorPage == null and currentuser != null}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
                                                     th:text="'METADATA TYPES'"></a></li>
     </ul>
 </div>
