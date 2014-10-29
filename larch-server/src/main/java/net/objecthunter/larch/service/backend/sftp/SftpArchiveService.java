@@ -19,15 +19,11 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.service.backend.BackendArchiveService;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class SftpArchiveService implements BackendArchiveService {
     @Override
-    public void create(Entity e) throws IOException {
-
-    }
-
-    @Override
-    public Entity retrieve(Entity e) throws IOException {
+    public InputStream retrieve(String entityId, int version) throws IOException {
         return null;
     }
 
@@ -37,7 +33,12 @@ public class SftpArchiveService implements BackendArchiveService {
     }
 
     @Override
-    public void delete(String entityId) throws IOException {
+    public void delete(String entityId, int version) throws IOException {
 
+    }
+
+    @Override
+    public boolean exists(String entityId, int version) throws IOException {
+        return false;
     }
 }
