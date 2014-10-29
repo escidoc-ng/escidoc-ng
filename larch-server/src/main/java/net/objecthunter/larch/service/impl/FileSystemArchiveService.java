@@ -31,6 +31,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -54,6 +57,7 @@ public class FileSystemArchiveService implements ArchiveService {
 
     private static final Logger log = LoggerFactory.getLogger(FileSystemArchiveService.class);
 
+
     @PostConstruct
     public void init() {
         if (archivePath == null || archivePath.isEmpty()) {
@@ -76,14 +80,40 @@ public class FileSystemArchiveService implements ArchiveService {
                 }
             }
         }
+        if (!directory.canWrite()) {
+            throw new IllegalArgumentException("Insufficient permissions to write to " + directory.getAbsolutePath());
+        }
+        if (!directory.canRead()) {
+            throw new IllegalArgumentException("Insufficient permissions to read from " + directory.getAbsolutePath());
+        }
 
     }
 
     @Override
-    public void create(final Entity e) throws IOException {
+    public void saveOrUpdate(final Entity e) throws IOException {
         log.info("Creating archival package");
-        final String fileName = "aip_" + e.getId() + ".zip";
-        final File target = new File(directory, fileName);
+        checkExistsAndIsReadable(directory);
+        final File target = getZipFile(e.getId(), e.getVersion());
+
+        if (!target.canWrite()) {
+            throw new IOException("Insufficient permissions to write to " + target.getAbsolutePath());
+        }
+
+        final File tmpNew = File.createTempFile("entity","zip");
+        this.writeEntityToZip(e, tmpNew);
+        if (target.exists()) {
+            final File orig = File.createTempFile("entity","zip");
+            Files.move(target.toPath(), orig.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            orig.delete();
+            tmpNew.delete();
+        } else {
+            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            tmpNew.delete();
+        }
+    }
+
+    private void writeEntityToZip(Entity e, File target) throws IOException {
         final ZipOutputStream sink = new ZipOutputStream(new FileOutputStream(target));
         try {
             /* write the entity xml to the package */
@@ -92,14 +122,14 @@ public class FileSystemArchiveService implements ArchiveService {
             sink.closeEntry();
 
             /* write the metadata to the package */
-            for (Metadata md : e.getMetadata().values()) {
+            for (final Metadata md : e.getMetadata().values()) {
                 sink.putNextEntry(new ZipEntry("metadata_" + md.getName() + ".xml"));
                 this.marshaller.marshal(md, sink);
                 sink.closeEntry();
             }
 
             /* write the binaries to the package */
-            for (Binary bin : e.getBinaries().values()) {
+            for (final Binary bin : e.getBinaries().values()) {
 
                 /* first the binary itself */
                 sink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getName() + ".xml"));
@@ -107,7 +137,7 @@ public class FileSystemArchiveService implements ArchiveService {
                 sink.closeEntry();
 
                 /* save the metadata */
-                for (Metadata md : bin.getMetadata().values()) {
+                for (final Metadata md : bin.getMetadata().values()) {
                     sink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/metadata_" + md.getName() + ".xml"));
                     this.marshaller.marshal(md, sink);
                     sink.closeEntry();
@@ -122,75 +152,49 @@ public class FileSystemArchiveService implements ArchiveService {
             log.error("Unable to marshal entity " + e.getId(), ex);
             throw new IOException(ex);
         }
-
     }
 
     @Override
-    public Entity retrieve(final Entity e) throws IOException {
-        try {
-            final File zip = new File(directory, "aip_" + e.getId() + ".zip");
-            if (!zip.exists()) {
-                throw new FileNotFoundException("The zip file " + zip.getAbsolutePath() + " could not be found");
-            }
-            final ZipInputStream src = new ZipInputStream(new FileInputStream(zip));
+    public ZipInputStream retrieve(final String entityId, final int version) throws IOException {
+        log.debug("retrieving archival package fo entity " + entityId);
+        final File zip = getZipFile(entityId, version);
+        this.checkExistsAndIsReadable(zip);
+        return new ZipInputStream(new FileInputStream(zip));
+    }
 
-            ZipEntry entry;
-            Entity entity = null;
-            final List<Metadata> entityMetadata = new ArrayList<>();
-            final List<Binary> binaries = new ArrayList<>();
-            final Map<String, Map<String, Metadata>> binaryMetadata = new HashMap<String, Map<String, Metadata>>();
+    private File getZipFile(String id, int version) {
+        return new File(directory, "aip_" + id + "_v" + version + ".zip");
+    }
 
-            while ((entry = src.getNextEntry()) != null) {
-                final String entryName = entry.getName();
-                if (entryName.equals("entity_" + e.getId() + ".xml")) {
-                    entity = (Entity) this.unmarshaller.unmarshal(src);
-                }
-                if (entryName.startsWith("binaries/") && entryName.endsWith(".xml")) {
-                    final String binName = entryName.substring(9, entryName.indexOf('/',9));
-                    if (entryName.contains("/metadata_")) {
-                        /* read binary metadata */
-                        Metadata md = (Metadata) this.unmarshaller.unmarshal(src);
-                        if (binaryMetadata.containsKey(binName)) {
-                            binaryMetadata.put(binName, new HashMap<>());
-                        }
-                        binaryMetadata.get(binName).put(md.getName(), md);
-                    }else {
-                        /* read the binary xml */
-                        Binary bin = (Binary) this.unmarshaller.unmarshal(src);
-                        binaries.add(bin);
-                    }
-                }
-                if (entryName.startsWith("metadata_")) {
-                    entityMetadata.add((Metadata) this.unmarshaller.unmarshal(src));
-                }
-            }
-            src.close();
 
-            for (final Metadata md : entityMetadata) {
-                entity.getMetadata().put(md.getName(), md);
-                for (Binary bin: binaries) {
-                    if (binaryMetadata.containsKey(bin.getName())) {
-                        for (Metadata binMd : binaryMetadata.get(bin.getName()).values()) {
-                            bin.getMetadata().put(binMd.getName(), binMd);
-                        }
-                    }
-                    entity.getBinaries().put(bin.getName(), bin);
-                }
-            }
-        } catch (JAXBException ex) {
-            log.error("Unable to read entity from archive", ex);
-            throw new IOException(ex);
+    private void checkExistsAndIsReadable(File zip) throws IOException {
+        if (!zip.exists()) {
+            throw new FileNotFoundException("The zip file " + zip.getAbsolutePath() + " could not be found");
+        }
+        if (!zip.canRead()) {
+            throw new IOException("Unable to read AIP " + zip.getAbsolutePath());
+        }
+    }
+
+    private void checkExistsAndIsWritable(File zip) throws IOException {
+        if (!zip.exists()) {
+            throw new FileNotFoundException("The zip file " + zip.getAbsolutePath() + " could not be found");
+        }
+        if (!zip.canRead()) {
+            throw new IOException("Unable to read AIP " + zip.getAbsolutePath());
         }
     }
 
     @Override
-    public void update(final Entity e) throws IOException {
-        log.info("updating archival package");
-
+    public void delete(final String entityId, final int version) throws IOException {
+        log.info("Deleting archival package");
+        final File aip = getZipFile(entityId, version);
+        checkExistsAndIsWritable(aip);
+        aip.delete();
     }
 
     @Override
-    public void delete(final String entityId) throws IOException {
-        log.info("Deleting archival package");
+    public boolean exists(final String entityId, final int version) throws IOException {
+        return getZipFile(entityId, version).exists();
     }
 }

@@ -18,10 +18,14 @@ package net.objecthunter.larch.service;
 import net.objecthunter.larch.model.Entity;
 
 import java.io.IOException;
+import java.util.zip.ZipInputStream;
 
 public interface ArchiveService {
-    void create(Entity e) throws IOException;
-    Entity retrieve(Entity e) throws IOException;
-    void update(Entity e) throws IOException;
-    void delete(String entityId) throws IOException;
+    ZipInputStream retrieve(String entityId, int version) throws IOException;
+
+    void saveOrUpdate(Entity e) throws IOException;
+
+    void delete(String entityId, int version) throws IOException;
+
+    boolean exists(String entityId, int version) throws IOException;
 }

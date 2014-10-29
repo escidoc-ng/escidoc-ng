@@ -32,7 +32,7 @@ public class SftpArchiveService implements ArchiveService {
     }
 
     @Override
-    public void update(Entity e) throws IOException {
+    public void saveOrUpdate(Entity e) throws IOException {
 
     }
 
