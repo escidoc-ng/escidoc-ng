@@ -61,6 +61,7 @@ public abstract class AbstractWeedFsLarchIT {
         final String weedUri =
                 "http://" + env.getProperty("weedfs.master.public") + ":" + env.getProperty("weedfs.master.port");
         log.info("waiting for (datacenters != null) at " + weedUri + "/dir/status");
+        Thread.sleep(3000);
         do {
             HttpResponse resp = Request.Get(weedUri + "/dir/status")
                     .execute()
