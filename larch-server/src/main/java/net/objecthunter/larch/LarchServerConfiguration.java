@@ -470,6 +470,9 @@ public class LarchServerConfiguration {
     @Bean
     public BackendArchiveService archiveService() {
         final String type = env.getProperty("larch.archive.type");
+        if (type == null || type.isEmpty()) {
+            throw new IllegalArgumentException("The property larch.archive.type is not set");
+        }
         if (type.equalsIgnoreCase("filesystem")) {
             return new FileSystemArchiveService();
         }else if (type.equalsIgnoreCase("sftp")) {

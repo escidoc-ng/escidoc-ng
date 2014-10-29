@@ -34,7 +34,7 @@ public class ArchiveControllerIT extends AbstractLarchIT {
                                 ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
-        resp = this.executeAsAdmin(Request.Post(hostUrl + "/archive/" + id + "/1"));
+        resp = this.executeAsAdmin(Request.Put(hostUrl + "/archive/" + id + "/1"));
         assertEquals(201, resp.getStatusLine().getStatusCode());
     }
 }
