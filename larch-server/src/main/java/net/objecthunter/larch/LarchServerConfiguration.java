@@ -25,11 +25,7 @@ import javax.servlet.MultipartConfigElement;
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
 import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
 import net.objecthunter.larch.service.*;
-import net.objecthunter.larch.service.backend.BackendAuditService;
-import net.objecthunter.larch.service.backend.BackendContentModelService;
-import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendSchemaService;
-import net.objecthunter.larch.service.backend.BackendVersionService;
+import net.objecthunter.larch.service.backend.*;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContentModelService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
@@ -37,7 +33,9 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityS
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
+import net.objecthunter.larch.service.backend.fs.FileSystemArchiveService;
 import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
+import net.objecthunter.larch.service.backend.sftp.SftpArchiveService;
 import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
@@ -470,7 +468,7 @@ public class LarchServerConfiguration {
     }
 
     @Bean
-    public ArchiveService archiveService() {
+    public BackendArchiveService archiveService() {
         final String type = env.getProperty("larch.archive.type");
         if (type.equalsIgnoreCase("filesystem")) {
             return new FileSystemArchiveService();
@@ -479,5 +477,10 @@ public class LarchServerConfiguration {
         }else {
             throw new IllegalArgumentException("Unknown type for archival system. Please choose a valid value");
         }
+    }
+
+    @Bean
+    public DefaultArchiveService defaultArchiveService() {
+        return new DefaultArchiveService();
     }
 }

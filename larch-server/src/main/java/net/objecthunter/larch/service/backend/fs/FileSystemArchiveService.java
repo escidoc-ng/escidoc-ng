@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
-package net.objecthunter.larch.service.impl;
+package net.objecthunter.larch.service.backend.fs;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.service.ArchiveService;
+import net.objecthunter.larch.service.backend.BackendArchiveService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -31,15 +31,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class FileSystemArchiveService implements ArchiveService {
+public class FileSystemArchiveService implements BackendArchiveService {
 
     @Value("${larch.archive.path}")
     private String archivePath;
@@ -99,6 +100,7 @@ public class FileSystemArchiveService implements ArchiveService {
             throw new IOException("Insufficient permissions to write to " + target.getAbsolutePath());
         }
 
+        /* save the entity by first writing to a tmp file and then moving it to the right place */
         final File tmpNew = File.createTempFile("entity","zip");
         this.writeEntityToZip(e, tmpNew);
         if (target.exists()) {
@@ -155,7 +157,7 @@ public class FileSystemArchiveService implements ArchiveService {
     }
 
     @Override
-    public ZipInputStream retrieve(final String entityId, final int version) throws IOException {
+    public InputStream retrieve(final String entityId, final int version) throws IOException {
         log.debug("retrieving archival package fo entity " + entityId);
         final File zip = getZipFile(entityId, version);
         this.checkExistsAndIsReadable(zip);

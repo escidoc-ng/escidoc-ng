@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
-package net.objecthunter.larch.service.impl;
+package net.objecthunter.larch.service.backend.sftp;
 
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.service.ArchiveService;
+import net.objecthunter.larch.service.backend.BackendArchiveService;
 
 import java.io.IOException;
 
-public class SftpArchiveService implements ArchiveService {
+public class SftpArchiveService implements BackendArchiveService {
     @Override
     public void create(Entity e) throws IOException {
 
