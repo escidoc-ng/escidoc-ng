@@ -17,6 +17,7 @@
 package net.objecthunter.larch.frontend;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.MultipartConfigElement;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
 import net.objecthunter.larch.frontend.util.LarchExceptionHandler;
@@ -24,6 +25,7 @@ import net.objecthunter.larch.frontend.util.LarchExceptionHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.embedded.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -111,6 +113,18 @@ public class LarchFrontendConfiguration {
     @Bean
     public CommonsMultipartResolver multipartResolver() {
         return new CommonsMultipartResolver();
+    }
+
+    /**
+     * A commons-multipart {@link javax.servlet.MultipartConfigElement} for resolving
+     * files in a HTTP multipart request
+     *
+     * @return a {@link javax.servlet.MultipartConfigElement} object used by Spring MVC
+     */
+    @Bean
+    MultipartConfigElement multipartConfigElement() {
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        return factory.createMultipartConfig();
     }
 
     /**

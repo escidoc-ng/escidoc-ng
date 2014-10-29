@@ -16,6 +16,7 @@
 
 package net.objecthunter.larch.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -32,6 +33,8 @@ import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,7 +273,14 @@ public class LarchClient {
         final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary?name=" + name
                 + "&mimetype=" + mimeType)
                 .useExpectContinue()
-                .bodyStream(src))
+                .body(MultipartEntityBuilder.create()
+                        .addTextBody("name", "test")
+                        .addTextBody("mimetype", "image/png")
+                        .addPart(
+                                "binary",
+                                new InputStreamBody(src, "image/png"))
+                        .build()))
+//                .bodyStream(src))
                 .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 201) {
             log.error("Unable to add binary. Server says:\n{}", EntityUtils.toString(resp.getEntity()));
