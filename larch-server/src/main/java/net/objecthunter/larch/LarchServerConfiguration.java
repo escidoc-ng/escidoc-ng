@@ -469,7 +469,7 @@ public class LarchServerConfiguration {
 
     @Bean
     public BackendArchiveService archiveService() {
-        final String type = env.getProperty("larch.archive.type");
+        final String type = env.getProperty("larch.archive.type", "filesystem");
         if (type == null || type.isEmpty()) {
             throw new IllegalArgumentException("The property larch.archive.type is not set");
         }

@@ -56,9 +56,6 @@ public class FileSystemArchiveService implements BackendArchiveService {
 
     @PostConstruct
     public void init() {
-        if (archivePath == null || archivePath.isEmpty()) {
-            throw new IllegalArgumentException("The archive path can not be empty");
-        }
         directory = new File(archivePath);
         if (!directory.exists()) {
             log.info("creating archive path " + directory.getAbsolutePath());
