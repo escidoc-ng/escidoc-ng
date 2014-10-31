@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.objecthunter.larch.service.backend;
+package net.objecthunter.larch.controller.error;
 
-import net.objecthunter.larch.model.Entity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileNotFoundException;
 
-public interface BackendArchiveService {
-    InputStream retrieve(String entityId, int version) throws IOException;
-
-    void saveOrUpdate(Entity e) throws IOException;
-
-    void delete(String entityId, int version) throws IOException;
-
-    boolean exists(String entityId, int version) throws IOException;
-
-    long sizeOf(String entityId, int version) throws IOException;
+@ControllerAdvice
+public class ControllerExceptionHandler {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(FileNotFoundException.class)
+    public void handleNotFound() {
+        // empty by default
+    }
 }

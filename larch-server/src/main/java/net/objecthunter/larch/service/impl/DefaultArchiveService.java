@@ -50,4 +50,9 @@ public class DefaultArchiveService implements ArchiveService {
     public void delete(final String entityId, final int version) throws IOException {
         archive.delete(entityId, version);
     }
+
+    @Override
+    public long sizeof(String entityId, int version) throws IOException {
+        return archive.sizeOf(entityId, version);
+    }
 }

@@ -41,4 +41,9 @@ public class SftpArchiveService implements BackendArchiveService {
     public boolean exists(String entityId, int version) throws IOException {
         return false;
     }
+
+    @Override
+    public long sizeOf(String entityId, int version) throws IOException {
+        return 0;
+    }
 }

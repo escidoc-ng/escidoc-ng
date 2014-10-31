@@ -151,13 +151,12 @@ public class FileSystemArchiveService implements BackendArchiveService {
         log.debug("retrieving archival package fo entity " + entityId);
         final File zip = getZipFile(entityId, version);
         this.checkExistsAndIsReadable(zip);
-        return new ZipInputStream(new FileInputStream(zip));
+        return new FileInputStream(zip);
     }
 
     private File getZipFile(String id, int version) {
         return new File(directory, "aip_" + id + "_v" + version + ".zip");
     }
-
 
     private void checkExistsAndIsReadable(File zip) throws IOException {
         if (!zip.exists()) {
@@ -188,5 +187,18 @@ public class FileSystemArchiveService implements BackendArchiveService {
     @Override
     public boolean exists(final String entityId, final int version) throws IOException {
         return getZipFile(entityId, version).exists();
+    }
+
+    @Override
+    public long sizeOf(String entityId, int version) throws IOException {
+        final File aip =  getZipFile(entityId,version);
+        if (!aip.exists()) {
+            throw new FileNotFoundException("No archive for entity " + entityId + " with version " + version + " could be found");
+        }
+        if (!aip.canRead()) {
+            throw new IOException("Insufficient permissions to read from archive " + aip.getAbsolutePath());
+        }
+        return aip.length();
+
     }
 }

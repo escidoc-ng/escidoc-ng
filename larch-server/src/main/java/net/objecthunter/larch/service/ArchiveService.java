@@ -15,8 +15,6 @@
  */
 package net.objecthunter.larch.service;
 
-import net.objecthunter.larch.model.Entity;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -25,4 +23,5 @@ public interface ArchiveService {
     boolean isArchived(String entityId, int version) throws IOException;
     InputStream retrieve(String entityId, int version) throws IOException;
     void delete(String entityId, int version) throws IOException;
+    long sizeof(String entityId, int version) throws IOException;
 }
