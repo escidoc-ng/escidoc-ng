@@ -56,7 +56,6 @@ public class ArchiveController extends AbstractLarchController {
 
         } catch (FileNotFoundException e) {
             resp.setStatus(404);
-
         } catch (IOException e) {
             resp.setStatus(500);
         }

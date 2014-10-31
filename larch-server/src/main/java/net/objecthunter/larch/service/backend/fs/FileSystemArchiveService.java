@@ -95,7 +95,7 @@ public class FileSystemArchiveService implements BackendArchiveService {
 
         /* save the entity by first writing to a tmp file and then moving it to the right place */
         final File tmpNew = File.createTempFile("entity", "zip");
-        this.writeEntityToZip(e, tmpNew);
+        this.writeEntityToZip(e, new FileOutputStream(tmpNew));
         if (target.exists()) {
             final File orig = File.createTempFile("entity", "zip");
             Files.move(target.toPath(), orig.toPath(), StandardCopyOption.ATOMIC_MOVE);
@@ -108,42 +108,46 @@ public class FileSystemArchiveService implements BackendArchiveService {
         }
     }
 
-    private void writeEntityToZip(Entity e, File target) throws IOException {
-        final ZipOutputStream sink = new ZipOutputStream(new FileOutputStream(target));
+    /**
+     * This method is duplicated in the {@link net.objecthunter.larch.service.backend.sftp.SftpArchiveService} in favour of the not creating the spaghetti incident
+     * via polymorphism
+     */
+    private void writeEntityToZip(final Entity e, final OutputStream sink) throws IOException {
+        final ZipOutputStream zipSink = new ZipOutputStream(sink);
             /* write the entity xml to the package */
-        sink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
-        IOUtils.write(this.mapper.writeValueAsString(e), sink);
-        sink.closeEntry();
+        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
+        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
+        zipSink.closeEntry();
 
             /* write the metadata to the package */
         for (final Metadata md : e.getMetadata().values()) {
-            sink.putNextEntry(new ZipEntry("metadata_" + md.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(md), sink);
-            sink.closeEntry();
+            zipSink.putNextEntry(new ZipEntry("metadata_" + md.getName() + ".json"));
+            IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
+            zipSink.closeEntry();
         }
 
             /* write the binaries to the package */
         for (final Binary bin : e.getBinaries().values()) {
 
                 /* first the binary itself */
-            sink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(bin), sink);
-            sink.closeEntry();
+            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getName() + ".json"));
+            IOUtils.write(this.mapper.writeValueAsString(bin), zipSink);
+            zipSink.closeEntry();
 
                 /* save the metadata */
             for (final Metadata md : bin.getMetadata().values()) {
-                sink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/metadata_" + md.getName() + ".json"));
-                IOUtils.write(this.mapper.writeValueAsString(md), sink);
-                sink.closeEntry();
+                zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/metadata_" + md.getName() + ".json"));
+                IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
+                zipSink.closeEntry();
             }
 
                 /* save the binary content */
-            sink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), sink);
-            sink.closeEntry();
+            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
+            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
+            zipSink.closeEntry();
         }
-        sink.finish();
-        sink.close();
+        zipSink.finish();
+        zipSink.close();
     }
 
     @Override
