@@ -23,7 +23,11 @@ import static net.objecthunter.larch.test.util.Fixtures.createRandomDCMetadata;
 import static net.objecthunter.larch.test.util.Fixtures.createRandomBinary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -47,6 +51,7 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import net.objecthunter.larch.test.util.SftpServerConfiguration;
@@ -59,6 +64,8 @@ import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
@@ -317,10 +324,16 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addMetadata(Entity entity, String mdName) throws Exception {
+    protected Entity addMetadataStream(Entity entity, String mdName, String mdType, String data, int expectedStatus) throws Exception {
         Metadata metadata = createRandomDCMetadata();
         if (StringUtils.isNotBlank(mdName)) {
             metadata.setName(mdName);
+        }
+        if (StringUtils.isNotBlank(mdType)) {
+            metadata.setType(mdType);
+        }
+        if (StringUtils.isNotBlank(data)) {
+            metadata.setData(data);
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -328,13 +341,71 @@ public abstract class AbstractLarchIT {
                                 mapper.writeValueAsString(metadata),
                                 ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if metadata exists
+                assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getMetadata().get(metadata.getName()).getData());
+            } else {
+                assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
+            }
+        }
+        return fetched;
+    }
+
+    /**
+     * Add Metadata to an Entity.
+     * 
+     * @param entity entity
+     * @param mdName name of mdRecord to add
+     * @return Entity updated entity
+     */
+    protected Entity addMetadataMultipart(Entity entity, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+        Metadata metadata = createRandomDCMetadata();
+        if (StringUtils.isNotBlank(mdName)) {
+            metadata.setName(mdName);
+        }
+        if (StringUtils.isNotBlank(mdType)) {
+            metadata.setType(mdType);
+        }
+        if (StringUtils.isNotBlank(data)) {
+            metadata.setData(data);
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(entityUrl + entity.getId() + "/metadata").body(MultipartEntityBuilder.create()
+                                .addTextBody("name", metadata.getName())
+                                .addTextBody("type", metadata.getType())
+                                .addPart(
+                                        "data",
+                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
+                                .build()));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if metadata exists
+                assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getMetadata().get(metadata.getName()).getData());
+            } else {
+                assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
+            }
+        }
         return fetched;
     }
 
@@ -345,7 +416,7 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to remove
      * @return Entity updated entity
      */
-    protected Entity removeMetadata(Entity entity, String mdName) throws Exception {
+    protected Entity removeMetadata(Entity entity, String mdName, int expectedStatus) throws Exception {
         String tmdName = mdName;
         if (StringUtils.isBlank(tmdName)) {
             tmdName = entity.getMetadata().keySet().iterator().next();
@@ -354,13 +425,19 @@ public abstract class AbstractLarchIT {
                 this.executeAsAdmin(
                         Request.Delete(entityUrl + entity.getId() + "/metadata/" + tmdName));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 200) {
+                // check if metadata doesnt exist
+                assertFalse(fetched.getMetadata().containsKey(tmdName));
+            }
+        }
         return fetched;
     }
 
@@ -372,7 +449,7 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addBinaryMetadata(Entity entity, String binaryName, String mdName) throws Exception {
+    protected Entity addBinaryMetadataStream(Entity entity, String binaryName, String mdName, String mdType, String data, int expectedStatus) throws Exception {
         String bName = binaryName;
         if (StringUtils.isBlank(bName)) {
             bName = entity.getBinaries().keySet().iterator().next();
@@ -380,6 +457,12 @@ public abstract class AbstractLarchIT {
         Metadata metadata = createRandomDCMetadata();
         if (StringUtils.isNotBlank(mdName)) {
             metadata.setName(mdName);
+        }
+        if (StringUtils.isNotBlank(mdType)) {
+            metadata.setType(mdType);
+        }
+        if (StringUtils.isNotBlank(data)) {
+            metadata.setData(data);
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -389,13 +472,82 @@ public abstract class AbstractLarchIT {
                                 mapper.writeValueAsString(metadata),
                                 ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if metadata exists
+                assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getData());
+            } else {
+                if (fetched.getBinaries().containsKey(bName)) {
+                    assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                }
+            }
+        }
+        return fetched;
+    }
+
+    /**
+     * Add Binary Metadata to an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of binary to add metadata to
+     * @param mdName name of mdRecord to add
+     * @return Entity updated entity
+     */
+    protected Entity addBinaryMetadataMultipart(Entity entity, String binaryName, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+        String bName = binaryName;
+        if (StringUtils.isBlank(bName)) {
+            bName = entity.getBinaries().keySet().iterator().next();
+        }
+        Metadata metadata = createRandomDCMetadata();
+        if (StringUtils.isNotBlank(mdName)) {
+            metadata.setName(mdName);
+        }
+        if (StringUtils.isNotBlank(mdType)) {
+            metadata.setType(mdType);
+        }
+        if (StringUtils.isNotBlank(data)) {
+            metadata.setData(data);
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/binary/" +
+                                        bName + "/metadata").body(MultipartEntityBuilder.create()
+                                                .addTextBody("name", metadata.getName())
+                                                .addTextBody("type", metadata.getType())
+                                                .addPart(
+                                                        "data",
+                                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
+                                                .build()));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if metadata exists
+                assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getData());
+            } else {
+                if (fetched.getBinaries().containsKey(bName)) {
+                    assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                }
+            }
+        }
         return fetched;
     }
 
@@ -407,7 +559,7 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to remove
      * @return Entity updated entity
      */
-    protected Entity removeBinaryMetadata(Entity entity, String binaryName, String mdName) throws Exception {
+    protected Entity removeBinaryMetadata(Entity entity, String binaryName, String mdName, int expectedStatus) throws Exception {
         String bName = binaryName;
         String mName = mdName;
         Binary binary = null;
@@ -426,13 +578,19 @@ public abstract class AbstractLarchIT {
                                 entityUrl + entity.getId() + "/binary/" +
                                         bName + "/metadata/" + mName));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 200) {
+                // check if metadata doesnt exist
+                assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(mName));
+            }
+        }
         return fetched;
     }
 
@@ -443,10 +601,17 @@ public abstract class AbstractLarchIT {
      * @param binaryName name of the binary to add
      * @return Entity updated entity
      */
-    protected Entity addBinary(Entity entity, String binaryName) throws Exception {
+    protected Entity addBinaryStream(Entity entity, String binaryName, String mimetype, String resource, int expectedStatus) throws Exception {
         Binary binary = createRandomBinary();
         if (StringUtils.isNotBlank(binaryName)) {
             binary.setName(binaryName);
+        }
+        if (StringUtils.isNotBlank(mimetype)) {
+            binary.setMimetype(mimetype);
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource(resource).toURI()));
+
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -455,13 +620,68 @@ public abstract class AbstractLarchIT {
                                 mapper.writeValueAsString(binary),
                                 ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if binary exists
+                assertTrue(fetched.getBinaries().containsKey(binary.getName()));
+                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+            }
+        }
+        return fetched;
+    }
+
+    /**
+     * Add Binary to an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of the binary to add
+     * @return Entity updated entity
+     */
+    protected Entity addBinaryMultipart(Entity entity, String binaryName, String mimetype, String resource, int expectedStatus) throws Exception {
+        Binary binary = createRandomBinary();
+        if (StringUtils.isNotBlank(binaryName)) {
+            binary.setName(binaryName);
+        }
+        if (StringUtils.isNotBlank(mimetype)) {
+            binary.setMimetype(mimetype);
+        }
+        FileBody fileBody = new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                "fixtures/image_1.png").getFile()));
+        if (StringUtils.isNotBlank(resource)) {
+            fileBody = new FileBody(new File(Fixtures.class.getClassLoader().getResource(
+                    resource).getFile()));
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/binary").body(MultipartEntityBuilder.create()
+                                        .addTextBody("name", binary.getName())
+                                        .addTextBody("mimetype", binary.getMimetype())
+                                        .addPart("binary", fileBody)
+                                        .build()));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if binary exists
+                assertTrue(fetched.getBinaries().containsKey(binary.getName()));
+                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+                assertEquals(binary.getSource(), fetched.getBinaries().get(binary.getName()).getSource());
+            }
+        }
         return fetched;
     }
 
@@ -472,7 +692,7 @@ public abstract class AbstractLarchIT {
      * @param binaryName name of the binary to remove
      * @return Entity updated entity
      */
-    protected Entity removeBinary(Entity entity, String binaryName) throws Exception {
+    protected Entity removeBinary(Entity entity, String binaryName, int expectedStatus) throws Exception {
         String bName = binaryName;
         if (StringUtils.isBlank(bName)) {
             bName = entity.getBinaries().keySet().iterator().next();
@@ -482,13 +702,19 @@ public abstract class AbstractLarchIT {
                         Request.Delete(
                                 entityUrl + entity.getId() + "/binary/" + bName));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 200) {
+                // check if binary doesnt exist
+                assertFalse(fetched.getBinaries().containsKey(bName));
+            }
+        }
         return fetched;
     }
 
@@ -500,7 +726,7 @@ public abstract class AbstractLarchIT {
      * @param value value
      * @return Entity updated entity
      */
-    protected Entity addIdentifier(Entity entity, String type, String value) throws Exception {
+    protected Entity addIdentifier(Entity entity, String type, String value, int expectedStatus) throws Exception {
         String ttype = AlternativeIdentifier.IdentifierType.DOI.name();
         String tvalue = "identifier-" + RandomStringUtils.randomAlphabetic(16);
         if (StringUtils.isNotBlank(type)) {
@@ -516,13 +742,38 @@ public abstract class AbstractLarchIT {
                         Request.Post(
                                 entityUrl + entity.getId() + "/identifier").bodyForm(typePair, valuePair));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            boolean found = false;
+            if (expectedStatus == 201) {
+                // check if identifier exists
+                for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
+                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    fail("identifier not found");
+                }
+            } else {
+                for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
+                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    fail("identifier found");
+                }
+            }
+        }
         return fetched;
     }
 
@@ -534,7 +785,7 @@ public abstract class AbstractLarchIT {
      * @param value value
      * @return Entity updated entity
      */
-    protected Entity removeIdentifier(Entity entity, String type, String value) throws Exception {
+    protected Entity removeIdentifier(Entity entity, String type, String value, int expectedStatus) throws Exception {
         String ttype = type;
         String tvalue = value;
         if (StringUtils.isBlank(ttype)) {
@@ -548,13 +799,27 @@ public abstract class AbstractLarchIT {
                         Request.Delete(
                                 entityUrl + entity.getId() + "/identifier/" + ttype + "/" + tvalue));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 200) {
+                boolean found = false;
+                for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
+                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    fail("identifier found");
+                }
+            }
+        }
         return fetched;
     }
 
@@ -566,7 +831,7 @@ public abstract class AbstractLarchIT {
      * @param object object
      * @return Entity updated entity
      */
-    protected Entity addRelation(Entity entity, String predicate, String object) throws Exception {
+    protected Entity addRelation(Entity entity, String predicate, String object, int expectedStatus) throws Exception {
         String tpredicate = "predicate-" + RandomStringUtils.randomAlphabetic(16);
         String tobject = "object-" + RandomStringUtils.randomAlphabetic(16);
         if (StringUtils.isNotBlank(predicate)) {
@@ -582,13 +847,22 @@ public abstract class AbstractLarchIT {
                         Request.Post(
                                 entityUrl + entity.getId() + "/relation").bodyForm(predicatePair, objectPair));
         String test = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId()));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        Entity fetched = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (expectedStatus == 201) {
+                // check if relation exists
+                assertTrue(fetched.getRelations().containsKey(tpredicate));
+                assertTrue(fetched.getRelations().get(tpredicate).contains(tobject));
+            } else {
+                assertFalse(fetched.getRelations().containsKey(tpredicate));
+            }
+        }
         return fetched;
     }
 

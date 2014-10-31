@@ -40,23 +40,23 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinary(entity, null);
+        entity = addBinaryStream(entity, null, null, null, 201);
         // add Metadata
-        entity = addMetadata(entity, null);
+        entity = addMetadataStream(entity, null, null, null, 201);
         // add Binary Metadata
-        entity = addBinaryMetadata(entity, null, null);
+        entity = addBinaryMetadataStream(entity, null, null, null, null, 201);
         // add Identifier
-        entity = addIdentifier(entity, null, null);
+        entity = addIdentifier(entity, null, null, 201);
         // add Relation
-        entity = addRelation(entity, null, null);
+        entity = addRelation(entity, null, null, 201);
         // remove Identifier
-        entity = removeIdentifier(entity, null, null);
+        entity = removeIdentifier(entity, null, null, 200);
         // remove Binary Metadata
-        entity = removeBinaryMetadata(entity, null, null);
+        entity = removeBinaryMetadata(entity, null, null, 200);
         // remove Metadata
-        entity = removeMetadata(entity, null);
+        entity = removeMetadata(entity, null, 200);
         // remove Binary
-        entity = removeBinary(entity, null);
+        entity = removeBinary(entity, null, 200);
 
         String[] auditMessages = new String[] {
             "Create entity", "Update entity", "Submit entity",
