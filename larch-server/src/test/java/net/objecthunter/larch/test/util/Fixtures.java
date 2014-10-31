@@ -195,6 +195,15 @@ public abstract class Fixtures {
         md.setData(dcBuilder.toString());
         return md;
     }
+    
+    public static Binary createRandomBinary() throws Exception {
+        Binary binary = new Binary();
+        binary.setMimetype("image/png");
+        binary.setFilename("image_2.png");
+        binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        binary.setName("image-" + RandomStringUtils.randomAlphabetic(16));
+        return binary;
+    }
 
     public static Entity createSimpleFixtureEntity() throws Exception {
         Binary bin1 = new Binary();

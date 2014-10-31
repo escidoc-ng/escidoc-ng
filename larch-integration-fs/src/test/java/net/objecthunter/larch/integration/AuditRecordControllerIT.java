@@ -18,13 +18,15 @@ package net.objecthunter.larch.integration;
 
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
 import static org.junit.Assert.assertEquals;
+import net.objecthunter.larch.model.AuditRecord;
+import net.objecthunter.larch.model.AuditRecords;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +37,63 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
 
     @Test
     public void testRetrieveAuditRecords() throws Exception {
-        // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // create published entity
+        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinary(entity, null);
+        // add Metadata
+        entity = addMetadata(entity, null);
+        // add Binary Metadata
+        entity = addBinaryMetadata(entity, null, null);
+        // add Identifier
+        entity = addIdentifier(entity, null, null);
+        // add Relation
+        entity = addRelation(entity, null, null);
+        // remove Identifier
+        entity = removeIdentifier(entity, null, null);
+        // remove Binary Metadata
+        entity = removeBinaryMetadata(entity, null, null);
+        // remove Metadata
+        entity = removeMetadata(entity, null);
+        // remove Binary
+        entity = removeBinary(entity, null);
+
+        String[] auditMessages = new String[] {
+            "Create entity", "Update entity", "Submit entity",
+            "Publish entity",
+            "Create binary",
+            "Create metadata",
+            "Create metadata for binary",
+            "Create identifier",
+            "Add relation",
+            "Delete identifier",
+            "Delete metadata for binary",
+            "Delete metadata",
+            "Delete binary",
+        };
+
         // retrieve audit records
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entity.getId() + "/audit"));
-        String test = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
+        AuditRecords fetched = mapper.readValue(resp.getEntity().getContent(), AuditRecords.class);
+        int i = 0;
+        for (AuditRecord auditRecord : fetched.getAuditRecords()) {
+            assertEquals(auditMessages[i], auditRecord.getAction());
+            i++;
+        }
     }
+    
+    @Test
+    public void testRetrieveAuditRecordsWrongId() throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + "wrongid/audit"));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        AuditRecords fetched = mapper.readValue(resp.getEntity().getContent(), AuditRecords.class);
+        assertEquals(0, fetched.getAuditRecords().size());
+    }
+    
 
 }

@@ -19,6 +19,8 @@ package net.objecthunter.larch.integration;
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL1_ID;
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
+import static net.objecthunter.larch.test.util.Fixtures.createRandomDCMetadata;
+import static net.objecthunter.larch.test.util.Fixtures.createRandomBinary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -35,10 +37,12 @@ import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Role;
@@ -50,10 +54,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -299,6 +305,288 @@ public abstract class AbstractLarchIT {
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entityId));
         String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Add Metadata to an Entity.
+     * 
+     * @param entity entity
+     * @param mdName name of mdRecord to add
+     * @return Entity updated entity
+     */
+    protected Entity addMetadata(Entity entity, String mdName) throws Exception {
+        Metadata metadata = createRandomDCMetadata();
+        if (StringUtils.isNotBlank(mdName)) {
+            metadata.setName(mdName);
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(entityUrl + entity.getId() + "/metadata").bodyString(
+                                mapper.writeValueAsString(metadata),
+                                ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Remove Metadata from an Entity.
+     * 
+     * @param entity entity
+     * @param mdName name of mdRecord to remove
+     * @return Entity updated entity
+     */
+    protected Entity removeMetadata(Entity entity, String mdName) throws Exception {
+        String tmdName = mdName;
+        if (StringUtils.isBlank(tmdName)) {
+            tmdName = entity.getMetadata().keySet().iterator().next();
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Delete(entityUrl + entity.getId() + "/metadata/" + tmdName));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Add Binary Metadata to an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of binary to add metadata to
+     * @param mdName name of mdRecord to add
+     * @return Entity updated entity
+     */
+    protected Entity addBinaryMetadata(Entity entity, String binaryName, String mdName) throws Exception {
+        String bName = binaryName;
+        if (StringUtils.isBlank(bName)) {
+            bName = entity.getBinaries().keySet().iterator().next();
+        }
+        Metadata metadata = createRandomDCMetadata();
+        if (StringUtils.isNotBlank(mdName)) {
+            metadata.setName(mdName);
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/binary/" +
+                                        bName + "/metadata").bodyString(
+                                mapper.writeValueAsString(metadata),
+                                ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Remove Binary Metadata from an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of binary to remove metadata from
+     * @param mdName name of mdRecord to remove
+     * @return Entity updated entity
+     */
+    protected Entity removeBinaryMetadata(Entity entity, String binaryName, String mdName) throws Exception {
+        String bName = binaryName;
+        String mName = mdName;
+        Binary binary = null;
+        if (StringUtils.isBlank(bName)) {
+            binary = entity.getBinaries().values().iterator().next();
+        } else {
+            binary = entity.getBinaries().get(bName);
+        }
+        bName = binary.getName();
+        if (StringUtils.isBlank(mName)) {
+            mName = binary.getMetadata().keySet().iterator().next();
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Delete(
+                                entityUrl + entity.getId() + "/binary/" +
+                                        bName + "/metadata/" + mName));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Add Binary to an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of the binary to add
+     * @return Entity updated entity
+     */
+    protected Entity addBinary(Entity entity, String binaryName) throws Exception {
+        Binary binary = createRandomBinary();
+        if (StringUtils.isNotBlank(binaryName)) {
+            binary.setName(binaryName);
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/binary").bodyString(
+                                mapper.writeValueAsString(binary),
+                                ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Remove Binary from an Entity.
+     * 
+     * @param entity entity
+     * @param binaryName name of the binary to remove
+     * @return Entity updated entity
+     */
+    protected Entity removeBinary(Entity entity, String binaryName) throws Exception {
+        String bName = binaryName;
+        if (StringUtils.isBlank(bName)) {
+            bName = entity.getBinaries().keySet().iterator().next();
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Delete(
+                                entityUrl + entity.getId() + "/binary/" + bName));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Add an Identifier to an Entity.
+     * 
+     * @param entity entity
+     * @param type type
+     * @param value value
+     * @return Entity updated entity
+     */
+    protected Entity addIdentifier(Entity entity, String type, String value) throws Exception {
+        String ttype = AlternativeIdentifier.IdentifierType.DOI.name();
+        String tvalue = "identifier-" + RandomStringUtils.randomAlphabetic(16);
+        if (StringUtils.isNotBlank(type)) {
+            ttype = type;
+        }
+        if (StringUtils.isNotBlank(value)) {
+            tvalue = value;
+        }
+        NameValuePair typePair = new BasicNameValuePair("type", ttype);
+        NameValuePair valuePair = new BasicNameValuePair("value", tvalue);
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/identifier").bodyForm(typePair, valuePair));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Remove an Identifier from an Entity.
+     * 
+     * @param entity entity
+     * @param type type
+     * @param value value
+     * @return Entity updated entity
+     */
+    protected Entity removeIdentifier(Entity entity, String type, String value) throws Exception {
+        String ttype = type;
+        String tvalue = value;
+        if (StringUtils.isBlank(ttype)) {
+            ttype = entity.getAlternativeIdentifiers().get(0).getType();
+        }
+        if (StringUtils.isBlank(tvalue)) {
+            tvalue = entity.getAlternativeIdentifiers().get(0).getValue();
+        }
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Delete(
+                                entityUrl + entity.getId() + "/identifier/" + ttype + "/" + tvalue));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+        return fetched;
+    }
+
+    /**
+     * Add a Relation to an Entity.
+     * 
+     * @param entity entity
+     * @param predicate predicate
+     * @param object object
+     * @return Entity updated entity
+     */
+    protected Entity addRelation(Entity entity, String predicate, String object) throws Exception {
+        String tpredicate = "predicate-" + RandomStringUtils.randomAlphabetic(16);
+        String tobject = "object-" + RandomStringUtils.randomAlphabetic(16);
+        if (StringUtils.isNotBlank(predicate)) {
+            tpredicate = predicate;
+        }
+        if (StringUtils.isNotBlank(object)) {
+            tobject = object;
+        }
+        NameValuePair predicatePair = new BasicNameValuePair("predicate", tpredicate);
+        NameValuePair objectPair = new BasicNameValuePair("object", tobject);
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/relation").bodyForm(predicatePair, objectPair));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        // get entity
+        resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entity.getId()));
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         return fetched;
