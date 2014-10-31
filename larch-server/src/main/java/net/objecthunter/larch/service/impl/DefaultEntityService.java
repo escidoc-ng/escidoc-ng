@@ -326,7 +326,7 @@ public class DefaultEntityService implements EntityService {
         }
 
         if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
-            throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
+            throw new AlreadyExistsException("binary with name " + name + " already exists in entity with id " +
                     e.getId());
         }
         this.backendVersionService.addOldVersion(e);

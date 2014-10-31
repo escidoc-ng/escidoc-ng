@@ -16,15 +16,11 @@
 
 package net.objecthunter.larch.integration;
 
-import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
+import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.entity.ContentType;
-import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,56 +32,82 @@ public class BinaryControllerIT extends AbstractLarchIT {
     private ObjectMapper mapper;
 
     @Test
-    public void testDelete() throws Exception {
-        // create entity
-        Entity child = createFixtureEntity();
-        HttpResponse resp =
-                this.executeAsAdmin(
-                        Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(child), ContentType.APPLICATION_JSON));
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        String id = EntityUtils.toString(resp.getEntity());
+    public void testCreateBinaryStream() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinaryStream(entity, null, null, null, 201);
+        // add binary twice
+        entity = addBinaryStream(entity, "distinct", null, null, 201);
+        entity = addBinaryStream(entity, "distinct", null, null, 409);
+        // add binary wrong mimetype
+        entity = addBinaryStream(entity, null, "notsupported", null, 201);
+        entity = addBinaryStream(entity, null, "text/xml", null, 201);
+        // wrong entityId
+        entity.setId("nonexistent");
+        entity = addBinaryStream(entity, null, null, null, 404);
+    }
 
-        // get entity
-        resp =
-                this.executeAsAdmin(
-                        Request.Get(entityUrl + id));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertNotNull(fetched.getBinaries());
-        assertEquals(2, fetched.getBinaries().size());
-        String name = fetched.getBinaries().keySet().iterator().next();
+    @Test
+    public void testCreateBinaryMultipart() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinaryMultipart(entity, null, null, null, 201);
+        // add binary twice
+        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        entity = addBinaryMultipart(entity, "distinct", null, null, 409);
+        // add binary wrong mimetype
+        entity = addBinaryMultipart(entity, null, "notsupported", null, 201);
+        entity = addBinaryMultipart(entity, null, "text/xml", null, 201);
+        // wrong entityId
+        entity.setId("nonexistent");
+        entity = addBinaryMultipart(entity, null, null, null, 404);
+    }
 
-        // delete binary
-        resp =
-                this.executeAsAdmin(
-                        Request.Delete(entityUrl + id + "/binary/" + name));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+    @Test
+    public void testRetrieveBinary() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        // retrieve Binary
+        retrieveBinary(entity, "distinct", 200);
+        // retrieve Binary wrong name
+        retrieveBinary(entity, "wrong", 404);
+        // retrieve Binary wrong entityId
+        entity.setId("nonexistent");
+        retrieveBinary(entity, "distinct", 404);
+    }
 
-        // get entity
-        resp =
-                this.executeAsAdmin(
-                        Request.Get(entityUrl + id));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertNotNull(fetched.getBinaries());
-        assertEquals(1, fetched.getBinaries().size());
-        name = fetched.getBinaries().keySet().iterator().next();
+    @Test
+    public void testDownloadBinaryContent() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        // download Binary Content
+        downloadBinaryContent(entity, "distinct", 200);
+        // download Binary Content wrong name
+        downloadBinaryContent(entity, "wrong", 404);
+        // download Binary Content wrong entityId
+        entity.setId("nonexistent");
+        downloadBinaryContent(entity, "distinct", 404);
+    }
 
-        // delete binary
-        resp =
-                this.executeAsAdmin(
-                        Request.Delete(entityUrl + id + "/binary/" + name));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-
-        // get entity
-        resp =
-                this.executeAsAdmin(
-                        Request.Get(entityUrl + id));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertNotNull(fetched.getBinaries());
-        assertEquals(0, fetched.getBinaries().size());
+    @Test
+    public void testDeleteBinary() throws Exception {
+        // create pending entity
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // add binary
+        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        // delete Binary
+        removeBinary(entity, "distinct", 200);
+        // delete Binary wrong name
+        removeBinary(entity, "wrong", 404);
+        // delete Binary wrong entityId
+        entity.setId("nonexistent");
+        removeBinary(entity, "distinct", 404);
     }
 
 }
