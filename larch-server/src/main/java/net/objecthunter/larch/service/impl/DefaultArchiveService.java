@@ -15,44 +15,66 @@
  */
 package net.objecthunter.larch.service.impl;
 
+import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.service.ArchiveService;
 import net.objecthunter.larch.service.EntityService;
-import net.objecthunter.larch.service.backend.BackendArchiveService;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 
 public class DefaultArchiveService implements ArchiveService {
 
     @Autowired
-    private BackendArchiveService archive;
+    private BackendArchiveBlobService archiveBlobStore;
+
+    @Autowired
+    private BackendArchiveIndexService archiveIndex;
 
     @Autowired
     private EntityService entityService;
 
     @Override
     public void archive(final String entityId, final int version) throws IOException {
-        archive.saveOrUpdate(entityService.retrieve(entityId, version));
+        final String path = archiveBlobStore.saveOrUpdate(entityService.retrieve(entityId, version));
+        Archive a = new Archive();
+        a.setEntityId(entityId);
+        a.setEntityVersion(version);
+        a.setCreatedDate(ZonedDateTime.now());
+        a.setLastModifedDate(ZonedDateTime.now());
+        a.setPath(path);
+        archiveIndex.saveOrUpdate(a);
     }
 
     @Override
     public boolean isArchived(final String entityId, final int version) throws IOException {
-        return archive.exists(entityId, version);
+        return archiveIndex.exists(entityId, version);
     }
 
     @Override
-    public InputStream retrieve(final String entityId, final int version) throws IOException {
-        return archive.retrieve(entityId, version);
+    public InputStream retrieveData(final String entityId, final int version) throws IOException {
+        final Archive a = archiveIndex.retrieve(entityId, version);
+        return archiveBlobStore.retrieve(a.getPath());
     }
 
     @Override
     public void delete(final String entityId, final int version) throws IOException {
-        archive.delete(entityId, version);
+        final Archive a = archiveIndex.retrieve(entityId, version);
+        archiveIndex.delete(entityId, version);
+        archiveBlobStore.delete(a.getPath());
     }
 
     @Override
     public long sizeof(String entityId, int version) throws IOException {
-        return archive.sizeOf(entityId, version);
+        Archive a = archiveIndex.retrieve(entityId, version);
+        return archiveBlobStore.sizeOf(a.getPath());
+    }
+
+    @Override
+    public Archive retrieve(String entityId, int version) throws IOException {
+        return archiveIndex.retrieve(entityId, version);
     }
 }

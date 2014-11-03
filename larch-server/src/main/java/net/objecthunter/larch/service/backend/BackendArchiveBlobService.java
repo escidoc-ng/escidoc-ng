@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.objecthunter.larch.service;
+package net.objecthunter.larch.service.backend;
 
-import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.Entity;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface ArchiveService {
-    void archive(String entityId, int version) throws IOException;
-    boolean isArchived(String entityId, int version) throws IOException;
-    InputStream retrieveData(String entityId, int version) throws IOException;
-    void delete(String entityId, int version) throws IOException;
-    long sizeof(String entityId, int version) throws IOException;
-    Archive retrieve(String entityId, int version) throws IOException;
+public interface BackendArchiveBlobService {
+    InputStream retrieve(final String path) throws IOException;
+
+    String saveOrUpdate(Entity e) throws IOException;
+
+    void delete(final String path) throws IOException;
+
+    long sizeOf(final String path) throws IOException;
 }

@@ -30,6 +30,7 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditSe
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContentModelService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
@@ -468,7 +469,7 @@ public class LarchServerConfiguration {
     }
 
     @Bean
-    public BackendArchiveService archiveService() {
+    public BackendArchiveBlobService archiveService() {
         final String type = env.getProperty("larch.archive.type", "filesystem");
         if (type == null || type.isEmpty()) {
             throw new IllegalArgumentException("The property larch.archive.type is not set");
@@ -480,6 +481,11 @@ public class LarchServerConfiguration {
         }else {
             throw new IllegalArgumentException("Unknown type for archival system. Please choose a valid value");
         }
+    }
+
+    @Bean
+    public BackendArchiveIndexService backendArchiveIndexService() {
+        return new ElasticSearchArchiveIndexService();
     }
 
     @Bean

@@ -18,16 +18,11 @@ package net.objecthunter.larch.controller;
 import net.objecthunter.larch.service.ArchiveService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
@@ -46,7 +41,7 @@ public class ArchiveController extends AbstractLarchController {
     @RequestMapping(value = "{entityId}/{version}", method = RequestMethod.GET)
     public void retrieve(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
                          HttpServletResponse resp) {
-        try (InputStream src = this.archiveService.retrieve(entityId, version);
+        try (InputStream src = this.archiveService.retrieveData(entityId, version);
             OutputStream sink = resp.getOutputStream()) {
 
             resp.setStatus(200);

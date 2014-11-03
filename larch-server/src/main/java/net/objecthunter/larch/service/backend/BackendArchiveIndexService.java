@@ -15,19 +15,13 @@
  */
 package net.objecthunter.larch.service.backend;
 
-import net.objecthunter.larch.model.Entity;
-
 import java.io.IOException;
-import java.io.InputStream;
 
-public interface BackendArchiveService {
-    InputStream retrieve(String entityId, int version) throws IOException;
+import net.objecthunter.larch.model.Archive;
 
-    void saveOrUpdate(Entity e) throws IOException;
-
+public interface BackendArchiveIndexService {
+    Archive retrieve(String id, int version) throws IOException;
+    void saveOrUpdate(Archive a) throws IOException;
     void delete(String entityId, int version) throws IOException;
-
-    boolean exists(String entityId, int version) throws IOException;
-
-    long sizeOf(String entityId, int version) throws IOException;
+    boolean exists(String id, int version) throws IOException;
 }

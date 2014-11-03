@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.service.backend.BackendArchiveService;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -35,10 +35,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class FileSystemArchiveService implements BackendArchiveService {
+public class FileSystemArchiveService implements BackendArchiveBlobService {
 
     @Value("${larch.archive.path}")
     private String archivePath;
@@ -84,7 +83,7 @@ public class FileSystemArchiveService implements BackendArchiveService {
     }
 
     @Override
-    public void saveOrUpdate(final Entity e) throws IOException {
+    public String saveOrUpdate(final Entity e) throws IOException {
         log.info("Creating archival package");
         checkExistsAndIsReadable(directory);
         final File target = getZipFile(e.getId(), e.getVersion());
@@ -106,6 +105,7 @@ public class FileSystemArchiveService implements BackendArchiveService {
             Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
             tmpNew.delete();
         }
+        return target.getAbsolutePath();
     }
 
     /**
@@ -151,9 +151,8 @@ public class FileSystemArchiveService implements BackendArchiveService {
     }
 
     @Override
-    public InputStream retrieve(final String entityId, final int version) throws IOException {
-        log.debug("retrieving archival package fo entity " + entityId);
-        final File zip = getZipFile(entityId, version);
+    public InputStream retrieve(final String path) throws IOException {
+        final File zip = new File(path);
         this.checkExistsAndIsReadable(zip);
         return new FileInputStream(zip);
     }
@@ -181,23 +180,18 @@ public class FileSystemArchiveService implements BackendArchiveService {
     }
 
     @Override
-    public void delete(final String entityId, final int version) throws IOException {
+    public void delete(final String path) throws IOException {
         log.info("Deleting archival package");
-        final File aip = getZipFile(entityId, version);
+        final File aip = new File(path);
         checkExistsAndIsWritable(aip);
         aip.delete();
     }
 
     @Override
-    public boolean exists(final String entityId, final int version) throws IOException {
-        return getZipFile(entityId, version).exists();
-    }
-
-    @Override
-    public long sizeOf(String entityId, int version) throws IOException {
-        final File aip =  getZipFile(entityId,version);
+    public long sizeOf(final String path) throws IOException {
+        final File aip =  new File(path);
         if (!aip.exists()) {
-            throw new FileNotFoundException("No archive for entity " + entityId + " with version " + version + " could be found");
+            throw new FileNotFoundException("No archive " + path);
         }
         if (!aip.canRead()) {
             throw new IOException("Insufficient permissions to read from archive " + aip.getAbsolutePath());

@@ -19,20 +19,14 @@ package net.objecthunter.larch.service.backend.sftp;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.service.ArchiveService;
-import net.objecthunter.larch.service.backend.BackendArchiveService;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.sshd.SshClient;
 import org.apache.sshd.client.SftpClient;
 import org.apache.sshd.common.SshException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.annotation.PostConstruct;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +36,7 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class SftpArchiveService extends AbstractSftpService implements BackendArchiveService {
+public class SftpArchiveService extends AbstractSftpService implements BackendArchiveBlobService {
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
@@ -51,25 +45,15 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
     private String archivePath;
 
     @Override
-    public InputStream retrieve(final String entityId, final int version) throws IOException {
+    public InputStream retrieve(final String path) throws IOException {
 
         ensureConnected();
-
-        if (entityId == null || entityId.isEmpty()) {
-            throw new IOException("Entity id can not be empty");
-        }
-
-        final String path = archivePath + "/" + getFilename(entityId, version);
-
-        if (!exists(entityId, version)) {
-            throw new FileNotFoundException("Unable to find " + path + " on the SFTP server");
-        }
 
         return sftp.read(path);
     }
 
     @Override
-    public void saveOrUpdate(final Entity e) throws IOException {
+    public String saveOrUpdate(final Entity e) throws IOException {
 
         if (e == null) {
             throw new IOException("Unable to archive null entity");
@@ -78,39 +62,36 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
         ensureConnected();
 
         ensureDirectoryExists(archivePath);
-        final String fileName = getFilename(e.getId(), e.getVersion());
+        final String fileName = "aip_" + UUID.randomUUID() + ".zip";
         final String path = archivePath + "/" + fileName;
 
         try (final OutputStream sink = sftp.write(path)) {
             this.writeEntityToZip(e, sink);
         }
+        return path;
     }
 
-    protected void ensureDirectoryExists(String path) throws IOException{
+    protected void ensureDirectoryExists(String path) throws IOException {
         if (!exists(path)) {
             sftp.mkdir(path);
         }
     }
 
-    private String getFilename(final String id, final int version) {
-        return "aip_" + id + "_v" + version + ".zip";
-    }
-
     @Override
-    public void delete(final String entityId, final int version) throws IOException {
-        final String fileName = getFilename(entityId, version);
-        final String path = archivePath + "/" + fileName;
+    public void delete(final String path) throws IOException {
         sftp.remove(path);
     }
 
     @Override
-    public boolean exists(final String entityId, final int version) throws IOException {
-        final String fileName = getFilename(entityId, version);
-        final String path = archivePath + "/" + fileName;
-        return exists(path);
+    public long sizeOf(final String path) throws IOException {
+        final SftpClient.Attributes attrs = sftp.stat(path);
+        if (attrs == null) {
+            throw new FileNotFoundException("Unable to locate archive " + path);
+        }
+        return attrs.size;
     }
 
-    protected boolean exists(final String path) throws IOException {
+    private boolean exists(final String path) throws IOException {
         final SftpClient.Handle handle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Read));
         try {
             SftpClient.Attributes attrs = sftp.stat(handle);
@@ -123,17 +104,6 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
             }
             throw new IOException(e);
         }
-    }
-
-    @Override
-    public long sizeOf(final String entityId, final int version) throws IOException {
-        final String fileName = getFilename(entityId, version);
-        final String path = archivePath + "/" + fileName;
-        final SftpClient.Attributes attrs = sftp.stat(path);
-        if (attrs == null) {
-            throw new FileNotFoundException("Unable to locate archive " + fileName);
-        }
-        return attrs.size;
     }
 
     /*
