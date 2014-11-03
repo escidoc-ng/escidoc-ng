@@ -283,6 +283,9 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void delete(String id) throws IOException {
+        if (!backendEntityService.exists(id)) {
+            throw new NotFoundException("Entity with id " + id + " was not found");
+        }
         // check if entity is published. If yes, throw error.
         if (isPublished(id)) {
             throw new InvalidParameterException("Entity with id " + id + " is already published");

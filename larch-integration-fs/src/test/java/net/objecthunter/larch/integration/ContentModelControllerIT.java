@@ -36,4 +36,28 @@ public class ContentModelControllerIT extends AbstractLarchIT {
         createContentModel("distinct", 409);
     }
 
+    @Test
+    public void testRetrieveContentModel() throws Exception {
+        // create content model
+        String contentModelId = createContentModel(IGNORE, 201);
+        // retrieve content model
+        retrieveContentModel(contentModelId, 200);
+        // retrieve non-existent content model
+        retrieveContentModel("nonexistent", 404);
+        // retrieve content model with id = null
+        retrieveContentModel(null, 404);
+    }
+
+    @Test
+    public void testDeleteContentModel() throws Exception {
+        // create content model
+        String contentModelId = createContentModel(IGNORE, 201);
+        // delete content model
+        deleteContentModel(contentModelId, 200);
+        // delete non-existent content model
+        deleteContentModel("nonexistent", 404);
+        // delete content model with id = null
+        deleteContentModel(null, 404);
+    }
+
 }

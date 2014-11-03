@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
@@ -86,6 +87,9 @@ public class DefaultContentModelService implements ContentModelService {
 
     @Override
     public void delete(String id) throws IOException {
+        if (!backendContentModelService.exists(id)) {
+            throw new NotFoundException("content model with id " + id + " was not found");
+        }
         // check if content-model is used by any entity
         SearchResult searchResult =
                 backendEntityService.searchEntities(EntitiesSearchField.CONTENT_MODEL + ":" + id, 0);
