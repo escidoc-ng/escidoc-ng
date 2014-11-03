@@ -18,6 +18,7 @@ package net.objecthunter.larch.integration;
 
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL1_ID;
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
+import static net.objecthunter.larch.test.util.Fixtures.createContentModel;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static net.objecthunter.larch.test.util.Fixtures.createRandomDCMetadata;
 import static net.objecthunter.larch.test.util.Fixtures.createRandomBinary;
@@ -103,6 +104,8 @@ public abstract class AbstractLarchIT {
 
     protected static final String adminPassword = "admin";
 
+    protected static final String IGNORE = "ignore";
+
     protected boolean wsCreated = false;
 
     final PrintStream sysOut = System.out;
@@ -167,15 +170,37 @@ public abstract class AbstractLarchIT {
         return level2Id;
     }
 
-    protected String createContentModel() throws IOException {
+    protected String createContentModel(String id, int expectedStatus) throws IOException {
         ContentModel contentModel = Fixtures.createContentModel();
+        if (id == null || !id.equals(IGNORE)) {
+            contentModel.setId(id);
+        }
         HttpResponse resp = this.executeAsAdmin(Request.Post(contentModelUrl)
                 .bodyString(this.mapper.writeValueAsString(contentModel), ContentType.APPLICATION_JSON));
         String test = EntityUtils.toString(resp.getEntity());
-        String contentModelId = EntityUtils.toString(resp.getEntity());
-        assertEquals(201, resp.getStatusLine().getStatusCode());
-        assertNotNull(contentModelId);
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        String contentModelId = null;
+        if (expectedStatus == 201) {
+            contentModelId = EntityUtils.toString(resp.getEntity());
+            assertNotNull(contentModelId);
+        }
         return contentModelId;
+    }
+
+    protected ContentModel retrieveContentModel(String id, int expectedStatus) throws IOException {
+        HttpResponse resp = this.executeAsAdmin(Request.Get(contentModelUrl + id));
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        ContentModel fetched = null;
+        if (expectedStatus == 201) {
+            fetched = mapper.readValue(resp.getEntity().getContent(), ContentModel.class);
+            assertEquals(id, fetched.getId());
+        }
+        return fetched;
+    }
+
+    protected void deleteContentModel(String id, int expectedStatus) throws IOException {
+        HttpResponse resp = this.executeAsAdmin(Request.Delete(contentModelUrl + id));
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
     }
 
     protected String createUser(String name, String password) throws IOException {
@@ -324,15 +349,16 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addMetadataStream(Entity entity, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+    protected Entity addMetadataStream(Entity entity, String mdName, String mdType, String data, int expectedStatus)
+            throws Exception {
         Metadata metadata = createRandomDCMetadata();
-        if (StringUtils.isNotBlank(mdName)) {
+        if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
-        if (StringUtils.isNotBlank(mdType)) {
+        if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (StringUtils.isNotBlank(data)) {
+        if (data == null || !data.equals(IGNORE)) {
             metadata.setData(data);
         }
         HttpResponse resp =
@@ -368,15 +394,17 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addMetadataMultipart(Entity entity, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+    protected Entity
+            addMetadataMultipart(Entity entity, String mdName, String mdType, String data, int expectedStatus)
+                    throws Exception {
         Metadata metadata = createRandomDCMetadata();
-        if (StringUtils.isNotBlank(mdName)) {
+        if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
-        if (StringUtils.isNotBlank(mdType)) {
+        if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (StringUtils.isNotBlank(data)) {
+        if (data == null || !data.equals(IGNORE)) {
             metadata.setData(data);
         }
         HttpResponse resp =
@@ -418,7 +446,7 @@ public abstract class AbstractLarchIT {
      */
     protected Entity removeMetadata(Entity entity, String mdName, int expectedStatus) throws Exception {
         String tmdName = mdName;
-        if (StringUtils.isBlank(tmdName)) {
+        if (tmdName != null && tmdName.equals(IGNORE)) {
             tmdName = entity.getMetadata().keySet().iterator().next();
         }
         HttpResponse resp =
@@ -449,19 +477,20 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addBinaryMetadataStream(Entity entity, String binaryName, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+    protected Entity addBinaryMetadataStream(Entity entity, String binaryName, String mdName, String mdType,
+            String data, int expectedStatus) throws Exception {
         String bName = binaryName;
-        if (StringUtils.isBlank(bName)) {
+        if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
         }
         Metadata metadata = createRandomDCMetadata();
-        if (StringUtils.isNotBlank(mdName)) {
+        if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
-        if (StringUtils.isNotBlank(mdType)) {
+        if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (StringUtils.isNotBlank(data)) {
+        if (data == null || !data.equals(IGNORE)) {
             metadata.setData(data);
         }
         HttpResponse resp =
@@ -483,8 +512,10 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 201) {
                 // check if metadata exists
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getData());
+                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
+                        metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(
+                        metadata.getName()).getData());
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -502,19 +533,20 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addBinaryMetadataMultipart(Entity entity, String binaryName, String mdName, String mdType, String data, int expectedStatus) throws Exception {
+    protected Entity addBinaryMetadataMultipart(Entity entity, String binaryName, String mdName, String mdType,
+            String data, int expectedStatus) throws Exception {
         String bName = binaryName;
-        if (StringUtils.isBlank(bName)) {
+        if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
         }
         Metadata metadata = createRandomDCMetadata();
-        if (StringUtils.isNotBlank(mdName)) {
+        if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
-        if (StringUtils.isNotBlank(mdType)) {
+        if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (StringUtils.isNotBlank(data)) {
+        if (data == null || !data.equals(IGNORE)) {
             metadata.setData(data);
         }
         HttpResponse resp =
@@ -522,12 +554,12 @@ public abstract class AbstractLarchIT {
                         Request.Post(
                                 entityUrl + entity.getId() + "/binary/" +
                                         bName + "/metadata").body(MultipartEntityBuilder.create()
-                                                .addTextBody("name", metadata.getName())
-                                                .addTextBody("type", metadata.getType())
-                                                .addPart(
-                                                        "data",
-                                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
-                                                .build()));
+                                .addTextBody("name", metadata.getName())
+                                .addTextBody("type", metadata.getType())
+                                .addPart(
+                                        "data",
+                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
+                                .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
@@ -540,8 +572,10 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 201) {
                 // check if metadata exists
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()).getData());
+                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
+                        metadata.getName()).getType());
+                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(
+                        metadata.getName()).getData());
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -559,17 +593,18 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to remove
      * @return Entity updated entity
      */
-    protected Entity removeBinaryMetadata(Entity entity, String binaryName, String mdName, int expectedStatus) throws Exception {
+    protected Entity removeBinaryMetadata(Entity entity, String binaryName, String mdName, int expectedStatus)
+            throws Exception {
         String bName = binaryName;
         String mName = mdName;
         Binary binary = null;
-        if (StringUtils.isBlank(bName)) {
+        if (bName != null && bName.equals(IGNORE)) {
             binary = entity.getBinaries().values().iterator().next();
         } else {
             binary = entity.getBinaries().get(bName);
         }
         bName = binary.getName();
-        if (StringUtils.isBlank(mName)) {
+        if (mName != null && mName.equals(IGNORE)) {
             mName = binary.getMetadata().keySet().iterator().next();
         }
         HttpResponse resp =
@@ -601,17 +636,21 @@ public abstract class AbstractLarchIT {
      * @param binaryName name of the binary to add
      * @return Entity updated entity
      */
-    protected Entity addBinaryStream(Entity entity, String binaryName, String mimetype, String resource, int expectedStatus) throws Exception {
+    protected Entity addBinaryStream(Entity entity, String binaryName, String mimetype, String resource,
+            int expectedStatus) throws Exception {
         Binary binary = createRandomBinary();
-        if (StringUtils.isNotBlank(binaryName)) {
+        if (binaryName == null || !binaryName.equals(IGNORE)) {
             binary.setName(binaryName);
         }
-        if (StringUtils.isNotBlank(mimetype)) {
+        if (mimetype == null || !mimetype.equals(IGNORE)) {
             binary.setMimetype(mimetype);
         }
-        if (StringUtils.isNotBlank(resource)) {
-            binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource(resource).toURI()));
-
+        if (resource == null || !resource.equals(IGNORE)) {
+            if (resource == null) {
+                binary.setSource(null);
+            } else {
+                binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource(resource).toURI()));
+            }
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -631,7 +670,7 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 201) {
                 // check if binary exists
                 assertTrue(fetched.getBinaries().containsKey(binary.getName()));
-//                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
             }
         }
         return fetched;
@@ -644,27 +683,36 @@ public abstract class AbstractLarchIT {
      * @param binaryName name of the binary to add
      * @return Entity updated entity
      */
-    protected Entity addBinaryMultipart(Entity entity, String binaryName, String mimetype, String resource, int expectedStatus) throws Exception {
+    protected Entity addBinaryMultipart(Entity entity, String binaryName, String mimetype, String resource,
+            int expectedStatus) throws Exception {
         Binary binary = createRandomBinary();
-        if (StringUtils.isNotBlank(binaryName)) {
+        if (binaryName == null || !binaryName.equals(IGNORE)) {
             binary.setName(binaryName);
         }
-        if (StringUtils.isNotBlank(mimetype)) {
+        if (mimetype == null || !mimetype.equals(IGNORE)) {
             binary.setMimetype(mimetype);
         }
-        FileBody fileBody = new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                "fixtures/image_1.png").getFile()));
-        if (StringUtils.isNotBlank(resource)) {
-            fileBody = new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                    resource).getFile()), ContentType.create(binary.getMimetype()));
+
+        if (resource != null && resource.equals(IGNORE)) {
+            resource = "fixtures/image_1.png";
+        }
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        if (binary.getName() != null) {
+            entityBuilder.addTextBody("name", binary.getName());
+        }
+        if (resource != null) {
+            if (binary.getMimetype() != null) {
+                entityBuilder.addBinaryBody("binary", new File(Fixtures.class.getClassLoader().getResource(
+                        resource).getFile()), ContentType.create(binary.getMimetype()), resource);
+            } else {
+                entityBuilder.addBinaryBody("binary", new File(Fixtures.class.getClassLoader().getResource(
+                        resource).getFile()), ContentType.create(null), resource);
+            }
         }
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(
-                                entityUrl + entity.getId() + "/binary").body(MultipartEntityBuilder.create()
-                                        .addTextBody("name", binary.getName())
-                                        .addPart("binary", fileBody)
-                                        .build()));
+                                entityUrl + entity.getId() + "/binary").body(entityBuilder.build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
@@ -677,7 +725,7 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 201) {
                 // check if binary exists
                 assertTrue(fetched.getBinaries().containsKey(binary.getName()));
-//                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
             }
         }
         return fetched;
@@ -692,7 +740,7 @@ public abstract class AbstractLarchIT {
      */
     protected Entity removeBinary(Entity entity, String binaryName, int expectedStatus) throws Exception {
         String bName = binaryName;
-        if (StringUtils.isBlank(bName)) {
+        if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
         }
         HttpResponse resp =
@@ -763,10 +811,10 @@ public abstract class AbstractLarchIT {
     protected Entity addIdentifier(Entity entity, String type, String value, int expectedStatus) throws Exception {
         String ttype = AlternativeIdentifier.IdentifierType.DOI.name();
         String tvalue = "identifier-" + RandomStringUtils.randomAlphabetic(16);
-        if (StringUtils.isNotBlank(type)) {
+        if (type == null || !type.equals(IGNORE)) {
             ttype = type;
         }
-        if (StringUtils.isNotBlank(value)) {
+        if (value == null || !value.equals(IGNORE)) {
             tvalue = value;
         }
         NameValuePair typePair = new BasicNameValuePair("type", ttype);
@@ -788,7 +836,8 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 201) {
                 // check if identifier exists
                 for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
-                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                    if (alternativeIdentifier.getType().equals(ttype) &&
+                            alternativeIdentifier.getValue().equals(tvalue)) {
                         found = true;
                         break;
                     }
@@ -798,7 +847,8 @@ public abstract class AbstractLarchIT {
                 }
             } else {
                 for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
-                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                    if (alternativeIdentifier.getType().equals(ttype) &&
+                            alternativeIdentifier.getValue().equals(tvalue)) {
                         found = true;
                         break;
                     }
@@ -822,10 +872,10 @@ public abstract class AbstractLarchIT {
     protected Entity removeIdentifier(Entity entity, String type, String value, int expectedStatus) throws Exception {
         String ttype = type;
         String tvalue = value;
-        if (StringUtils.isBlank(ttype)) {
+        if (ttype != null && ttype.equals(IGNORE)) {
             ttype = entity.getAlternativeIdentifiers().get(0).getType();
         }
-        if (StringUtils.isBlank(tvalue)) {
+        if (tvalue != null && tvalue.equals(IGNORE)) {
             tvalue = entity.getAlternativeIdentifiers().get(0).getValue();
         }
         HttpResponse resp =
@@ -844,7 +894,8 @@ public abstract class AbstractLarchIT {
             if (expectedStatus == 200) {
                 boolean found = false;
                 for (AlternativeIdentifier alternativeIdentifier : fetched.getAlternativeIdentifiers()) {
-                    if (alternativeIdentifier.getType().equals(ttype) && alternativeIdentifier.getValue().equals(tvalue)) {
+                    if (alternativeIdentifier.getType().equals(ttype) &&
+                            alternativeIdentifier.getValue().equals(tvalue)) {
                         found = true;
                         break;
                     }
@@ -868,10 +919,10 @@ public abstract class AbstractLarchIT {
     protected Entity addRelation(Entity entity, String predicate, String object, int expectedStatus) throws Exception {
         String tpredicate = "predicate-" + RandomStringUtils.randomAlphabetic(16);
         String tobject = "object-" + RandomStringUtils.randomAlphabetic(16);
-        if (StringUtils.isNotBlank(predicate)) {
+        if (predicate == null || !predicate.equals(IGNORE)) {
             tpredicate = predicate;
         }
-        if (StringUtils.isNotBlank(object)) {
+        if (object == null || !object.equals(IGNORE)) {
             tobject = object;
         }
         NameValuePair predicatePair = new BasicNameValuePair("predicate", tpredicate);

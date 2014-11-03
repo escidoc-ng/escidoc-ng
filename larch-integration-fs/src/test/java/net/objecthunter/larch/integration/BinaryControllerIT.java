@@ -36,16 +36,22 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinaryStream(entity, null, null, null, 201);
+        entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 201);
         // add binary twice
-        entity = addBinaryStream(entity, "distinct", null, null, 201);
-        entity = addBinaryStream(entity, "distinct", null, null, 409);
+        entity = addBinaryStream(entity, "distinct", IGNORE, IGNORE, 201);
+        entity = addBinaryStream(entity, "distinct", IGNORE, IGNORE, 409);
         // add binary wrong mimetype
-        entity = addBinaryStream(entity, null, "notsupported", null, 201);
-        entity = addBinaryStream(entity, null, "text/xml", null, 201);
+        entity = addBinaryStream(entity, IGNORE, "notsupported", IGNORE, 201);
+        entity = addBinaryStream(entity, IGNORE, "text/xml", IGNORE, 201);
+        // name null
+        entity = addBinaryStream(entity, null, IGNORE, IGNORE, 400);
+        // mimetype null
+        entity = addBinaryStream(entity, IGNORE, null, IGNORE, 400);
+        // resource null
+        entity = addBinaryStream(entity, IGNORE, IGNORE, null, 500);
         // wrong entityId
         entity.setId("nonexistent");
-        entity = addBinaryStream(entity, null, null, null, 404);
+        entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 404);
     }
 
     @Test
@@ -53,16 +59,20 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinaryMultipart(entity, null, null, null, 201);
+        entity = addBinaryMultipart(entity, IGNORE, IGNORE, IGNORE, 201);
         // add binary twice
-        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
-        entity = addBinaryMultipart(entity, "distinct", null, null, 409);
+        entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
+        entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 409);
         // add binary wrong mimetype
-        entity = addBinaryMultipart(entity, null, "notsupported", null, 201);
-        entity = addBinaryMultipart(entity, null, "text/xml", null, 201);
+        entity = addBinaryMultipart(entity, IGNORE, "notsupported", IGNORE, 201);
+        entity = addBinaryMultipart(entity, IGNORE, "text/xml", IGNORE, 201);
+        // name null
+        entity = addBinaryMultipart(entity, null, IGNORE, IGNORE, 400);
+        // resource null
+        entity = addBinaryMultipart(entity, IGNORE, IGNORE, null, 400);
         // wrong entityId
         entity.setId("nonexistent");
-        entity = addBinaryMultipart(entity, null, null, null, 404);
+        entity = addBinaryMultipart(entity, IGNORE, IGNORE, IGNORE, 404);
     }
 
     @Test
@@ -70,11 +80,13 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // retrieve Binary
         retrieveBinary(entity, "distinct", 200);
         // retrieve Binary wrong name
         retrieveBinary(entity, "wrong", 404);
+        // retrieve Binary null name
+        retrieveBinary(entity, null, 404);
         // retrieve Binary wrong entityId
         entity.setId("nonexistent");
         retrieveBinary(entity, "distinct", 404);
@@ -85,11 +97,13 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // download Binary Content
         downloadBinaryContent(entity, "distinct", 200);
         // download Binary Content wrong name
         downloadBinaryContent(entity, "wrong", 404);
+        // download Binary Content null name
+        downloadBinaryContent(entity, null, 404);
         // download Binary Content wrong entityId
         entity.setId("nonexistent");
         downloadBinaryContent(entity, "distinct", 404);
@@ -100,11 +114,13 @@ public class BinaryControllerIT extends AbstractLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
-        entity = addBinaryMultipart(entity, "distinct", null, null, 201);
+        entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // delete Binary
         removeBinary(entity, "distinct", 200);
         // delete Binary wrong name
         removeBinary(entity, "wrong", 404);
+        // delete Binary null name
+        removeBinary(entity, null, 404);
         // delete Binary wrong entityId
         entity.setId("nonexistent");
         removeBinary(entity, "distinct", 404);

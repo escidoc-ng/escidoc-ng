@@ -320,6 +320,9 @@ public class DefaultEntityService implements EntityService {
         if (StringUtils.isBlank(name)) {
             throw new InvalidParameterException("name of binary may not be null or empty");
         }
+        if (StringUtils.isBlank(contentType)) {
+            throw new InvalidParameterException("contentType of binary may not be null or empty");
+        }
         final Entity e = retrieve(entityId);
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
