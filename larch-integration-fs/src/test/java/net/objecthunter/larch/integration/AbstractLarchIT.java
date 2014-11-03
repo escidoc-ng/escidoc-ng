@@ -43,6 +43,7 @@ import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.test.util.Fixtures;
 
+import net.objecthunter.larch.test.util.SftpServerConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
@@ -65,7 +66,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = LarchServerConfiguration.class)
+@SpringApplicationConfiguration(classes = {LarchServerConfiguration.class, SftpServerConfiguration.class})
 @IntegrationTest
 @WebAppConfiguration
 @ActiveProfiles("fs")
@@ -380,4 +381,25 @@ public abstract class AbstractLarchIT {
         }
     }
 
+    protected Entity archive(Entity e) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(entityUrl).bodyString(mapper.writeValueAsString(e),
+                                ContentType.APPLICATION_JSON));
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        final String id = EntityUtils.toString(resp.getEntity());
+
+        resp = this.executeAsAdmin(Request.Get(entityUrl + "/" + id));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final Entity fetched = this.mapper.readValue(EntityUtils.toString(resp.getEntity()), Entity.class);
+
+        resp = this.executeAsAdmin(Request.Put(hostUrl + "/archive/" + fetched.getId() + "/" + fetched.getVersion()));
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+
+        return fetched;
+    }
+
+    protected HttpResponse retrieveArchive(String id, int version) throws Exception {
+        return this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version));
+    }
 }

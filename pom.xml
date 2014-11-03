@@ -15,7 +15,6 @@
         <module>larch-benchtool</module>
         <module>larch-integration-performance</module>
         <module>larch-frontend</module>
-        <module>larch-integration-sftp</module>
     </modules>
 
     <properties>
