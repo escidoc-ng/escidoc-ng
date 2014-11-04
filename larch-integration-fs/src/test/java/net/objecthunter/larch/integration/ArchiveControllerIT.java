@@ -19,7 +19,6 @@ import net.objecthunter.larch.model.Entity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-import org.springframework.test.context.ActiveProfiles;
 
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
