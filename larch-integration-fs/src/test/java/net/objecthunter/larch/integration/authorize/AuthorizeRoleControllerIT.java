@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.objecthunter.larch.integration.helpers.AuthConfigurer;
+import net.objecthunter.larch.integration.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.security.role.AdminRole;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
@@ -187,6 +188,22 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
                         userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
                         .get("ROLE_USER_ADMIN")[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertEquals(403, resp.getStatusLine().getStatusCode());
+
+        // user
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
+                        .writeValueAsString(userRole.getRights().get(level2Id)),
+                        userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY)[0], userRoleUsernames
+                                .get(MissingPermission.READ_PENDING_BINARY)[1], false);
+        response = EntityUtils.toString(resp.getEntity());
+        assertTrue(resp.getStatusLine().getStatusCode() < 400);
+
+        resp =
+                this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_admin/rights/", "{}",
+                        userRoleUsernames.get(MissingPermission.WRITE_PERMISSION)[0], userRoleUsernames
+                        .get(MissingPermission.WRITE_PERMISSION)[1], false);
         response = EntityUtils.toString(resp.getEntity());
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
