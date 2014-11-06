@@ -21,6 +21,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -49,6 +50,9 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
+
+    @Autowired
+    private BackendArchiveInformationPackageService aipService;
 
     private File directory;
 
@@ -96,7 +100,7 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
 
         /* save the entity by first writing to a tmp file and then moving it to the right place */
         final File tmpNew = File.createTempFile("entity", "zip");
-        this.writeEntityToZip(e, new FileOutputStream(tmpNew));
+        this.aipService.write(e, new FileOutputStream(tmpNew));
         if (target.exists()) {
             final File orig = File.createTempFile("entity", "zip");
             Files.move(target.toPath(), orig.toPath(), StandardCopyOption.ATOMIC_MOVE);
@@ -108,35 +112,6 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
             tmpNew.delete();
         }
         return target.getAbsolutePath();
-    }
-
-    /**
-     * This method is duplicated in the {@link net.objecthunter.larch.service.backend.sftp.SftpArchiveService} in favour of the not creating the spaghetti incident
-     * via polymorphism
-     */
-    private void writeEntityToZip(final Entity e, final OutputStream sink) throws IOException {
-        final ZipOutputStream zipSink = new ZipOutputStream(sink);
-
-
-        /* write the binaries to the package */
-        for (final Binary bin : e.getBinaries().values()) {
-
-            // Update the location to point into the current directory
-            bin.setSource(new UrlSource(URI.create("./binaries/" + bin.getName() + "/" + bin.getFilename())));
-
-            /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
-            zipSink.closeEntry();
-        }
-
-        /* write the entity json to the package */
-        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
-        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
-        zipSink.closeEntry();
-
-        zipSink.finish();
-        zipSink.close();
     }
 
     @Override

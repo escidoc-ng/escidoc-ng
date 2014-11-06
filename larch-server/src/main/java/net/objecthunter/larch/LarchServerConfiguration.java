@@ -42,6 +42,7 @@ import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
+import net.objecthunter.larch.service.backend.zip.ZIPArchiveInformationPackageService;
 import net.objecthunter.larch.service.impl.*;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
@@ -342,11 +343,11 @@ public class LarchServerConfiguration {
         return new WeedFSBlobstoreService();
     }
 
-     @Bean
-     @Profile("sftp")
-     public SftpBlobstoreService sftpBlobstoreServive() {
+    @Bean
+    @Profile("sftp")
+    public SftpBlobstoreService sftpBlobstoreServive() {
         return new SftpBlobstoreService();
-     }
+    }
 
     /**
      * Get a Jackson {@link com.fasterxml.jackson.databind.ObjectMapper} Spring bean for JSON
@@ -387,8 +388,8 @@ public class LarchServerConfiguration {
     }
 
     /**
-     * A commons-multipart {@link javax.servlet.MultipartConfigElement} for resolving
-     * files in a HTTP multipart request
+     * A commons-multipart {@link javax.servlet.MultipartConfigElement} for resolving files in a HTTP multipart
+     * request
      *
      * @return a {@link javax.servlet.MultipartConfigElement} object used by Spring MVC
      */
@@ -512,9 +513,9 @@ public class LarchServerConfiguration {
         }
         if (type.equalsIgnoreCase("filesystem")) {
             return new FileSystemArchiveService();
-        }else if (type.equalsIgnoreCase("sftp")) {
+        } else if (type.equalsIgnoreCase("sftp")) {
             return new SftpArchiveService();
-        }else {
+        } else {
             throw new IllegalArgumentException("Unknown type for archival system. Please choose a valid value");
         }
     }
@@ -527,5 +528,10 @@ public class LarchServerConfiguration {
     @Bean
     public DefaultArchiveService defaultArchiveService() {
         return new DefaultArchiveService();
+    }
+
+    @Bean
+    public BackendArchiveInformationPackageService backendArchiveInformationPackageService() {
+        return new ZIPArchiveInformationPackageService();
     }
 }

@@ -21,6 +21,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.apache.sshd.client.SftpClient;
@@ -42,6 +43,9 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
+
+    @Autowired
+    private BackendArchiveInformationPackageService aipService;
 
     @Value("${larch.archive.path}")
     private String archivePath;
@@ -68,7 +72,7 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
         final String path = archivePath + "/" + fileName;
 
         try (final OutputStream sink = sftp.write(path)) {
-            this.writeEntityToZip(e, sink);
+            this.aipService.write(e, sink);
         }
         return path;
     }
@@ -106,36 +110,6 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
             }
             throw new IOException(e);
         }
-    }
-
-    /*
-     * This method is duplicated in the {@link FileSystemArchiveService}Service in favour of the not creating the
-     * spaghetti incident via polymorphism
-     */
-    private void writeEntityToZip(final Entity e, final OutputStream sink) throws IOException {
-        final ZipOutputStream zipSink = new ZipOutputStream(sink);
-
-        /* write the binaries to the package */
-        for (final Binary bin : e.getBinaries().values()) {
-
-            bin.setSource(new UrlSource(URI.create("binaries/" + bin.getName() + "/" + bin.getFilename()), false));
-
-            /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
-            zipSink.closeEntry();
-
-            // update the path to point in the zip file
-            bin.setPath("binaries/" + bin.getName() + "/" + bin.getFilename());
-        }
-
-        /* write the entity json to the package */
-        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
-        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
-        zipSink.closeEntry();
-
-        zipSink.finish();
-        zipSink.flush();
     }
 
 }
