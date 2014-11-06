@@ -31,6 +31,7 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContent
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
@@ -44,6 +45,7 @@ import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
 import net.objecthunter.larch.service.impl.*;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
+import net.sf.json.xml.XMLSerializer;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
@@ -110,6 +112,16 @@ public class LarchServerConfiguration {
     @Bean
     public EntityService entityService() {
         return new DefaultEntityService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.impl.DefaultMetadataService} Spring bean
+     *
+     * @return the {@link net.objecthunter.larch.service.impl.DefaultMetadataService} implementation
+     */
+    @Bean
+    public MetadataService metadataService() {
+        return new DefaultMetadataService();
     }
 
     /**
@@ -216,6 +228,17 @@ public class LarchServerConfiguration {
     @Bean
     public BackendEntityService elasticSearchIndexService() {
         return new ElasticSearchEntityService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.BackendMetadataService} implementation Spring bean
+     *
+     * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService}
+     *         implementation
+     */
+    @Bean
+    public BackendMetadataService backendMetadataService() {
+        return new ElasticSearchMetadataService();
     }
 
     /**
@@ -373,6 +396,19 @@ public class LarchServerConfiguration {
     MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
         return factory.createMultipartConfig();
+    }
+
+    /**
+     * An {@link net.sf.json.xml.XMLSerializer} for converting XML into JSON
+     *
+     * @return a {@link net.sf.json.xml.XMLSerializer} object used by Spring MVC
+     */
+    @Bean
+    XMLSerializer xmlSerializer() {
+        XMLSerializer serializer = new XMLSerializer();
+        serializer.setRemoveNamespacePrefixFromElements(true);
+        serializer.setForceTopLevelObject(true);
+        return serializer;
     }
 
     /**
