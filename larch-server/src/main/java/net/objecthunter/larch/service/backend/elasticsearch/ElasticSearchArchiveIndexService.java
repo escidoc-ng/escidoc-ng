@@ -20,7 +20,11 @@ import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ElasticSearchArchiveIndexService extends AbstractElasticSearchService implements BackendArchiveIndexService {
 
@@ -47,7 +53,7 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public Archive retrieve(String id, int version) throws IOException {
+    public Archive retrieve(final String id, final int version) throws IOException {
         final GetResponse resp = client.prepareGet(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE, id + "_v" + version)
                 .execute()
                 .actionGet();
@@ -58,7 +64,7 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public void saveOrUpdate(Archive a) throws IOException {
+    public void saveOrUpdate(final Archive a) throws IOException {
         final IndexResponse index = this.client.prepareIndex(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE)
                 .setSource(this.mapper.writeValueAsBytes(a))
                 .setId(a.getEntityId() + "_v" + a.getEntityVersion())
@@ -68,7 +74,7 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public void delete(String entityId, int version) throws IOException {
+    public void delete(final String entityId, final int version) throws IOException {
         final DeleteResponse delete = this.client.prepareDelete(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE, entityId + "_v" + version)
                 .execute()
                 .actionGet();
@@ -76,11 +82,28 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public boolean exists(String id, int version) throws IOException {
+    public boolean exists(final String id, final int version) throws IOException {
         return this.client.prepareGet(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE, id + "_v" + version)
                 .execute()
                 .actionGet()
                 .isExists();
+    }
+
+    @Override
+    public List<Archive> list(final int offset, final int count) throws IOException{
+        final List<Archive> archives = new ArrayList<>(count);
+        final SearchResponse resp = this.client.prepareSearch(INDEX_ARCHIVES)
+                .setTypes(INDEX_ARCHIVE_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(QueryBuilders.matchAllQuery())
+                .setFrom(offset)
+                .setSize(count)
+                .execute()
+                .actionGet();
+        for (SearchHit hit: resp.getHits().getHits()) {
+            archives.add(this.mapper.readValue(hit.getSourceAsString(), Archive.class));
+        }
+        return archives;
     }
 
 }

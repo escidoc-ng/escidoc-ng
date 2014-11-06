@@ -19,12 +19,20 @@ import net.objecthunter.larch.model.Archive;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public interface ArchiveService {
     void archive(String entityId, int version) throws IOException;
+
     boolean isArchived(String entityId, int version) throws IOException;
+
     InputStream retrieveData(String entityId, int version) throws IOException;
+
     void delete(String entityId, int version) throws IOException;
+
     long sizeof(String entityId, int version) throws IOException;
+
     Archive retrieve(String entityId, int version) throws IOException;
+
+    List<Archive> list(int offset, int count) throws IOException;
 }

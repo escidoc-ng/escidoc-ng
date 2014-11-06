@@ -18,6 +18,7 @@ package net.objecthunter.larch.integration;
 import net.objecthunter.larch.model.Entity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
@@ -55,5 +56,17 @@ public class ArchiveControllerIT extends AbstractLarchIT {
         this.archive(e);
         HttpResponse resp = this.retrieveArchive(e.getId(), Integer.MIN_VALUE);
         assertEquals(404, resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testListArchive() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            this.archive(createFixtureEntity());
+        }
+        HttpResponse resp = this.listArchives(0,5);
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+
+        resp = this.listArchives(5,5);
+        assertEquals(200, resp.getStatusLine().getStatusCode());
     }
 }

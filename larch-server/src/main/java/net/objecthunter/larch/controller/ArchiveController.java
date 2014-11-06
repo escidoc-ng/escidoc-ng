@@ -15,6 +15,7 @@
  */
 package net.objecthunter.larch.controller;
 
+import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.service.ArchiveService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +24,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 @Controller
 @RequestMapping("/archive")
@@ -60,5 +65,12 @@ public class ArchiveController extends AbstractLarchController {
     @ResponseStatus(HttpStatus.CREATED)
     public void archive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
         archiveService.archive(entityId, version);
+    }
+
+    @RequestMapping(value = "/list/{offset}/{count}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<Archive> listArchives(@PathVariable("offset") final int offset, @PathVariable("count") final int count) throws IOException {
+        return archiveService.list(offset, count);
     }
 }

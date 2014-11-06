@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class DefaultArchiveService implements ArchiveService {
 
@@ -76,5 +77,10 @@ public class DefaultArchiveService implements ArchiveService {
     @Override
     public Archive retrieve(String entityId, int version) throws IOException {
         return archiveIndex.retrieve(entityId, version);
+    }
+
+    @Override
+    public List<Archive> list(int offset, int count) throws IOException {
+        return this.archiveIndex.list(offset, count);
     }
 }

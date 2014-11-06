@@ -402,4 +402,8 @@ public abstract class AbstractLarchIT {
     protected HttpResponse retrieveArchive(String id, int version) throws Exception {
         return this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version));
     }
+
+    public HttpResponse listArchives(int offset, int length) throws IOException {
+        return this.executeAsAdmin(Request.Get(hostUrl + "/archive/list/" + offset + "/" + length));
+    }
 }

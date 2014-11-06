@@ -16,12 +16,18 @@
 package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
+import java.util.List;
 
 import net.objecthunter.larch.model.Archive;
 
 public interface BackendArchiveIndexService {
     Archive retrieve(String id, int version) throws IOException;
+
     void saveOrUpdate(Archive a) throws IOException;
+
     void delete(String entityId, int version) throws IOException;
+
     boolean exists(String id, int version) throws IOException;
+
+    List<Archive> list(int offset, int count) throws IOException;
 }
