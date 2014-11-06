@@ -32,6 +32,7 @@ import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendMetadataService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
@@ -65,6 +66,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     public static final String INDEX_ENTITY_TYPE = "entity";
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityService.class);
+    
+    @Autowired
+    private BackendMetadataService backendMetadataService;
+
+    private boolean metadataindexEnabled;
 
     private int maxRecords;
 
@@ -75,6 +81,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
         this.maxRecords = Integer.parseInt(env.getProperty("search.maxRecords", "20"));
+        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         this.checkAndOrCreateIndex(INDEX_ENTITIES);
         this.waitForIndex(INDEX_ENTITIES);
     }
@@ -103,6 +110,10 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         refreshIndex(INDEX_ENTITIES);
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, entityHierarchy);
+        }
         return e.getId();
     }
 
@@ -117,10 +128,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
+        // set hierarchy
         EntityHierarchy entityHierarchy = getHierarchy(e);
         entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
         entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
-        try {
+        try { 
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
                             mapper.writeValueAsBytes(entityData))
@@ -130,6 +142,10 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         /* refresh the index before returning */
         refreshIndex(INDEX_ENTITIES);
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, entityHierarchy);
+        }
     }
 
     @Override
@@ -192,6 +208,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        // delete from metadata index ?
+        if (metadataindexEnabled) {
+            backendMetadataService.delete(id);
+        }
+
     }
 
     @Override
@@ -271,10 +292,18 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
-            String parentId = hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
-            String label = hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
-            String contentModelId = hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
-            String state = hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(EntitiesSearchField.STATE.getFieldName()).getValue() : "";
+            String parentId =
+                    hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
+            String label =
+                    hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
+            String contentModelId =
+                    hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
+            String state =
+                    hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.STATE.getFieldName()).getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field(EntitiesSearchField.ID.getFieldName()).getValue());
             e.setParentId(parentId);
