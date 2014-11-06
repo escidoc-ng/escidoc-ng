@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -114,38 +116,25 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
      */
     private void writeEntityToZip(final Entity e, final OutputStream sink) throws IOException {
         final ZipOutputStream zipSink = new ZipOutputStream(sink);
-            /* write the entity xml to the package */
-        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
-        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
-        zipSink.closeEntry();
 
-            /* write the metadata to the package */
-        for (final Metadata md : e.getMetadata().values()) {
-            zipSink.putNextEntry(new ZipEntry("metadata_" + md.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
-            zipSink.closeEntry();
-        }
 
-            /* write the binaries to the package */
+        /* write the binaries to the package */
         for (final Binary bin : e.getBinaries().values()) {
 
-                /* first the binary itself */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(bin), zipSink);
-            zipSink.closeEntry();
+            // Update the location to point into the current directory
+            bin.setSource(new UrlSource(URI.create("./binaries/" + bin.getName() + "/" + bin.getFilename())));
 
-                /* save the metadata */
-            for (final Metadata md : bin.getMetadata().values()) {
-                zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/metadata_" + md.getName() + ".json"));
-                IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
-                zipSink.closeEntry();
-            }
-
-                /* save the binary content */
+            /* save the binary content */
             zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
             IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
             zipSink.closeEntry();
         }
+
+        /* write the entity json to the package */
+        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
+        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
+        zipSink.closeEntry();
+
         zipSink.finish();
         zipSink.close();
     }
