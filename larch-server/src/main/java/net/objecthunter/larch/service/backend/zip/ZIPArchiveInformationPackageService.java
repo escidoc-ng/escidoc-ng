@@ -22,6 +22,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,38 +32,49 @@ import java.net.URI;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * A service to create ZIP AIPs from an {@link net.objecthunter.larch.model.Entity} object
+ */
 public class ZIPArchiveInformationPackageService implements BackendArchiveInformationPackageService {
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
 
     @Autowired
+    private BackendEntityService entityService;
+
+    @Autowired
     private ObjectMapper mapper;
 
     @Override
-    public void write(Entity e, OutputStream sink) throws IOException {
+    public void write(final Entity e, final OutputStream sink) throws IOException {
         final ZipOutputStream zipSink = new ZipOutputStream(sink);
+        this.writeEntity("", e, zipSink);
+        zipSink.finish();
+        zipSink.flush();
+    }
 
+    private void writeEntity(final String path, final Entity e, final ZipOutputStream zipSink) throws IOException {
         /* write the binaries to the package */
         for (final Binary bin : e.getBinaries().values()) {
 
-            bin.setSource(new UrlSource(URI.create("binaries/" + bin.getName() + "/" + bin.getFilename()), false));
+            bin.setSource(new UrlSource(URI.create(path  + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
 
             /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
+            zipSink.putNextEntry(new ZipEntry(path + "binaries/" + bin.getName() + "/" + bin.getFilename()));
             IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
             zipSink.closeEntry();
 
             // update the path to point in the zip file
-            bin.setPath("binaries/" + bin.getName() + "/" + bin.getFilename());
+            bin.setPath(path + "binaries/" + bin.getName() + "/" + bin.getFilename());
         }
 
         /* write the entity json to the package */
-        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
+        zipSink.putNextEntry(new ZipEntry(path + "entity_" + e.getId() + ".json"));
         IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
         zipSink.closeEntry();
-
-        zipSink.finish();
-        zipSink.flush();
+        for (final String childId : this.entityService.fetchChildren(e.getId())) {
+            this.writeEntity(path + "/child_" + childId, this.entityService.retrieve(childId), zipSink);
+        }
     }
 }

@@ -16,16 +16,17 @@
 package net.objecthunter.larch.integration;
 
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.Entity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static net.objecthunter.larch.test.util.Fixtures.LEVEL2_ID;
 import static net.objecthunter.larch.test.util.Fixtures.createFixtureEntity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -35,12 +36,12 @@ public class ArchiveControllerIT extends AbstractLarchIT {
 
     @Test
     public void testArchive() throws Exception {
-        Entity e = this.archive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity());
     }
 
     @Test
     public void testArchiveAndRetrieve() throws Exception {
-        Entity e = this.archive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity());
         Archive a = this.retrieveArchive(e.getId(), e.getVersion(), 200);
         assertNotNull(a);
         assertEquals(e.getId(), a.getEntityId());
@@ -61,14 +62,14 @@ public class ArchiveControllerIT extends AbstractLarchIT {
     @Test
     public void testArchiveAndRetrieveNonExistingVersion() throws Exception {
         Entity e = createFixtureEntity();
-        this.archive(e);
+        this.ingestAndArchive(e);
         this.retrieveArchive(e.getId(), Integer.MIN_VALUE, 404);
     }
 
     @Test
     public void testListArchive() throws Exception {
         for (int i = 0; i < 10; i++) {
-            this.archive(createFixtureEntity());
+            this.ingestAndArchive(createFixtureEntity());
         }
         HttpResponse resp = this.listArchives(0,5);
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -89,7 +90,7 @@ public class ArchiveControllerIT extends AbstractLarchIT {
 
     @Test
     public void testRetrieveArchiveContent() throws Exception {
-        Entity e = this.archive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity());
         ZipInputStream zip = this.retrieveContent(e.getId(), e.getVersion(), 200);
         //try to read the zip file
         assertTrue(zip.available() > 0);
@@ -97,5 +98,14 @@ public class ArchiveControllerIT extends AbstractLarchIT {
         assertNotNull(entry);
         assertNotNull(entry.getName());
         zip.close();
+    }
+
+    @Test
+    public void testArchiveWithChildren() throws Exception {
+        Entity parent = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity child_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId());
+        Entity child_1_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), child_1.getId());
+        Entity child_2 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId());
+        Entity archived = this.archive(parent);
     }
 }
