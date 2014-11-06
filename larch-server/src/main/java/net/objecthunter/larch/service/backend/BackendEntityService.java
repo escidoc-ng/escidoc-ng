@@ -62,6 +62,20 @@ public interface BackendEntityService {
      */
     SearchResult searchEntities(String query, int offset, int maxRecords) throws IOException;
 
+    /**
+     * Get Information about level1- and level2-id of the entity with the given entityId
+     * @param entityId
+     * @return EntityHierarchy EntityHierarchy
+     * @throws IOException
+     */
     EntityHierarchy getHierarchy(String entityId) throws IOException;
+
+    /**
+     * Get Information about level1- and level2-id of the given entity
+     * @param entityId
+     * @return EntityHierarchy EntityHierarchy
+     * @throws IOException
+     */
+    EntityHierarchy getHierarchy(Entity entity) throws IOException;
 
 }

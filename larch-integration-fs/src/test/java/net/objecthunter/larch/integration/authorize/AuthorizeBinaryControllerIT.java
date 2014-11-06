@@ -199,15 +199,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/binary/image-1")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
     }
 
     private Binary getBinary() throws Exception {

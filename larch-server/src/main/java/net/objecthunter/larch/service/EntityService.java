@@ -70,6 +70,8 @@ public interface EntityService {
 
     void withdraw(String id) throws IOException;
 
+    void pending(String id) throws IOException;
+
     AuditRecords retrieveAuditRecords(String entityId, int offset, int count) throws IOException;
 
     void createAuditRecord(AuditRecord auditRecord) throws IOException;

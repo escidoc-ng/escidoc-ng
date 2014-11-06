@@ -310,8 +310,8 @@ public abstract class AbstractLarchIT {
                 resp =
                         this.executeAsAdmin(
                                 Request.Put(entityUrl + entityId + "/publish"));
+                response = EntityUtils.toString(resp.getEntity());
                 assertEquals(200, resp.getStatusLine().getStatusCode());
-                EntityUtils.toString(resp.getEntity());
                 if (!status.equals(EntityState.PUBLISHED)) {
                     // withdraw
                     resp =
@@ -325,6 +325,7 @@ public abstract class AbstractLarchIT {
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entityId));
+        response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         return fetched;

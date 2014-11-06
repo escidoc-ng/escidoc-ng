@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
+import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
@@ -70,8 +71,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Autowired
     private BackendMetadataService backendMetadataService;
 
-    private boolean metadataindexEnabled;
-
     private int maxRecords;
 
     @Autowired
@@ -81,7 +80,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
         this.maxRecords = Integer.parseInt(env.getProperty("search.maxRecords", "20"));
-        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         this.checkAndOrCreateIndex(INDEX_ENTITIES);
         this.waitForIndex(INDEX_ENTITIES);
     }
@@ -110,21 +108,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         refreshIndex(INDEX_ENTITIES);
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, entityHierarchy);
-        }
         return e.getId();
     }
 
     @Override
     public void update(Entity e) throws IOException {
-        final GetResponse resp;
-        try {
-            resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).execute().actionGet();
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
@@ -142,10 +130,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         /* refresh the index before returning */
         refreshIndex(INDEX_ENTITIES);
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, entityHierarchy);
-        }
     }
 
     @Override
@@ -208,11 +192,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
-        // delete from metadata index ?
-        if (metadataindexEnabled) {
-            backendMetadataService.delete(id);
-        }
-
     }
 
     @Override
@@ -359,7 +338,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         return entityHierarchy;
     }
 
-    private EntityHierarchy getHierarchy(Entity entity) throws IOException {
+    @Override
+    public EntityHierarchy getHierarchy(Entity entity) throws IOException {
         if (entity == null) {
             throw new IOException("entity may not be null");
         }
@@ -372,7 +352,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } else if (entity.getContentModelId() != null) {
             return getHierarchy(entity.getParentId());
         } else {
-            throw new IOException("entityType may not be null");
+            throw new IOException("contentModel may not be null");
         }
         return entityHierarchy;
     }

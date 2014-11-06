@@ -267,4 +267,16 @@ public abstract class AuditRecordHelper {
         rec.setAction(AuditRecord.EVENT_SUBMIT_ENTITY);
         return rec;
     }
+
+    public static AuditRecord withdrawEntityRecord(String id) {
+        final AuditRecord rec = skeletonRecord(id);
+        rec.setAction(AuditRecord.EVENT_WITHDRAW_ENTITY);
+        return rec;
+    }
+
+    public static AuditRecord pendingEntityRecord(String id) {
+        final AuditRecord rec = skeletonRecord(id);
+        rec.setAction(AuditRecord.EVENT_PENDING_ENTITY);
+        return rec;
+    }
 }
