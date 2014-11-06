@@ -41,8 +41,8 @@ public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
 
     @Test
     public void testPatchEntity() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
+        // create submitted entity
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
         String patchData = "{\"label\":\"otherLabel\"}";
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PATCH, entityUrl + entity.getId())
@@ -171,7 +171,7 @@ public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testUpdateEntity() throws Exception {
         // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
         entity.setLabel("otherLabel");
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId())

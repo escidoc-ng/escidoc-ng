@@ -51,15 +51,6 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/relation")
-                .body("predicate=pred&object=obj")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
     }
 
 }

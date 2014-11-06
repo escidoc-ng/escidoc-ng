@@ -51,15 +51,6 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/identifier")
-                .body("type=DOI&value=123")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
     }
 
     @Test
@@ -79,15 +70,6 @@ public class AuthorizeIdentifierControllerIT extends AbstractAuthorizeLarchIT {
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/identifier/DOI/testdoi")
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/identifier/DOI/testdoi")
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
                 .build());

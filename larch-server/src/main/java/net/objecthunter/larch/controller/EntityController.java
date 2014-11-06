@@ -161,7 +161,6 @@ public class EntityController extends AbstractLarchController {
     public String create(final InputStream src)
             throws IOException {
         Entity e = mapper.readValue(src, Entity.class);
-        e.setState(EntityState.PENDING);
         String entityId = create(e);
         return entityId;
     }

@@ -77,23 +77,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary")
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("mimetype", "image/png")
-                        .addPart(
-                                "binary",
-                                new FileBody(new File(Fixtures.class.getClassLoader().getResource(
-                                        "fixtures/image_1.png").getFile())))
-                        .build())
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
-
     }
 
     @Test
@@ -118,15 +101,6 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
 
-        // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
-        testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.POST, entityUrl + entity.getId() + "/binary")
-                .body(mapper.writeValueAsString(getBinary()))
-                .neededPermission(MissingPermission.WRITE_PUBLISHED_BINARY)
-                .resetState(true)
-                .resetStateId(entity.getId())
-                .build());
     }
 
     @Test
