@@ -44,6 +44,7 @@ import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
 import net.objecthunter.larch.service.impl.*;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
+import net.sf.json.xml.XMLSerializer;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
@@ -373,6 +374,19 @@ public class LarchServerConfiguration {
     MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
         return factory.createMultipartConfig();
+    }
+
+    /**
+     * An {@link net.sf.json.xml.XMLSerializer} for converting XML into JSON
+     *
+     * @return a {@link net.sf.json.xml.XMLSerializer} object used by Spring MVC
+     */
+    @Bean
+    XMLSerializer xmlSerializer() {
+        XMLSerializer serializer = new XMLSerializer();
+        serializer.setRemoveNamespacePrefixFromElements(true);
+        serializer.setForceTopLevelObject(true);
+        return serializer;
     }
 
     /**

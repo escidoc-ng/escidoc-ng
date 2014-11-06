@@ -18,6 +18,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,13 +26,16 @@ import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.sf.json.xml.XMLSerializer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
@@ -71,6 +75,9 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private XMLSerializer serializer;
+
     @PostConstruct
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
@@ -93,6 +100,8 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         EntityHierarchy entityHierarchy = getHierarchy(e);
         entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
         entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
+        // write metadata as json
+        entityData.putAll(writeMetadataIndex(e));
 
         try {
             client
@@ -117,10 +126,13 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         log.debug("updating entity " + e.getId());
         /* and create the updated document */
         Map<String, Object> entityData = mapper.readValue(mapper.writeValueAsString(e), Map.class);
+        // set hierarchy
         EntityHierarchy entityHierarchy = getHierarchy(e);
         entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
         entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
-        try {
+        // write metadata as json
+        entityData.putAll(writeMetadataIndex(e));
+        try { 
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
                             mapper.writeValueAsBytes(entityData))
@@ -271,10 +283,18 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
-            String parentId = hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
-            String label = hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
-            String contentModelId = hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
-            String state = hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(EntitiesSearchField.STATE.getFieldName()).getValue() : "";
+            String parentId =
+                    hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
+            String label =
+                    hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
+            String contentModelId =
+                    hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
+            String state =
+                    hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(
+                            EntitiesSearchField.STATE.getFieldName()).getValue() : "";
             final Entity e = new Entity();
             e.setId(hit.field(EntitiesSearchField.ID.getFieldName()).getValue());
             e.setParentId(parentId);
@@ -346,6 +366,44 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException("entityType may not be null");
         }
         return entityHierarchy;
+    }
+
+    /**
+     * Write XML-Metadata as JSON.
+     * Elasticsearch indexes JSON fieldwise, so a search in metadata per field is enabled.
+     * @param entity
+     * @return Map<String, Object> JSON, ordered by md-type
+     * @throws IOException
+     */
+    private Map<String, Object> writeMetadataIndex(Entity entity) throws IOException {
+        if (entity == null) {
+            throw new IOException("entity may not be null");
+        }
+        Map<String, Object> metadataMap = new HashMap<String, Object>();
+        // write metadata as json
+        if (entity.getMetadata() != null) {
+            for (Metadata md : entity.getMetadata().values()) {
+                if (metadataMap.get("md_" + md.getType()) == null) {
+                    metadataMap.put("md_" + md.getType(), new ArrayList<Map>());
+                }
+                ((List) metadataMap.get("md_" + md.getType())).add(mapper.readValue(serializer.read(md.getData())
+                        .toString(), Map.class));
+            }
+        }
+        if (entity.getBinaries() != null) {
+            for (Binary binary : entity.getBinaries().values()) {
+                if (binary.getMetadata() != null) {
+                    for (Metadata md : binary.getMetadata().values()) {
+                        if (metadataMap.get("binarymd_" + md.getType()) == null) {
+                            metadataMap.put("binarymd_" + md.getType(), new ArrayList<Map>());
+                        }
+                        ((List) metadataMap.get("binarymd_" + md.getType())).add(mapper.readValue(serializer.read(md.getData())
+                                .toString(), Map.class));
+                    }
+                }
+            }
+        }
+        return metadataMap;
     }
 
     /**
