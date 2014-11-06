@@ -31,6 +31,7 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContent
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
@@ -111,6 +112,16 @@ public class LarchServerConfiguration {
     @Bean
     public EntityService entityService() {
         return new DefaultEntityService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.impl.DefaultMetadataService} Spring bean
+     *
+     * @return the {@link net.objecthunter.larch.service.impl.DefaultMetadataService} implementation
+     */
+    @Bean
+    public MetadataService metadataService() {
+        return new DefaultMetadataService();
     }
 
     /**
@@ -217,6 +228,17 @@ public class LarchServerConfiguration {
     @Bean
     public BackendEntityService elasticSearchIndexService() {
         return new ElasticSearchEntityService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.BackendMetadataService} implementation Spring bean
+     *
+     * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService}
+     *         implementation
+     */
+    @Bean
+    public BackendMetadataService backendMetadataService() {
+        return new ElasticSearchMetadataService();
     }
 
     /**

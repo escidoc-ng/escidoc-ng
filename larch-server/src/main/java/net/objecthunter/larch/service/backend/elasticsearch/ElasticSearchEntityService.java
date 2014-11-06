@@ -18,7 +18,6 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,16 +25,14 @@ import javax.annotation.PostConstruct;
 
 import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.NotFoundException;
-import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
-import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.sf.json.xml.XMLSerializer;
+import net.objecthunter.larch.service.backend.BackendMetadataService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
@@ -69,19 +66,22 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     public static final String INDEX_ENTITY_TYPE = "entity";
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityService.class);
+    
+    @Autowired
+    private BackendMetadataService backendMetadataService;
+
+    private boolean metadataindexEnabled;
 
     private int maxRecords;
 
     @Autowired
     private ObjectMapper mapper;
 
-    @Autowired
-    private XMLSerializer serializer;
-
     @PostConstruct
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
         this.maxRecords = Integer.parseInt(env.getProperty("search.maxRecords", "20"));
+        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         this.checkAndOrCreateIndex(INDEX_ENTITIES);
         this.waitForIndex(INDEX_ENTITIES);
     }
@@ -100,8 +100,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         EntityHierarchy entityHierarchy = getHierarchy(e);
         entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
         entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
-        // write metadata as json
-        entityData.putAll(writeMetadataIndex(e));
 
         try {
             client
@@ -112,6 +110,10 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
         refreshIndex(INDEX_ENTITIES);
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, entityHierarchy);
+        }
         return e.getId();
     }
 
@@ -130,8 +132,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         EntityHierarchy entityHierarchy = getHierarchy(e);
         entityData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
         entityData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
-        // write metadata as json
-        entityData.putAll(writeMetadataIndex(e));
         try { 
             client
                     .prepareIndex(INDEX_ENTITIES, INDEX_ENTITY_TYPE, e.getId()).setSource(
@@ -142,6 +142,10 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         }
         /* refresh the index before returning */
         refreshIndex(INDEX_ENTITIES);
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, entityHierarchy);
+        }
     }
 
     @Override
@@ -204,6 +208,11 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
         }
+        // delete from metadata index ?
+        if (metadataindexEnabled) {
+            backendMetadataService.delete(id);
+        }
+
     }
 
     @Override
@@ -366,44 +375,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
             throw new IOException("entityType may not be null");
         }
         return entityHierarchy;
-    }
-
-    /**
-     * Write XML-Metadata as JSON.
-     * Elasticsearch indexes JSON fieldwise, so a search in metadata per field is enabled.
-     * @param entity
-     * @return Map<String, Object> JSON, ordered by md-type
-     * @throws IOException
-     */
-    private Map<String, Object> writeMetadataIndex(Entity entity) throws IOException {
-        if (entity == null) {
-            throw new IOException("entity may not be null");
-        }
-        Map<String, Object> metadataMap = new HashMap<String, Object>();
-        // write metadata as json
-        if (entity.getMetadata() != null) {
-            for (Metadata md : entity.getMetadata().values()) {
-                if (metadataMap.get("md_" + md.getType()) == null) {
-                    metadataMap.put("md_" + md.getType(), new ArrayList<Map>());
-                }
-                ((List) metadataMap.get("md_" + md.getType())).add(mapper.readValue(serializer.read(md.getData())
-                        .toString(), Map.class));
-            }
-        }
-        if (entity.getBinaries() != null) {
-            for (Binary binary : entity.getBinaries().values()) {
-                if (binary.getMetadata() != null) {
-                    for (Metadata md : binary.getMetadata().values()) {
-                        if (metadataMap.get("binarymd_" + md.getType()) == null) {
-                            metadataMap.put("binarymd_" + md.getType(), new ArrayList<Map>());
-                        }
-                        ((List) metadataMap.get("binarymd_" + md.getType())).add(mapper.readValue(serializer.read(md.getData())
-                                .toString(), Map.class));
-                    }
-                }
-            }
-        }
-        return metadataMap;
     }
 
     /**
