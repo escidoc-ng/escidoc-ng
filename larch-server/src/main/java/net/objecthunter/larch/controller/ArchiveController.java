@@ -43,8 +43,8 @@ public class ArchiveController extends AbstractLarchController {
     @Autowired
     private ArchiveService archiveService;
 
-    @RequestMapping(value = "{entityId}/{version}", method = RequestMethod.GET)
-    public void retrieve(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
+    @RequestMapping(value = "{entityId}/{version}/content", method = RequestMethod.GET)
+    public void retrieveContent(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
                          HttpServletResponse resp) {
         try (InputStream src = this.archiveService.retrieveData(entityId, version);
             OutputStream sink = resp.getOutputStream()) {
@@ -73,4 +73,12 @@ public class ArchiveController extends AbstractLarchController {
     public List<Archive> listArchives(@PathVariable("offset") final int offset, @PathVariable("count") final int count) throws IOException {
         return archiveService.list(offset, count);
     }
+
+    @RequestMapping(value="{entityId}/{version}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Archive retrieveArchive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
+        return archiveService.retrieve(entityId, version);
+    }
+
 }

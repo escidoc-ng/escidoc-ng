@@ -19,7 +19,9 @@ package net.objecthunter.larch.service.backend.sftp;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import org.apache.commons.io.IOUtils;
 import org.apache.sshd.client.SftpClient;
@@ -31,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.EnumSet;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
@@ -40,6 +43,9 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
+
+    @Autowired
+    private BackendArchiveInformationPackageService aipService;
 
     @Value("${larch.archive.path}")
     private String archivePath;
@@ -66,7 +72,7 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
         final String path = archivePath + "/" + fileName;
 
         try (final OutputStream sink = sftp.write(path)) {
-            this.writeEntityToZip(e, sink);
+            this.aipService.write(e, sink);
         }
         return path;
     }
@@ -104,48 +110,6 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
             }
             throw new IOException(e);
         }
-    }
-
-    /*
-     * This method is duplicated in the {@link FileSystemArchiveService}Service in favour of the not creating the
-     * spaghetti incident via polymorphism
-     */
-    private void writeEntityToZip(final Entity e, final OutputStream sink) throws IOException {
-        final ZipOutputStream zipSink = new ZipOutputStream(sink);
-        /* write the entity xml to the package */
-        zipSink.putNextEntry(new ZipEntry("entity_" + e.getId() + ".json"));
-        IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
-        zipSink.closeEntry();
-
-        /* write the metadata to the package */
-        for (final Metadata md : e.getMetadata().values()) {
-            zipSink.putNextEntry(new ZipEntry("metadata_" + md.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
-            zipSink.closeEntry();
-        }
-
-        /* write the binaries to the package */
-        for (final Binary bin : e.getBinaries().values()) {
-
-            /* first the binary itself */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getName() + ".json"));
-            IOUtils.write(this.mapper.writeValueAsString(bin), zipSink);
-            zipSink.closeEntry();
-
-            /* save the metadata */
-            for (final Metadata md : bin.getMetadata().values()) {
-                zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/metadata_" + md.getName() + ".json"));
-                IOUtils.write(this.mapper.writeValueAsString(md), zipSink);
-                zipSink.closeEntry();
-            }
-
-            /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry("binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
-            zipSink.closeEntry();
-        }
-        zipSink.finish();
-        zipSink.flush();
     }
 
 }

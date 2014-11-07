@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipInputStream;
 
 import net.objecthunter.larch.LarchServerConfiguration;
 import net.objecthunter.larch.integration.helpers.NullOutputStream;
 import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.AlternativeIdentifier.IdentifierType;
+import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
@@ -354,6 +356,16 @@ public abstract class AbstractLarchIT {
     }
 
     protected Entity archive(Entity e) throws Exception {
+        HttpResponse resp = this.executeAsAdmin(Request.Get(entityUrl + "/" + e.getId()));
+        assertEquals(200, resp.getStatusLine().getStatusCode());
+        final Entity fetched = this.mapper.readValue(EntityUtils.toString(resp.getEntity()), Entity.class);
+
+        resp = this.executeAsAdmin(Request.Put(hostUrl + "/archive/" + fetched.getId() + "/" + fetched.getVersion()));
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        return fetched;
+    }
+
+    protected Entity ingestAndArchive(Entity e) throws Exception {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl).bodyString(mapper.writeValueAsString(e),
@@ -371,11 +383,22 @@ public abstract class AbstractLarchIT {
         return fetched;
     }
 
-    protected HttpResponse retrieveArchive(String id, int version) throws Exception {
-        return this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version));
+    protected Archive retrieveArchive(String id, int version, int expectedStatus) throws Exception {
+        HttpResponse resp = this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version));
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        if (expectedStatus != 200) {
+            return null;
+        }
+        return this.mapper.readValue(resp.getEntity().getContent(), Archive.class);
     }
 
     public HttpResponse listArchives(int offset, int length) throws IOException {
         return this.executeAsAdmin(Request.Get(hostUrl + "/archive/list/" + offset + "/" + length));
+    }
+
+    public ZipInputStream retrieveContent(String id, int version, int expectedStatus) throws IOException {
+        HttpResponse resp = this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version + "/content"));
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        return new ZipInputStream(resp.getEntity().getContent());
     }
 }
