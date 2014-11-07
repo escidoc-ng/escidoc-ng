@@ -25,6 +25,7 @@ import java.util.Map;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
+import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
@@ -82,6 +83,7 @@ public abstract class Fixtures {
     public static Entity createEntity() {
         Entity e = new Entity();
         e.setId("testid");
+        e.setState(EntityState.PENDING);
         e.setLabel("Test label");
         e.setContentModelId(FixedContentModel.DATA.getName());
         e.setTags(Arrays.asList("tag1", "tag2"));
@@ -168,6 +170,7 @@ public abstract class Fixtures {
         md = createRandomDCMetadata();
         metadata.put(md.getName(), md);
         Entity e = new Entity();
+        e.setState(EntityState.PENDING);
         e.setParentId(LEVEL2_ID);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
@@ -202,6 +205,7 @@ public abstract class Fixtures {
         Map<String, Binary> binaries = new HashMap<>();
         binaries.put(bin1.getName(), bin1);
         Entity e = new Entity();
+        e.setState(EntityState.PENDING);
         e.setLabel("My Label");
         e.setTags(Arrays.asList("test", "integration-test"));
         e.setContentModelId(FixedContentModel.DATA.getName());

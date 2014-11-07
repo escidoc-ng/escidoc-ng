@@ -57,6 +57,7 @@ import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendMetadataService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -95,6 +96,9 @@ public class DefaultEntityService implements EntityService {
     private BackendEntityService backendEntityService;
 
     @Autowired
+    private BackendMetadataService backendMetadataService;
+
+    @Autowired
     private BackendCredentialsService backendCredentialsService;
 
     @Autowired
@@ -117,8 +121,11 @@ public class DefaultEntityService implements EntityService {
 
     private boolean autoExport;
 
+    private boolean metadataindexEnabled;
+
     @PostConstruct
     public void init() {
+        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         final String val = env.getProperty("larch.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
@@ -134,8 +141,13 @@ public class DefaultEntityService implements EntityService {
                         + " could not be created because it already exists in the index");
             }
         }
+        if (e.getState() == null) {
+            e.setState(EntityState.PENDING);
+        }
+
         // validate
         defaultEntityValidatorService.validate(e);
+
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
                 md.setUtcCreated(now);
@@ -150,7 +162,6 @@ public class DefaultEntityService implements EntityService {
                 createAndMutateBinary(e.getId(), b);
             }
         }
-        e.setState(EntityState.PENDING);
         e.setVersion(1);
         e.setUtcCreated(now);
         e.setUtcLastModified(now);
@@ -163,6 +174,10 @@ public class DefaultEntityService implements EntityService {
             log.debug("exported entity {} ", id);
         }
 
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
+        }
         return id;
     }
 
@@ -213,10 +228,13 @@ public class DefaultEntityService implements EntityService {
     public void update(Entity e) throws IOException {
         final Entity oldVersion = retrieve(e.getId());
         // check
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
+        }
         checkNonUpdateableFields(e, oldVersion);
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
-        e.setVersionAndResetState(oldVersion.getVersion() + 1);
+        e.setVersion(oldVersion.getVersion() + 1);
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
                 if (md.getUtcCreated() == null) {
@@ -246,6 +264,10 @@ public class DefaultEntityService implements EntityService {
             }
         }
         this.backendEntityService.update(e);
+        // index metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
+        }
         if (autoExport) {
             exportService.export(e);
             log.debug("exported entity {} ", e.getId());
@@ -299,6 +321,10 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("name of binary may not be null or empty");
         }
         final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
+
         if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
             throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
                     e.getId());
@@ -330,7 +356,7 @@ public class DefaultEntityService implements EntityService {
                 e.setBinaries(new HashMap<>(1));
             }
             e.getBinaries().put(name, b);
-            e.setVersionAndResetState(e.getVersion() + 1);
+            e.setVersion(e.getVersion() + 1);
             e.setUtcLastModified(now);
             this.backendEntityService.update(e);
         }
@@ -343,6 +369,9 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void patch(final String id, final JsonNode node) throws IOException {
         final Entity e = retrieve(id);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
         final Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
         while (fields.hasNext()) {
             final Map.Entry<String, JsonNode> field = fields.next();
@@ -385,11 +414,14 @@ public class DefaultEntityService implements EntityService {
             }
         }
         final Entity oldVersion = retrieve(id);
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
+        }
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
         newVersion.setUtcLastModified(now);
-        newVersion.setVersionAndResetState(oldVersion.getVersion() + 1);
+        newVersion.setVersion(oldVersion.getVersion() + 1);
         if (newVersion.getRelations() == null) {
             newVersion.setRelations(new HashMap<>());
         }
@@ -403,6 +435,9 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void deleteBinary(String entityId, String name) throws IOException {
         final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
         if (e.getBinaries().get(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
@@ -419,6 +454,9 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void deleteMetadata(String entityId, String mdName) throws IOException {
         final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
         if (e.getMetadata().get(mdName) == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
@@ -430,6 +468,9 @@ public class DefaultEntityService implements EntityService {
     public void deleteBinaryMetadata(String entityId, String binaryName, String mdName)
             throws IOException {
         final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new NotFoundException("The binary " + binaryName + " does not exist in the entity " + entityId);
         }
@@ -456,11 +497,14 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
+        }
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
         newVersion.setUtcLastModified(now);
-        newVersion.setVersionAndResetState(oldVersion.getVersion() + 1);
+        newVersion.setVersion(oldVersion.getVersion() + 1);
         newVersion.getAlternativeIdentifiers().add(new AlternativeIdentifier(type, value));
 
         this.backendEntityService.update(newVersion);
@@ -480,11 +524,14 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
+        }
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         final Entity newVersion = oldVersion;
         newVersion.setUtcLastModified(now);
-        newVersion.setVersionAndResetState(oldVersion.getVersion() + 1);
+        newVersion.setVersion(oldVersion.getVersion() + 1);
         boolean found = false;
         for (AlternativeIdentifier alternativeIdentifier : newVersion.getAlternativeIdentifiers()) {
             if (alternativeIdentifier.getType().equals(type) && alternativeIdentifier.getValue().equals(value)) {
@@ -503,22 +550,43 @@ public class DefaultEntityService implements EntityService {
     @Override
     public void submit(String id) throws IOException {
         final Entity e = retrieve(id);
-        e.setState(EntityState.SUBMITTED);
-        this.backendEntityService.update(e);
+        if (EntityState.WITHDRAWN.equals(e.getState()) || EntityState.PUBLISHED.equals(e.getState())) {
+            throw new InvalidParameterException("entity is in state " + e.getState() + " and may not get submitted");
+        }
+        if (!EntityState.SUBMITTED.equals(e.getState())) {
+            e.setState(EntityState.SUBMITTED);
+            this.backendEntityService.update(e);
+        }
     }
 
     @Override
     public void publish(String id) throws IOException {
         final Entity e = retrieve(id);
-        e.setState(EntityState.PUBLISHED);
-        this.backendEntityService.update(e);
+        if (!EntityState.PUBLISHED.equals(e.getState())) {
+            e.setState(EntityState.PUBLISHED);
+            this.backendEntityService.update(e);
+        }
     }
 
     @Override
     public void withdraw(String id) throws IOException {
         final Entity e = retrieve(id);
-        e.setState(EntityState.WITHDRAWN);
-        this.backendEntityService.update(e);
+        if (!EntityState.WITHDRAWN.equals(e.getState())) {
+            e.setState(EntityState.WITHDRAWN);
+            this.backendEntityService.update(e);
+        }
+    }
+
+    @Override
+    public void pending(String id) throws IOException {
+        final Entity e = retrieve(id);
+        if (EntityState.WITHDRAWN.equals(e.getState()) || EntityState.PUBLISHED.equals(e.getState())) {
+            throw new InvalidParameterException("entity is in state " + e.getState() + " and may not set to pending");
+        }
+        if (!EntityState.PENDING.equals(e.getState())) {
+            e.setState(EntityState.PENDING);
+            this.backendEntityService.update(e);
+        }
     }
 
     @Override
@@ -598,28 +666,33 @@ public class DefaultEntityService implements EntityService {
      */
     private void checkNonUpdateableFields(Entity newVersion, Entity oldVersion) throws IOException {
         if (!newVersion.getContentModelId().equals(oldVersion.getContentModelId())) {
-            throw new IOException("entity may not be moved to different content-model");
+            throw new InvalidParameterException("entity may not be moved to different content-model");
+        }
+        if (!oldVersion.getState().equals(newVersion.getState())) {
+            throw new InvalidParameterException("entity may not be set to a different state with this method.");
         }
         if (StringUtils.isBlank(newVersion.getParentId()) && StringUtils.isBlank(oldVersion.getParentId())) {
             return;
         }
         if (StringUtils.isNotBlank(newVersion.getParentId()) && StringUtils.isNotBlank(oldVersion.getParentId())) {
-            EntityHierarchy oldHierarchy = this.backendEntityService.getHierarchy(oldVersion.getParentId());
-            EntityHierarchy newHierarchy = this.backendEntityService.getHierarchy(newVersion.getParentId());
-            if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
-                throw new IOException("entity may not be moved to different level1");
-            }
-            if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
-                return;
-            }
-            if ((StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isNotBlank(newHierarchy
-                    .getLevel2Id())) ||
-                    (StringUtils.isNotBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy
-                            .getLevel2Id())) || !oldHierarchy.getLevel2Id().equals(newHierarchy.getLevel2Id())) {
-                throw new IOException("entity may not be moved to different level2");
+            if (!newVersion.getParentId().equals(oldVersion.getParentId())) {
+                EntityHierarchy oldHierarchy = this.backendEntityService.getHierarchy(oldVersion.getParentId());
+                EntityHierarchy newHierarchy = this.backendEntityService.getHierarchy(newVersion.getParentId());
+                if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
+                    throw new InvalidParameterException("entity may not be moved to different level1");
+                }
+                if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
+                    return;
+                }
+                if ((StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isNotBlank(newHierarchy
+                        .getLevel2Id())) ||
+                        (StringUtils.isNotBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy
+                                .getLevel2Id())) || !oldHierarchy.getLevel2Id().equals(newHierarchy.getLevel2Id())) {
+                    throw new InvalidParameterException("entity may not be moved to different level2");
+                }
             }
         } else {
-            throw new IOException("parentId may not get changed from/to null");
+            throw new InvalidParameterException("parentId may not get changed from/to null");
         }
     }
 
@@ -698,5 +771,10 @@ public class DefaultEntityService implements EntityService {
 
         // delete rights having this entity as anchorId
         this.backendCredentialsService.deleteRights(id);
+
+        // delete indexed metadata ?
+        if (metadataindexEnabled) {
+            backendMetadataService.delete(id);
+        }
     }
 }

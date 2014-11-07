@@ -95,7 +95,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 

@@ -257,13 +257,8 @@ public class EntityControllerIT extends AbstractLarchIT {
                         Request.Put(entityUrl + id)
                                 .bodyString(mapper.writeValueAsString(update),
                                         ContentType.APPLICATION_JSON));
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-
-        // retrieve
-        resp = this.executeAsAdmin(Request.Get(entityUrl + id));
-        fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertEquals(EntityState.PENDING, fetched.getState());
-        assertEquals(2, fetched.getVersion());
+        String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(400, resp.getStatusLine().getStatusCode());
     }
 
     @Test

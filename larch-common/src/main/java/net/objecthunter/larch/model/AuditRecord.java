@@ -25,9 +25,13 @@ public class AuditRecord {
 
     public static final String EVENT_UPDATE_ENTITY = "Update entity";
 
-    public static final String EVENT_SUBMIT_ENTITY = "Submit entity";
+    public static final String EVENT_SUBMIT_ENTITY = "Set entity-status to SUBMITTED";
 
-    public static final String EVENT_PUBLISH_ENTITY = "Publish entity";
+    public static final String EVENT_PUBLISH_ENTITY = "Set entity-status to PUBLISHED";
+
+    public static final String EVENT_WITHDRAW_ENTITY = "Set entity-status to WITHDRAWN";
+
+    public static final String EVENT_PENDING_ENTITY = "Set entity-status to PENDING";
 
     public static final String EVENT_CREATE_BINARY = "Create binary";
 

@@ -286,16 +286,6 @@ public class Entity {
     }
 
     /**
-     * Set the version number of an entity and set it's state to INGESTED
-     * 
-     * @param version the version number to set
-     */
-    public void setVersionAndResetState(int version) {
-        this.version = version;
-        this.state = EntityState.PENDING;
-    }
-
-    /**
      * Get the state of the entity
      * 
      * @return the state

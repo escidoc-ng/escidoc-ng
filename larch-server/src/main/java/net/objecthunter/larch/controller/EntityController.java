@@ -161,7 +161,6 @@ public class EntityController extends AbstractLarchController {
     public String create(final InputStream src)
             throws IOException {
         Entity e = mapper.readValue(src, Entity.class);
-        e.setState(EntityState.PENDING);
         String entityId = create(e);
         return entityId;
     }
@@ -289,7 +288,28 @@ public class EntityController extends AbstractLarchController {
     public void withdraw(@PathVariable("id") final String id)
             throws IOException {
         this.entityService.withdraw(id);
-        this.entityService.createAuditRecord(AuditRecordHelper.publishEntityRecord(id));
+        this.entityService.createAuditRecord(AuditRecordHelper.withdrawEntityRecord(id));
+        this.messagingService.publishWithdrawEntity(id);
+    }
+
+    /**
+     * Controller method for setting the status of an {@link net.objecthunter.larch.model.Entity} to PENDING.<br>
+     * Sets the state-attribute of the entity to "withdrawn".
+     * 
+     * @param id The id of the Entity to withdraw.
+     * @throws IOException
+     */
+    @RequestMapping(value = "/{id}/pending", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
+        @Permission(rolename = RoleName.ROLE_ADMIN),
+        @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE),
+        @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
+    public void pending(@PathVariable("id") final String id)
+            throws IOException {
+        this.entityService.pending(id);
+        this.entityService.createAuditRecord(AuditRecordHelper.pendingEntityRecord(id));
         this.messagingService.publishWithdrawEntity(id);
     }
 
