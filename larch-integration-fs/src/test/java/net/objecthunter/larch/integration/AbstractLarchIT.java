@@ -343,6 +343,96 @@ public abstract class AbstractLarchIT {
     }
 
     /**
+     * @param entity entity-JSON
+     * @param expectedStatus expected resonse-Status
+     */
+    protected Entity createEntity(Entity entity, int expectedStatus) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(entityUrl).bodyString(
+                                mapper.writeValueAsString(entity),
+                                ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        if (expectedStatus < 400) {
+            // get entity
+            String entityId = EntityUtils.toString(resp.getEntity());
+            resp =
+                    this.executeAsAdmin(
+                            Request.Get(entityUrl + entityId));
+            String response = EntityUtils.toString(resp.getEntity());
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            return fetched;
+        }
+        return null;
+    }
+
+    /**
+     * @param entity entity-JSON
+     * @param expectedStatus expected resonse-Status
+     */
+    protected Entity updateEntity(Entity entity, int expectedStatus) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Put(entityUrl + entity.getId()).bodyString(
+                                mapper.writeValueAsString(entity),
+                                ContentType.APPLICATION_JSON));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        if (expectedStatus < 400) {
+            // get entity
+            resp =
+                    this.executeAsAdmin(
+                            Request.Get(entityUrl + entity.getId()));
+            String response = EntityUtils.toString(resp.getEntity());
+            assertEquals(200, resp.getStatusLine().getStatusCode());
+            Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            return fetched;
+        }
+        return null;
+    }
+
+    /**
+     * @param entityId entityId
+     * @param expectedStatus expected resonse-Status
+     */
+    protected Entity retrieveEntity(String entityId, int expectedStatus) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entityId));
+        String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        if (expectedStatus < 400) {
+            Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            return fetched;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param entityId entityId
+     * @param state state
+     * @param expectedStatus expected resonse-Status
+     */
+    protected void setEntityStatus(String entityId, EntityState state, int expectedStatus) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Put(getStateUrl(entityId, state)));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+    }
+
+    /**
+     * @param entityId entityId
+     */
+    protected EntityState getEntityStatus(String entityId) throws Exception {
+        Entity entity = retrieveEntity(entityId, 200);
+        return entity.getState();
+    }
+
+    /**
      * Add Metadata to an Entity.
      * 
      * @param entity entity
@@ -1047,5 +1137,18 @@ public abstract class AbstractLarchIT {
         HttpResponse resp = this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version + "/content"));
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         return new ZipInputStream(resp.getEntity().getContent());
+    
+    private String getStateUrl (String entityId, EntityState state) {
+        if (EntityState.PENDING.equals(state)) {
+            return entityUrl + entityId + "/pending";
+        } else if (EntityState.SUBMITTED.equals(state)) {
+            return entityUrl + entityId + "/submit";
+        } else if (EntityState.PUBLISHED.equals(state)) {
+            return entityUrl + entityId + "/publish";
+        } else if (EntityState.WITHDRAWN.equals(state)) {
+            return entityUrl + entityId + "/withdraw";
+        } else {
+            return null;
+        }
     }
 }

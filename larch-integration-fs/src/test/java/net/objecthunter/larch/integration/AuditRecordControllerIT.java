@@ -37,8 +37,8 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
 
     @Test
     public void testRetrieveAuditRecords() throws Exception {
-        // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        // create submitted entity
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), LEVEL2_ID);
         // add binary
         entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 201);
         // add Metadata
@@ -59,8 +59,7 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
         entity = removeBinary(entity, IGNORE, 200);
 
         String[] auditMessages = new String[] {
-            "Create entity", "Update entity", "Submit entity",
-            "Publish entity",
+            "Create entity", 
             "Create binary",
             "Create metadata",
             "Create metadata for binary",
