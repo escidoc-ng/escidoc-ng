@@ -102,7 +102,7 @@ public class AuthorizeContentModelControllerIT extends AbstractAuthorizeLarchIT 
     @Test
     public void testRetrieveContentModel() throws Exception {
         // create content model
-        String contentModelId = createContentModel();
+        String contentModelId = createContentModel(IGNORE, 201);
 
         // level1 admin
         HttpResponse resp =
@@ -139,7 +139,7 @@ public class AuthorizeContentModelControllerIT extends AbstractAuthorizeLarchIT 
     @Test
     public void testDeleteContentModel() throws Exception {
         // level1 admin
-        String contentModelId = createContentModel();
+        String contentModelId = createContentModel(IGNORE, 201);
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.DELETE, contentModelUrl + contentModelId, null,
                         users.get(RoleName.ROLE_LEVEL1_ADMIN.name())[0],
@@ -148,7 +148,7 @@ public class AuthorizeContentModelControllerIT extends AbstractAuthorizeLarchIT 
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // admin
-        contentModelId = createContentModel();
+        contentModelId = createContentModel(IGNORE, 201);
         resp =
                 this.executeAsUser(HttpMethod.DELETE, contentModelUrl + contentModelId, null,
                         adminUsername, adminPassword, false);
@@ -156,7 +156,7 @@ public class AuthorizeContentModelControllerIT extends AbstractAuthorizeLarchIT 
         assertEquals(200, resp.getStatusLine().getStatusCode());
 
         // user-admin
-        contentModelId = createContentModel();
+        contentModelId = createContentModel(IGNORE, 201);
         resp =
                 this.executeAsUser(HttpMethod.DELETE, contentModelUrl + contentModelId, null,
                         users.get(RoleName.ROLE_USER_ADMIN.name())[0],
@@ -165,7 +165,7 @@ public class AuthorizeContentModelControllerIT extends AbstractAuthorizeLarchIT 
         assertEquals(403, resp.getStatusLine().getStatusCode());
 
         // user
-        contentModelId = createContentModel();
+        contentModelId = createContentModel(IGNORE, 201);
         resp =
                 this.executeAsUser(HttpMethod.DELETE, contentModelUrl + contentModelId, null,
                         users.get(RoleName.ROLE_USER.name())[0],

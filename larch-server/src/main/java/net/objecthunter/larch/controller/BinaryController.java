@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
@@ -132,7 +133,7 @@ public class BinaryController extends AbstractLarchController {
             throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
-            throw new IOException("The Binary " + name + " does not exist on the entity " + entityId);
+            throw new NotFoundException("The Binary " + name + " does not exist on the entity " + entityId);
         }
         return e.getBinaries().get(name);
     }
@@ -159,6 +160,9 @@ public class BinaryController extends AbstractLarchController {
             final HttpServletResponse response) throws IOException {
         // TODO: Content Size
         final Entity e = entityService.retrieve(id);
+        if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
+            throw new NotFoundException("The Binary " + name + " does not exist on the entity " + id);
+        }
         final Binary bin = e.getBinaries().get(name);
         response.setContentType(bin.getMimetype());
         response.setContentLength(-1);

@@ -283,6 +283,9 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public void delete(String id) throws IOException {
+        if (!backendEntityService.exists(id)) {
+            throw new NotFoundException("Entity with id " + id + " was not found");
+        }
         // check if entity is published. If yes, throw error.
         if (isPublished(id)) {
             throw new InvalidParameterException("Entity with id " + id + " is already published");
@@ -320,13 +323,16 @@ public class DefaultEntityService implements EntityService {
         if (StringUtils.isBlank(name)) {
             throw new InvalidParameterException("name of binary may not be null or empty");
         }
+        if (StringUtils.isBlank(contentType)) {
+            throw new InvalidParameterException("contentType of binary may not be null or empty");
+        }
         final Entity e = retrieve(entityId);
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
 
         if (e.getBinaries() != null && e.getBinaries().get(name) != null) {
-            throw new InvalidParameterException("binary with name " + name + " already exists in entity with id " +
+            throw new AlreadyExistsException("binary with name " + name + " already exists in entity with id " +
                     e.getId());
         }
         this.backendVersionService.addOldVersion(e);
