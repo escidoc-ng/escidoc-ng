@@ -25,6 +25,7 @@ import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.http.HttpResponse;
@@ -96,7 +97,7 @@ public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
         // create published entity
         Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
@@ -240,10 +241,12 @@ public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // level1 admin
+        String myLevel1Id = createLevel1();
+        String username = createUser(null, userPassword);
+        createRoleForUser(username, new Level1AdminRole(), myLevel1Id);
         HttpResponse resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/publish", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                this.executeAsUser(HttpMethod.PUT, entityUrl + myLevel1Id + "/publish", null,
+                        username, userPassword, false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 
@@ -294,10 +297,12 @@ public class AuthorizeLevel1ControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
 
         // level1 admin
+        String myLevel1Id = createLevel1();
+        String username = createUser(null, userPassword);
+        createRoleForUser(username, new Level1AdminRole(), myLevel1Id);
         HttpResponse resp =
-                this.executeAsUser(HttpMethod.PUT, entityUrl + Fixtures.LEVEL1_ID + "/withdraw", null,
-                        level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
-                                .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
+                this.executeAsUser(HttpMethod.PUT, entityUrl + myLevel1Id + "/withdraw", null,
+                        username, userPassword, false);
         String response = EntityUtils.toString(resp.getEntity());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
 

@@ -81,19 +81,19 @@ public class AuthorizeEntityControllerIT extends AbstractAuthorizeLarchIT {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
-                HttpMethod.GET, entityUrl + entity.getId() + "/version/2")
+                HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }

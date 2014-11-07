@@ -275,6 +275,7 @@ public abstract class AbstractLarchIT {
             throw new Exception("given status not valid");
         }
         Entity e = createFixtureEntity();
+        e.setState(status);
         e.setParentId(parentId);
         e.setContentModelId(contentModelId);
         AlternativeIdentifier identifier = new AlternativeIdentifier();
@@ -291,41 +292,11 @@ public abstract class AbstractLarchIT {
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
         String entityId = EntityUtils.toString(resp.getEntity());
-        e.setLabel("other");
-        resp =
-                this.executeAsAdmin(
-                        Request.Put(entityUrl + entityId).bodyString(
-                                mapper.writeValueAsString(e),
-                                ContentType.APPLICATION_JSON));
-        String response = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-        if (!status.equals(EntityState.PENDING)) {
-            // submit
-            resp =
-                    this.executeAsAdmin(
-                            Request.Put(entityUrl + entityId + "/submit"));
-            assertEquals(200, resp.getStatusLine().getStatusCode());
-            if (!status.equals(EntityState.SUBMITTED)) {
-                // publish
-                resp =
-                        this.executeAsAdmin(
-                                Request.Put(entityUrl + entityId + "/publish"));
-                response = EntityUtils.toString(resp.getEntity());
-                assertEquals(200, resp.getStatusLine().getStatusCode());
-                if (!status.equals(EntityState.PUBLISHED)) {
-                    // withdraw
-                    resp =
-                            this.executeAsAdmin(
-                                    Request.Put(entityUrl + entityId + "/withdraw"));
-                    assertEquals(200, resp.getStatusLine().getStatusCode());
-                }
-            }
-        }
         // get entity
         resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + entityId));
-        response = EntityUtils.toString(resp.getEntity());
+        String response = EntityUtils.toString(resp.getEntity());
         assertEquals(200, resp.getStatusLine().getStatusCode());
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         return fetched;

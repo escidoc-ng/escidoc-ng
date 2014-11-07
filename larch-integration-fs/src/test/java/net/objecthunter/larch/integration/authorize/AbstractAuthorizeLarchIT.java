@@ -123,15 +123,15 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @throws Exception
      */
     protected void prepareLevel2() throws Exception {
-        //create level1s
+        // create level1s
         level1Id1 = createLevel1();
         level1Id2 = createLevel1();
-        
+
         // create level2s
         level2Id = createLevel2(LEVEL1_ID);
         level2Id1 = createLevel2(level1Id1);
 
-        //create users with User-Role
+        // create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {
             userRoleUsernames.put(missingPermission, new String[] { createUser(null, userPassword), userPassword });
         }
@@ -179,28 +179,39 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 createMissingPermissionRightsForUser(e.getValue()[0], level2Id, RoleRight.WRITE_LEVEL2);
             }
         }
-        
-        //create users with level1Admin + userAdmin Roles
-        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + LEVEL1_ID, new String[] { createUser(null, userPassword), userPassword });
-        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + level1Id1, new String[] { createUser(null, userPassword), userPassword });
-        userAdminRoleUsernames.put("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY), new String[] { createUser(null, userPassword), userPassword });
+
+        // create users with level1Admin + userAdmin Roles
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + LEVEL1_ID, new String[] { createUser(null, userPassword),
+            userPassword });
+        level1AdminRoleUsernames.put("ROLE_LEVEL1_ADMIN" + level1Id1, new String[] { createUser(null, userPassword),
+            userPassword });
+        userAdminRoleUsernames.put("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY),
+                new String[] { createUser(null, userPassword), userPassword });
         userAdminRoleUsernames.put("ROLE_USER_ADMIN", new String[] { createUser(null, userPassword), userPassword });
-        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new Level1AdminRole(), LEVEL1_ID);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new Level1AdminRole(),
+                LEVEL1_ID);
         createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserRole(), level2Id1);
-        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + LEVEL1_ID)[0], new UserAdminRole(),
+                unusedUserId);
 
-        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new Level1AdminRole(), level1Id1);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new Level1AdminRole(),
+                level1Id1);
         createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserRole(), level2Id1);
-        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserAdminRole(), unusedUserId);
+        createRoleForUser(level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], new UserAdminRole(),
+                unusedUserId);
 
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(), userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new Level1AdminRole(), level1Id2);
-        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" + userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), level2Id1);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" +
+                userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserAdminRole(),
+                userRoleUsernames.get(MissingPermission.WRITE_PENDING_BINARY)[0]);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" +
+                userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new Level1AdminRole(), level1Id2);
+        createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN" +
+                userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY))[0], new UserRole(), level2Id1);
 
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserAdminRole(), "");
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new Level1AdminRole(), level1Id2);
         createRoleForUser(userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], new UserRole(), level2Id1);
-        
+
     }
 
     /**
@@ -218,7 +229,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             String password, boolean isHtml)
             throws IOException {
         HttpClient httpClient = HttpClients.createDefault();
-        HttpUriRequest authrequest = getRequest(method, url.replaceFirst(hostUrl, hostUrl + "authorize/"), body, isHtml);
+        HttpUriRequest authrequest =
+                getRequest(method, url.replaceFirst(hostUrl, hostUrl + "authorize/"), body, isHtml);
         HttpUriRequest request = getRequest(method, url, body, isHtml);
         if (request != null && authrequest != null) {
             byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
@@ -229,11 +241,11 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             HttpResponse resp = httpClient.execute(request);
             int respstatus = resp.getStatusLine().getStatusCode();
             int authrespstatus = authresp.getStatusLine().getStatusCode();
-//            if (respstatus > 400 && authrespstatus > 400 && respstatus != authrespstatus) {
-//              String response = EntityUtils.toString(resp.getEntity());
-//              String authresponse = EntityUtils.toString(authresp.getEntity());
-//              System.out.println("");
-//            }
+            // if (respstatus > 400 && authrespstatus > 400 && respstatus != authrespstatus) {
+//             String response = EntityUtils.toString(resp.getEntity());
+            // String authresponse = EntityUtils.toString(authresp.getEntity());
+            // System.out.println("");
+            // }
             assertStatusEquals(resp, authresp);
             return resp;
         }
@@ -254,12 +266,13 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         HttpClient httpClient = HttpClientBuilder.create()
                 .disableRedirectHandling().build();
         HttpUriRequest request = getRequest(method, url, body, isHtml);
-        HttpUriRequest authrequest = getRequest(method, url.replaceFirst(hostUrl, hostUrl + "authorize/"), body, isHtml);
+        HttpUriRequest authrequest =
+                getRequest(method, url.replaceFirst(hostUrl, hostUrl + "authorize/"), body, isHtml);
         if (request != null && authrequest != null) {
             HttpResponse resp = httpClient.execute(request);
             HttpResponse authresp = httpClient.execute(authrequest);
-//            String response = EntityUtils.toString(resp.getEntity());
-//            String authresponse = EntityUtils.toString(authresp.getEntity());
+            // String response = EntityUtils.toString(resp.getEntity());
+            // String authresponse = EntityUtils.toString(authresp.getEntity());
             assertStatusEquals(resp, authresp);
             return resp;
         }
@@ -296,7 +309,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userRole.setRights(rights);
         roles.add(userRole);
 
-        //set other roles
+        // set other roles
         // user-admin
         UserAdminRole userAdminRole = new UserAdminRole();
         Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
@@ -307,7 +320,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         userAdminRights.put(unusedUserId, userAdminRoleRights);
         userAdminRole.setRights(userAdminRights);
         roles.add(userAdminRole);
-        //level1-admin
+        // level1-admin
         Level1AdminRole level1AdminRole = new Level1AdminRole();
         Map<String, List<RoleRight>> level1AdminRights = new HashMap<String, List<RoleRight>>();
         List<RoleRight> level1AdminRoleRights = new ArrayList<RoleRight>();
@@ -433,7 +446,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 this.executeAsUser(authConfigurer.getMethod(), url, authConfigurer.getBody(),
                         adminUsername, adminPassword, authConfigurer.isHtml());
         assertTrue(resp.getStatusLine().getStatusCode() < 400);
-        resetState(authConfigurer.isResetState(), resetObject);
+        resetObject = resetState(authConfigurer.isResetState(), resetObject);
         // try as user with all rights
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
@@ -446,7 +459,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertTrue(resp.getStatusLine().getStatusCode() < 400);
         }
-        resetState(authConfigurer.isResetState(), resetObject);
+        resetObject = resetState(authConfigurer.isResetState(), resetObject);
         // try as user with no rights
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
@@ -463,7 +476,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
-        resetState(authConfigurer.isResetState(), resetObject);
+        resetObject = resetState(authConfigurer.isResetState(), resetObject);
         // try as anonymous user
         url = manipulateUrl(authConfigurer.getUrl(), resetObject);
         resp =
@@ -482,7 +495,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                 assertEquals(true, headers[0].getValue().matches(".*login-page.*"));
             }
         }
-        resetState(authConfigurer.isResetState(), resetObject);
+        resetObject = resetState(authConfigurer.isResetState(), resetObject);
         // try as user with wrong level2 rights
         String[] userparams = null;
         if (authConfigurer.getNeededPermission() != null) {
@@ -501,7 +514,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
         } else {
             assertEquals(403, resp.getStatusLine().getStatusCode());
         }
-        resetState(authConfigurer.isResetState(), resetObject);
+        resetObject = resetState(authConfigurer.isResetState(), resetObject);
     }
 
     private Object getResetObject(AuthConfigurer authConfigurer) throws Exception {
@@ -543,24 +556,24 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
      * @param resetStateEntityId
      * @throws Exception
      */
-    private void resetState(boolean resetState, Object resetObject) throws Exception {
+    private Object resetState(boolean resetState, Object resetObject) throws Exception {
         if (resetState && resetObject != null) {
             if (resetObject instanceof Entity) {
-                resetEntity((Entity) resetObject);
+                resetObject = resetEntity((Entity) resetObject);
             } else if (resetObject instanceof User) {
                 resetUser((User) resetObject);
             } else if (resetObject instanceof UserRequest) {
                 resetUserRequest((UserRequest) resetObject);
             }
         }
+        return resetObject;
     }
 
-    private void resetEntity(Entity resetEntity) throws Exception {
+    private Entity resetEntity(Entity resetEntity) throws Exception {
         // check if entity is there
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Get(entityUrl + resetEntity.getId()));
-        String response = EntityUtils.toString(resp.getEntity());
         if (resetEntity.getBinaries() != null) {
             for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
                 binary.getValue()
@@ -570,6 +583,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             }
         }
         if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
+            String response = EntityUtils.toString(resp.getEntity());
             // recreate entity
             resp =
                     this.executeAsAdmin(
@@ -580,32 +594,50 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
             assertEquals(201, resp.getStatusLine().getStatusCode());
         } else {
             assertEquals(200, resp.getStatusLine().getStatusCode());
-            // update
-            resp =
-                    this.executeAsAdmin(
-                            Request.Put(entityUrl + resetEntity.getId())
-                                    .bodyString(
-                                            mapper.writeValueAsString(resetEntity),
-                                            ContentType.APPLICATION_JSON));
-            response = EntityUtils.toString(resp.getEntity());
-            assertEquals(200, resp.getStatusLine().getStatusCode());
+            Entity storedEntity = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            if (EntityState.PUBLISHED.equals(storedEntity.getState()) ||
+                    EntityState.WITHDRAWN.equals(storedEntity.getState())) {
+                // recreate with different id
+                resetEntity.setBinaries(new HashMap<String, Binary>());
+                resetEntity.setId(null);
+                resp =
+                        this.executeAsAdmin(
+                                Request.Post(entityUrl).bodyString(
+                                        mapper.writeValueAsString(resetEntity),
+                                        ContentType.APPLICATION_JSON));
+                assertEquals(201, resp.getStatusLine().getStatusCode());
+                String entityId = EntityUtils.toString(resp.getEntity());
+                resetEntity.setId(entityId);
+            } else {
+                String urlSuffix = null;
+                if (resetEntity.getState().equals(EntityState.SUBMITTED)) {
+                    urlSuffix = "submit";
+                } else if (resetEntity.getState().equals(EntityState.PUBLISHED)) {
+                    urlSuffix = "publish";
+                } else if (resetEntity.getState().equals(EntityState.WITHDRAWN)) {
+                    urlSuffix = "withdraw";
+                } else if (resetEntity.getState().equals(EntityState.PENDING)) {
+                    urlSuffix = "pending";
+                }
+                resp =
+                        this.executeAsAdmin(
+                                Request.Put(entityUrl + resetEntity.getId() + "/" +
+                                        urlSuffix));
+                String response = EntityUtils.toString(resp.getEntity());
+                assertEquals(200, resp.getStatusLine().getStatusCode());
+
+                // update
+                resp =
+                        this.executeAsAdmin(
+                                Request.Put(entityUrl + resetEntity.getId())
+                                        .bodyString(
+                                                mapper.writeValueAsString(resetEntity),
+                                                ContentType.APPLICATION_JSON));
+                response = EntityUtils.toString(resp.getEntity());
+                assertEquals(200, resp.getStatusLine().getStatusCode());
+            }
         }
-        String urlSuffix = null;
-        if (resetEntity.getState().equals(EntityState.SUBMITTED)) {
-            urlSuffix = "submit";
-        } else if (resetEntity.getState().equals(EntityState.PUBLISHED)) {
-            urlSuffix = "publish";
-        } else if (resetEntity.getState().equals(EntityState.WITHDRAWN)) {
-            urlSuffix = "withdraw";
-        } else {
-            return;
-        }
-        resp =
-                this.executeAsAdmin(
-                        Request.Put(entityUrl + resetEntity.getId() + "/" +
-                                urlSuffix));
-        response = EntityUtils.toString(resp.getEntity());
-        assertEquals(200, resp.getStatusLine().getStatusCode());
+        return resetEntity;
     }
 
     private void resetUser(User resetUser) throws Exception {
@@ -662,6 +694,8 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     private String manipulateUrl(String url, Object resetObject) {
         if (url.contains("{token}") && resetObject != null && resetObject instanceof UserRequest) {
             return url.replaceAll("\\{token\\}", ((UserRequest) resetObject).getToken());
+        } else if (url.matches(".*(publish|withdraw).*")) {
+            url = url.replaceFirst("(/entity/).*?/", "$1" + ((Entity)resetObject).getId() + "/");
         }
         return url;
     }

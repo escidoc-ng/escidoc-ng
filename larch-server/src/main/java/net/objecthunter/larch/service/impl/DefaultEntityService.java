@@ -228,8 +228,8 @@ public class DefaultEntityService implements EntityService {
     public void update(Entity e) throws IOException {
         final Entity oldVersion = retrieve(e.getId());
         // check
-        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
-            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         checkNonUpdateableFields(e, oldVersion);
         this.backendVersionService.addOldVersion(oldVersion);
@@ -666,10 +666,10 @@ public class DefaultEntityService implements EntityService {
      */
     private void checkNonUpdateableFields(Entity newVersion, Entity oldVersion) throws IOException {
         if (!newVersion.getContentModelId().equals(oldVersion.getContentModelId())) {
-            throw new IOException("entity may not be moved to different content-model");
+            throw new InvalidParameterException("entity may not be moved to different content-model");
         }
         if (!oldVersion.getState().equals(newVersion.getState())) {
-            throw new IOException("entity may not be set to a different state with this method.");
+            throw new InvalidParameterException("entity may not be set to a different state with this method.");
         }
         if (StringUtils.isBlank(newVersion.getParentId()) && StringUtils.isBlank(oldVersion.getParentId())) {
             return;
@@ -679,7 +679,7 @@ public class DefaultEntityService implements EntityService {
                 EntityHierarchy oldHierarchy = this.backendEntityService.getHierarchy(oldVersion.getParentId());
                 EntityHierarchy newHierarchy = this.backendEntityService.getHierarchy(newVersion.getParentId());
                 if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
-                    throw new IOException("entity may not be moved to different level1");
+                    throw new InvalidParameterException("entity may not be moved to different level1");
                 }
                 if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
                     return;
@@ -688,11 +688,11 @@ public class DefaultEntityService implements EntityService {
                         .getLevel2Id())) ||
                         (StringUtils.isNotBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy
                                 .getLevel2Id())) || !oldHierarchy.getLevel2Id().equals(newHierarchy.getLevel2Id())) {
-                    throw new IOException("entity may not be moved to different level2");
+                    throw new InvalidParameterException("entity may not be moved to different level2");
                 }
             }
         } else {
-            throw new IOException("parentId may not get changed from/to null");
+            throw new InvalidParameterException("parentId may not get changed from/to null");
         }
     }
 
