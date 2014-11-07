@@ -1137,6 +1137,7 @@ public abstract class AbstractLarchIT {
         HttpResponse resp = this.executeAsAdmin(Request.Get(hostUrl + "/archive/" + id + "/" + version + "/content"));
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         return new ZipInputStream(resp.getEntity().getContent());
+    }
     
     private String getStateUrl (String entityId, EntityState state) {
         if (EntityState.PENDING.equals(state)) {
