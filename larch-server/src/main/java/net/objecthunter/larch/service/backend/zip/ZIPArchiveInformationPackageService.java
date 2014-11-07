@@ -54,27 +54,29 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
         zipSink.flush();
     }
 
-    private void writeEntity(final String path, final Entity e, final ZipOutputStream zipSink) throws IOException {
+    private void writeEntity(final String prefix, final Entity e, final ZipOutputStream zipSink) throws IOException {
         /* write the binaries to the package */
         for (final Binary bin : e.getBinaries().values()) {
 
-            bin.setSource(new UrlSource(URI.create(path  + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
+            bin.setSource(new UrlSource(URI.create(prefix  + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
 
             /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry(path + "binaries/" + bin.getName() + "/" + bin.getFilename()));
+            zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
             IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
             zipSink.closeEntry();
 
             // update the path to point in the zip file
-            bin.setPath(path + "binaries/" + bin.getName() + "/" + bin.getFilename());
+            bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
         }
 
         /* write the entity json to the package */
-        zipSink.putNextEntry(new ZipEntry(path + "entity_" + e.getId() + ".json"));
+        zipSink.putNextEntry(new ZipEntry(prefix + "entity_" + e.getId() + ".json"));
         IOUtils.write(this.mapper.writeValueAsString(e), zipSink);
         zipSink.closeEntry();
+
+        /* recurse for all child entities */
         for (final String childId : this.entityService.fetchChildren(e.getId())) {
-            this.writeEntity(path + "/child_" + childId, this.entityService.retrieve(childId), zipSink);
+            this.writeEntity(prefix + "child_" + childId + "/", this.entityService.retrieve(childId), zipSink);
         }
     }
 }
