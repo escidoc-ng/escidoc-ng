@@ -21,6 +21,9 @@ import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,12 +44,14 @@ public class DefaultArchiveService implements ArchiveService {
     @Override
     public void archive(final String entityId, final int version) throws IOException {
         final String path = archiveBlobStore.saveOrUpdate(entityService.retrieve(entityId, version));
+        final String userName = ((UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal()).getUsername();
         Archive a = new Archive();
         a.setEntityId(entityId);
         a.setEntityVersion(version);
         a.setCreatedDate(ZonedDateTime.now());
-        a.setLastModifedDate(ZonedDateTime.now());
         a.setPath(path);
+        a.setCreator(userName);
         archiveIndex.saveOrUpdate(a);
     }
 
