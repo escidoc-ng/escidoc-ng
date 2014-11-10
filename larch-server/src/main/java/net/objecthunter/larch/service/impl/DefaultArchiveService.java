@@ -16,6 +16,7 @@
 package net.objecthunter.larch.service.impl;
 
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.service.ArchiveService;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
@@ -44,8 +45,8 @@ public class DefaultArchiveService implements ArchiveService {
     @Override
     public void archive(final String entityId, final int version) throws IOException {
         final String path = archiveBlobStore.saveOrUpdate(entityService.retrieve(entityId, version));
-        final String userName = ((UserDetails) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal()).getUsername();
+        final String userName = ((User) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal()).getName();
         Archive a = new Archive();
         a.setEntityId(entityId);
         a.setEntityVersion(version);
