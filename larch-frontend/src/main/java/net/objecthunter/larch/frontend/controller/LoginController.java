@@ -55,9 +55,6 @@ public class LoginController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for logging in
      */

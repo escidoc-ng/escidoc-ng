@@ -44,9 +44,6 @@ public class AuditRecordController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for HTTP GET requests that procudes an HTML view.
      * 

@@ -43,9 +43,6 @@ public class StateController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for retrieving a {@link net.objecthunter.larch.model.state.LarchState} object describing the
      * repository state using a HTTP GET, that returns a HTML ciew

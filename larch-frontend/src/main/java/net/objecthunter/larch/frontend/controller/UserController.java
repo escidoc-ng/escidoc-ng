@@ -53,9 +53,6 @@ public class UserController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for confirming a {@link net.objecthunter.larch.model.security.UserRequest}
      */

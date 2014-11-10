@@ -13,46 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.objecthunter.larch.frontend.controller;
 
-import java.io.IOException;
-
 import net.objecthunter.larch.frontend.util.HttpHelper;
-import net.objecthunter.larch.model.Settings;
-
+import net.objecthunter.larch.model.Archive;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.List;
 
-/**
- * Web Controller responsible for Settings views
- */
-@RequestMapping("/settings")
 @Controller
-public class SettingsController extends AbstractController {
+public class ArchiveController extends AbstractController {
 
     @Autowired
     private HttpHelper httpHelper;
 
-    /**
-     * Retrieve the settings overview page from the repository
-     * 
-     * @throws IOException
-     */
-    @RequestMapping(method = RequestMethod.GET, produces = "text/html")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ModelAndView retrieveHtml() throws IOException {
-        return new ModelAndView("settings", new ModelMap("settings", mapper.readValue(httpHelper.doGet("/settings"), Settings.class)));
-    }
+    @RequestMapping("/archive/list/{offset}/{count}")
+    public ModelAndView listArchives(@PathVariable("offset") final int offset, @PathVariable("count") final int count)
+            throws IOException {
 
+        final ModelMap model = new ModelMap();
+
+        // retrieve the data from the backend and deserialize it into a collection
+        final String data = httpHelper.doGet("/archive/list/" + offset + "/" + count);
+        List<Archive> archives = this.mapper.readValue(data, this.mapper.getTypeFactory()
+                .constructCollectionType(List.class, Archive.class));
+        model.addAttribute("archives", archives);
+
+        return new ModelAndView("archives", model);
+    }
 }

@@ -58,9 +58,6 @@ public class MetadataController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
      * {@link net .objecthunter.larch.model.Entity} using a HTTP POST with multipart/form-data

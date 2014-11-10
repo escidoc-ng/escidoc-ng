@@ -40,9 +40,6 @@ public class DashboardController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for creating a HTML view using Spring MVC templating mechanism showing a dashboard
      * 

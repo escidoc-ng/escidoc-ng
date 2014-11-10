@@ -45,9 +45,6 @@ public class SearchController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for displaying a HTML search form
      * 

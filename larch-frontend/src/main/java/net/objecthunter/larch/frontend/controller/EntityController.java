@@ -51,9 +51,6 @@ public class EntityController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for retrieval of a HTML view of the current version of an
      * {@link net.objecthunter.larch.model.Entity}

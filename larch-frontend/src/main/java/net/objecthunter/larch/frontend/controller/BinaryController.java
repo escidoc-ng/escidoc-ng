@@ -60,9 +60,6 @@ public class BinaryController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
      * {@link net .objecthunter.larch.model.Entity} using a multipart/form-data encoded HTTP POST

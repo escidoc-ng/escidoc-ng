@@ -16,28 +16,22 @@
 
 package net.objecthunter.larch.service.backend.sftp;
 
-import net.objecthunter.larch.model.Binary;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.source.UrlSource;
-import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
-import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
-import net.objecthunter.larch.service.backend.BackendBlobstoreService;
-import org.apache.commons.io.IOUtils;
-import org.apache.sshd.client.SftpClient;
-import org.apache.sshd.common.SshException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.EnumSet;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
+import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+
+import org.apache.sshd.client.SftpClient;
+import org.apache.sshd.common.SshException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 public class SftpArchiveService extends AbstractSftpService implements BackendArchiveBlobService {
 

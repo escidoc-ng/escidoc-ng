@@ -26,8 +26,6 @@ public class Archive {
 
     private String path;
 
-    private ZonedDateTime lastModifedDate;
-
     private ZonedDateTime createdDate;
 
     private String creator;
@@ -38,14 +36,6 @@ public class Archive {
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public ZonedDateTime getLastModifedDate() {
-        return lastModifedDate;
-    }
-
-    public void setLastModifedDate(ZonedDateTime lastModifedDate) {
-        this.lastModifedDate = lastModifedDate;
     }
 
     public ZonedDateTime getCreatedDate() {
