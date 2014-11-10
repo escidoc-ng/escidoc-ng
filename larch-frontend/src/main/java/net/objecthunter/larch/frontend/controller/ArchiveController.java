@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ import java.io.IOException;
 import java.util.List;
 
 @Controller
+/**
+ * @author Michael Hoppe
+ */
 public class ArchiveController extends AbstractController {
 
     @Autowired

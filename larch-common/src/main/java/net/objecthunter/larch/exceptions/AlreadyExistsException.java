@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Michael Hoppe
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.objecthunter.larch.exceptions;
 
 import java.io.IOException;
 
 /**
- * @author mih Exception indicating that the a resource with the given primary key already exists in the system.
+ * @author mih
+ * Exception indicating that the a resource with the given primary key already exists in the system.
  */
 public class AlreadyExistsException extends IOException {
 
