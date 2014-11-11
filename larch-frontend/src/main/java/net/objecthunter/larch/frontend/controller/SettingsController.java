@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.objecthunter.larch.frontend.controller;
 
 import java.io.IOException;
@@ -35,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Web Controller responsible for Settings views
+ * @author Michael Hoppe
  */
 @RequestMapping("/settings")
 @Controller
@@ -42,9 +42,6 @@ public class SettingsController extends AbstractController {
 
     @Autowired
     private HttpHelper httpHelper;
-
-    @Autowired
-    private ObjectMapper mapper;
 
     /**
      * Retrieve the settings overview page from the repository

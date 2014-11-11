@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.objecthunter.larch.model;
 
 import java.time.ZonedDateTime;
@@ -26,8 +25,6 @@ public class Archive {
 
     private String path;
 
-    private ZonedDateTime lastModifedDate;
-
     private ZonedDateTime createdDate;
 
     private String creator;
@@ -38,14 +35,6 @@ public class Archive {
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public ZonedDateTime getLastModifedDate() {
-        return lastModifedDate;
-    }
-
-    public void setLastModifedDate(ZonedDateTime lastModifedDate) {
-        this.lastModifedDate = lastModifedDate;
     }
 
     public ZonedDateTime getCreatedDate() {

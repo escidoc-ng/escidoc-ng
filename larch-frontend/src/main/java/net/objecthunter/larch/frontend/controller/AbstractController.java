@@ -1,5 +1,5 @@
-/* 
- * Copyright 2014 Michael Hoppe
+/*
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,24 +11,31 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
-
 package net.objecthunter.larch.frontend.controller;
 
 import javax.servlet.http.HttpSession;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.objecthunter.larch.frontend.Constants;
 import net.objecthunter.larch.model.security.User;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * @author Michael Hoppe
+ */
 public abstract class AbstractController {
-    
+
+    @Autowired
+    protected ObjectMapper mapper;
+
     /**
      * A method to which adds the current User object to the Spring MVC
      * model which s passed to the corresponding templates

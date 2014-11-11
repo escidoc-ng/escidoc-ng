@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 package net.objecthunter.larch.service.backend.zip;
 
@@ -56,17 +57,19 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
     private void writeEntity(final String prefix, final Entity e, final ZipOutputStream zipSink) throws IOException {
         /* write the binaries to the package */
-        for (final Binary bin : e.getBinaries().values()) {
+        if (e.getBinaries()!= null) {
+            for (final Binary bin : e.getBinaries().values()) {
 
-            bin.setSource(new UrlSource(URI.create(prefix  + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
+                bin.setSource(new UrlSource(URI.create(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
 
-            /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
-            zipSink.closeEntry();
+                /* save the binary content */
+                zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
+                IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
+                zipSink.closeEntry();
 
-            // update the path to point in the zip file
-            bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
+                // update the path to point in the zip file
+                bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
+            }
         }
 
         /* write the entity json to the package */

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2014 Frank Asseg
+/*
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9,9 +9,9 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 package net.objecthunter.larch.service.backend.fs;
 
@@ -100,15 +100,18 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
 
         /* save the entity by first writing to a tmp file and then moving it to the right place */
         final File tmpNew = File.createTempFile("entity", "zip");
-        this.aipService.write(e, new FileOutputStream(tmpNew));
+        try (final OutputStream sink = new FileOutputStream(tmpNew)){
+            this.aipService.write(e, sink);
+        }
+
         if (target.exists()) {
             final File orig = File.createTempFile("entity", "zip");
-            Files.move(target.toPath(), orig.toPath(), StandardCopyOption.ATOMIC_MOVE);
-            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            Files.move(target.toPath(), orig.toPath());
+            Files.move(tmpNew.toPath(), target.toPath());
             orig.delete();
             tmpNew.delete();
         } else {
-            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmpNew.toPath(), target.toPath());
             tmpNew.delete();
         }
         return target.getAbsolutePath();

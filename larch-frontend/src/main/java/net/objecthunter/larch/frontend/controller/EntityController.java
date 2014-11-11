@@ -1,5 +1,5 @@
 /* 
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
 import net.objecthunter.larch.model.AlternativeIdentifier;
+import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.MetadataType;
@@ -51,9 +52,6 @@ public class EntityController extends AbstractController {
     @Autowired
     private HttpHelper httpHelper;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     /**
      * Controller method for retrieval of a HTML view of the current version of an
      * {@link net.objecthunter.larch.model.Entity}
@@ -67,7 +65,8 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id), Entity.class));
+        final Entity e = mapper.readValue(httpHelper.doGet("/entity/" + id), Entity.class);
+        model.addAttribute("entity", e);
         model.addAttribute("metadataTypes", mapper.readValue(httpHelper.doGet("/metadatatype"), new TypeReference<List<MetadataType>>() {}));
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
@@ -89,6 +88,8 @@ public class EntityController extends AbstractController {
             throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id + "/version/" + version), Entity.class));
+        final Archive archive = mapper.readValue(httpHelper.doGet("/archive/" + id + "/version/" + version), Archive.class);
+        model.addAttribute("archive", archive);
         return new ModelAndView("entity", model);
     }
 

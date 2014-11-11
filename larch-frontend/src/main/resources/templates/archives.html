@@ -6,7 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+   http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ROLE_ANY KIND, either express or implied.
@@ -27,17 +27,29 @@ limitations under the License.
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading">Audit-Records</div>
-        <div th:each="audit : ${auditRecords.auditRecords}" class="panel clickable">
-            <p class="panel_title" th:text="${audit.action}"></p>
+        <div class="heading">Archives</div>
+        <div th:each="archive : ${archives}" class="panel">
+            <p class="panel_title" th:text="${archive.entityId}"></p>
 
-            <p class="property">Agent</p>
+            <p class="property" th:text="Actions" />
+            <input id="downloadBtn" class="button_small" type="submit" value="Download" th:onclick="'javascript:downloadArchive(\'' + ${archive.entityId} + '\',\'' + ${archive.entityVersion} + '\')'"/>
+            <p class="panel_title" />
 
-            <p class="value" th:text="${audit.agentName}"></p>
+            <p class="property">Entity version</p>
 
-            <p class="property">Timestamp</p>
+            <p class="value" th:text="${archive.entityVersion}"></p>
 
-            <p class="value" th:text="${audit.timestamp}"></p>
+            <p class="property">Created</p>
+
+            <p class="value" th:text="${archive.createdDate}"></p>
+
+            <p class="property">Created by</p>
+
+            <p class="value" th:text="${archive.creator}"></p>
+
+            <p class="property">Path</p>
+
+            <p class="value" th:text="${archive.path}"></p>
         </div>
     </div>
 </div>

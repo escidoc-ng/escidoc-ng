@@ -1,5 +1,5 @@
 /* 
- * Copyright 2014 Frank Asseg
+ * Copyright 2014 FIZ Karlsruhe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,6 @@ public class LoginController extends AbstractController {
 
     @Autowired
     private HttpHelper httpHelper;
-
-    @Autowired
-    private ObjectMapper mapper;
 
     /**
      * Controller method for logging in
