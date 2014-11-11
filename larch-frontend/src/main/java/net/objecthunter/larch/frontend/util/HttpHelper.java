@@ -168,7 +168,7 @@ public class HttpHelper {
         if (statusCode < 400) {
             return;
         }
-        String responseStr = EntityUtils.toString(response.getEntity());
+        String responseStr = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : null;
         if (StringUtils.isBlank(responseStr)) {
             throw new IOException("invalid request");
         }

@@ -22,6 +22,7 @@ import java.util.List;
 
 import net.objecthunter.larch.frontend.util.HttpHelper;
 import net.objecthunter.larch.model.AlternativeIdentifier;
+import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.MetadataType;
@@ -64,7 +65,8 @@ public class EntityController extends AbstractController {
     @ResponseStatus(HttpStatus.OK)
     public ModelAndView retrieveHtml(@PathVariable("id") final String id) throws IOException {
         final ModelMap model = new ModelMap();
-        model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id), Entity.class));
+        final Entity e = mapper.readValue(httpHelper.doGet("/entity/" + id), Entity.class);
+        model.addAttribute("entity", e);
         model.addAttribute("metadataTypes", mapper.readValue(httpHelper.doGet("/metadatatype"), new TypeReference<List<MetadataType>>() {}));
         model.addAttribute("identifierTypes", AlternativeIdentifier.IdentifierType.values());
         return new ModelAndView("entity", model);
@@ -86,6 +88,8 @@ public class EntityController extends AbstractController {
             throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id + "/version/" + version), Entity.class));
+        final Archive archive = mapper.readValue(httpHelper.doGet("/archive/" + id + "/version/" + version), Archive.class);
+        model.addAttribute("archive", archive);
         return new ModelAndView("entity", model);
     }
 

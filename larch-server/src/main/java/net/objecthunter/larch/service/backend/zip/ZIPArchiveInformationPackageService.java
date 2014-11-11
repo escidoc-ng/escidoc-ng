@@ -57,17 +57,19 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
     private void writeEntity(final String prefix, final Entity e, final ZipOutputStream zipSink) throws IOException {
         /* write the binaries to the package */
-        for (final Binary bin : e.getBinaries().values()) {
+        if (e.getBinaries()!= null) {
+            for (final Binary bin : e.getBinaries().values()) {
 
-            bin.setSource(new UrlSource(URI.create(prefix  + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
+                bin.setSource(new UrlSource(URI.create(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
 
-            /* save the binary content */
-            zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
-            IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
-            zipSink.closeEntry();
+                /* save the binary content */
+                zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
+                IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
+                zipSink.closeEntry();
 
-            // update the path to point in the zip file
-            bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
+                // update the path to point in the zip file
+                bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
+            }
         }
 
         /* write the entity json to the package */

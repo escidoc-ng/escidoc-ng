@@ -437,3 +437,26 @@ function throwError(request) {
     }
     $('#errorform').submit();
 }
+
+function archiveEntity(id, version) {
+	setContext();
+    var csrf_token = $("meta[name='_csrf']").attr("content");
+    $.ajax ({
+        xhrFields: {
+           withCredentials: true
+        },
+        headers: {
+            "X-CSRF-TOKEN" : csrf_token
+        },
+        url: ctx + "/archive/" + id + "/" + version,
+        type: "PUT",
+        error : function() {
+        	$('#' + idToHide).css('display', 'none');
+        }
+    });
+}
+
+function downloadArchive(id, version) {
+	setContext();
+    window.location = ctx + "/archive/" + id + "/" + version + "/content";
+}

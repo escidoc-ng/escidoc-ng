@@ -49,6 +49,7 @@ limitations under the License.
                 <input id="publishBtn" th:if="${entity.state.name == 'SUBMITTED'}" class="button_small" type="submit" value="Publish" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/publish' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
                 <input id="withdrawBtn" th:if="${entity.state.name == 'PUBLISHED'}" class="button_small" type="submit" value="Withdraw" th:onclick="'javascript:submitPut(\'' + @{/entity/} + ${entity.id} + '/withdraw' + '\', \'' + @{/entity/} + ${entity.id} + '\')'"/>
                 <input id="deleteBtn"  th:if="${entity.state.name != 'PUBLISHED'}" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteEntity(\'' + ${entity.id} + '\')'"/>
+                <input id="archiveBtn" class="button_small" type="submit" value="Archive" th:onclick="'javascript:archiveEntity(\'' + ${entity.id} + '\',\'' + ${entity.version} + '\')'"/>
             <p th:if="${entity.state.name != 'WITHDRAWN'}" class="panel_title" />
 
             <p class="property">Label</p>

@@ -28,8 +28,12 @@ limitations under the License.
         <div th:include="fragments :: banner" class="title">
         </div>
         <div class="heading">Archives</div>
-        <div th:each="archive : ${archives}" class="panel clickable">
+        <div th:each="archive : ${archives}" class="panel">
             <p class="panel_title" th:text="${archive.entityId}"></p>
+
+            <p class="property" th:text="Actions" />
+            <input id="downloadBtn" class="button_small" type="submit" value="Download" th:onclick="'javascript:downloadArchive(\'' + ${archive.entityId} + '\',\'' + ${archive.entityVersion} + '\')'"/>
+            <p class="panel_title" />
 
             <p class="property">Entity version</p>
 

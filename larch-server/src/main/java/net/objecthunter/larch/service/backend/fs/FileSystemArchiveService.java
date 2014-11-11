@@ -100,15 +100,18 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
 
         /* save the entity by first writing to a tmp file and then moving it to the right place */
         final File tmpNew = File.createTempFile("entity", "zip");
-        this.aipService.write(e, new FileOutputStream(tmpNew));
+        try (final OutputStream sink = new FileOutputStream(tmpNew)){
+            this.aipService.write(e, sink);
+        }
+
         if (target.exists()) {
             final File orig = File.createTempFile("entity", "zip");
-            Files.move(target.toPath(), orig.toPath(), StandardCopyOption.ATOMIC_MOVE);
-            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            Files.move(target.toPath(), orig.toPath());
+            Files.move(tmpNew.toPath(), target.toPath());
             orig.delete();
             tmpNew.delete();
         } else {
-            Files.move(tmpNew.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmpNew.toPath(), target.toPath());
             tmpNew.delete();
         }
         return target.getAbsolutePath();

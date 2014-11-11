@@ -79,6 +79,8 @@ limitations under the License.
                 th:href="@{/search/users/form}" th:text="'USERS'"></a></li>
         <li th:if="${isErrorPage == null and currentuser != null}"><p class="icon" id="icon_search"></p><a th:href="@{/metadatatype}"
                                                     th:text="'METADATA TYPES'"></a></li>
+        <li th:if="${isErrorPage == null and currentuser != null}"><p class="icon" id="icon_search"></p><a th:href="@{/archives/0/25}"
+                                                                                                           th:text="'ARCHIVES'"></a></li>
     </ul>
 </div>
 
