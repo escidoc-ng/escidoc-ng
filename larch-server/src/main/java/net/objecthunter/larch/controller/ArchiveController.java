@@ -15,8 +15,17 @@
  */
 package net.objecthunter.larch.controller;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.service.ArchiveService;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,15 +36,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
 @Controller
 @RequestMapping("/archive")
 public class ArchiveController extends AbstractLarchController {
@@ -43,6 +43,15 @@ public class ArchiveController extends AbstractLarchController {
     @Autowired
     private ArchiveService archiveService;
 
+    /**
+     * Controller method to retrieve the Archived Data (zipfile) of an 
+     * {@link net.objecthunter.larch.model.Entity}-Version
+     * 
+     * @param entityId The entity's id for which the Archived Data should be returned.
+     * @param version The version of the entity for which the Archived Data should be returned.
+     * @return An InputStream containing the Archived Data as Zipfile.
+     * @throws IOException
+     */
     @RequestMapping(value = "{entityId}/{version}/content", method = RequestMethod.GET)
     public void retrieveContent(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
                          HttpServletResponse resp) {
@@ -61,12 +70,28 @@ public class ArchiveController extends AbstractLarchController {
         }
     }
 
+    /**
+     * Controller method to archive an 
+     * {@link net.objecthunter.larch.model.Entity}-Version
+     * 
+     * @param entityId The entity's id for which the Archived Data should be returned.
+     * @param version The version of the entity for which the Archived Data should be returned.
+     * @throws IOException
+     */
     @RequestMapping(value = "{entityId}/{version}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void archive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
         archiveService.archive(entityId, version);
     }
 
+    /**
+     * Controller method to list all available archive-metadata.
+     * 
+     * @param offset offset.
+     * @param count count.
+     * @return A list with Archive-Metadata.
+     * @throws IOException
+     */
     @RequestMapping(value = "/list/{offset}/{count}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -74,6 +99,14 @@ public class ArchiveController extends AbstractLarchController {
         return archiveService.list(offset, count);
     }
 
+    /**
+     * Controller method to retrieve archive-metadata for a particular entity-version.
+     * 
+     * @param entityId The entity's id for which the Archived Data should be returned.
+     * @param version The version of the entity for which the Archived Data should be returned.
+     * @return Archive Archive-Meatdata
+     * @throws IOException
+     */
     @RequestMapping(value="{entityId}/{version}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
