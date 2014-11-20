@@ -55,6 +55,17 @@ public class SearchController extends AbstractLarchController {
      * query: search-query.<br>
      * offset: hit-number to start searchresult-list with.<br>
      * maxRecords: maximum number of records to return with searchresult-list.<br>
+     * <br>Supported Search-Fields:<br>
+     * id<br>
+     * label<br>
+     * contentModelId<br>
+     * parentId<br>
+     * tags<br>
+     * state<br>
+     * version<br>
+     * level1<br>
+     * level2<br>
+     * _all<br>
      * 
      * @param query the search query.
      * @param offset it-number to start searchresult-list with.
@@ -65,7 +76,7 @@ public class SearchController extends AbstractLarchController {
     @RequestMapping(method = RequestMethod.GET, value="/entities", produces = { "application/json" })
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public SearchResult searchMatchFields(@RequestParam(
+    public SearchResult searchEntities(@RequestParam(
             value = "query", defaultValue = "*:*") final String query, @RequestParam(
             value = "offset", defaultValue = "0") final int offset, @RequestParam(
             value = "maxRecords", defaultValue = "50") final int maxRecords) throws IOException {
@@ -83,6 +94,12 @@ public class SearchController extends AbstractLarchController {
      * query: search-query.<br>
      * offset: hit-number to start searchresult-list with.<br>
      * maxRecords: maximum number of records to return with searchresult-list.<br>
+     * <br>Supported Search-Fields:<br>
+     * name<br>
+     * firstName<br>
+     * lastName<br>
+     * email<br>
+     * _all<br>
      * 
      * @param query the search query.
      * @param offset it-number to start searchresult-list with.
@@ -102,12 +119,24 @@ public class SearchController extends AbstractLarchController {
 
     /**
      * Controller method for searching {@link net.objecthunter.larch.model.security.Archive}s in the repository using an
-     * HTTP GET which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}. The
-     * request can contain a parameter query and 2 parameters offset and maxRecords.<br>
+     * HTTP GET which returns a JSON representation of the {@link net.objecthunter.larch.model.SearchResult}.<br>
+     * The request can contain the following parameters:<br>
+     * query: search-query.<br>
      * offset: hit-number to start searchresult-list with.<br>
      * maxRecords: maximum number of records to return with searchresult-list.<br>
+     * <br>Supported Search-Fields:<br>
+     * entityId<br>
+     * entityVersion<br>
+     * contentModelId<br>
+     * creator<br>
+     * state<br>
+     * level1<br>
+     * level2<br>
+     * _all<br>
      * 
-     * @param request The request with all parameters.
+     * @param query the search query.
+     * @param offset it-number to start searchresult-list with.
+     * @param maxRecords maximum number of records to return with searchresult-list
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch.model.Archive}s as s JSON representation
      */
