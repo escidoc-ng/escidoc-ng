@@ -690,4 +690,27 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         }
     }
 
+    /**
+     * Holds enabled search-fields in users-index.
+     * 
+     * @author mih
+     */
+    public static enum UsersSearchField {
+        NAME("name"),
+        FIRSTNAME("firstName"),
+        LASTNAME("lastName"),
+        EMAIL("email"),
+        ALL("_all");
+
+        private final String searchFieldName;
+
+        UsersSearchField(final String searchFieldName) {
+            this.searchFieldName = searchFieldName;
+        }
+
+        public String getFieldName() {
+            return searchFieldName;
+        }
+    }
+
 }

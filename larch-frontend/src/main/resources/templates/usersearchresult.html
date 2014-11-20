@@ -27,7 +27,7 @@ limitations under the License.
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading">Users</div>
+        <div class="heading">Result for Search in all Users</div>
         <div th:each="record : ${result.data}" class="panel clickable">
             <p class="panel_title" th:text="${record.name}"></p>
 

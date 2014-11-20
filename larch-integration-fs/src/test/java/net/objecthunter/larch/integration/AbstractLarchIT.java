@@ -95,11 +95,19 @@ public abstract class AbstractLarchIT {
 
     protected static final String entityUrl = hostUrl + "entity/";
 
+    protected static final String archiveUrl = hostUrl + "archive/";
+
     protected static final String userUrl = hostUrl + "user/";
 
     protected static final String contentModelUrl = hostUrl + "content-model/";
 
     protected static final String confirmUrl = hostUrl + "confirm/";
+
+    protected static final String entitySearchUrl = hostUrl + "search/entities";
+
+    protected static final String userSearchUrl = hostUrl + "search/users";
+
+    protected static final String archiveSearchUrl = hostUrl + "search/archives";
 
     protected static final String adminUsername = "admin";
 
@@ -133,6 +141,7 @@ public abstract class AbstractLarchIT {
             Request r = Request.Post(entityUrl)
                     .bodyString(mapper.writeValueAsString(level1), ContentType.APPLICATION_JSON);
             HttpResponse response = this.executeAsAdmin(r);
+            createArchive(level1.getId(), 1);
             // create default level2
             Entity level2 = new Entity();
             level2.setId(LEVEL2_ID);
@@ -142,6 +151,7 @@ public abstract class AbstractLarchIT {
             r = Request.Post(entityUrl)
                     .bodyString(mapper.writeValueAsString(level2), ContentType.APPLICATION_JSON);
             response = this.executeAsAdmin(r);
+            createArchive(level2.getId(), 1);
             wsCreated = true;
         }
     }
@@ -169,6 +179,11 @@ public abstract class AbstractLarchIT {
         assertNotNull(level2Id);
         assertEquals(level2.getId(), level2Id);
         return level2Id;
+    }
+
+    protected void createArchive(String entityId, int version) throws IOException {
+        HttpResponse resp = this.executeAsAdmin(Request.Put(hostUrl + "/archive/" + entityId + "/" + version));
+        assertEquals(201, resp.getStatusLine().getStatusCode());
     }
 
     protected String createContentModel(String id, int expectedStatus) throws IOException {
@@ -1128,10 +1143,6 @@ public abstract class AbstractLarchIT {
             return null;
         }
         return this.mapper.readValue(resp.getEntity().getContent(), Archive.class);
-    }
-
-    public HttpResponse listArchives(int offset, int length) throws IOException {
-        return this.executeAsAdmin(Request.Get(hostUrl + "/archive/list/" + offset + "/" + length));
     }
 
     public ZipInputStream retrieveContent(String id, int version, int expectedStatus) throws IOException {

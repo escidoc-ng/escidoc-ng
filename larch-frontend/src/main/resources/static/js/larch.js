@@ -302,7 +302,7 @@ function searchEntities(all, contentModelId, id, label, parent, level1, level2, 
 	query = appendToQuery("state", state, query);
 	query = appendToQuery("version", version, query);
 	query = encodeURIComponent(query);
-	document.location.href = ctx + "/search?query=" + query;
+	document.location.href = ctx + "/search/entities?query=" + query;
 }
 
 function searchUsers(all, name, firstname, lastname, email) {
@@ -314,6 +314,19 @@ function searchUsers(all, name, firstname, lastname, email) {
 	query = appendToQuery("email", email, query);
 	query = encodeURIComponent(query);
 	document.location.href = ctx + "/search/users?query=" + query;
+}
+
+function searchArchives(all, contentModelId, level1Id, level2Id, entityId, entityVersion, creator) {
+	var query = "";
+	query = appendToQuery("_all", all, query);
+	query = appendToQuery("contentModelId", contentModelId, query);
+	query = appendToQuery("level1", level1Id, query);
+	query = appendToQuery("level2", level2Id, query);
+	query = appendToQuery("entityId", entityId, query);
+	query = appendToQuery("entityVersion", entityVersion, query);
+	query = appendToQuery("creator", creator, query);
+	query = encodeURIComponent(query);
+	document.location.href = ctx + "/search/archives?query=" + query;
 }
 
 function appendToQuery(name, value, query) {
@@ -450,8 +463,8 @@ function archiveEntity(id, version) {
         },
         url: ctx + "/archive/" + id + "/" + version,
         type: "PUT",
-        error : function() {
-        	$('#' + idToHide).css('display', 'none');
+        error : function(request, msg, error) {
+            throwError(request);
         }
     });
 }

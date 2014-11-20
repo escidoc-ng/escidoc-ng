@@ -17,6 +17,7 @@
 package net.objecthunter.larch.service;
 
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.SearchResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,5 +36,5 @@ public interface ArchiveService {
 
     Archive retrieve(String entityId, int version) throws IOException;
 
-    List<Archive> list(int offset, int count) throws IOException;
+    SearchResult searchArchives(String query, int offset, int count) throws IOException;
 }

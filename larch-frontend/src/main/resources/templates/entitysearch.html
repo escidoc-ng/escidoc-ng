@@ -29,7 +29,7 @@ limitations under the License.
         <div th:include="fragments :: banner" class="title">
         </div>
         <div class="panel clickable">
-            <p class="panel_title">Search</p>
+            <p class="panel_title">Search for Entities</p>
             <script>
               $(document).ready(function() {
                 $('#searchMain').watermark('Search', {className: 'inactive'});
@@ -39,7 +39,7 @@ limitations under the License.
               });
 
             </script>
-            <form method="post" th:action="@{/search}"
+            <form method="post" th:action="@{/search/entities}"
                   enctype="multipart/form-data">
                 <label for="type">Content Model:</label>
                 <select id="ceContentModelId" name="contentModelId" title="Select a valid content model">

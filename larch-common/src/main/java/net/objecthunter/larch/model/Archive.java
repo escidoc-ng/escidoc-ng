@@ -15,17 +15,21 @@
  */
 package net.objecthunter.larch.model;
 
-import java.time.ZonedDateTime;
+import net.objecthunter.larch.model.Entity.EntityState;
 
 public class Archive {
 
     private String entityId;
 
     private int entityVersion;
+    
+    private String contentModelId;
+
+    private EntityState state;
 
     private String path;
 
-    private ZonedDateTime createdDate;
+    private String createdDate;
 
     private String creator;
 
@@ -37,11 +41,11 @@ public class Archive {
         this.path = path;
     }
 
-    public ZonedDateTime getCreatedDate() {
+    public String getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(ZonedDateTime createdDate) {
+    public void setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
     }
 
@@ -68,4 +72,37 @@ public class Archive {
     public void setEntityVersion(int entityVersion) {
         this.entityVersion = entityVersion;
     }
+
+    
+    /**
+     * @return the contentModelId
+     */
+    public String getContentModelId() {
+        return contentModelId;
+    }
+
+    
+    /**
+     * @param contentModelId the contentModelId to set
+     */
+    public void setContentModelId(String contentModelId) {
+        this.contentModelId = contentModelId;
+    }
+
+    
+    /**
+     * @return the state
+     */
+    public EntityState getState() {
+        return state;
+    }
+
+    
+    /**
+     * @param state the state to set
+     */
+    public void setState(EntityState state) {
+        this.state = state;
+    }
+    
 }

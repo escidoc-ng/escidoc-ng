@@ -17,18 +17,28 @@
 package net.objecthunter.larch.service.backend;
 
 import java.io.IOException;
-import java.util.List;
 
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.SearchResult;
 
 public interface BackendArchiveIndexService {
     Archive retrieve(String id, int version) throws IOException;
 
-    void saveOrUpdate(Archive a) throws IOException;
+    void saveOrUpdate(Archive a, EntityHierarchy hierarchy) throws IOException;
 
     void delete(String entityId, int version) throws IOException;
 
     boolean exists(String id, int version) throws IOException;
 
-    List<Archive> list(int offset, int count) throws IOException;
+    /**
+     * Search {@link net.objecthunter.larch.model.Archive}s in the repository.
+     * 
+     * @param query query as String.
+     * @param offset the offset
+     * @param maxRecords maxRecords to return
+     * @return A {@link net.objecthunter.larch.model.SearchResult} containig the search hits
+     */
+    SearchResult searchArchives(String query, int offset, int maxRecords) throws IOException;
+
 }

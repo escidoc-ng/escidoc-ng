@@ -29,6 +29,7 @@ import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.CredentialsService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService.UsersSearchField;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
 
@@ -126,12 +127,12 @@ public class DefaultCredentialsService implements CredentialsService {
         StringBuilder restrictionQueryBuilder = new StringBuilder("(");
         if (currentUser == null) {
             //restrict to nothing
-            restrictionQueryBuilder.append("name:NONEXISTING");
+            restrictionQueryBuilder.append(UsersSearchField.NAME.getFieldName()).append(":NONEXISTING");
             restrictionQueryBuilder.append(")");
             return restrictionQueryBuilder.toString();
         } else {
             // user may see himself
-            restrictionQueryBuilder.append("name:").append(currentUser.getName());
+            restrictionQueryBuilder.append(UsersSearchField.NAME.getFieldName()).append(":").append(currentUser.getName());
             if (currentUser.getRoles() != null) {
                 for (Role role : currentUser.getRoles()) {
                     RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);

@@ -16,27 +16,36 @@
 
 package net.objecthunter.larch.service.backend.elasticsearch;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
+
+import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-public class ElasticSearchArchiveIndexService extends AbstractElasticSearchService implements BackendArchiveIndexService {
+public class ElasticSearchArchiveIndexService extends AbstractElasticSearchService implements
+        BackendArchiveIndexService {
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchArchiveIndexService.class);
 
@@ -65,20 +74,25 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public void saveOrUpdate(final Archive a) throws IOException {
-        final IndexResponse index = this.client.prepareIndex(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE)
-                .setSource(this.mapper.writeValueAsBytes(a))
-                .setId(a.getEntityId() + "_v" + a.getEntityVersion())
-                .execute()
-                .actionGet();
+    public void saveOrUpdate(final Archive a, final EntityHierarchy entityHierarchy) throws IOException {
+        Map<String, Object> archiveData = mapper.readValue(mapper.writeValueAsString(a), Map.class);
+        archiveData.put(EntitiesSearchField.LEVEL1.getFieldName(), entityHierarchy.getLevel1Id());
+        archiveData.put(EntitiesSearchField.LEVEL2.getFieldName(), entityHierarchy.getLevel2Id());
+        final IndexResponse index =
+                this.client.prepareIndex(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE,
+                        a.getEntityId() + "_v" + a.getEntityVersion())
+                        .setSource(this.mapper.writeValueAsBytes(archiveData))
+                        .execute()
+                        .actionGet();
         this.refreshIndex(INDEX_ARCHIVES);
     }
 
     @Override
     public void delete(final String entityId, final int version) throws IOException {
-        final DeleteResponse delete = this.client.prepareDelete(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE, entityId + "_v" + version)
-                .execute()
-                .actionGet();
+        final DeleteResponse delete =
+                this.client.prepareDelete(INDEX_ARCHIVES, INDEX_ARCHIVE_TYPE, entityId + "_v" + version)
+                        .execute()
+                        .actionGet();
         this.refreshIndex(INDEX_ARCHIVES);
     }
 
@@ -91,20 +105,65 @@ public class ElasticSearchArchiveIndexService extends AbstractElasticSearchServi
     }
 
     @Override
-    public List<Archive> list(final int offset, final int count) throws IOException{
-        final List<Archive> archives = new ArrayList<>(count);
-        final SearchResponse resp = this.client.prepareSearch(INDEX_ARCHIVES)
-                .setTypes(INDEX_ARCHIVE_TYPE)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.matchAllQuery())
-                .setFrom(offset)
-                .setSize(count)
-                .execute()
-                .actionGet();
-        for (SearchHit hit: resp.getHits().getHits()) {
-            archives.add(this.mapper.readValue(hit.getSourceAsString(), Archive.class));
+    public SearchResult searchArchives(String query, int offset, int maxRecords)
+            throws IOException {
+        final long time = System.currentTimeMillis();
+        final SearchResponse resp;
+        if (StringUtils.isBlank(query)) {
+            query = "*:*";
         }
-        return archives;
+        QueryStringQueryBuilder builder = QueryBuilders.queryString(query);
+        try {
+            resp =
+                    this.client.prepareSearch(INDEX_ARCHIVES).setQuery(builder).execute()
+                            .actionGet();
+        } catch (ElasticsearchException ex) {
+            throw new IOException(ex.getMostSpecificCause().getMessage());
+        }
+
+        final SearchResult result = new SearchResult();
+
+        final List<Archive> archives = new ArrayList<>();
+        for (final SearchHit hit : resp.getHits()) {
+            archives.add(mapper.readValue(hit.getSourceAsString(), Archive.class));
+        }
+        result.setData(archives);
+        result.setTotalHits(resp.getHits().getTotalHits());
+        result.setMaxRecords(maxRecords);
+        result.setHits(archives.size());
+        result.setNumRecords(archives.size());
+        result.setTerm(new String(builder.buildAsBytes().toBytes()));
+        result.setOffset(offset);
+        result.setNextOffset(offset + maxRecords);
+        result.setPrevOffset(Math.max(offset - maxRecords, 0));
+        result.setDuration(System.currentTimeMillis() - time);
+        return result;
+    }
+
+    /**
+     * Holds enabled search-fields in archives-index.
+     * 
+     * @author mih
+     */
+    public static enum ArchivesSearchField {
+        ID("entityId"),
+        VERSION("entityVersion"),
+        CONTENT_MODEL("contentModelId"),
+        CREATOR("creator"),
+        STATE("state"),
+        LEVEL1("level1"),
+        LEVEL2("level2"),
+        ALL("_all");
+
+        private final String searchFieldName;
+
+        ArchivesSearchField(final String searchFieldName) {
+            this.searchFieldName = searchFieldName;
+        }
+
+        public String getFieldName() {
+            return searchFieldName;
+        }
     }
 
 }

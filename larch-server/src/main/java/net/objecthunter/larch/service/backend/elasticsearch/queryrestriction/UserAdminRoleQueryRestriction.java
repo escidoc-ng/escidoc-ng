@@ -26,6 +26,9 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
         super(role);
     }
 
+    /**
+     * User-Admin may see no entities.
+     */
     @Override
     public String getEntitiesRestrictionQuery() {
         StringBuilder restrictionQueryBuilder = new StringBuilder("(");
@@ -35,6 +38,9 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
         return restrictionQueryBuilder.toString();
     }
 
+    /**
+     * User-Admin may see users according to the rights he has (blank: all users, otherwise users with id of right).
+     */
     @Override
     public String getUsersRestrictionQuery() {
         StringBuilder restrictionQueryBuilder = new StringBuilder("(");
@@ -56,6 +62,18 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
                 }
             }
         }
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
+    }
+
+    /**
+     * User-Admin may see no archives.
+     */
+    @Override
+    public String getArchivesRestrictionQuery() {
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        // restrict to nothing
+        restrictionQueryBuilder.append(EntitiesSearchField.STATE.getFieldName()).append(":NONEXISTING");
         restrictionQueryBuilder.append(")");
         return restrictionQueryBuilder.toString();
     }

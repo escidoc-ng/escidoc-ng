@@ -19,11 +19,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.security.ObjectType;
+import net.objecthunter.larch.model.security.PermissionType;
+import net.objecthunter.larch.model.security.annotation.Permission;
+import net.objecthunter.larch.model.security.annotation.PreAuth;
+import net.objecthunter.larch.model.security.role.Role.RoleName;
 import net.objecthunter.larch.service.ArchiveService;
 
 import org.apache.commons.io.IOUtils;
@@ -52,7 +56,11 @@ public class ArchiveController extends AbstractLarchController {
      * @return An InputStream containing the Archived Data as Zipfile.
      * @throws IOException
      */
-    @RequestMapping(value = "{entityId}/{version}/content", method = RequestMethod.GET)
+    @RequestMapping(value = "/{entityId}/{version}/content", method = RequestMethod.GET)
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, versionIndex = 1, permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.READ) })
     public void retrieveContent(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
                          HttpServletResponse resp) {
         try (InputStream src = this.archiveService.retrieveData(entityId, version);
@@ -78,25 +86,14 @@ public class ArchiveController extends AbstractLarchController {
      * @param version The version of the entity for which the Archived Data should be returned.
      * @throws IOException
      */
-    @RequestMapping(value = "{entityId}/{version}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{entityId}/{version}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, versionIndex = 1, permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
     public void archive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
         archiveService.archive(entityId, version);
-    }
-
-    /**
-     * Controller method to list all available archive-metadata.
-     * 
-     * @param offset offset.
-     * @param count count.
-     * @return A list with Archive-Metadata.
-     * @throws IOException
-     */
-    @RequestMapping(value = "/list/{offset}/{count}", method = RequestMethod.GET)
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public List<Archive> listArchives(@PathVariable("offset") final int offset, @PathVariable("count") final int count) throws IOException {
-        return archiveService.list(offset, count);
     }
 
     /**
@@ -107,9 +104,13 @@ public class ArchiveController extends AbstractLarchController {
      * @return Archive Archive-Meatdata
      * @throws IOException
      */
-    @RequestMapping(value="{entityId}/{version}", method = RequestMethod.GET)
+    @RequestMapping(value="/{entityId}/{version}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
+    @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, versionIndex = 1, permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ),
+            @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.READ) })
     public Archive retrieveArchive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
         return archiveService.retrieve(entityId, version);
     }

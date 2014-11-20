@@ -15,9 +15,20 @@
  */
 package net.objecthunter.larch.frontend.controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import net.objecthunter.larch.frontend.util.HttpHelper;
+import net.objecthunter.larch.model.AlternativeIdentifier;
 import net.objecthunter.larch.model.Archive;
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.MetadataType;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -26,16 +37,10 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Controller
 /**
@@ -49,21 +54,6 @@ public class ArchiveController extends AbstractController {
     @Autowired
     private Environment env;
 
-    @RequestMapping(value="/archives/{offset}/{count}", method= RequestMethod.GET)
-    public ModelAndView listArchives(@PathVariable("offset") final int offset, @PathVariable("count") final int count)
-            throws IOException {
-
-        final ModelMap model = new ModelMap();
-
-        // retrieve the data from the backend and deserialize it into a collection
-        final String data = httpHelper.doGet("/archive/list/" + offset + "/" + count);
-        List<Archive> archives = this.mapper.readValue(data, this.mapper.getTypeFactory()
-                .constructCollectionType(List.class, Archive.class));
-        model.addAttribute("archives", archives);
-
-        return new ModelAndView("archives", model);
-    }
-
     @RequestMapping(value="/archive/{entityId}/{version}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void archive(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version)
@@ -72,8 +62,22 @@ public class ArchiveController extends AbstractController {
         httpHelper.doPut("/archive/" + entityId + "/" + version, null, null);
     }
 
+    @RequestMapping(value = "/archive/{entityId}/{version}", method = RequestMethod.GET)
+    public ModelAndView retrieveArchiveHtml(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
+        final ModelMap model = new ModelMap();
+        final Archive archive = mapper.readValue(httpHelper.doGet("/archive/" + entityId + "/" + version), Archive.class);
+        model.addAttribute("archive", archive);
+        return new ModelAndView("archive", model);
+    }
+
     @RequestMapping(value = "/archive/{entityId}/{version}/content", method = RequestMethod.GET)
-    public String retrieveContent(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version) throws IOException {
-        return "redirect:" + env.getProperty("larch.server.url") + "/archive/" + entityId + "/" + version + "/content";
+    public void retrieveContent(@PathVariable("entityId") final String entityId, @PathVariable("version") final int version,
+            final HttpServletResponse response) throws IOException {
+        HttpResponse serverResponse = httpHelper.doGetAsResponse("/archive/" + entityId + "/" + version + "/content");
+        response.setContentType(ContentType.getOrDefault(serverResponse.getEntity()).getMimeType());
+        response.setContentLength((int)serverResponse.getEntity().getContentLength());
+        response.setHeader("Content-Disposition", serverResponse.getFirstHeader("Content-Disposition").getValue());
+        IOUtils.copy(serverResponse.getEntity().getContent(), response.getOutputStream());
+        response.flushBuffer();
     }
 }

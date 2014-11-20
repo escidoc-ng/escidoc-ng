@@ -5,8 +5,6 @@ package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import net.objecthunter.larch.model.security.role.Role;
 
-import org.elasticsearch.index.query.QueryBuilder;
-
 
 /**
  * Abstract Class that defines Methods extending classes have to implement.
@@ -40,5 +38,12 @@ public abstract class RoleQueryRestriction {
      * @return String with restriction-Query
      */
     public abstract String getUsersRestrictionQuery();
+
+    /**
+     * Generate a Restriction-Query for a search for archives
+     * 
+     * @return String with restriction-Query
+     */
+    public abstract String getArchivesRestrictionQuery();
 
 }

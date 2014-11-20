@@ -126,11 +126,16 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
     protected void prepareLevel2() throws Exception {
         // create level1s
         level1Id1 = createLevel1();
+        createArchive(level1Id1, 1);
         level1Id2 = createLevel1();
+        createArchive(level1Id2, 1);
 
         // create level2s
         level2Id = createLevel2(LEVEL1_ID);
+        createArchive(level2Id, 1);
+
         level2Id1 = createLevel2(level1Id1);
+        createArchive(level2Id1, 1);
 
         // create users with User-Role
         for (MissingPermission missingPermission : MissingPermission.values()) {

@@ -67,28 +67,6 @@ public class ArchiveControllerIT extends AbstractLarchIT {
     }
 
     @Test
-    public void testListArchive() throws Exception {
-        for (int i = 0; i < 10; i++) {
-            this.ingestAndArchive(createFixtureEntity());
-        }
-        HttpResponse resp = this.listArchives(0,5);
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-
-        List<Archive> archives = this.mapper.readValue(resp.getEntity().getContent(),
-                this.mapper.getTypeFactory().constructCollectionType(List.class, Archive.class));
-
-        assertEquals(5, archives.size());
-
-        resp = this.listArchives(5,5);
-        assertEquals(200, resp.getStatusLine().getStatusCode());
-
-        archives = this.mapper.readValue(resp.getEntity().getContent(),
-                this.mapper.getTypeFactory().constructCollectionType(List.class, Archive.class));
-
-        assertEquals(5, archives.size());
-    }
-
-    @Test
     public void testRetrieveArchiveContent() throws Exception {
         Entity e = this.ingestAndArchive(createFixtureEntity());
         ZipInputStream zip = this.retrieveContent(e.getId(), e.getVersion(), 200);

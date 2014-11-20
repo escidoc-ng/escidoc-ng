@@ -358,8 +358,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     }
 
     /**
-     * Holds enabled search-fields in entities-index. Differentiate between name of GET/POST-Parameter and name of
-     * Search-Field in index.
+     * Holds enabled search-fields in entities-index.
      * 
      * @author mih
      */

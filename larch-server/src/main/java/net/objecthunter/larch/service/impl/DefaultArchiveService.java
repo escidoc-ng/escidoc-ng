@@ -15,22 +15,29 @@
  */
 package net.objecthunter.larch.service.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+
 import net.objecthunter.larch.model.Archive;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
+import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.service.ArchiveService;
+import net.objecthunter.larch.service.AuthorizationService;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService.ArchivesSearchField;
+import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
+import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.ZonedDateTime;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class DefaultArchiveService implements ArchiveService {
 
@@ -41,7 +48,13 @@ public class DefaultArchiveService implements ArchiveService {
     private BackendArchiveIndexService archiveIndex;
 
     @Autowired
+    private BackendEntityService backendEntityService;
+
+    @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private AuthorizationService defaultAuthorizationService;
 
     @Override
     public void archive(final String entityId, final int version) throws IOException {
@@ -52,10 +65,12 @@ public class DefaultArchiveService implements ArchiveService {
         Archive a = new Archive();
         a.setEntityId(entityId);
         a.setEntityVersion(version);
-        a.setCreatedDate(ZonedDateTime.now());
+        a.setContentModelId(e.getContentModelId());
+        a.setState(e.getState());
+        a.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC).toString());
         a.setPath(path);
         a.setCreator(userName);
-        archiveIndex.saveOrUpdate(a);
+        archiveIndex.saveOrUpdate(a, backendEntityService.getHierarchy(e));
     }
 
     @Override
@@ -88,7 +103,43 @@ public class DefaultArchiveService implements ArchiveService {
     }
 
     @Override
-    public List<Archive> list(int offset, int count) throws IOException {
-        return this.archiveIndex.list(offset, count);
+    public SearchResult searchArchives(String query, int offset, int maxRecords)
+            throws IOException {
+        // add user restriction
+        StringBuilder queryBuilder = new StringBuilder("");
+        if (StringUtils.isNotBlank(query)) {
+            queryBuilder.append("(").append(query).append(") AND ");
+        }
+        queryBuilder.append(getArchivesUserRestrictionQuery());
+        return archiveIndex.searchArchives(queryBuilder.toString(), offset, maxRecords);
     }
+
+    /**
+     * Get Query that restricts a search to archives the user may see.
+     * 
+     * @return QueryBuilder with user-restriction query
+     */
+    private String getArchivesUserRestrictionQuery() throws IOException {
+        User currentUser = defaultAuthorizationService.getCurrentUser();
+        StringBuilder restrictionQueryBuilder = new StringBuilder("(");
+        if (currentUser == null || currentUser.getRoles() == null || currentUser.getRoles().isEmpty()) {
+            // restrict to nothing
+            restrictionQueryBuilder.append(ArchivesSearchField.STATE.getFieldName()).append(":NONEXISTING");
+            restrictionQueryBuilder.append(")");
+            return restrictionQueryBuilder.toString();
+        } else {
+            int counter = 0;
+            for (Role role : currentUser.getRoles()) {
+                if (counter > 0) {
+                    restrictionQueryBuilder.append(" OR ");
+                }
+                RoleQueryRestriction roleQueryRestriction = QueryRestrictionFactory.getRoleQueryRestriction(role);
+                restrictionQueryBuilder.append(roleQueryRestriction.getArchivesRestrictionQuery());
+                counter++;
+            }
+        }
+        restrictionQueryBuilder.append(")");
+        return restrictionQueryBuilder.toString();
+    }
+
 }

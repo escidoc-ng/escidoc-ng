@@ -27,29 +27,41 @@ limitations under the License.
     <div class="main">
         <div th:include="fragments :: banner" class="title">
         </div>
-        <div class="heading">Archives</div>
-        <div th:each="archive : ${archives}" class="panel">
-            <p class="panel_title" th:text="${archive.entityId}"></p>
-
+        <div class="heading" th:text="'Archive for ' + ${archive.entityId} + ' version ' + ${archive.entityVersion}" />
+        <div class="panel">
+            <p class="panel_title" th:text="${archive.entityId}" />
             <p class="property" th:text="Actions" />
-            <input id="downloadBtn" class="button_small" type="submit" value="Download" th:onclick="'javascript:downloadArchive(\'' + ${archive.entityId} + '\',\'' + ${archive.entityVersion} + '\')'"/>
+                <input id="downloadBtn" class="button_small" type="submit" value="Download" th:onclick="'javascript:downloadArchive(\'' + ${archive.entityId} + '\',\'' + ${archive.entityVersion} + '\')'"/>
             <p class="panel_title" />
 
-            <p class="property">Entity version</p>
+            <p class="property">EntityId</p>
+
+            <p class="value" th:text="${archive.entityId}"></p>
+
+            <p class="property">EntityVersion</p>
 
             <p class="value" th:text="${archive.entityVersion}"></p>
+
+            <p class="property">ContentModelId</p>
+
+            <p class="value" th:text="${archive.contentModelId}"></p>
+
+            <p class="property">State</p>
+
+            <p class="value" th:text="${archive.state}"></p>
+
+            <p class="property">Path</p>
+
+            <p class="value" th:text="${archive.path}"></p>
 
             <p class="property">Created</p>
 
             <p class="value" th:text="${archive.createdDate}"></p>
 
-            <p class="property">Created by</p>
+            <p class="property">Creator</p>
 
             <p class="value" th:text="${archive.creator}"></p>
 
-            <p class="property">Path</p>
-
-            <p class="value" th:text="${archive.path}"></p>
         </div>
     </div>
 </div>
@@ -58,3 +70,5 @@ limitations under the License.
 </div>
 </body>
 </html>
+
+

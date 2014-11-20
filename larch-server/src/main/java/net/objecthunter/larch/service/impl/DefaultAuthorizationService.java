@@ -95,12 +95,15 @@ public class DefaultAuthorizationService implements AuthorizationService {
      */
     @Override
     public Integer getVersionId(final int versionIndex, final Object[] args) throws IOException {
-        if (versionIndex >= 0 && args != null && args.length > versionIndex &&
-                args[versionIndex] instanceof String) {
-            try {
-                return Integer.parseInt((String) args[versionIndex]);
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException("versionId has to be a number: " + args[versionIndex]);
+        if (versionIndex >= 0 && args != null && args.length > versionIndex) {
+            if (args[versionIndex] instanceof String) {
+                try {
+                    return Integer.parseInt((String) args[versionIndex]);
+                } catch (NumberFormatException e) {
+                    throw new InvalidParameterException("versionId has to be a number: " + args[versionIndex]);
+                }
+            } else if (args[versionIndex] instanceof Integer) {
+                return (Integer)args[versionIndex];
             }
         }
         return null;
