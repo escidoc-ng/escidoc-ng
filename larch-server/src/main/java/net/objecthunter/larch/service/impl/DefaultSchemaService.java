@@ -52,7 +52,7 @@ public class DefaultSchemaService implements SchemaService {
 
     @Override
     public void deleteMetadataType(String name) throws IOException {
-        schemaService.deleteMetadataType(name);
+        schemaService.deleteSchemaType(name);
     }
 
     @Override

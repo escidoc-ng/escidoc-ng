@@ -19,7 +19,6 @@ package net.objecthunter.larch.controller;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -88,16 +87,8 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
-        final Entity e = entityService.retrieve(entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        if (e.getMetadata() == null) {
-            e.setMetadata(new HashMap<>());
-        }
-        else if (e.getMetadata().get(md.getName()) != null) {
-            throw new IOException("Meta data " + md.getName() + " already exists on Entity " + entityId);
-        }
-        e.getMetadata().put(md.getName(), md);
-        entityService.update(e);
+        entityService.createMetadata(entityId, md.getName(), md.getType(), md.getMimetype(), md.getSource().getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
@@ -119,28 +110,13 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String addMetadata(@PathVariable("id") final String entityId,
+    public void addMetadata(@PathVariable("id") final String entityId,
             @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
             throws IOException {
-        final Entity e = entityService.retrieve(entityId);
-        if (e.getMetadata() == null) {
-            e.setMetadata(new HashMap<>());
-        }
-        else if (e.getMetadata().get(mdName) != null) {
-            throw new IOException("Meta data " + mdName + " already exists on Entity " + entityId);
-        }
-        final Metadata md = new Metadata();
-        md.setName(mdName);
-        md.setData(IOUtils.toString(file.getInputStream()));
-        md.setMimetype(file.getContentType());
-        md.setType(type);
-        md.setOriginalFilename(file.getOriginalFilename());
-        e.getMetadata().put(mdName, md);
-        entityService.update(e);
+        entityService.createMetadata(entityId, mdName, type, file.getContentType(), file.getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
-        return "redirect:/entity/" + entityId;
     }
 
     /**
@@ -160,23 +136,8 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
-
-        final Entity e = this.entityService.retrieve(entityId);
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
-            throw new FileNotFoundException("The binary " + binaryName + " does not exist ");
-        }
-        final Binary bin = e.getBinaries().get(binaryName);
-        if (bin.getMetadata() == null) {
-            bin.setMetadata(new HashMap<>());
-        }
-        if (bin.getMetadata().containsKey(md.getName())) {
-            throw new IOException("The meta data " + md.getName() + " already exists on the binary " + binaryName +
-                    ""
-                    + " of the entity " + entityId);
-        }
-        bin.getMetadata().put(md.getName(), md);
-        this.entityService.update(e);
+        entityService.createBinaryMetadata(entityId, binaryName, md.getName(), md.getType(), md.getMimetype(), md.getSource().getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
@@ -199,36 +160,13 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public String addBinaryMetadata(@PathVariable("id") final String entityId,
+    public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
             throws IOException {
-
-        final Entity e = this.entityService.retrieve(entityId);
-        final Metadata md = new Metadata();
-        md.setName(mdName);
-        md.setType(type);
-        md.setData(IOUtils.toString(file.getInputStream()));
-        md.setOriginalFilename(file.getOriginalFilename());
-        md.setMimetype(file.getContentType());
-
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
-            throw new FileNotFoundException("The binary " + binaryName + " does not exist on the entity " + entityId);
-        }
-        final Binary bin = e.getBinaries().get(binaryName);
-        if (bin.getMetadata() == null) {
-            bin.setMetadata(new HashMap<>());
-        }
-        if (bin.getMetadata().containsKey(md.getName())) {
-            throw new IOException("The meta data " + md.getName() + " already exists on the binary " + binaryName +
-                    ""
-                    + " of the entity " + entityId);
-        }
-        bin.getMetadata().put(md.getName(), md);
-        this.entityService.update(e);
+        entityService.createBinaryMetadata(entityId, binaryName, mdName, type, file.getContentType(), file.getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
-        return "redirect:/entity/" + entityId + "/binary/" + binaryName;
     }
 
     /**
@@ -249,14 +187,19 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
-    public void retrieveMetadataXml(@PathVariable("id") final String id,
+    public void downloadMetadata(@PathVariable("id") final String id,
             @PathVariable("metadata-name") final String metadataName,
-            final HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/xml");
-        resp.setHeader("Content-Disposition", "inline");
-        final String data = entityService.retrieve(id).getMetadata().get(metadataName).getData();
-        IOUtils.write(data, resp.getOutputStream());
-        resp.flushBuffer();
+            final HttpServletResponse response) throws IOException {
+        final Entity e = entityService.retrieve(id);
+        if (e.getMetadata() == null || !e.getMetadata().containsKey(metadataName)) {
+            throw new NotFoundException("The Metadata " + metadataName + " does not exist on the entity " + id);
+        }
+        final Metadata md = e.getMetadata().get(metadataName);
+        response.setContentType(md.getMimetype());
+        response.setContentLength(-1);
+        response.setHeader("Content-Disposition", "inline");
+        IOUtils.copy(entityService.retrieveMetadataContent(md.getPath()), response.getOutputStream());
+        response.flushBuffer();
     }
 
     /**
@@ -279,13 +222,11 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.READ) })
-    public void retrieveBinaryMetadataXml(@PathVariable("id") final String id,
+    public void downloadBinaryMetadata(@PathVariable("id") final String id,
             @PathVariable("binary-name") final String binaryName,
             @PathVariable("metadata-name") final String metadataName,
-            final HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/xml");
-        resp.setHeader("Content-Disposition", "inline");
-        final Entity e = this.entityService.retrieve(id);
+            final HttpServletResponse response) throws IOException {
+        final Entity e = entityService.retrieve(id);
         if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on entity " + id);
         }
@@ -294,9 +235,12 @@ public class MetadataController extends AbstractLarchController {
             throw new FileNotFoundException("The metadata " + metadataName + " does not exist on the binary "
                     + binaryName + " of the entity " + id);
         }
-        final String data = bin.getMetadata().get(metadataName).getData();
-        IOUtils.write(data, resp.getOutputStream());
-        resp.flushBuffer();
+        final Metadata md = bin.getMetadata().get(metadataName);
+        response.setContentType(md.getMimetype());
+        response.setContentLength(-1);
+        response.setHeader("Content-Disposition", "inline");
+        IOUtils.copy(entityService.retrieveMetadataContent(md.getPath()), response.getOutputStream());
+        response.flushBuffer();
     }
 
     /**

@@ -80,7 +80,7 @@ public abstract class Fixtures {
         return contentModel;
     }
 
-    public static Entity createEntity() {
+    public static Entity createEntity() throws Exception {
         Entity e = new Entity();
         e.setId("testid");
         e.setState(EntityState.PENDING);
@@ -116,18 +116,20 @@ public abstract class Fixtures {
         return bin;
     }
 
-    public static Map<String, Metadata> createMetadataMap() {
+    public static Map<String, Metadata> createMetadataMap() throws Exception {
         Map<String, Metadata> metadataMap = new HashMap<>(1);
         Metadata md = createMetadata();
         metadataMap.put(md.getName(), md);
         return metadataMap;
     }
 
-    public static Metadata createMetadata() {
+    public static Metadata createMetadata() throws Exception {
         Metadata data = new Metadata();
+        data.setMimetype("text/xml");
+        data.setFilename("dc.xml");
+        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
         data.setName("DC");
         data.setType("Dublin Core");
-        data.setData("<empty/>");
         return data;
     }
 
@@ -180,20 +182,14 @@ public abstract class Fixtures {
         return e;
     }
 
-    public static Metadata createRandomDCMetadata() {
-        Metadata md = new Metadata();
-        md.setType("DC");
-        md.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
-        StringBuilder dcBuilder = new StringBuilder();
-        dcBuilder
-                .append(
-                        "<metadata xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl"
-                                + ".org/dc/elements/1.1/\">").append("\n\t<dc:title>Test Object</dc:title>")
-                .append("\n\t<dc:creator>fasseg</dc:creator>").append("\n\t<dc:subject>Testing Groven</dc:subject>")
-                .append("\n\t<dc:description>Test Object to implement integration Tests</dc:description>")
-                .append("\n</metadata>");
-        md.setData(dcBuilder.toString());
-        return md;
+    public static Metadata createRandomDCMetadata() throws Exception {
+        Metadata data = new Metadata();
+        data.setMimetype("text/xml");
+        data.setFilename("dc.xml");
+        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
+        data.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
+        data.setType("Dublin Core");
+        return data;
     }
     
     public static Binary createRandomBinary() throws Exception {

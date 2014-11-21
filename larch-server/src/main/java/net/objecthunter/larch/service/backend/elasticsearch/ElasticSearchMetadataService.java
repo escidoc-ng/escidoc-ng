@@ -29,6 +29,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
+import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendMetadataService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 import net.sf.json.xml.XMLSerializer;
@@ -64,6 +65,9 @@ public class ElasticSearchMetadataService extends AbstractElasticSearchService i
     private int maxRecords;
 
     @Autowired
+    private BackendBlobstoreService backendBlobstoreService;
+
+    @Autowired
     private ObjectMapper mapper;
 
     @Autowired
@@ -96,7 +100,7 @@ public class ElasticSearchMetadataService extends AbstractElasticSearchService i
                 if (metadataMap.get("md_" + md.getType()) == null) {
                     metadataMap.put("md_" + md.getType(), new ArrayList<Map>());
                 }
-                ((List) metadataMap.get("md_" + md.getType())).add(mapper.readValue(serializer.read(md.getData())
+                ((List) metadataMap.get("md_" + md.getType())).add(mapper.readValue(serializer.readFromStream(backendBlobstoreService.retrieve(md.getPath()))
                         .toString(), Map.class));
             }
         }
@@ -107,8 +111,8 @@ public class ElasticSearchMetadataService extends AbstractElasticSearchService i
                         if (metadataMap.get("binarymd_" + md.getType()) == null) {
                             metadataMap.put("binarymd_" + md.getType(), new ArrayList<Map>());
                         }
-                        ((List) metadataMap.get("binarymd_" + md.getType())).add(mapper.readValue(serializer.read(
-                                md.getData())
+                        ((List) metadataMap.get("binarymd_" + md.getType())).add(mapper.readValue(serializer.readFromStream(
+                                backendBlobstoreService.retrieve(md.getPath()))
                                 .toString(), Map.class));
                     }
                 }

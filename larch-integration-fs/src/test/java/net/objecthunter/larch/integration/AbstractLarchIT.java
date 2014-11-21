@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package net.objecthunter.larch.integration;
 
 import static net.objecthunter.larch.test.util.Fixtures.LEVEL1_ID;
@@ -31,6 +30,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,8 +55,9 @@ import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
-
 import net.objecthunter.larch.test.util.SftpServerConfiguration;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
@@ -83,7 +84,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {LarchServerConfiguration.class, SftpServerConfiguration.class})
+@SpringApplicationConfiguration(classes = { LarchServerConfiguration.class, SftpServerConfiguration.class })
 @IntegrationTest
 @WebAppConfiguration
 @ActiveProfiles("fs")
@@ -455,7 +456,7 @@ public abstract class AbstractLarchIT {
      * @param mdName name of mdRecord to add
      * @return Entity updated entity
      */
-    protected Entity addMetadataStream(Entity entity, String mdName, String mdType, String data, int expectedStatus)
+    protected Entity addMetadataStream(Entity entity, String mdName, String mdType, int expectedStatus)
             throws Exception {
         Metadata metadata = createRandomDCMetadata();
         if (mdName == null || !mdName.equals(IGNORE)) {
@@ -463,9 +464,6 @@ public abstract class AbstractLarchIT {
         }
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
-        }
-        if (data == null || !data.equals(IGNORE)) {
-            metadata.setData(data);
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -485,7 +483,9 @@ public abstract class AbstractLarchIT {
                 // check if metadata exists
                 assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getMetadata().get(metadata.getName()).getData());
+                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
+                        retrieveContentFromInputStream(fetched.getMetadata().get(metadata.getName()).getSource()
+                                .getInputStream()));
             } else {
                 assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
             }
@@ -501,7 +501,7 @@ public abstract class AbstractLarchIT {
      * @return Entity updated entity
      */
     protected Entity
-            addMetadataMultipart(Entity entity, String mdName, String mdType, String data, int expectedStatus)
+            addMetadataMultipart(Entity entity, String mdName, String mdType, int expectedStatus)
                     throws Exception {
         Metadata metadata = createRandomDCMetadata();
         if (mdName == null || !mdName.equals(IGNORE)) {
@@ -510,9 +510,6 @@ public abstract class AbstractLarchIT {
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (data == null || !data.equals(IGNORE)) {
-            metadata.setData(data);
-        }
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl + entity.getId() + "/metadata").body(MultipartEntityBuilder.create()
@@ -520,7 +517,8 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("type", metadata.getType())
                                 .addPart(
                                         "data",
-                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
+                                        new StringBody(retrieveContentFromInputStream(metadata.getSource()
+                                                .getInputStream()), ContentType.APPLICATION_XML))
                                 .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
@@ -535,7 +533,9 @@ public abstract class AbstractLarchIT {
                 // check if metadata exists
                 assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getMetadata().get(metadata.getName()).getData());
+                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
+                        retrieveContentFromInputStream(fetched.getMetadata().get(metadata.getName()).getSource()
+                                .getInputStream()));
             } else {
                 assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
             }
@@ -584,7 +584,7 @@ public abstract class AbstractLarchIT {
      * @return Entity updated entity
      */
     protected Entity addBinaryMetadataStream(Entity entity, String binaryName, String mdName, String mdType,
-            String data, int expectedStatus) throws Exception {
+            int expectedStatus) throws Exception {
         String bName = binaryName;
         if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
@@ -595,9 +595,6 @@ public abstract class AbstractLarchIT {
         }
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
-        }
-        if (data == null || !data.equals(IGNORE)) {
-            metadata.setData(data);
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -620,8 +617,10 @@ public abstract class AbstractLarchIT {
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
                         metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(
-                        metadata.getName()).getData());
+                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
+                        retrieveContentFromInputStream(fetched.getBinaries().get(bName).getMetadata().get(
+                                metadata.getName()).getSource()
+                                .getInputStream()));
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -640,7 +639,7 @@ public abstract class AbstractLarchIT {
      * @return Entity updated entity
      */
     protected Entity addBinaryMetadataMultipart(Entity entity, String binaryName, String mdName, String mdType,
-            String data, int expectedStatus) throws Exception {
+            int expectedStatus) throws Exception {
         String bName = binaryName;
         if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
@@ -652,20 +651,19 @@ public abstract class AbstractLarchIT {
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        if (data == null || !data.equals(IGNORE)) {
-            metadata.setData(data);
-        }
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(
                                 entityUrl + entity.getId() + "/binary/" +
-                                        bName + "/metadata").body(MultipartEntityBuilder.create()
-                                .addTextBody("name", metadata.getName())
-                                .addTextBody("type", metadata.getType())
-                                .addPart(
-                                        "data",
-                                        new StringBody(metadata.getData(), ContentType.APPLICATION_XML))
-                                .build()));
+                                        bName + "/metadata").body(
+                                MultipartEntityBuilder.create()
+                                        .addTextBody("name", metadata.getName())
+                                        .addTextBody("type", metadata.getType())
+                                        .addPart(
+                                                "data",
+                                                new StringBody(retrieveContentFromInputStream(metadata.getSource()
+                                                        .getInputStream()), ContentType.APPLICATION_XML))
+                                        .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         // get entity
@@ -680,8 +678,10 @@ public abstract class AbstractLarchIT {
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
                         metadata.getName()).getType());
-                assertEquals(metadata.getData(), fetched.getBinaries().get(bName).getMetadata().get(
-                        metadata.getName()).getData());
+                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
+                        retrieveContentFromInputStream(fetched.getBinaries().get(bName).getMetadata().get(
+                                metadata.getName()).getSource()
+                                .getInputStream()));
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -1150,8 +1150,19 @@ public abstract class AbstractLarchIT {
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
         return new ZipInputStream(resp.getEntity().getContent());
     }
-    
-    private String getStateUrl (String entityId, EntityState state) {
+
+    private String retrieveMetadataContent(String entityId, String mdName, int expectedStatus) throws IOException {
+        HttpResponse resp =
+                this.executeAsAdmin(Request.Get(entityUrl + entityId + "/metadata/" + mdName + "/content"));
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        return IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
+    }
+
+    public String retrieveContentFromInputStream(InputStream in) throws IOException {
+        return IOUtils.toString(in, "UTF-8");
+    }
+
+    private String getStateUrl(String entityId, EntityState state) {
         if (EntityState.PENDING.equals(state)) {
             return entityUrl + entityId + "/pending";
         } else if (EntityState.SUBMITTED.equals(state)) {

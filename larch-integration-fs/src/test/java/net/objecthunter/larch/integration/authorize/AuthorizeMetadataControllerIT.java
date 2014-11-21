@@ -309,7 +309,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
     }
 
-    private Metadata getMetadata() {
+    private Metadata getMetadata() throws Exception {
         Metadata md = Fixtures.createRandomDCMetadata();
         return md;
     }
