@@ -129,7 +129,7 @@ public abstract class Fixtures {
         data.setFilename("dc.xml");
         data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
         data.setName("DC");
-        data.setType("Dublin Core");
+        data.setType("DC");
         return data;
     }
 
@@ -188,7 +188,7 @@ public abstract class Fixtures {
         data.setFilename("dc.xml");
         data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
         data.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
-        data.setType("Dublin Core");
+        data.setType("DC");
         return data;
     }
     

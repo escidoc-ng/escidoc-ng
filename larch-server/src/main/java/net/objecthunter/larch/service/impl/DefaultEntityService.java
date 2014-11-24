@@ -943,31 +943,20 @@ public class DefaultEntityService implements EntityService {
                 deleteRecursively(childId);
             }
         }
-        // delete binaries
-        if (e.getBinaries() != null) {
-            for (Binary b : e.getBinaries().values()) {
-                if (b.getPath() != null && !b.getPath().isEmpty()) {
-                    this.backendBlobstoreService.delete(b.getPath());
-                }
-                if (b.getMetadata() != null) {
-                    for (Metadata md : b.getMetadata().values()) {
-                        this.backendBlobstoreService.delete(md.getPath());
-                    }
-                }
-            }
-        }
-
-        // delete metadata from filesystem
-        if (e.getMetadata() != null) {
-            for (Metadata md : e.getMetadata().values()) {
-                this.backendBlobstoreService.delete(md.getPath());
-            }
-        }
-
+        
+        List<String> alreadyDeletedFiles = new ArrayList<String>();
+        deleteFiles(e, alreadyDeletedFiles);
+        
         // delete audit-records
         this.backendAuditService.deleteAll(id);
 
         // delete Versions
+        Entities entities = this.backendVersionService.getOldVersions(id);
+        if (entities != null) {
+            for (Entity entity : entities.getEntities()) {
+                deleteFiles(entity, alreadyDeletedFiles);
+            }
+        }
         this.backendVersionService.deleteOldVersions(id);
 
         // delete entity
@@ -979,6 +968,58 @@ public class DefaultEntityService implements EntityService {
         // delete indexed metadata ?
         if (metadataindexEnabled) {
             backendMetadataService.delete(id);
+        }
+    }
+    
+    /**
+     * Delete Files with backendBlobstoreService.
+     * remember deleted paths to not try deleting again.
+     * 
+     * @param e Emtity
+     * @param alreadyDeletedFiles
+     * @throws IOException
+     */
+    private void deleteFiles(Entity e, List<String> alreadyDeletedFiles) throws IOException {
+        // delete binaries
+        if (e.getBinaries() != null) {
+            for (Binary b : e.getBinaries().values()) {
+                if (b.getPath() != null && !b.getPath().isEmpty()) {
+                    if (!alreadyDeletedFiles.contains(b.getPath())) {
+                        try {
+                            this.backendBlobstoreService.delete(b.getPath());
+                        } catch (Exception ex) {
+                            log.warn(ex.toString());
+                        }
+                        alreadyDeletedFiles.add(b.getPath());
+                    }
+                }
+                if (b.getMetadata() != null) {
+                    for (Metadata md : b.getMetadata().values()) {
+                        if (!alreadyDeletedFiles.contains(md.getPath())) {
+                            try {
+                                this.backendBlobstoreService.delete(md.getPath());
+                            } catch (Exception ex) {
+                                log.warn(ex.toString());
+                            }
+                            alreadyDeletedFiles.add(md.getPath());
+                        }
+                    }
+                }
+            }
+        }
+
+        // delete metadata from filesystem
+        if (e.getMetadata() != null) {
+            for (Metadata md : e.getMetadata().values()) {
+                if (!alreadyDeletedFiles.contains(md.getPath())) {
+                    try {
+                        this.backendBlobstoreService.delete(md.getPath());
+                    } catch (Exception ex) {
+                        log.warn(ex.toString());
+                    }
+                    alreadyDeletedFiles.add(md.getPath());
+                }
+            }
         }
     }
 }
