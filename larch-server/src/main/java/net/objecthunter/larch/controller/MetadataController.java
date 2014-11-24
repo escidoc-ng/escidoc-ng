@@ -76,7 +76,8 @@ public class MetadataController extends AbstractLarchController {
      * {@link net.objecthunter.larch.model.Entity} using a HTTP POST with application/json
      * 
      * @param entityId The is of the Entity to which the Metadata should be added
-     * @param src the request body as an InputStream, containing the JSON-Representation of a {@link net.objecthunter.larch.model.Metadata}.
+     * @param src the request body as an InputStream, containing the JSON-Representation of a
+     *        {@link net.objecthunter.larch.model.Metadata}.
      * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
@@ -88,7 +89,8 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        entityService.createMetadata(entityId, md.getName(), md.getType(), md.getMimetype(), md.getSource().getInputStream());
+        entityService.createMetadata(entityId, md.getName(), md.getType(), md.getMimetype(), md.isIndexInline(), md.getSource()
+                .getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
@@ -110,11 +112,14 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.ENTITY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public void addMetadata(@PathVariable("id") final String entityId,
-            @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
-            throws IOException {
-        entityService.createMetadata(entityId, mdName, type, file.getContentType(), file.getInputStream());
+    public void
+            addMetadata(@PathVariable("id") final String entityId,
+                    @RequestParam("name") final String mdName,
+                    @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
+                            defaultValue = "false") final String indexInline,
+                    @RequestParam("data") final MultipartFile file)
+                    throws IOException {
+        entityService.createMetadata(entityId, mdName, type, file.getContentType(), new Boolean(indexInline), file.getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
     }
@@ -137,7 +142,8 @@ public class MetadataController extends AbstractLarchController {
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        entityService.createBinaryMetadata(entityId, binaryName, md.getName(), md.getType(), md.getMimetype(), md.getSource().getInputStream());
+        entityService.createBinaryMetadata(entityId, binaryName, md.getName(), md.getType(), md.getMimetype(), md.isIndexInline(), md
+                .getSource().getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
@@ -162,9 +168,11 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("data") final MultipartFile file)
+            @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
+                    defaultValue = "false") final String indexInline, @RequestParam("data") final MultipartFile file)
             throws IOException {
-        entityService.createBinaryMetadata(entityId, binaryName, mdName, type, file.getContentType(), file.getInputStream());
+        entityService.createBinaryMetadata(entityId, binaryName, mdName, type, file.getContentType(), new Boolean(indexInline), file
+                .getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
     }

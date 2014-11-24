@@ -51,10 +51,10 @@ public interface EntityService {
 
     InputStream retrieveBinary(String path) throws IOException;
 
-    void createMetadata(String entityId, String name, String type, String contentType, InputStream inputStream)
+    void createMetadata(String entityId, String name, String type, String contentType, boolean indexInline, InputStream inputStream)
             throws IOException;
 
-    void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType, InputStream inputStream)
+    void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType, boolean indexInline, InputStream inputStream)
             throws IOException;
 
     InputStream retrieveMetadataContent(String path) throws IOException;

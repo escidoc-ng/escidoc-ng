@@ -65,6 +65,8 @@ import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,6 +107,9 @@ public class DefaultEntityService implements EntityService {
 
     @Autowired
     private EntityValidatorService defaultEntityValidatorService;
+
+    @Autowired
+    private XMLSerializer serializer;
 
     @Autowired
     private ObjectMapper mapper;
@@ -234,6 +239,11 @@ public class DefaultEntityService implements EntityService {
             md.setSize(src.getCalculatedSize());
             md.setChecksumType(digest.getAlgorithm());
             md.setPath(path);
+            if (md.isIndexInline()) {
+                // Write Metadata-XML as JSON in Entity
+                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(md.getPath()));
+                md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
             String uri = "/entity/" + entityId + "/metadata/" + md.getName() + "/content";
             if (binaryName != null) {
                 uri = "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + md.getName() + "/content";
@@ -418,7 +428,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createMetadata(String entityId, String name, String type, String contentType,
+    public void createMetadata(String entityId, String name, String type, String contentType,  boolean indexInline,
             InputStream inputStream)
             throws IOException {
         if (StringUtils.isBlank(name)) {
@@ -461,6 +471,12 @@ public class DefaultEntityService implements EntityService {
             m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
                     + "/content"), true));
             m.setPath(path);
+            m.setIndexInline(indexInline);
+            if (m.isIndexInline()) {
+                // Write Metadata-XML as JSON in Entity
+                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
+                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
             m.setUtcCreated(now);
             m.setUtcLastModified(now);
             if (e.getMetadata() == null) {
@@ -478,7 +494,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType,
+    public void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType, boolean indexInline,
             InputStream inputStream)
             throws IOException {
         if (StringUtils.isBlank(name)) {
@@ -531,6 +547,12 @@ public class DefaultEntityService implements EntityService {
             m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
                     + "/content"), true));
             m.setPath(path);
+            m.setIndexInline(indexInline);
+            if (m.isIndexInline()) {
+                // Write Metadata-XML as JSON in Entity
+                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
+                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
             m.setUtcCreated(now);
             m.setUtcLastModified(now);
             bin.getMetadata().put(name, m);

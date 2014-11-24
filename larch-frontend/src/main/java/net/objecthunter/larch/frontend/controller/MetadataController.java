@@ -74,12 +74,14 @@ public class MetadataController extends AbstractController {
     @ResponseStatus(HttpStatus.CREATED)
     public String addMetadataHtml(@PathVariable("id") final String entityId,
             @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
+            @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
+                    defaultValue = "false") final String indexInline, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
         HttpEntity multipart =
                 MultipartEntityBuilder.create()
                         .addTextBody("name", mdName)
                         .addTextBody("type", type)
+                        .addTextBody("indexInline", indexInline)
                         .addBinaryBody("data", file.getInputStream(), ContentType.create(file.getContentType()),
                                 file.getOriginalFilename())
                         .build();
@@ -104,11 +106,13 @@ public class MetadataController extends AbstractController {
     @ResponseStatus(HttpStatus.CREATED)
     public String addBinaryMetadataHtml(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
-            @RequestParam("type") final String type, @RequestParam("metadata") final MultipartFile file)
+            @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
+                    defaultValue = "false") final String indexInline, @RequestParam("metadata") final MultipartFile file)
             throws IOException {
         HttpEntity multipart = MultipartEntityBuilder.create()
                 .addTextBody("name", mdName)
                 .addTextBody("type", type)
+                .addTextBody("indexInline", indexInline)
                 .addBinaryBody("data", file.getInputStream(), ContentType.create(file.getContentType()),
                         file.getOriginalFilename())
                 .build();

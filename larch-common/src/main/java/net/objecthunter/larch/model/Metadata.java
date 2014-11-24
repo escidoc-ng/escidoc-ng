@@ -43,7 +43,7 @@ public class Metadata {
     
     private String type;
     
-    private boolean displayable;
+    private boolean indexInline;
     
     private JsonNode jsonData;
 
@@ -181,18 +181,18 @@ public class Metadata {
 
     
     /**
-     * @return the displayable
+     * @return the indexInline
      */
-    public boolean isDisplayable() {
-        return displayable;
+    public boolean isIndexInline() {
+        return indexInline;
     }
 
     
     /**
-     * @param displayable the displayable to set
+     * @param indexInline the indexInline to set
      */
-    public void setDisplayable(boolean displayable) {
-        this.displayable = displayable;
+    public void setIndexInline(boolean indexInline) {
+        this.indexInline = indexInline;
     }
 
     
