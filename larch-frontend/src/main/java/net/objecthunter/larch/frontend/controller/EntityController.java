@@ -88,8 +88,6 @@ public class EntityController extends AbstractController {
             throws IOException {
         final ModelMap model = new ModelMap();
         model.addAttribute("entity", mapper.readValue(httpHelper.doGet("/entity/" + id + "/version/" + version), Entity.class));
-        final Archive archive = mapper.readValue(httpHelper.doGet("/archive/" + id + "/version/" + version), Archive.class);
-        model.addAttribute("archive", archive);
         return new ModelAndView("entity", model);
     }
 
