@@ -483,9 +483,8 @@ public abstract class AbstractLarchIT {
                 // check if metadata exists
                 assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
-                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
-                        retrieveContentFromInputStream(fetched.getMetadata().get(metadata.getName()).getSource()
-                                .getInputStream()));
+                assertEquals(retrieveMetadataContent(entity.getId(), metadata, 200),
+                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata().get(metadata.getName()), 200));
             } else {
                 assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
             }
@@ -517,8 +516,7 @@ public abstract class AbstractLarchIT {
                                 .addTextBody("type", metadata.getType())
                                 .addPart(
                                         "data",
-                                        new StringBody(retrieveContentFromInputStream(metadata.getSource()
-                                                .getInputStream()), ContentType.APPLICATION_XML))
+                                        new StringBody(retrieveMetadataContent(entity.getId(), metadata, 200), ContentType.APPLICATION_XML))
                                 .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
@@ -533,9 +531,8 @@ public abstract class AbstractLarchIT {
                 // check if metadata exists
                 assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
-                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
-                        retrieveContentFromInputStream(fetched.getMetadata().get(metadata.getName()).getSource()
-                                .getInputStream()));
+                assertEquals(retrieveMetadataContent(entity.getId(), metadata, 200),
+                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata().get(metadata.getName()), 200));
             } else {
                 assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
             }
@@ -617,10 +614,8 @@ public abstract class AbstractLarchIT {
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
                         metadata.getName()).getType());
-                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
-                        retrieveContentFromInputStream(fetched.getBinaries().get(bName).getMetadata().get(
-                                metadata.getName()).getSource()
-                                .getInputStream()));
+                assertEquals(retrieveBinaryMetadataContent(entity.getId(), bName, metadata, 200),
+                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()), 200));
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -661,8 +656,7 @@ public abstract class AbstractLarchIT {
                                         .addTextBody("type", metadata.getType())
                                         .addPart(
                                                 "data",
-                                                new StringBody(retrieveContentFromInputStream(metadata.getSource()
-                                                        .getInputStream()), ContentType.APPLICATION_XML))
+                                                new StringBody(retrieveBinaryMetadataContent(entity.getId(), bName, metadata, 200), ContentType.APPLICATION_XML))
                                         .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
@@ -678,10 +672,8 @@ public abstract class AbstractLarchIT {
                 assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
                 assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
                         metadata.getName()).getType());
-                assertEquals(retrieveContentFromInputStream(metadata.getSource().getInputStream()),
-                        retrieveContentFromInputStream(fetched.getBinaries().get(bName).getMetadata().get(
-                                metadata.getName()).getSource()
-                                .getInputStream()));
+                assertEquals(retrieveBinaryMetadataContent(entity.getId(), bName, metadata, 200),
+                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinaries().get(bName).getMetadata().get(metadata.getName()), 200));
             } else {
                 if (fetched.getBinaries().containsKey(bName)) {
                     assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
@@ -1151,15 +1143,28 @@ public abstract class AbstractLarchIT {
         return new ZipInputStream(resp.getEntity().getContent());
     }
 
-    private String retrieveMetadataContent(String entityId, String mdName, int expectedStatus) throws IOException {
-        HttpResponse resp =
-                this.executeAsAdmin(Request.Get(entityUrl + entityId + "/metadata/" + mdName + "/content"));
-        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
-        return IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
+    private String retrieveMetadataContent(String entityId, Metadata md, int expectedStatus) throws IOException {
+        if (md.getSource().isInternal()) {
+            HttpResponse resp =
+                    this.executeAsAdmin(Request.Get(entityUrl + entityId + "/metadata/" + md.getName() + "/content"));
+            assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+            return IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
+        } else {
+            return IOUtils.toString(md.getSource()
+                    .getInputStream(), "UTF-8");
+        }
     }
 
-    public String retrieveContentFromInputStream(InputStream in) throws IOException {
-        return IOUtils.toString(in, "UTF-8");
+    private String retrieveBinaryMetadataContent(String entityId, String binaryName, Metadata md, int expectedStatus) throws IOException {
+        if (md.getSource().isInternal()) {
+            HttpResponse resp =
+                    this.executeAsAdmin(Request.Get(entityUrl + entityId + "/binary/" + binaryName + "/metadata/" + md.getName() + "/content"));
+            assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+            return IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
+        } else {
+            return IOUtils.toString(md.getSource()
+                    .getInputStream(), "UTF-8");
+        }
     }
 
     private String getStateUrl(String entityId, EntityState state) {
