@@ -552,19 +552,19 @@ public class AuthorizeSearchControllerIT extends AbstractAuthorizeLarchIT {
         prepareSearch(entityPrefix);
         prepareSearch(archivePrefix);
         for (int i = 0; i < totalLevel2PendingCount; i++) {
-            Entity e = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
+            Entity e = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
             createArchive(e.getId(), e.getVersion());
         }
         for (int i = 0; i < totalLevel2SubmittedCount; i++) {
-            Entity e = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
+            Entity e = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
             createArchive(e.getId(), e.getVersion());
         }
         for (int i = 0; i < totalLevel2PublishedCount; i++) {
-            Entity e = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
+            Entity e = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
             createArchive(e.getId(), e.getVersion());
         }
         for (int i = 0; i < totalLevel2WithdrawnCount; i++) {
-            Entity e = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id);
+            Entity e = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id, false);
             createArchive(e.getId(), e.getVersion());
         }
 

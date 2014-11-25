@@ -94,7 +94,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveVersion() throws Exception {
         // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
+        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/version/1")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -119,7 +119,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveVersions() throws Exception {
         // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() + "/versions")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -197,7 +197,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testDeleteEntity() throws Exception {
         // create submitted entity
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId())
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -206,7 +206,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
                 .build());
         
         // level1 admin
-        entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1);
+        entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1, false);
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.DELETE, entityUrl + entity.getId(), null,
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
@@ -226,7 +226,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testPublishEntity() throws Exception {
         // create submitted entity
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL2.getName(), level1Id1);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL2.getName(), level1Id1, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/publish")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -253,7 +253,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testSubmitEntity() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1Id1, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/submit")
                 .roleRestriction(RoleRestriction.ADMIN)
@@ -280,7 +280,7 @@ public class AuthorizeLevel2ControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testWithdrawEntity() throws Exception {
         // create published entity
-        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1);
+        Entity entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1Id1, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, entityUrl + entity.getId() + "/withdraw")
                 .roleRestriction(RoleRestriction.ADMIN)

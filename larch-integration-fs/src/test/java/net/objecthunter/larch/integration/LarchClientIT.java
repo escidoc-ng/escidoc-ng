@@ -47,7 +47,7 @@ public class LarchClientIT extends AbstractLarchIT {
 
     @Test
     public void testPostEntity() throws Exception {
-        Entity e = Fixtures.createFixtureEntity();
+        Entity e = Fixtures.createFixtureEntity(false);
         e.setId(RandomStringUtils.randomAlphabetic(16));
         client.postEntity(e);
     }
@@ -108,7 +108,7 @@ public class LarchClientIT extends AbstractLarchIT {
     public void testPostMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Metadata md = Fixtures.createRandomDCMetadata();
+        Metadata md = Fixtures.createRandomDCMetadata(false);
         this.client.postMetadata(e.getId(), md);
     }
 
@@ -117,7 +117,7 @@ public class LarchClientIT extends AbstractLarchIT {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
-        Metadata binMd = Fixtures.createRandomDCMetadata();
+        Metadata binMd = Fixtures.createRandomDCMetadata(false);
         this.client.postBinaryMetadata(e.getId(), bin.getName(), binMd);
     }
 
@@ -125,7 +125,7 @@ public class LarchClientIT extends AbstractLarchIT {
     public void testDeleteMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Metadata md = Fixtures.createRandomDCMetadata();
+        Metadata md = Fixtures.createRandomDCMetadata(false);
         this.client.postMetadata(e.getId(), md);
         this.client.deleteMetadata(e.getId(), md.getName());
     }
@@ -135,7 +135,7 @@ public class LarchClientIT extends AbstractLarchIT {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
         Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
-        Metadata binMd = Fixtures.createRandomDCMetadata();
+        Metadata binMd = Fixtures.createRandomDCMetadata(false);
         this.client.postBinaryMetadata(e.getId(), bin.getName(), binMd);
         this.client.deleteBinaryMetadata(e.getId(), bin.getName(), binMd.getName());
     }

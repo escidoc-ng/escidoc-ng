@@ -36,12 +36,12 @@ public class ArchiveControllerIT extends AbstractLarchIT {
 
     @Test
     public void testArchive() throws Exception {
-        Entity e = this.ingestAndArchive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity(false));
     }
 
     @Test
     public void testArchiveAndRetrieve() throws Exception {
-        Entity e = this.ingestAndArchive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity(false));
         Archive a = this.retrieveArchive(e.getId(), e.getVersion(), 200);
         assertNotNull(a);
         assertEquals(e.getId(), a.getEntityId());
@@ -61,14 +61,14 @@ public class ArchiveControllerIT extends AbstractLarchIT {
 
     @Test
     public void testArchiveAndRetrieveNonExistingVersion() throws Exception {
-        Entity e = createFixtureEntity();
+        Entity e = createFixtureEntity(false);
         this.ingestAndArchive(e);
         this.retrieveArchive(e.getId(), Integer.MIN_VALUE, 404);
     }
 
     @Test
     public void testRetrieveArchiveContent() throws Exception {
-        Entity e = this.ingestAndArchive(createFixtureEntity());
+        Entity e = this.ingestAndArchive(createFixtureEntity(false));
         ZipInputStream zip = this.retrieveContent(e.getId(), e.getVersion(), 200);
         //try to read the zip file
         assertTrue(zip.available() > 0);
@@ -80,10 +80,10 @@ public class ArchiveControllerIT extends AbstractLarchIT {
 
     @Test
     public void testArchiveWithChildren() throws Exception {
-        Entity parent = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), LEVEL2_ID);
-        Entity child_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId());
-        Entity child_1_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), child_1.getId());
-        Entity child_2 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId());
+        Entity parent = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), LEVEL2_ID, false);
+        Entity child_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId(), false);
+        Entity child_1_1 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), child_1.getId(), false);
+        Entity child_2 = this.createEntity(Entity.EntityState.PENDING, ContentModel.FixedContentModel.DATA.getName(), parent.getId(), false);
         Entity archived = this.archive(parent);
     }
 }

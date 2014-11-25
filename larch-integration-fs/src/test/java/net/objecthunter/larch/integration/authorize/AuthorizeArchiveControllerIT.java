@@ -35,28 +35,28 @@ public class AuthorizeArchiveControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveArchive() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
         // create withdrawn entity
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion())
@@ -67,25 +67,25 @@ public class AuthorizeArchiveControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateArchive() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.WRITE_PUBLISHED_METADATA)
                 .build());
         // create withdrawn entity
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.PUT, archiveUrl + entity.getId() + "/" + entity.getVersion())
                 .neededPermission(MissingPermission.WRITE_WITHDRAWN_METADATA)
@@ -95,28 +95,28 @@ public class AuthorizeArchiveControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testRetrieveArchiveContent() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion() + "/content")
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion() + "/content")
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion() + "/content")
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
         // create withdrawn entity
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2Id, false);
         createArchive(entity.getId(), entity.getVersion());
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, archiveUrl + entity.getId() + "/" + entity.getVersion() + "/content")

@@ -323,15 +323,16 @@ public abstract class AbstractLarchIT {
 
     /**
      * @param status
+     * @param indexInline TODO
      * @return String entityId
      */
-    protected Entity createEntity(EntityState status, String contentModelId, String parentId) throws Exception {
+    protected Entity createEntity(EntityState status, String contentModelId, String parentId, boolean indexInline) throws Exception {
         if (status == null ||
                 (!status.equals(EntityState.PENDING) && !status.equals(EntityState.SUBMITTED) &&
                         !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
             throw new Exception("given status not valid");
         }
-        Entity e = createFixtureEntity();
+        Entity e = createFixtureEntity(false);
         e.setState(status);
         e.setParentId(parentId);
         e.setContentModelId(contentModelId);
@@ -458,7 +459,7 @@ public abstract class AbstractLarchIT {
      */
     protected Entity addMetadataStream(Entity entity, String mdName, String mdType, int expectedStatus)
             throws Exception {
-        Metadata metadata = createRandomDCMetadata();
+        Metadata metadata = createRandomDCMetadata(false);
         if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
@@ -502,7 +503,7 @@ public abstract class AbstractLarchIT {
     protected Entity
             addMetadataMultipart(Entity entity, String mdName, String mdType, int expectedStatus)
                     throws Exception {
-        Metadata metadata = createRandomDCMetadata();
+        Metadata metadata = createRandomDCMetadata(false);
         if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
@@ -586,7 +587,7 @@ public abstract class AbstractLarchIT {
         if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
         }
-        Metadata metadata = createRandomDCMetadata();
+        Metadata metadata = createRandomDCMetadata(false);
         if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }
@@ -639,7 +640,7 @@ public abstract class AbstractLarchIT {
         if (bName != null && bName.equals(IGNORE)) {
             bName = entity.getBinaries().keySet().iterator().next();
         }
-        Metadata metadata = createRandomDCMetadata();
+        Metadata metadata = createRandomDCMetadata(false);
         if (mdName == null || !mdName.equals(IGNORE)) {
             metadata.setName(mdName);
         }

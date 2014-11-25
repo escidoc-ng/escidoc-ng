@@ -141,19 +141,19 @@ public abstract class Fixtures {
     }
 
     public static Entity createFixtureEntityWithRandomId() throws Exception {
-        Entity e = createFixtureEntity();
+        Entity e = createFixtureEntity(false);
         e.setId(RandomStringUtils.randomAlphabetic(16));
         return e;
     }
 
-    public static Entity createFixtureEntity() throws Exception {
+    public static Entity createFixtureEntity(boolean indexInline) throws Exception {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("image_1.png");
         bin1.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
         bin1.setName("image-1");
         Map<String, Metadata> bin1Md = new HashMap<>();
-        Metadata md = createRandomDCMetadata();
+        Metadata md = createRandomDCMetadata(indexInline);
         bin1Md.put(md.getName(), md);
         bin1.setMetadata(bin1Md);
         Binary bin2 = new Binary();
@@ -162,14 +162,14 @@ public abstract class Fixtures {
         bin2.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
         bin2.setName("image-2");
         Map<String, Metadata> bin2Md = new HashMap<>();
-        md = createRandomDCMetadata();
+        md = createRandomDCMetadata(indexInline);
         bin2Md.put(md.getName(), md);
         bin2.setMetadata(bin2Md);
         Map<String, Binary> binaries = new HashMap<>();
         binaries.put(bin1.getName(), bin1);
         binaries.put(bin2.getName(), bin2);
         Map<String, Metadata> metadata = new HashMap<>();
-        md = createRandomDCMetadata();
+        md = createRandomDCMetadata(indexInline);
         metadata.put(md.getName(), md);
         Entity e = new Entity();
         e.setState(EntityState.PENDING);
@@ -182,13 +182,14 @@ public abstract class Fixtures {
         return e;
     }
 
-    public static Metadata createRandomDCMetadata() throws Exception {
+    public static Metadata createRandomDCMetadata(boolean indexInline) throws Exception {
         Metadata data = new Metadata();
         data.setMimetype("text/xml");
         data.setFilename("dc.xml");
         data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
         data.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
         data.setType("DC");
+        data.setIndexInline(indexInline);
         return data;
     }
     

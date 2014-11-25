@@ -34,7 +34,7 @@ public class EntityControllerUpdateAndStatusIT extends AbstractLarchIT {
 
     @Test
     public void testUpdateEntity() throws Exception {
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null, false);
         entity = updateEntity(entity, 200);
         assertEquals(EntityState.SUBMITTED, entity.getState());
         assertEquals(2, entity.getVersion());
@@ -55,16 +55,16 @@ public class EntityControllerUpdateAndStatusIT extends AbstractLarchIT {
         entity.setId("nonexistent");
         updateEntity(entity, 404);
         
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), Fixtures.LEVEL1_ID);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), Fixtures.LEVEL1_ID, false);
         updateEntity(entity, 400);
         
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL2.getName(), Fixtures.LEVEL1_ID);
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL2.getName(), Fixtures.LEVEL1_ID, false);
         updateEntity(entity, 400);
     }
 
     @Test
     public void testSetEntityState() throws Exception {
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.SUBMITTED, entity.getState());
         setEntityStatus("nonexistent", EntityState.PENDING, 404);
         setEntityStatus("nonexistent", EntityState.SUBMITTED, 404);

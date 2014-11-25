@@ -35,7 +35,7 @@ public class BinaryControllerIT extends AbstractLarchIT {
     @Test
     public void testCreateBinaryStream() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 201);
         // add binary twice
@@ -58,7 +58,7 @@ public class BinaryControllerIT extends AbstractLarchIT {
     @Test
     public void testCreateBinaryMultipart() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryMultipart(entity, IGNORE, IGNORE, IGNORE, 201);
         // add binary twice
@@ -79,7 +79,7 @@ public class BinaryControllerIT extends AbstractLarchIT {
     @Test
     public void testRetrieveBinary() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // retrieve Binary
@@ -96,7 +96,7 @@ public class BinaryControllerIT extends AbstractLarchIT {
     @Test
     public void testDownloadBinaryContent() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // download Binary Content
@@ -113,7 +113,7 @@ public class BinaryControllerIT extends AbstractLarchIT {
     @Test
     public void testDeleteBinary() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryMultipart(entity, "distinct", IGNORE, IGNORE, 201);
         // delete Binary
