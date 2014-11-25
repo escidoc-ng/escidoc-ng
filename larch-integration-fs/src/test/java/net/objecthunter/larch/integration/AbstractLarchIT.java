@@ -332,7 +332,7 @@ public abstract class AbstractLarchIT {
                         !status.equals(EntityState.PUBLISHED) && !status.equals(EntityState.WITHDRAWN))) {
             throw new Exception("given status not valid");
         }
-        Entity e = createFixtureEntity(false);
+        Entity e = createFixtureEntity(indexInline);
         e.setState(status);
         e.setParentId(parentId);
         e.setContentModelId(contentModelId);
