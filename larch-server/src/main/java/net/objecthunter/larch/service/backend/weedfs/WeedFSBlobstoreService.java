@@ -57,7 +57,7 @@ public class WeedFSBlobstoreService implements BackendBlobstoreService {
     @PostConstruct
     public void init() {
         this.weedfsUrl =
-                "http://" + env.getProperty("weedfs.master.host") + ":" + env.getProperty("weedfs.master.port");
+                "http://" + env.getProperty("blobstore.weedfs.master.host") + ":" + env.getProperty("blobstore.weedfs.master.port");
     }
 
     @Override

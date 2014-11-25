@@ -50,13 +50,13 @@ public class WeedFsMaster {
 
     @PostConstruct
     public void init() {
-        if (env.getProperty("weedfs.master.enabled") != null &&
-                !Boolean.parseBoolean(env.getProperty("weedfs.master.enabled"))) {
+        if (env.getProperty("blobstore.weedfs.master.enabled") != null &&
+                !Boolean.parseBoolean(env.getProperty("blobstore.weedfs.master.enabled"))) {
             // no weedfs master node is needed
             return;
         }
         /* check if the master dir exists and create if neccessary */
-        final File dir = new File(env.getProperty("weedfs.master.dir"));
+        final File dir = new File(env.getProperty("blobstore.weedfs.master.dir"));
         if (!dir.exists()) {
             log.info("creating WeedFS master directory at " + dir.getAbsolutePath());
             if (!dir.mkdir()) {
@@ -68,10 +68,10 @@ public class WeedFsMaster {
             log.error("Unable to create master directory. The application was not initialiazed correctly");
             throw new IllegalArgumentException("Unable to use master directory. Please check the configuration");
         }
-        if (env.getProperty("weedfs.binary") == null) {
+        if (env.getProperty("blobstore.weedfs.binary") == null) {
             throw new IllegalArgumentException("The WeedFs Binary path has to be set");
         }
-        final File binary = new File(env.getProperty("weedfs.binary"));
+        final File binary = new File(env.getProperty("blobstore.weedfs.binary"));
         if (!binary.exists()) {
             throw new IllegalArgumentException(new FileSystemNotFoundException(
                     "The weedfs binary can not be found at " + binary.getAbsolutePath()));
@@ -83,11 +83,11 @@ public class WeedFsMaster {
         try {
 
             final List<String> command = Arrays.asList(
-                    env.getProperty("weedfs.binary"),
+                    env.getProperty("blobstore.weedfs.binary"),
                     "master",
-                    "-mdir=" + env.getProperty("weedfs.master.dir"),
-                    "-port=" + env.getProperty("weedfs.master.port"),
-                    "-ip=" + env.getProperty("weedfs.master.public")
+                    "-mdir=" + env.getProperty("blobstore.weedfs.master.dir"),
+                    "-port=" + env.getProperty("blobstore.weedfs.master.port"),
+                    "-ip=" + env.getProperty("blobstore.weedfs.master.public")
                     );
             log.info("Starting weedfs master with command '" + String.join(" ", command) + "'");
             masterProcess = new ProcessBuilder(command)
@@ -108,7 +108,7 @@ public class WeedFsMaster {
     }
 
     public boolean isAvailable() {
-        final File binary = new File(env.getProperty("weedfs.binary"));
+        final File binary = new File(env.getProperty("blobstore.weedfs.binary"));
         return binary.exists() && binary.canExecute();
     }
 
