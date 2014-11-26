@@ -32,7 +32,6 @@ import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendMetadataService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
@@ -67,9 +66,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityService.class);
     
-    @Autowired
-    private BackendMetadataService backendMetadataService;
-
     private int maxRecords;
 
     @Autowired

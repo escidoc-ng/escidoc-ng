@@ -33,7 +33,6 @@ import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.MailService;
 import net.objecthunter.larch.service.MessagingService;
-import net.objecthunter.larch.service.MetadataService;
 import net.objecthunter.larch.service.RepositoryService;
 import net.objecthunter.larch.service.SchemaService;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
@@ -42,7 +41,6 @@ import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageSe
 import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendContentModelService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendMetadataService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
@@ -50,7 +48,6 @@ import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditSe
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContentModelService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
@@ -70,7 +67,6 @@ import net.objecthunter.larch.service.impl.DefaultEntityValidatorService;
 import net.objecthunter.larch.service.impl.DefaultExportService;
 import net.objecthunter.larch.service.impl.DefaultMailService;
 import net.objecthunter.larch.service.impl.DefaultMessagingService;
-import net.objecthunter.larch.service.impl.DefaultMetadataService;
 import net.objecthunter.larch.service.impl.DefaultRepositoryService;
 import net.objecthunter.larch.service.impl.DefaultSchemaService;
 import net.objecthunter.larch.util.FileSystemUtil;
@@ -142,16 +138,6 @@ public class LarchServerConfiguration {
     @Bean
     public EntityService entityService() {
         return new DefaultEntityService();
-    }
-
-    /**
-     * Get a {@link net.objecthunter.larch.service.impl.DefaultMetadataService} Spring bean
-     *
-     * @return the {@link net.objecthunter.larch.service.impl.DefaultMetadataService} implementation
-     */
-    @Bean
-    public MetadataService metadataService() {
-        return new DefaultMetadataService();
     }
 
     /**
@@ -258,17 +244,6 @@ public class LarchServerConfiguration {
     @Bean
     public BackendEntityService elasticSearchIndexService() {
         return new ElasticSearchEntityService();
-    }
-
-    /**
-     * Get a {@link net.objecthunter.larch.service.backend.BackendMetadataService} implementation Spring bean
-     *
-     * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService}
-     *         implementation
-     */
-    @Bean
-    public BackendMetadataService backendMetadataService() {
-        return new ElasticSearchMetadataService();
     }
 
     /**

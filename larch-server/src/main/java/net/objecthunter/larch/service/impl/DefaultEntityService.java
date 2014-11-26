@@ -59,7 +59,6 @@ import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendMetadataService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
@@ -98,9 +97,6 @@ public class DefaultEntityService implements EntityService {
 
     @Autowired
     private BackendEntityService backendEntityService;
-
-    @Autowired
-    private BackendMetadataService backendMetadataService;
 
     @Autowired
     private BackendCredentialsService backendCredentialsService;
@@ -185,10 +181,6 @@ public class DefaultEntityService implements EntityService {
             log.debug("exported entity {} ", id);
         }
 
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
-        }
         return id;
     }
 
@@ -345,10 +337,6 @@ public class DefaultEntityService implements EntityService {
             }
         }
         this.backendEntityService.update(e);
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
-        }
         if (autoExport) {
             exportService.export(e);
             log.debug("exported entity {} ", e.getId());
@@ -1012,10 +1000,6 @@ public class DefaultEntityService implements EntityService {
         // delete rights having this entity as anchorId
         this.backendCredentialsService.deleteRights(id);
 
-        // delete indexed metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.delete(id);
-        }
     }
 
     /**
