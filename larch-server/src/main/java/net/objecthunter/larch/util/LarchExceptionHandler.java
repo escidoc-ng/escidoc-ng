@@ -26,6 +26,8 @@ import net.objecthunter.larch.exceptions.AlreadyExistsException;
 import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -46,6 +48,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @ControllerAdvice
 public class LarchExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LarchExceptionHandler.class);
 
     @Autowired
     private ObjectMapper mapper;
@@ -116,6 +120,7 @@ public class LarchExceptionHandler {
      * @throws Exception
      */
     private Object handleException(HttpServletRequest req, Exception e, HttpStatus status) throws Exception {
+        log.error("", e);
         ModelAndView mav = new ModelAndView();
         mav.addObject("timestamp", new Date());
         mav.addObject("status", status.value());
