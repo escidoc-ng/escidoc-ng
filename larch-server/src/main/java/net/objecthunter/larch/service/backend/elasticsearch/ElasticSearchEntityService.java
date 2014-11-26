@@ -18,6 +18,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.state.IndexState;
 import net.objecthunter.larch.service.backend.BackendEntityService;
@@ -248,12 +250,14 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
             resp =
                     this.client
-                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES).addFields(
-                                    EntitiesSearchField.ID.getFieldName(), EntitiesSearchField.PARENT.getFieldName(),
-                                    EntitiesSearchField.STATE.getFieldName(),
-                                    EntitiesSearchField.LABEL.getFieldName(),
-                                    EntitiesSearchField.CONTENT_MODEL.getFieldName(),
-                                    EntitiesSearchField.TAG.getFieldName())
+                            .prepareSearch(ElasticSearchEntityService.INDEX_ENTITIES)
+//                            .addFields(
+//                                    EntitiesSearchField.ID.getFieldName(), EntitiesSearchField.PARENT.getFieldName(),
+//                                    EntitiesSearchField.STATE.getFieldName(),
+//                                    EntitiesSearchField.LABEL.getFieldName(),
+//                                    EntitiesSearchField.CONTENT_MODEL.getFieldName(),
+//                                    EntitiesSearchField.METADATA.getFieldName(),
+//                                    EntitiesSearchField.TAG.getFieldName())
                             .setQuery(builder).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(offset)
                             .setSize(maxRecords).execute()
                             .actionGet();
@@ -266,32 +270,35 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
         final List<Entity> entities = new ArrayList<>();
         for (final SearchHit hit : resp.getHits()) {
-            String parentId =
-                    hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(
-                            EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
-            String label =
-                    hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(
-                            EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
-            String contentModelId =
-                    hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(
-                            EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
-            String state =
-                    hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(
-                            EntitiesSearchField.STATE.getFieldName()).getValue() : "";
-            final Entity e = new Entity();
-            e.setId(hit.field(EntitiesSearchField.ID.getFieldName()).getValue());
-            e.setParentId(parentId);
-            e.setContentModelId(contentModelId);
-            e.setState(EntityState.valueOf(state));
-            e.setLabel(label);
-
-            final List<String> tags = new ArrayList<>();
-            if (hit.field("tags") != null) {
-                for (Object o : hit.field("tags").values()) {
-                    tags.add((String) o);
-                }
-            }
-            e.setTags(tags);
+//            String parentId =
+//                    hit.field(EntitiesSearchField.PARENT.getFieldName()) != null ? hit.field(
+//                            EntitiesSearchField.PARENT.getFieldName()).getValue() : null;
+//            String label =
+//                    hit.field(EntitiesSearchField.LABEL.getFieldName()) != null ? hit.field(
+//                            EntitiesSearchField.LABEL.getFieldName()).getValue() : "";
+//            String contentModelId =
+//                    hit.field(EntitiesSearchField.CONTENT_MODEL.getFieldName()) != null ? hit.field(
+//                            EntitiesSearchField.CONTENT_MODEL.getFieldName()).getValue() : "";
+//            String state =
+//                    hit.field(EntitiesSearchField.STATE.getFieldName()) != null ? hit.field(
+//                            EntitiesSearchField.STATE.getFieldName()).getValue() : "";
+                            
+            final Entity e = mapper.readValue(hit.source(), Entity.class);
+//            final Entity e = new Entity();
+//            e.setId(hit.field(EntitiesSearchField.ID.getFieldName()).getValue());
+//            e.setParentId(parentId);
+//            e.setContentModelId(contentModelId);
+//            e.setState(EntityState.valueOf(state));
+//            e.setLabel(label);
+//
+//            final List<String> tags = new ArrayList<>();
+//            if (hit.field(EntitiesSearchField.TAG.getFieldName()) != null) {
+//                for (Object o : hit.field(EntitiesSearchField.TAG.getFieldName()).values()) {
+//                    tags.add((String) o);
+//                }
+//            }
+//            e.setTags(tags);
+            
             entities.add(e);
         }
         result.setData(entities);
