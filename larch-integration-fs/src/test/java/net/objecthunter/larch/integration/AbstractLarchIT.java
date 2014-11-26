@@ -432,6 +432,24 @@ public abstract class AbstractLarchIT {
 
     /**
      * @param entityId entityId
+     * @param expectedStatus expected resonse-Status
+     */
+    protected Entity retrieveVersion(String entityId, int version, int expectedStatus) throws Exception {
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Get(entityUrl + entityId + "/version/" + version));
+        String response = EntityUtils.toString(resp.getEntity());
+        assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
+        if (expectedStatus < 400) {
+            Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
+            return fetched;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param entityId entityId
      * @param state state
      * @param expectedStatus expected resonse-Status
      */
@@ -1204,13 +1222,15 @@ public abstract class AbstractLarchIT {
         serializer.setSkipNamespaces(true);
         if (e.getMetadata() != null) {
             for (Metadata metadata : e.getMetadata().values()) {
+                String content = retrieveMetadataContent(e.getId(), metadata, 200);
+                assertNotNull(content);
+                if (metadata.getFilename() != null) {
+                    String content1 = readFromUrl(Fixtures.class.getClassLoader().getResource("fixtures/" + metadata.getFilename()));
+                    assertNotNull(content1);
+                    assertEquals(content.replaceAll("\n", ""), content1.replaceAll("\n", ""));
+                }
                 if (metadata.isIndexInline()) {
                     assertNotNull(metadata.getJsonData());
-                    String content = retrieveMetadataContent(e.getId(), metadata, 200);
-                    String content1 = readFromUrl(Fixtures.class.getClassLoader().getResource("fixtures/" + metadata.getFilename()));
-                    assertNotNull(content);
-                    assertNotNull(content1);
-                    assertEquals(content, content1);
                     assertEquals(serializer.read(content).toString(), metadata.getJsonData().toString());
                 } else {
                     assertEquals("null", metadata.getJsonData().toString());
@@ -1221,14 +1241,16 @@ public abstract class AbstractLarchIT {
             for (Binary binary : e.getBinaries().values()) {
                 if (binary.getMetadata() != null) {
                     for (Metadata metadata : binary.getMetadata().values()) {
+                        String content =
+                                retrieveBinaryMetadataContent(e.getId(), binary.getName(), metadata, 200);
+                        assertNotNull(content);
+                        if (metadata.getFilename() != null) {
+                            String content1 = readFromUrl(Fixtures.class.getClassLoader().getResource("fixtures/" + metadata.getFilename()));
+                            assertNotNull(content1);
+                            assertEquals(content.replaceAll("\n", ""), content1.replaceAll("\n", ""));
+                        }
                         if (metadata.isIndexInline()) {
                             assertNotNull(metadata.getJsonData());
-                            String content =
-                                    retrieveBinaryMetadataContent(e.getId(), binary.getName(), metadata, 200);
-                            String content1 = readFromUrl(Fixtures.class.getClassLoader().getResource("fixtures/" + metadata.getFilename()));
-                            assertNotNull(content);
-                            assertNotNull(content1);
-                            assertEquals(content, content1);
                             assertEquals(serializer.read(content).toString(), metadata.getJsonData().toString());
                         } else {
                             assertEquals("null", metadata.getJsonData().toString());

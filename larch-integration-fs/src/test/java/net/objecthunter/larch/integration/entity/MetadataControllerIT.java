@@ -17,8 +17,10 @@
 
 package net.objecthunter.larch.integration.entity;
 
+import static net.objecthunter.larch.test.util.Fixtures.createRandomDCMetadata;
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.util.HashMap;
 
 import net.objecthunter.larch.integration.AbstractLarchIT;
@@ -30,6 +32,11 @@ import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.test.util.Fixtures;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,12 +118,73 @@ public class MetadataControllerIT extends AbstractLarchIT {
     }
 
     /**
-     * Test updating non-indexed-inline Entity with Binary Metadata indexed inline.
+     * Test updating non-indexed-inline Entity with different Metadata indexed inline.
      * 
      * @throws Exception
      */
     @Test
     public void testUpdateMetadataIndexInline1() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            m.setFilename("dc1.xml");
+            m.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").toURI()));
+            m.setIndexInline(true);
+        }
+        entity = updateEntity(entity, 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertTrue(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertFalse(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+    }
+
+    /**
+     * Test updating non-indexed-inline Entity with Binary Metadata indexed inline.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateMetadataIndexInline2() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                m.setIndexInline(true);
+            }
+        }
+        entity = updateEntity(entity, 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertFalse(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+    }
+
+    /**
+     * Test updating non-indexed-inline Entity with different Binary Metadata indexed inline.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateMetadataIndexInline3() throws Exception {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
@@ -147,11 +215,41 @@ public class MetadataControllerIT extends AbstractLarchIT {
      * @throws Exception
      */
     @Test
-    public void testUpdateMetadataIndexInline2() throws Exception {
+    public void testUpdateMetadataIndexInline4() throws Exception {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
         for (Metadata m : entity.getMetadata().values()) {
+            m.setIndexInline(false);
+        }
+        entity = updateEntity(entity, 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertFalse(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+    }
+
+    /**
+     * Test updating indexed-inline Entity with different Metadata not indexed inline.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateMetadataIndexInline5() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            m.setFilename("dc1.xml");
+            m.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").toURI()));
             m.setIndexInline(false);
         }
         entity = updateEntity(entity, 200);
@@ -175,7 +273,7 @@ public class MetadataControllerIT extends AbstractLarchIT {
      * @throws Exception
      */
     @Test
-    public void testUpdateMetadataIndexInline3() throws Exception {
+    public void testUpdateMetadataIndexInline6() throws Exception {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
@@ -206,7 +304,7 @@ public class MetadataControllerIT extends AbstractLarchIT {
      * @throws Exception
      */
     @Test
-    public void testUpdateMetadataIndexInline4() throws Exception {
+    public void testUpdateMetadataIndexInline7() throws Exception {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
@@ -521,4 +619,212 @@ public class MetadataControllerIT extends AbstractLarchIT {
         checkMetadata(entity);
     }
 
+    /**
+     * Check oldVersion Metadata of index-inline metadata
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testCheckOldVersionMetadataInlineIndex() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        entity.setLabel("other");
+        updateEntity(entity, 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata md : entity.getMetadata().values()) {
+            md.setIndexInline(false);
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata md : b.getMetadata().values()) {
+                md.setIndexInline(false);
+            }
+        }
+        entity = updateEntity(entity, 200);
+        assertEquals(3, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertFalse(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertFalse(m.isIndexInline());
+            }
+        }
+        entity = retrieveVersion(entity.getId(), 1, 200);
+        assertEquals(1, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertTrue(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+        entity = retrieveVersion(entity.getId(), 2, 200);
+        assertEquals(2, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertTrue(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+    }
+
+    /**
+     * Check oldVersion Metadata of not-index-inline metadata
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testCheckOldVersionMetadataNotInlineIndex() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        entity.setLabel("other");
+        updateEntity(entity, 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata md : entity.getMetadata().values()) {
+            md.setIndexInline(true);
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata md : b.getMetadata().values()) {
+                md.setIndexInline(true);
+            }
+        }
+        entity = updateEntity(entity, 200);
+        assertEquals(3, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertTrue(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        entity = retrieveVersion(entity.getId(), 1, 200);
+        assertEquals(1, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertFalse(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertFalse(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+        entity = retrieveVersion(entity.getId(), 2, 200);
+        assertEquals(2, entity.getVersion());
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        for (Metadata m : entity.getMetadata().values()) {
+            assertFalse(m.isIndexInline());
+        }
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            for (Metadata m : b.getMetadata().values()) {
+                assertFalse(m.isIndexInline());
+            }
+        }
+        checkMetadata(entity);
+    }
+
+    /**
+     * Check default indexInline of Controller-Method.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testCheckDefault() throws Exception {
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        // add metadata
+        Metadata metadata = createRandomDCMetadata(false);
+        metadata.setName("indexInlineTest");
+        File f = new File(((UrlSource) metadata.getSource()).getUri());
+        HttpResponse resp =
+                this.executeAsAdmin(
+                        Request.Post(
+                                entityUrl + entity.getId() + "/metadata").body(
+                                MultipartEntityBuilder.create()
+                                        .addTextBody("name", metadata.getName())
+                                        .addTextBody("type", metadata.getType())
+                                        .addBinaryBody(
+                                                "data",
+                                                f, ContentType.APPLICATION_XML, f.getName())
+                                        .build()));
+        String test = EntityUtils.toString(resp.getEntity());
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        
+        // add binary metadata
+        for (Binary b : entity.getBinaries().values()) {
+            metadata = createRandomDCMetadata(false);
+            metadata.setName("indexInlineTest");
+            f = new File(((UrlSource) metadata.getSource()).getUri());
+            resp =
+                    this.executeAsAdmin(
+                            Request.Post(
+                                    entityUrl + entity.getId() + "/binary/" +
+                                            b.getName() + "/metadata").body(
+                                    MultipartEntityBuilder.create()
+                                            .addTextBody("name", metadata.getName())
+                                            .addTextBody("type", metadata.getType())
+                                            .addBinaryBody(
+                                                    "data",
+                                                    f, ContentType.APPLICATION_XML, f.getName())
+                                            .build()));
+            test = EntityUtils.toString(resp.getEntity());
+            assertEquals(201, resp.getStatusLine().getStatusCode());
+        }
+        entity = retrieveEntity(entity.getId(), 200);
+        assertNotNull(entity.getMetadata());
+        assertNotNull(entity.getBinaries());
+        boolean mdFound = false;
+        for (Metadata m : entity.getMetadata().values()) {
+            if (m.getName().equals("indexInlineTest")) {
+                mdFound = true;
+                assertFalse(m.isIndexInline());
+            } else {
+                assertTrue(m.isIndexInline());
+            }
+        }
+        assertTrue(mdFound);
+        for (Binary b : entity.getBinaries().values()) {
+            assertNotNull(b.getMetadata());
+            mdFound = false;
+            for (Metadata m : b.getMetadata().values()) {
+                if (m.getName().equals("indexInlineTest")) {
+                    mdFound = true;
+                    assertFalse(m.isIndexInline());
+                } else {
+                    assertTrue(m.isIndexInline());
+                }
+            }
+            assertTrue(mdFound);
+        }
+        checkMetadata(entity);
+    }
 }

@@ -271,10 +271,11 @@ limitations under the License.
                         <option th:each="type : ${metadataTypes}" th:label="${type.name}"
                                 th:text="${type.name}"></option>
                     </select>
+                    <br/>Index Inline<br/>
                     <select id="mdIndexInline" name="indexInline" title="Select a index inline option">
                         <option th:label="false" th:text="false"></option>
                         <option th:label="true" th:text="true"></option>
-                    </select>
+                    </select><br/>
                     <input class="button" type="submit" value="Create metadata"/>
                 </form>
             </div>
