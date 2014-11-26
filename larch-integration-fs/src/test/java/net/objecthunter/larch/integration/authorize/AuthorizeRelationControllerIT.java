@@ -35,7 +35,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
     @Test
     public void testCreateRelation() throws Exception {
         // create pending entity
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")
@@ -44,7 +44,7 @@ public class AuthorizeRelationControllerIT extends AbstractAuthorizeLarchIT {
                 .resetStateId(entity.getId())
                 .build());
         // create submitted entity
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, entityUrl + entity.getId() + "/relation")
                 .body("predicate=pred&object=obj")

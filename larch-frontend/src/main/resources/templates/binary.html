@@ -84,7 +84,7 @@ limitations under the License.
 
             <p class="property">Original file name</p>
 
-            <p class="value" th:text="${md.value.originalFilename}"></p>
+            <p class="value" th:text="${md.value.filename}"></p>
 
             <p class="property">Created</p>
 
@@ -120,6 +120,11 @@ limitations under the License.
                         <option th:each="type : ${metadataTypes}" th:label="${type.name}"
                                 th:text="${type.name}"></option>
                     </select>
+                    <br/>Index Inline<br/>
+                    <select id="mdIndexInline" name="indexInline" title="Select a index inline option">
+                        <option th:label="false" th:text="false"></option>
+                        <option th:label="true" th:text="true"></option>
+                    </select><br/>
                     <input class="button" type="submit" value="Create metadata"/>
                 </form>
             </div>

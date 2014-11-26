@@ -33,7 +33,7 @@ public class SerializationIT extends AbstractLarchIT {
 
     @Test
     public void testSerializeEntity() throws Exception {
-        Entity e = Fixtures.createFixtureEntity();
+        Entity e = Fixtures.createFixtureEntity(false);
         e.setUtcCreated(ZonedDateTime.now(ZoneOffset.UTC).toString());
         Entity copy = mapper.readValue(mapper.writeValueAsString(e), Entity.class);
         assertEquals(e.getUtcCreated(), copy.getUtcCreated());

@@ -61,7 +61,7 @@ public interface BackendSchemaService {
      * @param name the name of the {@link net.objecthunter.larch.model.MetadataType} to delete
      * @throws IOException
      */
-    void deleteMetadataType(String name) throws IOException;
+    void deleteSchemaType(String name) throws IOException;
 
     /**
      * Retrieve the validation result for a given {@link net.objecthunter.larch.model.Metadata} of an

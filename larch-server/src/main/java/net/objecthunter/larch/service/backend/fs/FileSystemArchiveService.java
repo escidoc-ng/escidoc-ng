@@ -42,7 +42,7 @@ import java.util.zip.ZipOutputStream;
 
 public class FileSystemArchiveService implements BackendArchiveBlobService {
 
-    @Value("${larch.archive.path}")
+    @Value("${archive.fs.path}")
     private String archivePath;
 
     @Autowired

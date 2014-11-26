@@ -193,7 +193,7 @@ public class ElasticSearchSchemaServiceTest {
         expect(mockFuture.actionGet()).andReturn(mockDeleteResponse);
 
         replay(mockClient, mockDeleteRequest, mockDeleteResponse, mockCountRequest, mockCountResponse, mockFuture);
-        this.schemaService.deleteMetadataType(type.getName());
+        this.schemaService.deleteSchemaType(type.getName());
         verify(mockClient, mockDeleteRequest, mockDeleteResponse, mockCountRequest, mockCountResponse, mockFuture);
     }
 

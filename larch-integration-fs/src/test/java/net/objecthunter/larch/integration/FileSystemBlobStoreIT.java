@@ -24,7 +24,7 @@ import java.nio.charset.Charset;
 
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.model.state.FilesystemBlobstoreState;
-import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
+import net.objecthunter.larch.service.backend.fs.FileSystemBlobstoreService;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class FileSystemBlobStoreIT extends AbstractLarchIT {
 
     @Autowired
-    private FilesystemBlobstoreService blobstoreService;
+    private FileSystemBlobstoreService blobstoreService;
 
     private static final Charset cs = Charset.forName("UTF-8");
 

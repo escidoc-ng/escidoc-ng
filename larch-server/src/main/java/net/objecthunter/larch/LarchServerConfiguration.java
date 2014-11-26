@@ -25,26 +25,50 @@ import javax.servlet.MultipartConfigElement;
 
 import net.objecthunter.larch.security.helpers.LarchOpenIdAuthenticationProvider;
 import net.objecthunter.larch.security.helpers.LarchSecurityInterceptor;
-import net.objecthunter.larch.service.*;
-import net.objecthunter.larch.service.backend.*;
+import net.objecthunter.larch.service.AuthorizationService;
+import net.objecthunter.larch.service.ContentModelService;
+import net.objecthunter.larch.service.CredentialsService;
+import net.objecthunter.larch.service.EntityService;
+import net.objecthunter.larch.service.EntityValidatorService;
+import net.objecthunter.larch.service.ExportService;
+import net.objecthunter.larch.service.MailService;
+import net.objecthunter.larch.service.MessagingService;
+import net.objecthunter.larch.service.RepositoryService;
+import net.objecthunter.larch.service.SchemaService;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveIndexService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
+import net.objecthunter.larch.service.backend.BackendAuditService;
+import net.objecthunter.larch.service.backend.BackendContentModelService;
+import net.objecthunter.larch.service.backend.BackendEntityService;
+import net.objecthunter.larch.service.backend.BackendSchemaService;
+import net.objecthunter.larch.service.backend.BackendVersionService;
+import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchAuditService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchContentModelService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchCredentialsService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService;
-import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchNode;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchSchemaService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchVersionService;
 import net.objecthunter.larch.service.backend.fs.FileSystemArchiveService;
-import net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService;
+import net.objecthunter.larch.service.backend.fs.FileSystemBlobstoreService;
 import net.objecthunter.larch.service.backend.sftp.SftpArchiveService;
-import net.objecthunter.larch.service.backend.sftp.SftpBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsMaster;
 import net.objecthunter.larch.service.backend.weedfs.WeedFsVolume;
 import net.objecthunter.larch.service.backend.zip.ZIPArchiveInformationPackageService;
-import net.objecthunter.larch.service.impl.*;
+import net.objecthunter.larch.service.impl.DefaultArchiveService;
+import net.objecthunter.larch.service.impl.DefaultAuthorizationService;
+import net.objecthunter.larch.service.impl.DefaultContentModelService;
+import net.objecthunter.larch.service.impl.DefaultCredentialsService;
+import net.objecthunter.larch.service.impl.DefaultEntityService;
+import net.objecthunter.larch.service.impl.DefaultEntityValidatorService;
+import net.objecthunter.larch.service.impl.DefaultExportService;
+import net.objecthunter.larch.service.impl.DefaultMailService;
+import net.objecthunter.larch.service.impl.DefaultMessagingService;
+import net.objecthunter.larch.service.impl.DefaultRepositoryService;
+import net.objecthunter.larch.service.impl.DefaultSchemaService;
 import net.objecthunter.larch.util.FileSystemUtil;
 import net.objecthunter.larch.util.LarchExceptionHandler;
 import net.sf.json.xml.XMLSerializer;
@@ -114,16 +138,6 @@ public class LarchServerConfiguration {
     @Bean
     public EntityService entityService() {
         return new DefaultEntityService();
-    }
-
-    /**
-     * Get a {@link net.objecthunter.larch.service.impl.DefaultMetadataService} Spring bean
-     *
-     * @return the {@link net.objecthunter.larch.service.impl.DefaultMetadataService} implementation
-     */
-    @Bean
-    public MetadataService metadataService() {
-        return new DefaultMetadataService();
     }
 
     /**
@@ -233,17 +247,6 @@ public class LarchServerConfiguration {
     }
 
     /**
-     * Get a {@link net.objecthunter.larch.service.backend.BackendMetadataService} implementation Spring bean
-     *
-     * @return a {@link net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchMetadataService}
-     *         implementation
-     */
-    @Bean
-    public BackendMetadataService backendMetadataService() {
-        return new ElasticSearchMetadataService();
-    }
-
-    /**
      * Get a {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping} Spring bean
      *
      * @return a RequestMappingHandlerMapping implementation
@@ -295,15 +298,15 @@ public class LarchServerConfiguration {
     }
 
     /**
-     * Get a {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation for usage as
+     * Get a {@link net.objecthunter.larch.service.backend.fs.FileSystemBlobstoreService} implementation for usage as
      * a {@link net.objecthunter.larch.service.backend.BackendBlobstoreService} in the repository
      *
-     * @return the {@link net.objecthunter.larch.service.backend.fs.FilesystemBlobstoreService} implementation
+     * @return the {@link net.objecthunter.larch.service.backend.fs.FileSystemBlobstoreService} implementation
      */
     @Bean
-    @Profile("fs")
-    public FilesystemBlobstoreService filesystemBlobstoreService() {
-        return new FilesystemBlobstoreService();
+    @Profile("blobstore-fs")
+    public FileSystemBlobstoreService fileSystemBlobstoreService() {
+        return new FileSystemBlobstoreService();
     }
 
     /**
@@ -313,7 +316,7 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFsMaster} object
      */
     @Bean
-    @Profile("weedfs")
+    @Profile("blobstore-weedfs")
     @Order(40)
     public WeedFsMaster weedFsMaster() {
         return new WeedFsMaster();
@@ -326,7 +329,7 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFsVolume} object
      */
     @Bean
-    @Profile("weedfs")
+    @Profile("blobstore-weedfs")
     @Order(50)
     public WeedFsVolume weedfsVolume() {
         return new WeedFsVolume();
@@ -339,15 +342,9 @@ public class LarchServerConfiguration {
      * @return the {@link net.objecthunter.larch.service.backend.weedfs.WeedFSBlobstoreService} object
      */
     @Bean
-    @Profile("weedfs")
+    @Profile("blobstore-weedfs")
     public WeedFSBlobstoreService weedFSBlobstoreService() {
         return new WeedFSBlobstoreService();
-    }
-
-    @Bean
-    @Profile("sftp")
-    public SftpBlobstoreService sftpBlobstoreServive() {
-        return new SftpBlobstoreService();
     }
 
     /**
@@ -410,6 +407,7 @@ public class LarchServerConfiguration {
         XMLSerializer serializer = new XMLSerializer();
         serializer.setRemoveNamespacePrefixFromElements(true);
         serializer.setForceTopLevelObject(true);
+        serializer.setSkipNamespaces(true);
         return serializer;
     }
 
@@ -506,19 +504,28 @@ public class LarchServerConfiguration {
         return new DefaultMessagingService();
     }
 
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.fs.FileSystemArchiveService} implementation for usage as
+     * a {@link net.objecthunter.larch.service.backend.BackendArchiveBlobService} in the repository
+     *
+     * @return the {@link net.objecthunter.larch.service.backend.fs.FileSystemArchiveService} implementation
+     */
     @Bean
-    public BackendArchiveBlobService archiveService() {
-        final String type = env.getProperty("larch.archive.type", "filesystem");
-        if (type == null || type.isEmpty()) {
-            throw new IllegalArgumentException("The property larch.archive.type is not set");
-        }
-        if (type.equalsIgnoreCase("filesystem")) {
-            return new FileSystemArchiveService();
-        } else if (type.equalsIgnoreCase("sftp")) {
-            return new SftpArchiveService();
-        } else {
-            throw new IllegalArgumentException("Unknown type for archival system. Please choose a valid value");
-        }
+    @Profile("archive-fs")
+    public BackendArchiveBlobService fileSystemArchiveService() {
+        return new FileSystemArchiveService();
+    }
+
+    /**
+     * Get a {@link net.objecthunter.larch.service.backend.sftp.SftpArchiveService} implementation as the
+     * {@link net.objecthunter.larch.service.backend.BackendArchiveBlobService} for the repository
+     *
+     * @return the {@link net.objecthunter.larch.service.backend.sftp.SftpArchiveService} object
+     */
+    @Bean
+    @Profile("archive-sftp")
+    public BackendArchiveBlobService sftpArchiveService() {
+        return new SftpArchiveService();
     }
 
     @Bean

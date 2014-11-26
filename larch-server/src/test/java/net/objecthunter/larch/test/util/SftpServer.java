@@ -46,7 +46,7 @@ public class SftpServer {
 
     @PostConstruct
     public void start() {
-        port = Integer.parseInt(this.env.getRequiredProperty("sftp.port"));
+        port = Integer.parseInt(this.env.getRequiredProperty("archive.sftp.port"));
         ssh = SshServer.setUpDefaultServer();
         ssh.setPort(port);
         ssh.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.objecthunter.larch.service.backend.sftp;
 
 import java.io.FileNotFoundException;
@@ -26,13 +27,15 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
 import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+import net.objecthunter.larch.util.SftpUtil;
 
 import org.apache.sshd.client.SftpClient;
 import org.apache.sshd.common.SshException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 
-public class SftpArchiveService extends AbstractSftpService implements BackendArchiveBlobService {
+public class SftpArchiveService implements BackendArchiveBlobService {
 
     @Autowired
     private BackendBlobstoreService blobstoreService;
@@ -40,60 +43,58 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
     @Autowired
     private BackendArchiveInformationPackageService aipService;
 
-    @Value("${larch.archive.path}")
+    @Autowired
+    protected Environment env;
+
+    @Value("${archive.sftp.path}")
     private String archivePath;
+
+    private SftpClient sftp;
 
     @Override
     public InputStream retrieve(final String path) throws IOException {
-
-        ensureConnected();
-
-        return sftp.read(path);
+        return getSftpClient().read(path);
     }
 
     @Override
     public String saveOrUpdate(final Entity e) throws IOException {
-
         if (e == null) {
             throw new IOException("Unable to archive null entity");
         }
-
-        ensureConnected();
-
         ensureDirectoryExists(archivePath);
         final String fileName = "aip_" + UUID.randomUUID() + ".zip";
         final String path = archivePath + "/" + fileName;
 
-        try (final OutputStream sink = sftp.write(path)) {
+        try (final OutputStream sink = getSftpClient().write(path)) {
             this.aipService.write(e, sink);
         }
         return path;
     }
 
-    protected void ensureDirectoryExists(String path) throws IOException {
-        if (!exists(path)) {
-            sftp.mkdir(path);
-        }
-    }
-
     @Override
     public void delete(final String path) throws IOException {
-        sftp.remove(path);
+        getSftpClient().remove(path);
     }
 
     @Override
     public long sizeOf(final String path) throws IOException {
-        final SftpClient.Attributes attrs = sftp.stat(path);
+        final SftpClient.Attributes attrs = getSftpClient().stat(path);
         if (attrs == null) {
             throw new FileNotFoundException("Unable to locate archive " + path);
         }
         return attrs.size;
     }
 
+    private void ensureDirectoryExists(String path) throws IOException {
+        if (!exists(path)) {
+            getSftpClient().mkdir(path);
+        }
+    }
+
     private boolean exists(final String path) throws IOException {
-        final SftpClient.Handle handle = sftp.open(path, EnumSet.of(SftpClient.OpenMode.Read));
+        final SftpClient.Handle handle = getSftpClient().open(path, EnumSet.of(SftpClient.OpenMode.Read));
         try {
-            SftpClient.Attributes attrs = sftp.stat(handle);
+            getSftpClient().stat(handle);
             return true;
         } catch (SshException e) {
             // ugly flow control by exception handling, but there is no check for existence method in the sftp client
@@ -105,4 +106,19 @@ public class SftpArchiveService extends AbstractSftpService implements BackendAr
         }
     }
 
+    private SftpClient getSftpClient() throws IOException {
+        if (sftp == null) {
+            try {
+                sftp =
+                        SftpUtil.getSftpClient(env.getRequiredProperty("archive.sftp.user"),
+                                env.getRequiredProperty("archive.sftp.passwd"),
+                                env.getRequiredProperty("archive.sftp.host"),
+                                Integer.parseInt(env.getRequiredProperty("archive.sftp.port")),
+                                env.getRequiredProperty("archive.sftp.basepath"));
+            } catch (Exception e) {
+                throw new IOException(e.getMessage());
+            }
+        }
+        return sftp;
+    }
 }

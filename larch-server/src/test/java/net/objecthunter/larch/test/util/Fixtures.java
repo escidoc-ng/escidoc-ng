@@ -80,7 +80,7 @@ public abstract class Fixtures {
         return contentModel;
     }
 
-    public static Entity createEntity() {
+    public static Entity createEntity() throws Exception {
         Entity e = new Entity();
         e.setId("testid");
         e.setState(EntityState.PENDING);
@@ -116,18 +116,20 @@ public abstract class Fixtures {
         return bin;
     }
 
-    public static Map<String, Metadata> createMetadataMap() {
+    public static Map<String, Metadata> createMetadataMap() throws Exception {
         Map<String, Metadata> metadataMap = new HashMap<>(1);
         Metadata md = createMetadata();
         metadataMap.put(md.getName(), md);
         return metadataMap;
     }
 
-    public static Metadata createMetadata() {
+    public static Metadata createMetadata() throws Exception {
         Metadata data = new Metadata();
+        data.setMimetype("text/xml");
+        data.setFilename("dc.xml");
+        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
         data.setName("DC");
-        data.setType("Dublin Core");
-        data.setData("<empty/>");
+        data.setType("DC");
         return data;
     }
 
@@ -139,19 +141,19 @@ public abstract class Fixtures {
     }
 
     public static Entity createFixtureEntityWithRandomId() throws Exception {
-        Entity e = createFixtureEntity();
+        Entity e = createFixtureEntity(false);
         e.setId(RandomStringUtils.randomAlphabetic(16));
         return e;
     }
 
-    public static Entity createFixtureEntity() throws Exception {
+    public static Entity createFixtureEntity(boolean indexInline) throws Exception {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("image_1.png");
         bin1.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
         bin1.setName("image-1");
         Map<String, Metadata> bin1Md = new HashMap<>();
-        Metadata md = createRandomDCMetadata();
+        Metadata md = createRandomDCMetadata(indexInline);
         bin1Md.put(md.getName(), md);
         bin1.setMetadata(bin1Md);
         Binary bin2 = new Binary();
@@ -160,14 +162,14 @@ public abstract class Fixtures {
         bin2.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
         bin2.setName("image-2");
         Map<String, Metadata> bin2Md = new HashMap<>();
-        md = createRandomDCMetadata();
+        md = createRandomDCMetadata(indexInline);
         bin2Md.put(md.getName(), md);
         bin2.setMetadata(bin2Md);
         Map<String, Binary> binaries = new HashMap<>();
         binaries.put(bin1.getName(), bin1);
         binaries.put(bin2.getName(), bin2);
         Map<String, Metadata> metadata = new HashMap<>();
-        md = createRandomDCMetadata();
+        md = createRandomDCMetadata(indexInline);
         metadata.put(md.getName(), md);
         Entity e = new Entity();
         e.setState(EntityState.PENDING);
@@ -180,20 +182,15 @@ public abstract class Fixtures {
         return e;
     }
 
-    public static Metadata createRandomDCMetadata() {
-        Metadata md = new Metadata();
-        md.setType("DC");
-        md.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
-        StringBuilder dcBuilder = new StringBuilder();
-        dcBuilder
-                .append(
-                        "<metadata xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl"
-                                + ".org/dc/elements/1.1/\">").append("\n\t<dc:title>Test Object</dc:title>")
-                .append("\n\t<dc:creator>fasseg</dc:creator>").append("\n\t<dc:subject>Testing Groven</dc:subject>")
-                .append("\n\t<dc:description>Test Object to implement integration Tests</dc:description>")
-                .append("\n</metadata>");
-        md.setData(dcBuilder.toString());
-        return md;
+    public static Metadata createRandomDCMetadata(boolean indexInline) throws Exception {
+        Metadata data = new Metadata();
+        data.setMimetype("text/xml");
+        data.setFilename("dc.xml");
+        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
+        data.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
+        data.setType("DC");
+        data.setIndexInline(indexInline);
+        return data;
     }
     
     public static Binary createRandomBinary() throws Exception {

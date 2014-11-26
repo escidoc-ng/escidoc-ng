@@ -22,7 +22,6 @@ import java.io.InputStream;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;

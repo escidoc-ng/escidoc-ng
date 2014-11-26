@@ -37,6 +37,7 @@ import net.objecthunter.larch.integration.helpers.AuthConfigurer.RoleRestriction
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
@@ -586,6 +587,18 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractLarchIT {
                         .setSource(
                                 new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png")
                                         .toURI()));
+                if (binary.getValue().getMetadata() != null) {
+                    for (Metadata md : binary.getValue().getMetadata().values()) {
+                        md.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml")
+                                        .toURI()));
+                    }
+                }
+            }
+        }
+        if (resetEntity.getMetadata() != null) {
+            for (Metadata md : resetEntity.getMetadata().values()) {
+                md.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml")
+                                .toURI()));
             }
         }
         if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {

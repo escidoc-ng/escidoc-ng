@@ -62,12 +62,12 @@ public class EntityControllerIT extends AbstractLarchIT {
     public void testCreateAndUpdateEntity() throws Exception {
         HttpResponse resp =
                 this.executeAsAdmin(
-                        Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                        Request.Post(entityUrl).bodyString(mapper.writeValueAsString(createFixtureEntity(false)),
                                 ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
-        Entity update = createFixtureEntity();
+        Entity update = createFixtureEntity(false);
         update.setLabel("My updated Label");
         resp =
                 this.executeAsAdmin(
@@ -200,13 +200,13 @@ public class EntityControllerIT extends AbstractLarchIT {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity(false)),
                                         ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
 
         for (int i = 0; i < 50; i++) {
-            Entity update = createFixtureEntity();
+            Entity update = createFixtureEntity(false);
             update.setLabel("My updated Label" + i);
             resp =
                     this.executeAsAdmin(
@@ -236,7 +236,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity(false)),
                                         ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String id = EntityUtils.toString(resp.getEntity());
@@ -251,7 +251,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         assertEquals(1, fetched.getVersion());
 
         // update
-        Entity update = createFixtureEntity();
+        Entity update = createFixtureEntity(false);
         update.setLabel("My updated Label1");
         resp =
                 this.executeAsAdmin(
@@ -269,7 +269,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         List<String> ids = new ArrayList<String>();
         String parentId = null;
         for (int i = 0; i < 5; i++) {
-            Entity child = createFixtureEntity();
+            Entity child = createFixtureEntity(false);
             if (id != null) {
                 child.setParentId(id);
             }
@@ -317,7 +317,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity(false)),
                                         ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String newId = EntityUtils.toString(resp.getEntity());
@@ -347,7 +347,7 @@ public class EntityControllerIT extends AbstractLarchIT {
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl)
-                                .bodyString(mapper.writeValueAsString(createFixtureEntity()),
+                                .bodyString(mapper.writeValueAsString(createFixtureEntity(false)),
                                         ContentType.APPLICATION_JSON));
         assertEquals(201, resp.getStatusLine().getStatusCode());
         final String newId = EntityUtils.toString(resp.getEntity());

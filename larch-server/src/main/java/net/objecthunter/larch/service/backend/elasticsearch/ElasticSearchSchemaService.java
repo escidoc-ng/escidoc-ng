@@ -42,6 +42,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.MetadataValidationResult;
+import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 
 import org.elasticsearch.ElasticsearchException;
@@ -66,6 +67,9 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
     public static final String INDEX_MD_SCHEMATA_TYPE = "mdschema-type";
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchSchemaService.class);
+
+    @Autowired
+    private BackendBlobstoreService backendBlobstoreService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -156,7 +160,7 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
     }
 
     @Override
-    public void deleteMetadataType(String name) throws IOException {
+    public void deleteSchemaType(String name) throws IOException {
         /* first check if the type is still used by Entities or Binaries */
         try {
             final CountResponse count = this.client.prepareCount(ElasticSearchEntityService.INDEX_ENTITIES)
@@ -242,7 +246,7 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
         final MetadataValidationResult result = new MetadataValidationResult();
         try {
             final URL schemaFile = new URL(schemaUrl);
-            final Source xmlFile = new StreamSource(new ByteArrayInputStream(md.getData().getBytes()));
+            final Source xmlFile = new StreamSource(backendBlobstoreService.retrieve(md.getPath()));
             final SchemaFactory schemaFactory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             final Schema schema = schemaFactory.newSchema(schemaFile);

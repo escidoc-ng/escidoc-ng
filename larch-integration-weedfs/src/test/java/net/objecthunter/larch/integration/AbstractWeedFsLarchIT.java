@@ -60,7 +60,7 @@ public abstract class AbstractWeedFsLarchIT {
         boolean weedfsReady = false;
         final ObjectMapper mapper = new ObjectMapper();
         final String weedUri =
-                "http://" + env.getProperty("weedfs.master.public") + ":" + env.getProperty("weedfs.master.port");
+                "http://" + env.getProperty("blobstore.weedfs.master.public") + ":" + env.getProperty("blobstore.weedfs.master.port");
         log.info("waiting for (datacenters != null) at " + weedUri + "/dir/status");
         Thread.sleep(3000);
         do {

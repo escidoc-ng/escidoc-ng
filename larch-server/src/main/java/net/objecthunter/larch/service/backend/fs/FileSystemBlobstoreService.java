@@ -46,9 +46,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Implementation of a {@link net.objecthunter.larch.service.backend.BackendBlobstoreService} on a Posix file system.
  * The service gets initialized using two user set directories for saving the content of the repository
  */
-public class FilesystemBlobstoreService implements BackendBlobstoreService {
+public class FileSystemBlobstoreService implements BackendBlobstoreService {
 
-    private static final Logger log = LoggerFactory.getLogger(FilesystemBlobstoreService.class);
+    private static final Logger log = LoggerFactory.getLogger(FileSystemBlobstoreService.class);
 
     @Autowired
     private Environment env;
@@ -62,8 +62,8 @@ public class FilesystemBlobstoreService implements BackendBlobstoreService {
 
     @PostConstruct
     public void init() throws IOException {
-        this.directory = new File(env.getProperty("fs.path"));
-        this.oldVersionDirectory = new File(env.getProperty("fs.oldversion.path"));
+        this.directory = new File(env.getProperty("blobstore.fs.path"));
+        this.oldVersionDirectory = new File(env.getProperty("blobstore.fs.oldversion.path"));
         checkAndCreate(this.directory);
         checkAndCreate(this.oldVersionDirectory);
     }

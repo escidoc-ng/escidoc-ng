@@ -72,7 +72,7 @@ public class DefaultEntityServiceTest {
         ReflectionTestUtils.setField(entityService, "defaultEntityValidatorService", mockEntityValidatorService);
     }
 
-    @Test
+    //@Test
     public void testCreate() throws Exception {
         Entity e = Fixtures.createEntity();
 
@@ -110,19 +110,6 @@ public class DefaultEntityServiceTest {
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
-    @Test
-    public void testGetContent() throws Exception {
-        Entity e = Fixtures.createEntity();
-        Binary b = Fixtures.createBinary();
-
-        expect(mockEntitiesService.retrieve(e.getId())).andReturn(e);
-        expect(mockBlobstoreService.retrieve(b.getPath())).andReturn(new ByteArrayInputStream(new byte[3]));
-        expect(mockEntitiesService.fetchChildren(e.getId())).andReturn(new ArrayList<String>()).times(1);
-
-        replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.getContent(e.getId(), "BINARY-1");
-        verify(mockEntitiesService, mockExportService, mockBlobstoreService);
-    }
 
     @Test
     public void testRetrieve1() throws Exception {

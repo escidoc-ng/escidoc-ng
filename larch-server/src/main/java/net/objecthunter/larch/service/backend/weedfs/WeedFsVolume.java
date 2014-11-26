@@ -48,7 +48,7 @@ public class WeedFsVolume {
     @PostConstruct
     public void runVolume() {
         /* check if the master dir exists and create if neccessary */
-        final File dir = new File(env.getProperty("weedfs.volume.dir"));
+        final File dir = new File(env.getProperty("blobstore.weedfs.volume.dir"));
         if (!dir.exists()) {
             log.info("creating WeedFS volume directory at " + dir.getAbsolutePath());
             if (!dir.mkdir()) {
@@ -63,13 +63,13 @@ public class WeedFsVolume {
         try {
             /* start weedfs volume server */
             String[] args = new String[] {
-                env.getProperty("weedfs.binary"),
+                env.getProperty("blobstore.weedfs.binary"),
                 "volume",
-                "-ip=" + env.getProperty("weedfs.volume.public"),
-                "-publicIp=" + env.getProperty("weedfs.volume.public"),
-                "-dir=" + env.getProperty("weedfs.volume.dir"),
-                "-mserver=" + env.getProperty("weedfs.master.host") + ":" + env.getProperty("weedfs.master.port"),
-                "-port=" + env.getProperty("weedfs.volume.port")
+                "-ip=" + env.getProperty("blobstore.weedfs.volume.public"),
+                "-publicIp=" + env.getProperty("blobstore.weedfs.volume.public"),
+                "-dir=" + env.getProperty("blobstore.weedfs.volume.dir"),
+                "-mserver=" + env.getProperty("blobstore.weedfs.master.host") + ":" + env.getProperty("blobstore.weedfs.master.port"),
+                "-port=" + env.getProperty("blobstore.weedfs.volume.port")
             };
             log.info("Starting weedfs volume with command '" + String.join(" ", args) + "'");
             volumeProcess = new ProcessBuilder(args)
@@ -90,7 +90,7 @@ public class WeedFsVolume {
     }
 
     public boolean isAvailable() {
-        final File binary = new File(env.getProperty("weedfs.binary"));
+        final File binary = new File(env.getProperty("blobstore.weedfs.binary"));
         return binary.exists() && binary.canExecute();
     }
 

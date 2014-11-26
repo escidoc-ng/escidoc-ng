@@ -16,6 +16,7 @@
 
 package net.objecthunter.larch.service.impl;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -27,6 +28,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -57,12 +59,13 @@ import net.objecthunter.larch.service.backend.BackendAuditService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
-import net.objecthunter.larch.service.backend.BackendMetadataService;
 import net.objecthunter.larch.service.backend.BackendSchemaService;
 import net.objecthunter.larch.service.backend.BackendVersionService;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.QueryRestrictionFactory;
 import net.objecthunter.larch.service.backend.elasticsearch.queryrestriction.RoleQueryRestriction;
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -96,13 +99,13 @@ public class DefaultEntityService implements EntityService {
     private BackendEntityService backendEntityService;
 
     @Autowired
-    private BackendMetadataService backendMetadataService;
-
-    @Autowired
     private BackendCredentialsService backendCredentialsService;
 
     @Autowired
     private EntityValidatorService defaultEntityValidatorService;
+
+    @Autowired
+    private XMLSerializer serializer;
 
     @Autowired
     private ObjectMapper mapper;
@@ -125,7 +128,8 @@ public class DefaultEntityService implements EntityService {
 
     @PostConstruct
     public void init() {
-        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
+        this.metadataindexEnabled =
+                Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         final String val = env.getProperty("larch.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
@@ -150,8 +154,11 @@ public class DefaultEntityService implements EntityService {
 
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
-                md.setUtcCreated(now);
-                md.setUtcLastModified(now);
+                if (md.getSource() == null) {
+                    log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
+                    continue;
+                }
+                createAndMutateMetadata(e.getId(), null, md);
             }
         }
         if (e.getLabel() == null || e.getLabel().isEmpty()) {
@@ -174,10 +181,6 @@ public class DefaultEntityService implements EntityService {
             log.debug("exported entity {} ", id);
         }
 
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
-        }
         return id;
     }
 
@@ -194,14 +197,13 @@ public class DefaultEntityService implements EntityService {
         }
         try (final SizeCalculatingDigestInputStream src =
                 new SizeCalculatingDigestInputStream(b.getSource().getInputStream(), digest)) {
-            final ZonedDateTime created = ZonedDateTime.now(ZoneOffset.UTC);
             final String path = this.backendBlobstoreService.create(src);
             final String checksum = new BigInteger(1, digest.digest()).toString(16);
             b.setChecksum(checksum);
             b.setSize(src.getCalculatedSize());
             b.setChecksumType(digest.getAlgorithm());
             b.setPath(path);
-            b.setSource(new UrlSource(URI.create("http://localhost:8080/entity/" + entityId + "/binary/" +
+            b.setSource(new UrlSource(URI.create("/entity/" + entityId + "/binary/" +
                     b.getName()
                     + "/content"), true));
             final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
@@ -209,11 +211,53 @@ public class DefaultEntityService implements EntityService {
             b.setUtcLastModified(now);
             if (b.getMetadata() != null) {
                 for (final Metadata md : b.getMetadata().values()) {
-                    md.setUtcCreated(now);
-                    md.setUtcLastModified(now);
+                    if (md.getSource() == null) {
+                        log.warn("No source on binary '{}' of entity '{}'", b.getName(), entityId);
+                        continue;
+                    }
+                    createAndMutateMetadata(entityId, b.getName(), md);
                 }
             }
         }
+    }
+
+    private void createAndMutateMetadata(String entityId, String binaryName, Metadata md) throws IOException {
+        if (md.getSource() == null) {
+            log.warn("No source is set for metadata '{}' of entity '{}' nothing to ingest", md.getName(), entityId);
+            return;
+        }
+        if (!md.getSource().isInternal()) {
+            final MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("MD5");
+            } catch (NoSuchAlgorithmException e) {
+                throw new IOException(e);
+            }
+            try (final SizeCalculatingDigestInputStream src =
+                    new SizeCalculatingDigestInputStream(md.getSource().getInputStream(), digest)) {
+                final String path = this.backendBlobstoreService.create(src);
+                final String checksum = new BigInteger(1, digest.digest()).toString(16);
+                md.setChecksum(checksum);
+                md.setSize(src.getCalculatedSize());
+                md.setChecksumType(digest.getAlgorithm());
+                md.setPath(path);
+                String uri = "/entity/" + entityId + "/metadata/" + md.getName() + "/content";
+                if (binaryName != null) {
+                    uri = "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + md.getName() + "/content";
+                }
+                md.setSource(new UrlSource(URI.create(uri), true));
+            }
+        }
+        if (md.isIndexInline()) {
+            // Write Metadata-XML as JSON in Entity
+            JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(md.getPath()));
+            md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+        } else {
+            md.setJsonData(null);
+        }
+        final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
+        md.setUtcCreated(now);
+        md.setUtcLastModified(now);
     }
 
     private String generateId() throws IOException {
@@ -228,19 +272,29 @@ public class DefaultEntityService implements EntityService {
     public void update(Entity e) throws IOException {
         final Entity oldVersion = retrieve(e.getId());
         // check
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         checkNonUpdateableFields(e, oldVersion);
+
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         e.setVersion(oldVersion.getVersion() + 1);
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
-                if (md.getUtcCreated() == null) {
-                    md.setUtcCreated(now);
+                if (md.getSource() == null) {
+                    log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
+                    continue;
                 }
-                md.setUtcLastModified(now);
+                if (md.getSource().isInternal() &&
+                        md.isIndexInline() == oldVersion.getMetadata().get(md.getName()).isIndexInline()) {
+                    md.setUtcLastModified(oldVersion.getMetadata().get(md.getName()).getUtcLastModified());
+                    md.setUtcCreated(oldVersion.getMetadata().get(md.getName()).getUtcCreated());
+                }
+                else {
+                    createAndMutateMetadata(e.getId(), null, md);
+                }
             }
         }
         e.setUtcCreated(oldVersion.getUtcCreated());
@@ -257,6 +311,25 @@ public class DefaultEntityService implements EntityService {
                 if (b.getSource().isInternal()) {
                     b.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getUtcLastModified());
                     b.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getUtcCreated());
+                    if (b.getMetadata() != null) {
+                        for (final Metadata md : b.getMetadata().values()) {
+                            if (md.getSource() == null) {
+                                log.warn("No source on metadata '{}' of binary '{}'", md.getName(), b.getName());
+                                continue;
+                            }
+                            if (md.getSource().isInternal() &&
+                                    md.isIndexInline() == oldVersion.getBinaries().get(b.getName()).getMetadata()
+                                            .get(md.getName()).isIndexInline()) {
+                                md.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
+                                        md.getName()).getUtcLastModified());
+                                md.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
+                                        md.getName()).getUtcCreated());
+                            }
+                            else {
+                                createAndMutateMetadata(e.getId(), b.getName(), md);
+                            }
+                        }
+                    }
                 }
                 else {
                     createAndMutateBinary(e.getId(), b);
@@ -264,10 +337,6 @@ public class DefaultEntityService implements EntityService {
             }
         }
         this.backendEntityService.update(e);
-        // index metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.index(e, this.backendEntityService.getHierarchy(e));
-        }
         if (autoExport) {
             exportService.export(e);
             log.debug("exported entity {} ", e.getId());
@@ -298,13 +367,6 @@ public class DefaultEntityService implements EntityService {
 
         // delete
         deleteRecursively(id);
-    }
-
-    @Override
-    public InputStream getContent(String id, String name) throws IOException {
-        final Entity e = retrieve(id);
-        final Binary b = e.getBinaries().get(name);
-        return this.backendBlobstoreService.retrieve(b.getPath());
     }
 
     @Override
@@ -353,7 +415,7 @@ public class DefaultEntityService implements EntityService {
             b.setChecksum(new BigInteger(1, digest.digest()).toString(16));
             b.setChecksumType("MD5");
             b.setSize(src.getCalculatedSize());
-            b.setSource(new UrlSource(URI.create("http://localhost:8080/entity/" + entityId + "/binary/" + name
+            b.setSource(new UrlSource(URI.create("/entity/" + entityId + "/binary/" + name
                     + "/content"), true));
             b.setPath(path);
             b.setUtcCreated(now);
@@ -362,6 +424,147 @@ public class DefaultEntityService implements EntityService {
                 e.setBinaries(new HashMap<>(1));
             }
             e.getBinaries().put(name, b);
+            e.setVersion(e.getVersion() + 1);
+            e.setUtcLastModified(now);
+            this.backendEntityService.update(e);
+        }
+        if (autoExport) {
+            exportService.export(e);
+            log.debug("exported entity {} ", e.getId());
+        }
+    }
+
+    @Override
+    public void createMetadata(String entityId, String name, String type, String contentType, boolean indexInline,
+            InputStream inputStream)
+            throws IOException {
+        if (StringUtils.isBlank(name)) {
+            throw new InvalidParameterException("name of metadata may not be null or empty");
+        }
+        if (StringUtils.isBlank(contentType)) {
+            throw new InvalidParameterException("contentType of metadata may not be null or empty");
+        }
+        if (StringUtils.isBlank(type)) {
+            throw new InvalidParameterException("type of metadata may not be null or empty");
+        }
+        final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
+
+        if (e.getMetadata() != null && e.getMetadata().get(name) != null) {
+            throw new AlreadyExistsException("metadata with name " + name + " already exists in entity with id " +
+                    e.getId());
+        }
+        this.backendVersionService.addOldVersion(e);
+        final MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e1) {
+            throw new IOException(e1);
+        }
+        try (final SizeCalculatingDigestInputStream src = new SizeCalculatingDigestInputStream(inputStream, digest)) {
+            final String path = backendBlobstoreService.create(src);
+            final Metadata m = new Metadata();
+            final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
+            m.setUtcCreated(now);
+            m.setUtcLastModified(now);
+            m.setName(name);
+            m.setType(type);
+            m.setMimetype(contentType);
+            m.setChecksum(new BigInteger(1, digest.digest()).toString(16));
+            m.setChecksumType("MD5");
+            m.setSize(src.getCalculatedSize());
+            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
+                    + "/content"), true));
+            m.setPath(path);
+            m.setIndexInline(indexInline);
+            if (m.isIndexInline()) {
+                // Write Metadata-XML as JSON in Entity
+                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
+                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
+            m.setUtcCreated(now);
+            m.setUtcLastModified(now);
+            if (e.getMetadata() == null) {
+                e.setMetadata(new HashMap<>(1));
+            }
+            e.getMetadata().put(name, m);
+            e.setVersion(e.getVersion() + 1);
+            e.setUtcLastModified(now);
+            this.backendEntityService.update(e);
+        }
+        if (autoExport) {
+            exportService.export(e);
+            log.debug("exported entity {} ", e.getId());
+        }
+    }
+
+    @Override
+    public void createBinaryMetadata(String entityId, String binaryName, String name, String type,
+            String contentType, boolean indexInline,
+            InputStream inputStream)
+            throws IOException {
+        if (StringUtils.isBlank(name)) {
+            throw new InvalidParameterException("name of metadata may not be null or empty");
+        }
+        if (StringUtils.isBlank(binaryName)) {
+            throw new InvalidParameterException("binaryName of metadata may not be null or empty");
+        }
+        if (StringUtils.isBlank(contentType)) {
+            throw new InvalidParameterException("contentType of metadata may not be null or empty");
+        }
+        if (StringUtils.isBlank(type)) {
+            throw new InvalidParameterException("type of metadata may not be null or empty");
+        }
+        final Entity e = retrieve(entityId);
+        if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
+            throw new InvalidParameterException("Cannot update entity in state " + e.getState());
+        }
+
+        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
+            throw new FileNotFoundException("The binary " + binaryName + " does not exist on the entity " + entityId);
+        }
+        final Binary bin = e.getBinaries().get(binaryName);
+        if (bin.getMetadata() == null) {
+            bin.setMetadata(new HashMap<>());
+        }
+        if (bin.getMetadata().containsKey(name)) {
+            throw new IOException("The meta data " + name + " already exists on the binary " + binaryName +
+                    " of the entity " + entityId);
+        }
+
+        this.backendVersionService.addOldVersion(e);
+        final MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e1) {
+            throw new IOException(e1);
+        }
+        try (final SizeCalculatingDigestInputStream src = new SizeCalculatingDigestInputStream(inputStream, digest)) {
+            final String path = backendBlobstoreService.create(src);
+            final Metadata m = new Metadata();
+            final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
+            m.setUtcCreated(now);
+            m.setUtcLastModified(now);
+            m.setName(name);
+            m.setType(type);
+            m.setMimetype(contentType);
+            m.setChecksum(new BigInteger(1, digest.digest()).toString(16));
+            m.setChecksumType("MD5");
+            m.setSize(src.getCalculatedSize());
+            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
+                    + "/content"), true));
+            m.setPath(path);
+            m.setIndexInline(indexInline);
+            if (m.isIndexInline()) {
+                // Write Metadata-XML as JSON in Entity
+                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
+                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
+            m.setUtcCreated(now);
+            m.setUtcLastModified(now);
+            bin.getMetadata().put(name, m);
             e.setVersion(e.getVersion() + 1);
             e.setUtcLastModified(now);
             this.backendEntityService.update(e);
@@ -420,7 +623,8 @@ public class DefaultEntityService implements EntityService {
             }
         }
         final Entity oldVersion = retrieve(id);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -447,6 +651,13 @@ public class DefaultEntityService implements EntityService {
         if (e.getBinaries().get(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
+        // delete metadata from filesystem
+        if (e.getBinaries().get(name).getMetadata() != null) {
+            for (Metadata md : e.getBinaries().get(name).getMetadata().values()) {
+                this.backendBlobstoreService.delete(md.getPath());
+            }
+        }
+        // delete binary from filesystem
         this.backendBlobstoreService.delete(e.getBinaries().get(name).getPath());
         e.getBinaries().remove(name);
         this.update(e);
@@ -454,6 +665,11 @@ public class DefaultEntityService implements EntityService {
 
     @Override
     public InputStream retrieveBinary(String path) throws IOException {
+        return backendBlobstoreService.retrieve(path);
+    }
+
+    @Override
+    public InputStream retrieveMetadataContent(String path) throws IOException {
         return backendBlobstoreService.retrieve(path);
     }
 
@@ -466,6 +682,7 @@ public class DefaultEntityService implements EntityService {
         if (e.getMetadata().get(mdName) == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
+        this.backendBlobstoreService.delete(e.getMetadata().get(mdName).getPath());
         e.getMetadata().remove(mdName);
         this.update(e);
     }
@@ -485,6 +702,7 @@ public class DefaultEntityService implements EntityService {
             throw new NotFoundException("Meta data " + mdName + " does not exist on binary " + binaryName
                     + " of entity " + entityId);
         }
+        this.backendBlobstoreService.delete(bin.getMetadata().get(mdName).getPath());
         bin.getMetadata().remove(mdName);
         this.update(e);
     }
@@ -503,7 +721,8 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -530,7 +749,8 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -687,7 +907,8 @@ public class DefaultEntityService implements EntityService {
                 if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
                     throw new InvalidParameterException("entity may not be moved to different level1");
                 }
-                if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
+                if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) &&
+                        StringUtils.isBlank(newHierarchy.getLevel2Id())) {
                     return;
                 }
                 if ((StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isNotBlank(newHierarchy
@@ -757,19 +978,20 @@ public class DefaultEntityService implements EntityService {
                 deleteRecursively(childId);
             }
         }
-        // delete binaries
-        if (e.getBinaries() != null) {
-            for (Binary b : e.getBinaries().values()) {
-                if (b.getPath() != null && !b.getPath().isEmpty()) {
-                    this.backendBlobstoreService.delete(b.getPath());
-                }
-            }
-        }
+
+        List<String> alreadyDeletedFiles = new ArrayList<String>();
+        deleteFiles(e, alreadyDeletedFiles);
 
         // delete audit-records
         this.backendAuditService.deleteAll(id);
 
         // delete Versions
+        Entities entities = this.backendVersionService.getOldVersions(id);
+        if (entities != null) {
+            for (Entity entity : entities.getEntities()) {
+                deleteFiles(entity, alreadyDeletedFiles);
+            }
+        }
         this.backendVersionService.deleteOldVersions(id);
 
         // delete entity
@@ -778,9 +1000,56 @@ public class DefaultEntityService implements EntityService {
         // delete rights having this entity as anchorId
         this.backendCredentialsService.deleteRights(id);
 
-        // delete indexed metadata ?
-        if (metadataindexEnabled) {
-            backendMetadataService.delete(id);
+    }
+
+    /**
+     * Delete Files with backendBlobstoreService. remember deleted paths to not try deleting again.
+     * 
+     * @param e Emtity
+     * @param alreadyDeletedFiles
+     * @throws IOException
+     */
+    private void deleteFiles(Entity e, List<String> alreadyDeletedFiles) throws IOException {
+        // delete binaries
+        if (e.getBinaries() != null) {
+            for (Binary b : e.getBinaries().values()) {
+                if (b.getPath() != null && !b.getPath().isEmpty()) {
+                    if (!alreadyDeletedFiles.contains(b.getPath())) {
+                        try {
+                            this.backendBlobstoreService.delete(b.getPath());
+                        } catch (Exception ex) {
+                            log.warn(ex.toString());
+                        }
+                        alreadyDeletedFiles.add(b.getPath());
+                    }
+                }
+                if (b.getMetadata() != null) {
+                    for (Metadata md : b.getMetadata().values()) {
+                        if (!alreadyDeletedFiles.contains(md.getPath())) {
+                            try {
+                                this.backendBlobstoreService.delete(md.getPath());
+                            } catch (Exception ex) {
+                                log.warn(ex.toString());
+                            }
+                            alreadyDeletedFiles.add(md.getPath());
+                        }
+                    }
+                }
+            }
+        }
+
+        // delete metadata from filesystem
+        if (e.getMetadata() != null) {
+            for (Metadata md : e.getMetadata().values()) {
+                if (!alreadyDeletedFiles.contains(md.getPath())) {
+                    try {
+                        this.backendBlobstoreService.delete(md.getPath());
+                    } catch (Exception ex) {
+                        log.warn(ex.toString());
+                    }
+                    alreadyDeletedFiles.add(md.getPath());
+                }
+            }
         }
     }
 }

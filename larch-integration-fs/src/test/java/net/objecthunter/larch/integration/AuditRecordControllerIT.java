@@ -39,13 +39,13 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
     @Test
     public void testRetrieveAuditRecords() throws Exception {
         // create submitted entity
-        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), LEVEL2_ID);
+        Entity entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), LEVEL2_ID, false);
         // add binary
         entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 201);
         // add Metadata
-        entity = addMetadataStream(entity, IGNORE, IGNORE, IGNORE, 201);
+        entity = addMetadataStream(entity, IGNORE, IGNORE, false, 201);
         // add Binary Metadata
-        entity = addBinaryMetadataStream(entity, IGNORE, IGNORE, IGNORE, IGNORE, 201);
+        entity = addBinaryMetadataStream(entity, IGNORE, IGNORE, IGNORE, false, 201);
         // add Identifier
         entity = addIdentifier(entity, IGNORE, IGNORE, 201);
         // add Relation

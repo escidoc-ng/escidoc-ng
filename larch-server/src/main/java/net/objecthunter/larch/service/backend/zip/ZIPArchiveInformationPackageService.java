@@ -18,12 +18,15 @@
 package net.objecthunter.larch.service.backend.zip;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,6 +72,19 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
                 // update the path to point in the zip file
                 bin.setPath(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename());
+
+                /* write the metadatas to the package */
+                if (bin.getMetadata()!= null) {
+                    for (final Metadata md : bin.getMetadata().values()) {
+                        writeMetadata(prefix + "binaries/" + bin.getName() + "/metadata/", md, zipSink);
+                    }
+                }
+            }
+        }
+        /* write the metadatas to the package */
+        if (e.getMetadata()!= null) {
+            for (final Metadata md : e.getMetadata().values()) {
+                writeMetadata(prefix + "metadata/", md, zipSink);
             }
         }
 
@@ -82,4 +98,17 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
             this.writeEntity(prefix + "child_" + childId + "/", this.entityService.retrieve(childId), zipSink);
         }
     }
+    
+    private void writeMetadata(final String prefix, final Metadata metadata, final ZipOutputStream zipSink) throws IOException {
+        metadata.setSource(new UrlSource(URI.create(prefix + metadata.getName() + "/" + metadata.getFilename()), false));
+
+        /* save the metadata content */
+        zipSink.putNextEntry(new ZipEntry(prefix + metadata.getName() + "/" + metadata.getFilename()));
+        IOUtils.copy(this.blobstoreService.retrieve(metadata.getPath()), zipSink);
+        zipSink.closeEntry();
+
+        // update the path to point in the zip file
+        metadata.setPath(prefix + metadata.getName() + "/" + metadata.getFilename());
+    }
+    
 }

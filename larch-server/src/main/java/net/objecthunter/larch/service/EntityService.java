@@ -40,29 +40,29 @@ public interface EntityService {
 
     void delete(String id) throws IOException;
 
-    InputStream getContent(String id, String name) throws IOException;
+    void patch(String id, JsonNode node) throws IOException;
 
     Entity retrieve(String id, int i) throws IOException;
 
     void createBinary(String entityId, String name, String contentType, InputStream inputStream)
             throws IOException;
 
-    void patch(String id, JsonNode node) throws IOException;
-
-    void createRelation(String id, String predicate, String object) throws IOException;
-
     void deleteBinary(String entityId, String name) throws IOException;
 
     InputStream retrieveBinary(String path) throws IOException;
+
+    void createMetadata(String entityId, String name, String type, String contentType, boolean indexInline, InputStream inputStream)
+            throws IOException;
+
+    void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType, boolean indexInline, InputStream inputStream)
+            throws IOException;
+
+    InputStream retrieveMetadataContent(String path) throws IOException;
 
     void deleteMetadata(String entityId, String mdName) throws IOException;
 
     void deleteBinaryMetadata(String entityId, String binaryName, String mdName)
             throws IOException;
-
-    void createIdentifier(String entityId, String type, String value) throws IOException;
-
-    void deleteIdentifier(String entityId, String type, String value) throws IOException;
 
     void submit(String id) throws IOException;
 
@@ -75,6 +75,12 @@ public interface EntityService {
     AuditRecords retrieveAuditRecords(String entityId, int offset, int count) throws IOException;
 
     void createAuditRecord(AuditRecord auditRecord) throws IOException;
+
+    void createRelation(String id, String predicate, String object) throws IOException;
+
+    void createIdentifier(String entityId, String type, String value) throws IOException;
+
+    void deleteIdentifier(String entityId, String type, String value) throws IOException;
 
     /**
      * Search {@link net.objecthunter.larch.model.Entity}s in the repository.

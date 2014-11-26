@@ -36,27 +36,27 @@ public class EntityControllerCreateIT extends AbstractLarchIT {
     @Test
     public void testCreateEntityStatus() throws Exception {
         // Level1
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.PENDING, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL1.getName(), entity.getContentModelId());
         assertEquals(null, entity.getParentId());
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null);
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.SUBMITTED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL1.getName(), entity.getContentModelId());
         assertEquals(null, entity.getParentId());
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null);
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.PUBLISHED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL1.getName(), entity.getContentModelId());
         assertEquals(null, entity.getParentId());
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL1.getName(), null);
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.WITHDRAWN, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL1.getName(), entity.getContentModelId());
         assertEquals(null, entity.getParentId());
-        entity = createFixtureEntity();
+        entity = createFixtureEntity(false);
         entity.setContentModelId(FixedContentModel.LEVEL1.getName());
         entity.setParentId(null);
         entity.setState(null);
@@ -64,28 +64,28 @@ public class EntityControllerCreateIT extends AbstractLarchIT {
         assertEquals(EntityState.PENDING, entity.getState());
         
         // Level2
-        Entity level1 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null);
-        entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1.getId());
+        Entity level1 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
+        entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1.getId(), false);
         assertEquals(EntityState.PENDING, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL2.getName(), entity.getContentModelId());
         assertEquals(level1.getId(), entity.getParentId());
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL2.getName(), level1.getId());
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.LEVEL2.getName(), level1.getId(), false);
         assertEquals(EntityState.SUBMITTED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL2.getName(), entity.getContentModelId());
         assertEquals(level1.getId(), entity.getParentId());
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1.getId());
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.LEVEL2.getName(), level1.getId(), false);
         assertEquals(EntityState.PUBLISHED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL2.getName(), entity.getContentModelId());
         assertEquals(level1.getId(), entity.getParentId());
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL2.getName(), level1.getId());
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.LEVEL2.getName(), level1.getId(), false);
         assertEquals(EntityState.WITHDRAWN, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL2.getName(), entity.getContentModelId());
         assertEquals(level1.getId(), entity.getParentId());
-        entity = createFixtureEntity();
+        entity = createFixtureEntity(false);
         entity.setContentModelId(FixedContentModel.LEVEL2.getName());
         entity.setParentId(Fixtures.LEVEL1_ID);
         entity.setState(null);
@@ -93,29 +93,29 @@ public class EntityControllerCreateIT extends AbstractLarchIT {
         assertEquals(EntityState.PENDING, entity.getState());
 
         // Data
-        level1 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null);
-        Entity level2 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1.getId());
-        entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2.getId());
+        level1 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
+        Entity level2 = createEntity(EntityState.PENDING, FixedContentModel.LEVEL2.getName(), level1.getId(), false);
+        entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2.getId(), false);
         assertEquals(EntityState.PENDING, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.DATA.getName(), entity.getContentModelId());
         assertEquals(level2.getId(), entity.getParentId());
-        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2.getId());
+        entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2.getId(), false);
         assertEquals(EntityState.SUBMITTED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.DATA.getName(), entity.getContentModelId());
         assertEquals(level2.getId(), entity.getParentId());
-        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2.getId());
+        entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2.getId(), false);
         assertEquals(EntityState.PUBLISHED, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.DATA.getName(), entity.getContentModelId());
         assertEquals(level2.getId(), entity.getParentId());
-        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2.getId());
+        entity = createEntity(EntityState.WITHDRAWN, FixedContentModel.DATA.getName(), level2.getId(), false);
         assertEquals(EntityState.WITHDRAWN, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.DATA.getName(), entity.getContentModelId());
         assertEquals(level2.getId(), entity.getParentId());
-        entity = createFixtureEntity();
+        entity = createFixtureEntity(false);
         entity.setState(null);
         entity = createEntity(entity, 201);
         assertEquals(EntityState.PENDING, entity.getState());
@@ -124,27 +124,27 @@ public class EntityControllerCreateIT extends AbstractLarchIT {
 
     @Test
     public void testCreateEntityWrongContentModel() throws Exception {
-        Entity e = createFixtureEntity();
+        Entity e = createFixtureEntity(false);
         e.setContentModelId("wrong");
         createEntity(e, 404);
 
-        e = createFixtureEntity();
+        e = createFixtureEntity(false);
         e.setContentModelId(null);
         createEntity(e, 400);
 
-        e = createFixtureEntity();
+        e = createFixtureEntity(false);
         e.setParentId(Fixtures.LEVEL1_ID);
         createEntity(e, 400);
 
-        e = createFixtureEntity();
+        e = createFixtureEntity(false);
         e.setParentId(null);
         createEntity(e, 400);
 
-        e = createFixtureEntity();
+        e = createFixtureEntity(false);
         e.setContentModelId(FixedContentModel.LEVEL2.getName());
         createEntity(e, 400);
 
-        e = createFixtureEntity();
+        e = createFixtureEntity(false);
         e.setContentModelId(FixedContentModel.LEVEL1.getName());
         createEntity(e, 400);
     }
