@@ -61,6 +61,7 @@ public class LarchExceptionHandler {
     @ResponseBody
     public Object ioRequestExceptionHandler(HttpServletRequest req, Exception e)
             throws Exception {
+        log.error("", e);
         return handleException(req, e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -120,7 +121,6 @@ public class LarchExceptionHandler {
      * @throws Exception
      */
     private Object handleException(HttpServletRequest req, Exception e, HttpStatus status) throws Exception {
-        log.error("", e);
         ModelAndView mav = new ModelAndView();
         mav.addObject("timestamp", new Date());
         mav.addObject("status", status.value());

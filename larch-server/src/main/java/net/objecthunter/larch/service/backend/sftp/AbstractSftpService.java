@@ -64,19 +64,17 @@ public abstract class AbstractSftpService {
 
     @PostConstruct
     public void init() throws Exception {
-        log.error("calling init");
         this.username = env.getRequiredProperty("sftp.user");
         this.passwd = env.getRequiredProperty("sftp.passwd");
         this.host = env.getRequiredProperty("sftp.host");
         this.port = Integer.parseInt(env.getRequiredProperty("sftp.port"));
         this.rootPath = env.getRequiredProperty("sftp.basepath");
         this.oldVersionRootPath = env.getRequiredProperty("sftp.oldversion.basepath");
-        log.error("username: " + this.username);
-        log.error("passwd: " + this.passwd);
-        log.error("host: " + this.host);
-        log.error("port: " + this.port);
-        log.error("rootPath: " + this.rootPath);
-        log.error("oldVersionRootPath: " + this.oldVersionRootPath);
+        log.info("username: " + this.username);
+        log.info("host: " + this.host);
+        log.info("port: " + this.port);
+        log.info("rootPath: " + this.rootPath);
+        log.info("oldVersionRootPath: " + this.oldVersionRootPath);
     }
 
     protected void ensureConnected() throws IOException {
@@ -86,10 +84,6 @@ public abstract class AbstractSftpService {
         ssh = SshClient.setUpDefaultClient();
         ssh.start();
         try {
-            log.error("username: " + this.username);
-            log.error("passwd: " + this.passwd);
-            log.error("host: " + this.host);
-            log.error("port: " + this.port);
             ConnectFuture conn = ssh.connect(username, host, port);
             if (!conn.await(timeout)) {
                 throw new IOException("Unable to connect to " + host + ":" + port);
