@@ -432,6 +432,7 @@ public class LarchServerConfiguration {
         XMLSerializer serializer = new XMLSerializer();
         serializer.setRemoveNamespacePrefixFromElements(true);
         serializer.setForceTopLevelObject(true);
+        serializer.setSkipNamespaces(true);
         return serializer;
     }
 

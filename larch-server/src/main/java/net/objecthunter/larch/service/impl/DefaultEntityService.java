@@ -132,7 +132,8 @@ public class DefaultEntityService implements EntityService {
 
     @PostConstruct
     public void init() {
-        this.metadataindexEnabled = Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
+        this.metadataindexEnabled =
+                Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         final String val = env.getProperty("larch.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
@@ -157,6 +158,10 @@ public class DefaultEntityService implements EntityService {
 
         if (e.getMetadata() != null) {
             for (final Metadata md : e.getMetadata().values()) {
+                if (md.getSource() == null) {
+                    log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
+                    continue;
+                }
                 createAndMutateMetadata(e.getId(), null, md);
             }
         }
@@ -214,6 +219,10 @@ public class DefaultEntityService implements EntityService {
             b.setUtcLastModified(now);
             if (b.getMetadata() != null) {
                 for (final Metadata md : b.getMetadata().values()) {
+                    if (md.getSource() == null) {
+                        log.warn("No source on binary '{}' of entity '{}'", b.getName(), entityId);
+                        continue;
+                    }
                     createAndMutateMetadata(entityId, b.getName(), md);
                 }
             }
@@ -225,34 +234,38 @@ public class DefaultEntityService implements EntityService {
             log.warn("No source is set for metadata '{}' of entity '{}' nothing to ingest", md.getName(), entityId);
             return;
         }
-        final MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        }
-        try (final SizeCalculatingDigestInputStream src =
-                new SizeCalculatingDigestInputStream(md.getSource().getInputStream(), digest)) {
-            final String path = this.backendBlobstoreService.create(src);
-            final String checksum = new BigInteger(1, digest.digest()).toString(16);
-            md.setChecksum(checksum);
-            md.setSize(src.getCalculatedSize());
-            md.setChecksumType(digest.getAlgorithm());
-            md.setPath(path);
-            if (md.isIndexInline()) {
-                // Write Metadata-XML as JSON in Entity
-                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(md.getPath()));
-                md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+        if (!md.getSource().isInternal()) {
+            final MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("MD5");
+            } catch (NoSuchAlgorithmException e) {
+                throw new IOException(e);
             }
-            String uri = "/entity/" + entityId + "/metadata/" + md.getName() + "/content";
-            if (binaryName != null) {
-                uri = "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + md.getName() + "/content";
+            try (final SizeCalculatingDigestInputStream src =
+                    new SizeCalculatingDigestInputStream(md.getSource().getInputStream(), digest)) {
+                final String path = this.backendBlobstoreService.create(src);
+                final String checksum = new BigInteger(1, digest.digest()).toString(16);
+                md.setChecksum(checksum);
+                md.setSize(src.getCalculatedSize());
+                md.setChecksumType(digest.getAlgorithm());
+                md.setPath(path);
+                String uri = "/entity/" + entityId + "/metadata/" + md.getName() + "/content";
+                if (binaryName != null) {
+                    uri = "/entity/" + entityId + "/binary/" + binaryName + "/metadata/" + md.getName() + "/content";
+                }
+                md.setSource(new UrlSource(URI.create(uri), true));
             }
-            md.setSource(new UrlSource(URI.create(uri), true));
-            final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
-            md.setUtcCreated(now);
-            md.setUtcLastModified(now);
         }
+        if (md.isIndexInline()) {
+            // Write Metadata-XML as JSON in Entity
+            JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(md.getPath()));
+            md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+        } else {
+            md.setJsonData(null);
+        }
+        final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
+        md.setUtcCreated(now);
+        md.setUtcLastModified(now);
     }
 
     private String generateId() throws IOException {
@@ -267,11 +280,12 @@ public class DefaultEntityService implements EntityService {
     public void update(Entity e) throws IOException {
         final Entity oldVersion = retrieve(e.getId());
         // check
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         checkNonUpdateableFields(e, oldVersion);
-        
+
         this.backendVersionService.addOldVersion(oldVersion);
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         e.setVersion(oldVersion.getVersion() + 1);
@@ -281,7 +295,8 @@ public class DefaultEntityService implements EntityService {
                     log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
                     continue;
                 }
-                if (md.getSource().isInternal()) {
+                if (md.getSource().isInternal() &&
+                        md.isIndexInline() == oldVersion.getMetadata().get(md.getName()).isIndexInline()) {
                     md.setUtcLastModified(oldVersion.getMetadata().get(md.getName()).getUtcLastModified());
                     md.setUtcCreated(oldVersion.getMetadata().get(md.getName()).getUtcCreated());
                 }
@@ -310,9 +325,13 @@ public class DefaultEntityService implements EntityService {
                                 log.warn("No source on metadata '{}' of binary '{}'", md.getName(), b.getName());
                                 continue;
                             }
-                            if (md.getSource().isInternal()) {
-                                md.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getMetadata().get(md.getName()).getUtcLastModified());
-                                md.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getMetadata().get(md.getName()).getUtcCreated());
+                            if (md.getSource().isInternal() &&
+                                    md.isIndexInline() == oldVersion.getBinaries().get(b.getName()).getMetadata()
+                                            .get(md.getName()).isIndexInline()) {
+                                md.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
+                                        md.getName()).getUtcLastModified());
+                                md.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
+                                        md.getName()).getUtcCreated());
                             }
                             else {
                                 createAndMutateMetadata(e.getId(), b.getName(), md);
@@ -428,7 +447,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createMetadata(String entityId, String name, String type, String contentType,  boolean indexInline,
+    public void createMetadata(String entityId, String name, String type, String contentType, boolean indexInline,
             InputStream inputStream)
             throws IOException {
         if (StringUtils.isBlank(name)) {
@@ -494,7 +513,8 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createBinaryMetadata(String entityId, String binaryName, String name, String type, String contentType, boolean indexInline,
+    public void createBinaryMetadata(String entityId, String binaryName, String name, String type,
+            String contentType, boolean indexInline,
             InputStream inputStream)
             throws IOException {
         if (StringUtils.isBlank(name)) {
@@ -522,7 +542,8 @@ public class DefaultEntityService implements EntityService {
             bin.setMetadata(new HashMap<>());
         }
         if (bin.getMetadata().containsKey(name)) {
-            throw new IOException("The meta data " + name + " already exists on the binary " + binaryName + " of the entity " + entityId);
+            throw new IOException("The meta data " + name + " already exists on the binary " + binaryName +
+                    " of the entity " + entityId);
         }
 
         this.backendVersionService.addOldVersion(e);
@@ -614,7 +635,8 @@ public class DefaultEntityService implements EntityService {
             }
         }
         final Entity oldVersion = retrieve(id);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -711,7 +733,8 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -738,7 +761,8 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("wrong type given");
         }
         final Entity oldVersion = retrieve(entityId);
-        if (EntityState.PUBLISHED.equals(oldVersion.getState()) || EntityState.WITHDRAWN.equals(oldVersion.getState())) {
+        if (EntityState.PUBLISHED.equals(oldVersion.getState()) ||
+                EntityState.WITHDRAWN.equals(oldVersion.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + oldVersion.getState());
         }
         this.backendVersionService.addOldVersion(oldVersion);
@@ -895,7 +919,8 @@ public class DefaultEntityService implements EntityService {
                 if (!oldHierarchy.getLevel1Id().equals(newHierarchy.getLevel1Id())) {
                     throw new InvalidParameterException("entity may not be moved to different level1");
                 }
-                if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isBlank(newHierarchy.getLevel2Id())) {
+                if (StringUtils.isBlank(oldHierarchy.getLevel2Id()) &&
+                        StringUtils.isBlank(newHierarchy.getLevel2Id())) {
                     return;
                 }
                 if ((StringUtils.isBlank(oldHierarchy.getLevel2Id()) && StringUtils.isNotBlank(newHierarchy
@@ -965,10 +990,10 @@ public class DefaultEntityService implements EntityService {
                 deleteRecursively(childId);
             }
         }
-        
+
         List<String> alreadyDeletedFiles = new ArrayList<String>();
         deleteFiles(e, alreadyDeletedFiles);
-        
+
         // delete audit-records
         this.backendAuditService.deleteAll(id);
 
@@ -992,10 +1017,9 @@ public class DefaultEntityService implements EntityService {
             backendMetadataService.delete(id);
         }
     }
-    
+
     /**
-     * Delete Files with backendBlobstoreService.
-     * remember deleted paths to not try deleting again.
+     * Delete Files with backendBlobstoreService. remember deleted paths to not try deleting again.
      * 
      * @param e Emtity
      * @param alreadyDeletedFiles

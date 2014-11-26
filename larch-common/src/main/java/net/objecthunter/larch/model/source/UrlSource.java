@@ -91,7 +91,7 @@ public class UrlSource implements Source {
     }
 
     /**
-     * Open an retrieve an Inputstream from the URL source
+     * Open and retrieve an Inputstream from the URL source
      * 
      * @return An InputStream
      * @throws IOException
@@ -101,4 +101,5 @@ public class UrlSource implements Source {
     public InputStream getInputStream() throws IOException {
         return uri.toURL().openStream();
     }
+
 }

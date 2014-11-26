@@ -36,7 +36,7 @@ public class EntityControllerCreateIT extends AbstractLarchIT {
     @Test
     public void testCreateEntityStatus() throws Exception {
         // Level1
-        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
+        Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertEquals(EntityState.PENDING, entity.getState());
         assertEquals(1, entity.getVersion());
         assertEquals(FixedContentModel.LEVEL1.getName(), entity.getContentModelId());

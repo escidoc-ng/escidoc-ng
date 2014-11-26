@@ -31,4 +31,5 @@ public interface Source {
     public InputStream getInputStream() throws IOException;
 
     public boolean isInternal();
+    
 }

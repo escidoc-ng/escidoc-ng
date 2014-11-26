@@ -43,9 +43,9 @@ public class AuditRecordControllerIT extends AbstractLarchIT {
         // add binary
         entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 201);
         // add Metadata
-        entity = addMetadataStream(entity, IGNORE, IGNORE, 201);
+        entity = addMetadataStream(entity, IGNORE, IGNORE, false, 201);
         // add Binary Metadata
-        entity = addBinaryMetadataStream(entity, IGNORE, IGNORE, IGNORE, 201);
+        entity = addBinaryMetadataStream(entity, IGNORE, IGNORE, IGNORE, false, 201);
         // add Identifier
         entity = addIdentifier(entity, IGNORE, IGNORE, 201);
         // add Relation
