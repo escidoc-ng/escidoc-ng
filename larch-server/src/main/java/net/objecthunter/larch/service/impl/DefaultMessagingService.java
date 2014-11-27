@@ -45,7 +45,7 @@ public class DefaultMessagingService implements MessagingService {
 
     @PostConstruct
     public void init() {
-        final String en = env.getProperty("messaging.enabled");
+        final String en = env.getProperty("escidocng.messaging.enabled");
         enabled = en != null && en.equalsIgnoreCase("true");
     }
 

@@ -76,7 +76,7 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
     @PostConstruct
     public void init() throws IOException {
         log.debug("initialising ElasticSearchEntityService");
-        this.maxRecords = Integer.parseInt(env.getProperty("search.maxRecords", "20"));
+        this.maxRecords = Integer.parseInt(env.getProperty("escidocng.search.maxRecords", "20"));
         this.checkAndOrCreateIndex(INDEX_ENTITIES);
         this.waitForIndex(INDEX_ENTITIES);
     }

@@ -75,7 +75,7 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            String redirectUris = env.getProperty("oauth.redirectUris");
+            String redirectUris = env.getProperty("escidocng.oauth.redirectUris");
             String[] redirectUrisArr = new String[0];
             if (redirectUris != null) {
                 redirectUrisArr = redirectUris.split("\\|");

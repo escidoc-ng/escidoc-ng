@@ -101,13 +101,13 @@ public class LoginController extends AbstractController {
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
             nvps.add(new BasicNameValuePair("grant_type", "authorization_code"));
             nvps.add(new BasicNameValuePair("client_id", env.getProperty("oauth.clientId")));
-            nvps.add(new BasicNameValuePair("client_secret", env.getProperty("larch.oauth.clientSecret")));
+            nvps.add(new BasicNameValuePair("client_secret", env.getProperty("oauth.clientSecret")));
             nvps.add(new BasicNameValuePair("code", code));
             nvps.add(new BasicNameValuePair("redirect_uri",
                     env.getProperty("self.url") + "/login/token"));
 
             //auth header
-            String authorization = env.getProperty("oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");
+            String authorization = env.getProperty("oauth.clientId") + ":" + env.getProperty("oauth.clientSecret");
             byte[] encodedBytes = Base64.encodeBase64(authorization.getBytes());
             authorization = "Basic " + new String(encodedBytes);
 

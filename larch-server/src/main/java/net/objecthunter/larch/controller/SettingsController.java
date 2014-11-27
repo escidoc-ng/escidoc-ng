@@ -81,26 +81,26 @@ public class SettingsController extends AbstractLarchController {
         settings.setDescribe(this.repositoryService.describe());
         settings.setIndexState(this.entityService.status());
         settings.setBlobstoreState(this.blobstoreService.status());
-        settings.setLarchClusterName(environment.getProperty("cluster.name"));
-        settings.setLarchVersion(environment.getProperty("version"));
+        settings.setLarchClusterName(environment.getProperty("escidocng.cluster.name"));
+        settings.setLarchVersion(environment.getProperty("escidocng.version"));
         settings.setLarchExportEnabled(
-                Boolean.parseBoolean(environment.getProperty("export.auto")));
-        settings.setLarchExportPath(environment.getProperty("export.path"));
+                Boolean.parseBoolean(environment.getProperty("escidocng.export.auto")));
+        settings.setLarchExportPath(environment.getProperty("escidocng.export.path"));
         settings.setLarchCsrfProtectionEnabled(
-                Boolean.parseBoolean(environment.getProperty("security.csrf.enabled")));
+                Boolean.parseBoolean(environment.getProperty("escidocng.security.csrf.enabled")));
         settings.setLarchMessagingEnabled(
-                Boolean.parseBoolean(environment.getProperty("messaging.enabled")));
-        settings.setLarchMessagingBrokerUri(environment.getProperty("messaging.broker.uri"));
-        settings.setLarchMessagingBrokerPath(environment.getProperty("messaging.path.data"));
+                Boolean.parseBoolean(environment.getProperty("escidocng.messaging.enabled")));
+        settings.setLarchMessagingBrokerUri(environment.getProperty("escidocng.messaging.broker.uri"));
+        settings.setLarchMessagingBrokerPath(environment.getProperty("escidocng.messaging.path.data"));
         settings.setLarchMailEnabled(
-                Boolean.parseBoolean(environment.getProperty("mail.enabled")));
-        settings.setLarchMailFrom(environment.getProperty("mail.from"));
-        settings.setLarchMailSmtpHost(environment.getProperty("mail.smtp.host"));
+                Boolean.parseBoolean(environment.getProperty("escidocng.mail.enabled")));
+        settings.setLarchMailFrom(environment.getProperty("escidocng.mail.from"));
+        settings.setLarchMailSmtpHost(environment.getProperty("escidocng.mail.smtp.host"));
         settings.setLarchMailSmtpPort(
-                Integer.parseInt(environment.getProperty("mail.smtp.port")));
-        settings.setLarchMailSmtpUser(environment.getProperty("mail.smtp.user"));
-        settings.setLarchMailSmtpPass(environment.getProperty("mail.smtp.pass"));
-        settings.setElasticSearchClusterName(environment.getProperty("elasticsearch.cluster.name"));
+                Integer.parseInt(environment.getProperty("escidocng.mail.smtp.port")));
+        settings.setLarchMailSmtpUser(environment.getProperty("escidocng.mail.smtp.user"));
+        settings.setLarchMailSmtpPass(environment.getProperty("escidocng.mail.smtp.pass"));
+        settings.setElasticSearchClusterName(environment.getProperty("elasticsearch.escidocng.cluster.name"));
         settings.setElasticSearchLogPath(environment.getProperty("elasticsearch.path.logs"));
         settings.setElasticSearchDataPath(environment.getProperty("elasticsearch.path.data"));
         settings.setElasticSearchBootstrapMlockAll(

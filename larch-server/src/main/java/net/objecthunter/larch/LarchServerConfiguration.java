@@ -117,12 +117,12 @@ public class LarchServerConfiguration {
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(env.getProperty("proxy.name"))) {
-            System.setProperty("http.proxyHost", env.getProperty("proxy.name"));
-            System.setProperty("https.proxyHost", env.getProperty("proxy.name"));
-            if (StringUtils.isNotBlank(env.getProperty("proxy.port"))) {
-                System.setProperty("http.proxyPort", env.getProperty("proxy.port"));
-                System.setProperty("https.proxyPort", env.getProperty("proxy.port"));
+        if (StringUtils.isNotBlank(env.getProperty("escidocng.proxy.name"))) {
+            System.setProperty("http.proxyHost", env.getProperty("escidocng.proxy.name"));
+            System.setProperty("https.proxyHost", env.getProperty("escidocng.proxy.name"));
+            if (StringUtils.isNotBlank(env.getProperty("escidocng.proxy.port"))) {
+                System.setProperty("http.proxyPort", env.getProperty("escidocng.proxy.port"));
+                System.setProperty("https.proxyPort", env.getProperty("escidocng.proxy.port"));
             }
             if (StringUtils.isNotBlank(env.getProperty("larch.proxy.none"))) {
                 System.setProperty("http.nonProxyHosts", env.getProperty("larch.proxy.none"));
@@ -475,7 +475,7 @@ public class LarchServerConfiguration {
     @Bean
     public BrokerService brokerService() throws Exception {
         final File dir =
-                new File(env.getProperty("messaging.path.data", System.getProperty("java.io.tmpdir")
+                new File(env.getProperty("escidocng.messaging.path.data", System.getProperty("java.io.tmpdir")
                         + "/larch-jms-data"));
         FileSystemUtil.checkAndCreate(dir);
         final BrokerService broker = new BrokerService();
@@ -502,7 +502,7 @@ public class LarchServerConfiguration {
 
     @Bean
     public String brokerUri() {
-        return env.getProperty("messaging.broker.uri", "vm://localhost");
+        return env.getProperty("escidocng.messaging.broker.uri", "vm://localhost");
     }
 
     @Bean

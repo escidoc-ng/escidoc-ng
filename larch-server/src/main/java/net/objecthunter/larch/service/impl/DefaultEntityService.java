@@ -130,7 +130,7 @@ public class DefaultEntityService implements EntityService {
     public void init() {
         this.metadataindexEnabled =
                 Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
-        final String val = env.getProperty("export.auto");
+        final String val = env.getProperty("escidocng.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
 
