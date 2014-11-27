@@ -106,7 +106,7 @@ public class FileSystemArchiveService implements BackendArchiveBlobService {
 
         if (target.exists()) {
             final File orig = File.createTempFile("entity", "zip");
-            Files.move(target.toPath(), orig.toPath());
+            Files.move(target.toPath(), orig.toPath(), StandardCopyOption.REPLACE_EXISTING);
             Files.move(tmpNew.toPath(), target.toPath());
             orig.delete();
             tmpNew.delete();
