@@ -28,6 +28,7 @@ import net.objecthunter.larch.service.backend.BackendBlobstoreService;
 import net.objecthunter.larch.service.backend.BackendEntityService;
 
 import org.apache.commons.io.IOUtils;
+import org.crsh.console.jline.internal.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -68,8 +69,18 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
                 /* save the binary content */
                 zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
-                try(InputStream src = this.blobstoreService.retrieve(bin.getPath())) {
-                    IOUtils.copy(src, zipSink);
+                InputStream in = null;
+                try {
+                    in = this.blobstoreService.retrieve(bin.getPath());
+                    IOUtils.copy(in, zipSink);
+                } finally {
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException ex) {
+                            Log.warn("Problem closing input-stream " + bin.getPath());
+                        }
+                    }
                 }
                 zipSink.closeEntry();
 
@@ -107,7 +118,19 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
         /* save the metadata content */
         zipSink.putNextEntry(new ZipEntry(prefix + metadata.getName() + "/" + metadata.getFilename()));
-        IOUtils.copy(this.blobstoreService.retrieve(metadata.getPath()), zipSink);
+        InputStream in = null;
+        try {
+            in = this.blobstoreService.retrieve(metadata.getPath());
+            IOUtils.copy(in, zipSink);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    Log.warn("Problem closing input-stream " + metadata.getPath());
+                }
+            }
+        }
         zipSink.closeEntry();
 
         // update the path to point in the zip file

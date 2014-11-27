@@ -129,7 +129,11 @@ public class Binary {
     }
 
     public String getFilename() {
-        return filename;
+        if (filename == null || filename.isEmpty()) {
+            return (name == null || name.isEmpty()) ? "binary" : name;
+        } else {
+            return filename;
+        }
     }
 
     public void setFilename(String filename) {

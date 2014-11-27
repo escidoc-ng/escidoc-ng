@@ -86,7 +86,7 @@ public class BinaryController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(entityId, name, file.getContentType(), file.getInputStream());
+        entityService.createBinary(entityId, name, file.getOriginalFilename(), file.getContentType(), file.getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
     }
@@ -107,7 +107,7 @@ public class BinaryController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(entityId, b.getName(), b.getMimetype(), b.getSource()
+        this.entityService.createBinary(entityId, b.getName(), b.getFilename(), b.getMimetype(), b.getSource()
                 .getInputStream());
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
