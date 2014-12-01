@@ -149,6 +149,11 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.objecthunter.larch</groupId>
+            <artifactId>larch-client</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
