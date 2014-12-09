@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -207,11 +208,8 @@ public class MetadataController extends AbstractController {
         @Permission(rolename = RoleName.ROLE_ADMIN) })
     public String addSchemaType(@RequestParam("name") final String name,
             @RequestParam("schemaUrl") final String schemaUrl) throws IOException {
-        HttpEntity multipart = MultipartEntityBuilder.create()
-                .addTextBody("name", name)
-                .addTextBody("schemaUrl", schemaUrl)
-                .build();
-        httpHelper.doPost("/metadatatype", multipart, null);
+        final StringEntity entity = new StringEntity(mapper.writeValueAsString(new MetadataType(name, schemaUrl)));
+        httpHelper.doPost("/metadatatype", entity, "application/json");
         return "redirect:/metadatatype";
     }
 
