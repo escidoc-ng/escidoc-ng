@@ -80,7 +80,6 @@ public class MetadataController extends AbstractLarchController {
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param src the request body as an InputStream, containing the JSON-Representation of a
      *        {@link net.objecthunter.larch.model.Metadata}.
-     * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
     @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST,
@@ -106,8 +105,8 @@ public class MetadataController extends AbstractLarchController {
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param mdName The name of the Metadata
      * @param type The type of the Metadata
+     * @param indexInline boolean to flag if metadata should get written into elasticsearch.
      * @param file The Spring MVC injected MutlipartFile containing the actual data from a html form submission
-     * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
     @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST,
@@ -166,6 +165,7 @@ public class MetadataController extends AbstractLarchController {
      * @param binaryName the name of the binary
      * @param mdName the meta data set's name
      * @param type the meta data set's type
+     * @param indexInline boolean to flag if metadata should get written into elasticsearch.
      * @param file the http multipart file containing the actual bytes
      * @throws IOException
      */
