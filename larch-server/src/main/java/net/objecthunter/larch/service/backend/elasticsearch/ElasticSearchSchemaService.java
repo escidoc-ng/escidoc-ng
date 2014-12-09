@@ -123,6 +123,7 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
             search = this.client.prepareSearch(INDEX_MD_SCHEMATA)
                     .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                     .setQuery(QueryBuilders.matchAllQuery())
+                    .setSize(128)
                     .execute()
                     .actionGet();
         } catch (ElasticsearchException ex) {
