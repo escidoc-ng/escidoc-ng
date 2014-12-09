@@ -131,7 +131,6 @@ public class ElasticSearchEntityService extends AbstractElasticSearchService imp
 
     @Override
     public Entity retrieve(String entityId) throws IOException {
-        log.debug("fetching entity " + entityId);
         final GetResponse resp;
         try {
             resp = client.prepareGet(INDEX_ENTITIES, INDEX_ENTITY_TYPE, entityId).execute().actionGet();

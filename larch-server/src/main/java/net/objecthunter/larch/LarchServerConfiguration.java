@@ -18,6 +18,7 @@
 package net.objecthunter.larch;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Queue;
@@ -478,10 +479,15 @@ public class LarchServerConfiguration {
                         + "/larch-jms-data"));
         FileSystemUtil.checkAndCreate(dir);
         final BrokerService broker = new BrokerService();
-        broker.addConnector(brokerUri());
-        broker.getPersistenceAdapter().setDirectory(dir);
-        broker.start();
-        return broker;
+        try {
+            broker.addConnector(brokerUri());
+            broker.getPersistenceAdapter().setDirectory(dir);
+            broker.start();
+            return broker;
+        } catch (IOException e) {
+            // broker is already bound, we can ignore it...
+            return null;
+        }
     }
 
     @Bean

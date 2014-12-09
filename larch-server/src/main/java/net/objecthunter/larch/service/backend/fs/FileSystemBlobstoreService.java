@@ -78,8 +78,9 @@ public class FileSystemBlobstoreService implements BackendBlobstoreService {
             data = new File(folder, RandomStringUtils.randomAlphabetic(16));
         } while (data.exists());
         log.debug("creating Blob at {}", data.getAbsolutePath());
-        final FileOutputStream sink = new FileOutputStream(data);
-        IOUtils.copy(src, sink);
+        try(final FileOutputStream sink = new FileOutputStream(data)) {
+            IOUtils.copy(src, sink);
+        }
         return folder.getName() + "/" + data.getName();
     }
 
@@ -106,7 +107,9 @@ public class FileSystemBlobstoreService implements BackendBlobstoreService {
         if (!data.exists()) {
             throw new NotFoundException(data.getAbsolutePath() + " can not be updated sine it does not exist");
         }
-        IOUtils.copy(src, new FileOutputStream(data));
+        try (final OutputStream sink = new FileOutputStream(data)) {
+            IOUtils.copy(src, sink);
+        }
     }
 
     @Override

@@ -250,8 +250,10 @@ public class DefaultEntityService implements EntityService {
         }
         if (md.isIndexInline()) {
             // Write Metadata-XML as JSON in Entity
-            JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(md.getPath()));
-            md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            try (final InputStream src = this.backendBlobstoreService.retrieve(md.getPath())) {
+                JSON mdJson = serializer.readFromStream(src);
+                md.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+            }
         } else {
             md.setJsonData(null);
         }
@@ -481,8 +483,10 @@ public class DefaultEntityService implements EntityService {
             m.setIndexInline(indexInline);
             if (m.isIndexInline()) {
                 // Write Metadata-XML as JSON in Entity
-                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
-                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+                try (final InputStream jsonSrc = this.backendBlobstoreService.retrieve(m.getPath())) {
+                    JSON mdJson = serializer.readFromStream(jsonSrc);
+                    m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+                }
             }
             m.setUtcCreated(now);
             m.setUtcLastModified(now);
@@ -559,8 +563,10 @@ public class DefaultEntityService implements EntityService {
             m.setIndexInline(indexInline);
             if (m.isIndexInline()) {
                 // Write Metadata-XML as JSON in Entity
-                JSON mdJson = serializer.readFromStream(this.backendBlobstoreService.retrieve(m.getPath()));
-                m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+                try (final InputStream dataSrc = this.backendBlobstoreService.retrieve(m.getPath())) {
+                    JSON mdJson = serializer.readFromStream(dataSrc);
+                    m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
+                }
             }
             m.setUtcCreated(now);
             m.setUtcLastModified(now);

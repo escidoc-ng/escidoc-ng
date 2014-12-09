@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.zip.ZipEntry;
@@ -67,7 +68,9 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
                 /* save the binary content */
                 zipSink.putNextEntry(new ZipEntry(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()));
-                IOUtils.copy(this.blobstoreService.retrieve(bin.getPath()), zipSink);
+                try(InputStream src = this.blobstoreService.retrieve(bin.getPath())) {
+                    IOUtils.copy(src, zipSink);
+                }
                 zipSink.closeEntry();
 
                 // update the path to point in the zip file

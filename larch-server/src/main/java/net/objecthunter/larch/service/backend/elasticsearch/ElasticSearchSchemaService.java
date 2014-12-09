@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -56,6 +57,7 @@ import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.tags.form.InputTag;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -212,10 +214,6 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
     @Override
     public MetadataValidationResult validate(String id, String binaryName, String metadataName) throws IOException {
         /* fetch the entity first */
-        try {
-        } catch (ElasticsearchException ex) {
-            throw new IOException(ex.getMostSpecificCause().getMessage());
-        }
         final GetResponse resp = this.client.prepareGet(ElasticSearchEntityService
                 .INDEX_ENTITIES,
                 ElasticSearchEntityService.INDEX_ENTITY_TYPE, id
@@ -244,9 +242,9 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
         final String schemaUrl = this.getSchemUrlForType(md.getType());
         /* validate the schema against the given URL */
         final MetadataValidationResult result = new MetadataValidationResult();
-        try {
+        try (final InputStream src = backendBlobstoreService.retrieve(md.getPath())) {
             final URL schemaFile = new URL(schemaUrl);
-            final Source xmlFile = new StreamSource(backendBlobstoreService.retrieve(md.getPath()));
+            final Source xmlFile = new StreamSource(src);
             final SchemaFactory schemaFactory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             final Schema schema = schemaFactory.newSchema(schemaFile);
