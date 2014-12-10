@@ -63,8 +63,8 @@ public class LoginController extends AbstractController {
         OAuthClientRequest oauthRequest = null;
         try {
             oauthRequest = OAuthClientRequest
-                    .authorizationLocation(env.getProperty("larch.login.url") + "/oauth/authorize")
-                    .setClientId(env.getProperty("larch.oauth.clientId"))
+                    .authorizationLocation(env.getProperty("backend.login.url") + "/oauth/authorize")
+                    .setClientId(env.getProperty("oauth.clientId"))
                     .setResponseType("code")
                     .setRedirectURI(env.getProperty("self.url") + "/login/token")
                     .buildQueryMessage();
@@ -100,14 +100,14 @@ public class LoginController extends AbstractController {
             //content
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
             nvps.add(new BasicNameValuePair("grant_type", "authorization_code"));
-            nvps.add(new BasicNameValuePair("client_id", env.getProperty("larch.oauth.clientId")));
+            nvps.add(new BasicNameValuePair("client_id", env.getProperty("oauth.clientId")));
             nvps.add(new BasicNameValuePair("client_secret", env.getProperty("larch.oauth.clientSecret")));
             nvps.add(new BasicNameValuePair("code", code));
             nvps.add(new BasicNameValuePair("redirect_uri",
                     env.getProperty("self.url") + "/login/token"));
 
             //auth header
-            String authorization = env.getProperty("larch.oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");
+            String authorization = env.getProperty("oauth.clientId") + ":" + env.getProperty("larch.oauth.clientSecret");
             byte[] encodedBytes = Base64.encodeBase64(authorization.getBytes());
             authorization = "Basic " + new String(encodedBytes);
 

@@ -59,23 +59,23 @@ public class DefaultMailService implements MailService {
 
     @PostConstruct
     public void init() {
-        if (env.getProperty("larch.mail.enabled") == null ||
-                env.getProperty("larch.mail.enabled").equalsIgnoreCase("false")) {
+        if (env.getProperty("mail.enabled") == null ||
+                env.getProperty("mail.enabled").equalsIgnoreCase("false")) {
             enabled = false;
             return;
         }
         try {
-            final String value = env.getProperty("larch.mail.from");
+            final String value = env.getProperty("mail.from");
             if (value.isEmpty()) {
-                throw new IllegalArgumentException("The property larch.mail.from cannot be blank");
+                throw new IllegalArgumentException("The property mail.from cannot be blank");
             }
             mailFrom = new InternetAddress(value);
-            smtpHost = env.getProperty("larch.mail.smtp.host", "localhost");
-            smtpPort = Integer.parseInt(env.getProperty("larch.mail.smtp.port", "25"));
-            enabled = Boolean.parseBoolean(env.getProperty("larch.mail.enabled", "false"));
-            if (env.getProperty("larch.mail.smtp.user") != null) {
-                mailUser = env.getProperty("larch.mail.smtp.user");
-                mailPass = env.getProperty("larch.mail.smtp.pass");
+            smtpHost = env.getProperty("mail.smtp.host", "localhost");
+            smtpPort = Integer.parseInt(env.getProperty("mail.smtp.port", "25"));
+            enabled = Boolean.parseBoolean(env.getProperty("mail.enabled", "false"));
+            if (env.getProperty("mail.smtp.user") != null) {
+                mailUser = env.getProperty("mail.smtp.user");
+                mailPass = env.getProperty("mail.smtp.pass");
             }
         } catch (AddressException e) {
             throw new IllegalArgumentException(e);

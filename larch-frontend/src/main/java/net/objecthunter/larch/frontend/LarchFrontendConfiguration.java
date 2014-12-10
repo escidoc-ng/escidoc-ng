@@ -52,12 +52,12 @@ public class LarchFrontendConfiguration {
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(env.getProperty("larch.proxy.name"))) {
-            System.setProperty("http.proxyHost", env.getProperty("larch.proxy.name"));
-            System.setProperty("https.proxyHost", env.getProperty("larch.proxy.name"));
-            if (StringUtils.isNotBlank(env.getProperty("larch.proxy.port"))) {
-                System.setProperty("http.proxyPort", env.getProperty("larch.proxy.port"));
-                System.setProperty("https.proxyPort", env.getProperty("larch.proxy.port"));
+        if (StringUtils.isNotBlank(env.getProperty("proxy.name"))) {
+            System.setProperty("http.proxyHost", env.getProperty("proxy.name"));
+            System.setProperty("https.proxyHost", env.getProperty("proxy.name"));
+            if (StringUtils.isNotBlank(env.getProperty("proxy.port"))) {
+                System.setProperty("http.proxyPort", env.getProperty("proxy.port"));
+                System.setProperty("https.proxyPort", env.getProperty("proxy.port"));
             }
             if (StringUtils.isNotBlank(env.getProperty("larch.proxy.none"))) {
                 System.setProperty("http.nonProxyHosts", env.getProperty("larch.proxy.none"));

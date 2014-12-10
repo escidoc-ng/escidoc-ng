@@ -81,25 +81,25 @@ public class SettingsController extends AbstractLarchController {
         settings.setDescribe(this.repositoryService.describe());
         settings.setIndexState(this.entityService.status());
         settings.setBlobstoreState(this.blobstoreService.status());
-        settings.setLarchClusterName(environment.getProperty("larch.cluster.name"));
-        settings.setLarchVersion(environment.getProperty("larch.version"));
+        settings.setLarchClusterName(environment.getProperty("cluster.name"));
+        settings.setLarchVersion(environment.getProperty("version"));
         settings.setLarchExportEnabled(
-                Boolean.parseBoolean(environment.getProperty("larch.export.auto")));
-        settings.setLarchExportPath(environment.getProperty("larch.export.path"));
+                Boolean.parseBoolean(environment.getProperty("export.auto")));
+        settings.setLarchExportPath(environment.getProperty("export.path"));
         settings.setLarchCsrfProtectionEnabled(
-                Boolean.parseBoolean(environment.getProperty("larch.security.csrf.enabled")));
+                Boolean.parseBoolean(environment.getProperty("security.csrf.enabled")));
         settings.setLarchMessagingEnabled(
-                Boolean.parseBoolean(environment.getProperty("larch.messaging.enabled")));
-        settings.setLarchMessagingBrokerUri(environment.getProperty("larch.messaging.broker.uri"));
-        settings.setLarchMessagingBrokerPath(environment.getProperty("larch.messaging.path.data"));
+                Boolean.parseBoolean(environment.getProperty("messaging.enabled")));
+        settings.setLarchMessagingBrokerUri(environment.getProperty("messaging.broker.uri"));
+        settings.setLarchMessagingBrokerPath(environment.getProperty("messaging.path.data"));
         settings.setLarchMailEnabled(
-                Boolean.parseBoolean(environment.getProperty("larch.mail.enabled")));
-        settings.setLarchMailFrom(environment.getProperty("larch.mail.from"));
-        settings.setLarchMailSmtpHost(environment.getProperty("larch.mail.smtp.host"));
+                Boolean.parseBoolean(environment.getProperty("mail.enabled")));
+        settings.setLarchMailFrom(environment.getProperty("mail.from"));
+        settings.setLarchMailSmtpHost(environment.getProperty("mail.smtp.host"));
         settings.setLarchMailSmtpPort(
-                Integer.parseInt(environment.getProperty("larch.mail.smtp.port")));
-        settings.setLarchMailSmtpUser(environment.getProperty("larch.mail.smtp.user"));
-        settings.setLarchMailSmtpPass(environment.getProperty("larch.mail.smtp.pass"));
+                Integer.parseInt(environment.getProperty("mail.smtp.port")));
+        settings.setLarchMailSmtpUser(environment.getProperty("mail.smtp.user"));
+        settings.setLarchMailSmtpPass(environment.getProperty("mail.smtp.pass"));
         settings.setElasticSearchClusterName(environment.getProperty("elasticsearch.cluster.name"));
         settings.setElasticSearchLogPath(environment.getProperty("elasticsearch.path.logs"));
         settings.setElasticSearchDataPath(environment.getProperty("elasticsearch.path.data"));

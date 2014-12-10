@@ -49,7 +49,7 @@ public class DefaultExportService implements ExportService {
 
     @PostConstruct
     public void init() throws IOException {
-        this.directory = new File(env.getProperty("larch.export.path"));
+        this.directory = new File(env.getProperty("export.path"));
         checkAndCreate(this.directory);
     }
 

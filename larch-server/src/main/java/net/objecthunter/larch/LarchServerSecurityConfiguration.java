@@ -114,7 +114,7 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .required(true);
 
         http.csrf().requireCsrfProtectionMatcher(new LarchCsrfRequestMatcher());
-        if (!Boolean.valueOf(env.getProperty("larch.security.csrf.enabled", "true"))) {
+        if (!Boolean.valueOf(env.getProperty("security.csrf.enabled", "true"))) {
             http.csrf().disable();
         }
     }
@@ -123,11 +123,11 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
      * Configure Proxy.
      */
     private void configureProxy() {
-        if (StringUtils.isNotBlank(env.getProperty("larch.proxy.name"))) {
+        if (StringUtils.isNotBlank(env.getProperty("proxy.name"))) {
             ProxyProperties proxyProps = new ProxyProperties();
-            proxyProps.setProxyHostName(env.getProperty("larch.proxy.name"));
-            if (StringUtils.isNotBlank(env.getProperty("larch.proxy.port"))) {
-                proxyProps.setProxyPort(Integer.parseInt(env.getProperty("larch.proxy.port")));
+            proxyProps.setProxyHostName(env.getProperty("proxy.name"));
+            if (StringUtils.isNotBlank(env.getProperty("proxy.port"))) {
+                proxyProps.setProxyPort(Integer.parseInt(env.getProperty("proxy.port")));
             }
             HttpClientFactory.setProxyProperties(proxyProps);
         }

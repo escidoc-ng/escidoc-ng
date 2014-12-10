@@ -42,7 +42,7 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) {
-            resources.resourceId("larch");
+            resources.resourceId("escidoc-ng");
         }
 
         @Override
@@ -82,8 +82,8 @@ public class OAuth2ServerConfiguration {
             }
             clients
                     .inMemory()
-                    .withClient("larch_admin")
-                    .resourceIds("larch")
+                    .withClient("client")
+                    .resourceIds("escidoc-ng")
                     .authorizedGrantTypes("authorization_code", "implicit")
                     .secret("secret")
                     .authorities("ROLE_ADMIN")
