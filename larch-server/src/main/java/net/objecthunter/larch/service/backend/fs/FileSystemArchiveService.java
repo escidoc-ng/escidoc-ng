@@ -15,30 +15,32 @@
  */
 package net.objecthunter.larch.service.backend.fs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.objecthunter.larch.model.Binary;
-import net.objecthunter.larch.model.Entity;
-import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.source.UrlSource;
-import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
-import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
-import net.objecthunter.larch.service.backend.BackendBlobstoreService;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
-import javax.annotation.PostConstruct;
-import java.io.*;
-import java.net.URI;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+
+import javax.annotation.PostConstruct;
+
+import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.service.backend.BackendArchiveBlobService;
+import net.objecthunter.larch.service.backend.BackendArchiveInformationPackageService;
+import net.objecthunter.larch.service.backend.BackendBlobstoreService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class FileSystemArchiveService implements BackendArchiveBlobService {
 

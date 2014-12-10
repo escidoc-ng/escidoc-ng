@@ -18,9 +18,12 @@
 package net.objecthunter.larch.integration.fs.entity;
 
 import static net.objecthunter.larch.test.util.Fixtures.createRandomDCMetadata;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 
 import net.objecthunter.larch.integration.fs.AbstractFSLarchIT;
@@ -28,10 +31,11 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.test.util.Fixtures;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
@@ -129,7 +133,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertNotNull(entity.getBinaries());
         for (Metadata m : entity.getMetadata().values()) {
             m.setFilename("dc1.xml");
-            m.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").toURI()));
+            m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
             m.setIndexInline(true);
         }
         entity = updateEntity(entity, 200);
@@ -249,7 +253,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertNotNull(entity.getBinaries());
         for (Metadata m : entity.getMetadata().values()) {
             m.setFilename("dc1.xml");
-            m.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").toURI()));
+            m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
             m.setIndexInline(false);
         }
         entity = updateEntity(entity, 200);
@@ -312,7 +316,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
             assertNotNull(b.getMetadata());
             for (Metadata m : b.getMetadata().values()) {
                 m.setFilename("dc1.xml");
-                m.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").toURI()));
+                m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
                 m.setIndexInline(false);
             }
         }
@@ -764,7 +768,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         // add metadata
         Metadata metadata = createRandomDCMetadata(false);
         metadata.setName("indexInlineTest");
-        File f = new File(((UrlSource) metadata.getSource()).getUri());
+        ByteArrayInputStream bais = new ByteArrayInputStream(((ByteArraySource) metadata.getSource()).getBytes());
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(
@@ -774,7 +778,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
                                         .addTextBody("type", metadata.getType())
                                         .addBinaryBody(
                                                 "data",
-                                                f, ContentType.APPLICATION_XML, f.getName())
+                                                bais, ContentType.APPLICATION_XML, metadata.getFilename())
                                         .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(201, resp.getStatusLine().getStatusCode());
@@ -783,7 +787,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         for (Binary b : entity.getBinaries().values()) {
             metadata = createRandomDCMetadata(false);
             metadata.setName("indexInlineTest");
-            f = new File(((UrlSource) metadata.getSource()).getUri());
+            bais = new ByteArrayInputStream(((ByteArraySource) metadata.getSource()).getBytes());
             resp =
                     this.executeAsAdmin(
                             Request.Post(
@@ -794,7 +798,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
                                             .addTextBody("type", metadata.getType())
                                             .addBinaryBody(
                                                     "data",
-                                                    f, ContentType.APPLICATION_XML, f.getName())
+                                                    bais, ContentType.APPLICATION_XML, metadata.getFilename())
                                             .build()));
             test = EntityUtils.toString(resp.getEntity());
             assertEquals(201, resp.getStatusLine().getStatusCode());

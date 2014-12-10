@@ -45,10 +45,11 @@ import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserAdminRole;
 import net.objecthunter.larch.model.security.role.UserRole;
-import net.objecthunter.larch.model.source.UrlSource;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -585,20 +586,17 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
             for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
                 binary.getValue()
                         .setSource(
-                                new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png")
-                                        .toURI()));
+                                new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
                 if (binary.getValue().getMetadata() != null) {
                     for (Metadata md : binary.getValue().getMetadata().values()) {
-                        md.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml")
-                                        .toURI()));
+                        md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
                     }
                 }
             }
         }
         if (resetEntity.getMetadata() != null) {
             for (Metadata md : resetEntity.getMetadata().values()) {
-                md.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml")
-                                .toURI()));
+                md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
             }
         }
         if (resp.getStatusLine().getStatusCode() == HttpStatus.NOT_FOUND.value()) {
