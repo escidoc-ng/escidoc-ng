@@ -118,6 +118,7 @@ public class ElasticSearchSchemaServiceTest {
         expect(mockSearchRequestBuilder.setSearchType(anyObject(SearchType.class))).andReturn(
                 mockSearchRequestBuilder);
         expect(mockSearchRequestBuilder.setQuery(anyObject(QueryBuilder.class))).andReturn(mockSearchRequestBuilder);
+        expect(mockSearchRequestBuilder.setSize(128)).andReturn(mockSearchRequestBuilder);
         expect(mockSearchRequestBuilder.execute()).andReturn(mockFuture);
         expect(mockFuture.actionGet()).andReturn(mockSearchResponse);
         expect(mockSearchResponse.getHits()).andReturn(mockHits);
