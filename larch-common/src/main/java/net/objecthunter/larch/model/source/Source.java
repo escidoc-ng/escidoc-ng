@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonSubTypes({
     @JsonSubTypes.Type(value = UrlSource.class, name = "url-source"),
+    @JsonSubTypes.Type(value = ByteArraySource.class, name = "byte-array-source"),
 })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public interface Source {

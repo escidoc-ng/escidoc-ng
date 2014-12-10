@@ -27,10 +27,11 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.test.util.Fixtures;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.junit.Test;
@@ -180,7 +181,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("test.png");
-        bin1.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("test");
         Map<String, Metadata> bin1Md = new HashMap<>();
         bin1.setMetadata(bin1Md);

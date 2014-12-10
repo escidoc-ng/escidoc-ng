@@ -36,7 +36,6 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
-import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;

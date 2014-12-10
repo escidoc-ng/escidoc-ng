@@ -30,8 +30,9 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.security.User;
-import net.objecthunter.larch.model.source.UrlSource;
+import net.objecthunter.larch.model.source.ByteArraySource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Fixtures {
@@ -127,7 +128,7 @@ public abstract class Fixtures {
         Metadata data = new Metadata();
         data.setMimetype("text/xml");
         data.setFilename("dc.xml");
-        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
+        data.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
         data.setName("DC");
         data.setType("DC");
         return data;
@@ -150,7 +151,7 @@ public abstract class Fixtures {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("image_1.png");
-        bin1.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("image-1");
         Map<String, Metadata> bin1Md = new HashMap<>();
         Metadata md = createRandomDCMetadata(indexInline);
@@ -159,7 +160,7 @@ public abstract class Fixtures {
         Binary bin2 = new Binary();
         bin2.setMimetype("image/png");
         bin2.setFilename("image_2.png");
-        bin2.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        bin2.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin2.setName("image-2");
         Map<String, Metadata> bin2Md = new HashMap<>();
         md = createRandomDCMetadata(indexInline);
@@ -186,7 +187,7 @@ public abstract class Fixtures {
         Metadata data = new Metadata();
         data.setMimetype("text/xml");
         data.setFilename("dc.xml");
-        data.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").toURI()));
+        data.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
         data.setName("Dublin-Core-" + RandomStringUtils.randomAlphabetic(16));
         data.setType("DC");
         data.setIndexInline(indexInline);
@@ -197,7 +198,7 @@ public abstract class Fixtures {
         Binary binary = new Binary();
         binary.setMimetype("image/png");
         binary.setFilename("image_2.png");
-        binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        binary.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         binary.setName("image-" + RandomStringUtils.randomAlphabetic(16));
         return binary;
     }
@@ -206,7 +207,7 @@ public abstract class Fixtures {
         Binary bin1 = new Binary();
         bin1.setMimetype("image/png");
         bin1.setFilename("image_1.png");
-        bin1.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("image-1");
         Map<String, Binary> binaries = new HashMap<>();
         binaries.put(bin1.getName(), bin1);
@@ -240,7 +241,7 @@ public abstract class Fixtures {
         Binary bin = new Binary();
         bin.setMimetype("image/png");
         bin.setFilename("image_1.png");
-        bin.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").toURI()));
+        bin.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin.setName(RandomStringUtils.randomAlphabetic(16));
         return bin;
     }

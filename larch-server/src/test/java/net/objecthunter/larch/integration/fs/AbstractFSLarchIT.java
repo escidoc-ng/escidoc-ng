@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,7 +55,7 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
-import net.objecthunter.larch.model.source.UrlSource;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.test.util.Fixtures;
 import net.objecthunter.larch.test.util.SftpServerConfiguration;
 import net.sf.json.xml.XMLSerializer;
@@ -540,7 +541,7 @@ public abstract class AbstractFSLarchIT {
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        File f = new File(((UrlSource) metadata.getSource()).getUri());
+        ByteArrayInputStream bais = new ByteArrayInputStream(((ByteArraySource) metadata.getSource()).getBytes());
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(entityUrl + entity.getId() + "/metadata").body(MultipartEntityBuilder.create()
@@ -549,7 +550,7 @@ public abstract class AbstractFSLarchIT {
                                 .addTextBody("indexInline", new Boolean(indexInline).toString())
                                 .addBinaryBody(
                                         "data",
-                                        f, ContentType.APPLICATION_XML, f.getName())
+                                        bais, ContentType.APPLICATION_XML, metadata.getFilename())
                                 .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
@@ -682,7 +683,7 @@ public abstract class AbstractFSLarchIT {
         if (mdType == null || !mdType.equals(IGNORE)) {
             metadata.setType(mdType);
         }
-        File f = new File(((UrlSource) metadata.getSource()).getUri());
+        ByteArrayInputStream bais = new ByteArrayInputStream(((ByteArraySource) metadata.getSource()).getBytes());
         HttpResponse resp =
                 this.executeAsAdmin(
                         Request.Post(
@@ -694,7 +695,7 @@ public abstract class AbstractFSLarchIT {
                                         .addTextBody("indexInline", new Boolean(indexInline).toString())
                                         .addBinaryBody(
                                                 "data",
-                                                f, ContentType.APPLICATION_XML, f.getName())
+                                                bais, ContentType.APPLICATION_XML, metadata.getFilename())
                                         .build()));
         String test = EntityUtils.toString(resp.getEntity());
         assertEquals(expectedStatus, resp.getStatusLine().getStatusCode());
@@ -786,7 +787,7 @@ public abstract class AbstractFSLarchIT {
             if (resource == null) {
                 binary.setSource(null);
             } else {
-                binary.setSource(new UrlSource(Fixtures.class.getClassLoader().getResource(resource).toURI()));
+                binary.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource(resource).openStream())));
             }
         }
         HttpResponse resp =
