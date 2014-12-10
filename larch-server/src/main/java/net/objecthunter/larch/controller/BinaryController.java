@@ -30,6 +30,7 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.source.InputStreamSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -86,7 +87,12 @@ public class BinaryController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
-        entityService.createBinary(entityId, name, file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+        Binary binary = new Binary();
+        binary.setName(name);
+        binary.setMimetype(file.getContentType());
+        binary.setFilename(file.getOriginalFilename());
+        binary.setSource(new InputStreamSource(file.getInputStream()));
+        entityService.createBinary(entityId, binary);
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, name);
     }
@@ -107,8 +113,7 @@ public class BinaryController extends AbstractLarchController {
             @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void create(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Binary b = this.mapper.readValue(src, Binary.class);
-        this.entityService.createBinary(entityId, b.getName(), b.getFilename(), b.getMimetype(), b.getSource()
-                .getInputStream());
+        this.entityService.createBinary(entityId, b);
         entityService.createAuditRecord(AuditRecordHelper.createBinaryRecord(entityId));
         this.messagingService.publishCreateBinary(entityId, b.getName());
     }

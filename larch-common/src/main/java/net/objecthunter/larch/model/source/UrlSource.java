@@ -91,7 +91,7 @@ public class UrlSource implements Source {
     }
 
     /**
-     * Open and retrieve an Inputstream from the URL source
+     * Open and retrieve an InputStream from the URL source
      * 
      * @return An InputStream
      * @throws IOException
