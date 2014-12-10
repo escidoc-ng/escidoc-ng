@@ -62,9 +62,9 @@ public class DefaultRepositoryService implements RepositoryService {
     @Override
     public Describe describe() throws IOException {
         final Describe desc = new Describe();
-        desc.setLarchVersion(env.getProperty("larch.version"));
+        desc.setLarchVersion(env.getProperty("escidocng.version"));
         desc.setLarchHost("localhost:" + env.getProperty("server.port"));
-        desc.setLarchClusterName(env.getProperty("larch.cluster.name"));
+        desc.setLarchClusterName(env.getProperty("escidocng.cluster.name"));
         try {
             final ClusterStateResponse state = client.admin().cluster().prepareState()
                     .setBlocks(false)

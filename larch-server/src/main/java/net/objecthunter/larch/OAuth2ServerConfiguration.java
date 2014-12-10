@@ -42,7 +42,7 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) {
-            resources.resourceId("larch");
+            resources.resourceId("escidoc-ng");
         }
 
         @Override
@@ -75,15 +75,15 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            String redirectUris = env.getProperty("oauth.redirectUris");
+            String redirectUris = env.getProperty("escidocng.oauth.redirectUris");
             String[] redirectUrisArr = new String[0];
             if (redirectUris != null) {
                 redirectUrisArr = redirectUris.split("\\|");
             }
             clients
                     .inMemory()
-                    .withClient("larch_admin")
-                    .resourceIds("larch")
+                    .withClient("client")
+                    .resourceIds("escidoc-ng")
                     .authorizedGrantTypes("authorization_code", "implicit")
                     .secret("secret")
                     .authorities("ROLE_ADMIN")

@@ -57,6 +57,8 @@ public interface MessagingService {
 
     public void publishDeleteRelation(String subject, String predicate, String object);
 
+    void publishPendingEntity(String id);
+
     void publishSubmitEntity(String id);
 
     void publishPublishEntity(String id);

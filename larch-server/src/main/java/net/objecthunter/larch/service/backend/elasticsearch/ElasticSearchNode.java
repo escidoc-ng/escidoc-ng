@@ -40,7 +40,7 @@ public class ElasticSearchNode {
     public void startNode() {
         node =
                 NodeBuilder.nodeBuilder()
-                        .clusterName(environment.getProperty("elasticsearch.cluster.name"))
+                        .clusterName(environment.getProperty("elasticsearch.escidocng.cluster.name"))
                         .settings(
                             ImmutableSettings.settingsBuilder()
                                 .put("path.logs",

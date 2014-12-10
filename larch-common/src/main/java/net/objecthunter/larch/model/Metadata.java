@@ -76,7 +76,11 @@ public class Metadata {
     }
 
     public String getFilename() {
-        return filename;
+        if (filename == null || filename.isEmpty()) {
+            return (name == null || name.isEmpty()) ? "metadata" : name;
+        } else {
+            return filename;
+        }
     }
 
     public void setFilename(String filename) {

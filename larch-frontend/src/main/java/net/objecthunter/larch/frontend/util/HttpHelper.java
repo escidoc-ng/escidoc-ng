@@ -57,7 +57,7 @@ public class HttpHelper {
     private ObjectMapper mapper;
 
     public String doGet(String url) throws IOException {
-        HttpGet httpGet = new HttpGet(env.getProperty("larch.server.url") + url);
+        HttpGet httpGet = new HttpGet(env.getProperty("backend.url") + url);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
             httpGet.setHeader("Authorization", "Bearer " + token);
@@ -69,7 +69,7 @@ public class HttpHelper {
     }
 
     public HttpResponse doGetAsResponse(String url) throws IOException {
-        HttpGet httpGet = new HttpGet(env.getProperty("larch.server.url") + url);
+        HttpGet httpGet = new HttpGet(env.getProperty("backend.url") + url);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
             httpGet.setHeader("Authorization", "Bearer " + token);
@@ -78,7 +78,7 @@ public class HttpHelper {
     }
 
     public String doPost(String url, HttpEntity content, String contentType) throws IOException {
-        HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + url);
+        HttpPost httpPost = new HttpPost(env.getProperty("backend.url") + url);
         if (StringUtils.isNotBlank(contentType)) {
             httpPost.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }
@@ -94,7 +94,7 @@ public class HttpHelper {
     }
 
     public HttpResponse doPostAsResponse(String url, HttpEntity content, String contentType) throws IOException {
-        HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + url);
+        HttpPost httpPost = new HttpPost(env.getProperty("backend.url") + url);
         if (StringUtils.isNotBlank(contentType)) {
             httpPost.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }
@@ -107,7 +107,7 @@ public class HttpHelper {
     }
 
     public String doPost(String url, HttpEntity content, String authHeader, String contentType) throws IOException {
-        HttpPost httpPost = new HttpPost(env.getProperty("larch.server.url") + url);
+        HttpPost httpPost = new HttpPost(env.getProperty("backend.url") + url);
         if (StringUtils.isNotBlank(contentType)) {
             httpPost.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }
@@ -120,7 +120,7 @@ public class HttpHelper {
     }
 
     public String doPut(String url, HttpEntity content, String contentType) throws IOException {
-        HttpPut httpPut = new HttpPut(env.getProperty("larch.server.url") + url);
+        HttpPut httpPut = new HttpPut(env.getProperty("backend.url") + url);
         if (StringUtils.isNotBlank(contentType)) {
             httpPut.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }
@@ -136,7 +136,7 @@ public class HttpHelper {
     }
 
     public String doDelete(String url) throws IOException {
-        HttpDelete httpDelete = new HttpDelete(env.getProperty("larch.server.url") + url);
+        HttpDelete httpDelete = new HttpDelete(env.getProperty("backend.url") + url);
         String token = getOauthToken();
         if (StringUtils.isNotBlank(token)) {
             httpDelete.setHeader("Authorization", "Bearer " + token);
@@ -148,7 +148,7 @@ public class HttpHelper {
     }
 
     public String doPatch(String url, HttpEntity content, String contentType) throws IOException {
-        HttpPatch httpPatch = new HttpPatch(env.getProperty("larch.server.url") + url);
+        HttpPatch httpPatch = new HttpPatch(env.getProperty("backend.url") + url);
         if (StringUtils.isNotBlank(contentType)) {
             httpPatch.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
         }

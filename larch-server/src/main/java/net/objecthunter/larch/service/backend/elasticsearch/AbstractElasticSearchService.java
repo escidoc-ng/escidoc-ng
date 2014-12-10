@@ -42,11 +42,17 @@ public class AbstractElasticSearchService {
     protected void checkAndOrCreateIndex(String indexName) throws IOException {
         try {
             if (!indexExists(indexName)) {
-                Map mappings = getMappings(indexName);
-                if (mappings != null && !mappings.isEmpty()) {
+                Map properties = getMappingsAndSettings(indexName);
+                if (properties != null) {
                     CreateIndexRequestBuilder requestBuilder = client.admin().indices().prepareCreate(indexName);
-                    for (String key : ((Set<String>) mappings.keySet())) {
-                        requestBuilder.addMapping(key, mapper.writeValueAsString(mappings.get(key)));
+                    if (properties.get("mappings") != null && !((Map)properties.get("mappings")).isEmpty()) {
+                        Map mappings = (Map)properties.get("mappings");
+                        for (String key : ((Set<String>) mappings.keySet())) {
+                            requestBuilder.addMapping(key, mapper.writeValueAsString(mappings.get(key)));
+                        }
+                    }
+                    if (properties.get("settings") != null && !((Map)properties.get("settings")).isEmpty()) {
+                        requestBuilder.setSettings((Map)properties.get("settings"));
                     }
                     requestBuilder.execute().actionGet();
                 }
@@ -75,10 +81,10 @@ public class AbstractElasticSearchService {
         }
     }
 
-    private Map getMappings(String indexName) throws IOException {
+    private Map getMappingsAndSettings(String indexName) throws IOException {
         InputStream in =
                 this.getClass().getResourceAsStream(
-                        env.getProperty("elasticsearch.config.path") + indexName + "_mappings.json");
+                        env.getProperty("elasticsearch.config.path") + indexName + ".json");
         if (in != null) {
             String mappings = IOUtils.toString(in);
             return mapper.readValue(mappings, Map.class);

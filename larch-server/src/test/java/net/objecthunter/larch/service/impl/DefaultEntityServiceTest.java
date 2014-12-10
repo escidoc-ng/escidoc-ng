@@ -135,7 +135,7 @@ public class DefaultEntityServiceTest {
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createBinary(e.getId(), b.getName(), "application/octet-stream",
+        this.entityService.createBinary(e.getId(), b.getName(), b.getFilename(), "application/octet-stream",
                 new ByteArrayInputStream(
                         new byte[3]));
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);

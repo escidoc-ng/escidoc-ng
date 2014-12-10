@@ -45,7 +45,7 @@ public class DefaultMessagingService implements MessagingService {
 
     @PostConstruct
     public void init() {
-        final String en = env.getProperty("larch.messaging.enabled");
+        final String en = env.getProperty("escidocng.messaging.enabled");
         enabled = en != null && en.equalsIgnoreCase("true");
     }
 
@@ -159,6 +159,11 @@ public class DefaultMessagingService implements MessagingService {
     @Override
     public void publishDeleteRelation(String subject, String predicate, String object) {
         this.publish("Deleted relation " + subject + " " + predicate + " " + object);
+    }
+
+    @Override
+    public void publishPendingEntity(String id) {
+        this.publish("Set entity state to pending" + id);
     }
 
     @Override

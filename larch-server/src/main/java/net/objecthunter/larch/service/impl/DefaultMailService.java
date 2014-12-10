@@ -59,23 +59,23 @@ public class DefaultMailService implements MailService {
 
     @PostConstruct
     public void init() {
-        if (env.getProperty("larch.mail.enabled") == null ||
-                env.getProperty("larch.mail.enabled").equalsIgnoreCase("false")) {
+        if (env.getProperty("escidocng.mail.enabled") == null ||
+                env.getProperty("escidocng.mail.enabled").equalsIgnoreCase("false")) {
             enabled = false;
             return;
         }
         try {
-            final String value = env.getProperty("larch.mail.from");
+            final String value = env.getProperty("escidocng.mail.from");
             if (value.isEmpty()) {
-                throw new IllegalArgumentException("The property larch.mail.from cannot be blank");
+                throw new IllegalArgumentException("The property escidocng.mail.from cannot be blank");
             }
             mailFrom = new InternetAddress(value);
-            smtpHost = env.getProperty("larch.mail.smtp.host", "localhost");
-            smtpPort = Integer.parseInt(env.getProperty("larch.mail.smtp.port", "25"));
-            enabled = Boolean.parseBoolean(env.getProperty("larch.mail.enabled", "false"));
-            if (env.getProperty("larch.mail.smtp.user") != null) {
-                mailUser = env.getProperty("larch.mail.smtp.user");
-                mailPass = env.getProperty("larch.mail.smtp.pass");
+            smtpHost = env.getProperty("escidocng.mail.smtp.host", "localhost");
+            smtpPort = Integer.parseInt(env.getProperty("escidocng.mail.smtp.port", "25"));
+            enabled = Boolean.parseBoolean(env.getProperty("escidocng.mail.enabled", "false"));
+            if (env.getProperty("escidocng.mail.smtp.user") != null) {
+                mailUser = env.getProperty("escidocng.mail.smtp.user");
+                mailPass = env.getProperty("escidocng.mail.smtp.pass");
             }
         } catch (AddressException e) {
             throw new IllegalArgumentException(e);
@@ -88,8 +88,8 @@ public class DefaultMailService implements MailService {
             throw new IOException("Mail service is disabled. Unable to comply with request");
         }
         final Properties props = System.getProperties();
-        props.setProperty("mail.smtp.host", smtpHost);
-        props.put("mail.smtp.port", smtpPort);
+        props.setProperty("escidocng.mail.smtp.host", smtpHost);
+        props.put("escidocng.mail.smtp.port", smtpPort);
         final Session sess;
         if (mailUser != null && !mailUser.isEmpty()) {
             props.put("mail.smtp.auth", "true");

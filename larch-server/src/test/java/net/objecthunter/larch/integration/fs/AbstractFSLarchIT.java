@@ -1268,7 +1268,7 @@ public abstract class AbstractFSLarchIT {
         }
     }
 
-    private String readFromUrl(URL url) {
+    private String readFromUrl(URL url) throws IOException {
         BufferedReader in = null;
         StringBuilder builder = new StringBuilder();
         try {
@@ -1279,7 +1279,7 @@ public abstract class AbstractFSLarchIT {
             while ((inputLine = in.readLine()) != null) {
                 builder.append(inputLine).append("\n");
             }
-        } catch (Exception e) {
+        } finally {
             if (in != null) {
                 try {
                     in.close();

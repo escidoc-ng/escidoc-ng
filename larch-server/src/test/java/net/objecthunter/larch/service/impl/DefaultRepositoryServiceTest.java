@@ -102,9 +102,9 @@ public class DefaultRepositoryServiceTest {
         ClusterStatsIndices mockIndicesStats = createMock(ClusterStatsIndices.class);
         DocsStats mockDocStats = createMock(DocsStats.class);
 
-        expect(mockEnv.getProperty("larch.version")).andReturn("0.0-TEST");
+        expect(mockEnv.getProperty("escidocng.version")).andReturn("0.0-TEST");
         expect(mockEnv.getProperty("server.port")).andReturn("8080");
-        expect(mockEnv.getProperty("larch.cluster.name")).andReturn("larch-cluster");
+        expect(mockEnv.getProperty("escidocng.cluster.name")).andReturn("escidocng-cluster");
         expect(mockClient.admin()).andReturn(mockAdminClient).times(2);
         expect(mockAdminClient.cluster()).andReturn(mockClusterAdminClient).times(2);
         expect(mockClusterAdminClient.prepareState()).andReturn(mockClusterStateRequest);

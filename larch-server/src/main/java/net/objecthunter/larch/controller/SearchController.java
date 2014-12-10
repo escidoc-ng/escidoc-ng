@@ -73,7 +73,7 @@ public class SearchController extends AbstractLarchController {
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.Entity}s as s JSON representation
      */
-    @RequestMapping(method = RequestMethod.GET, value="/entities", produces = { "application/json" })
+    @RequestMapping(method = RequestMethod.GET, value="/entities")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchEntities(@RequestParam(
@@ -107,7 +107,7 @@ public class SearchController extends AbstractLarchController {
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch .model.User}s as s JSON representation
      */
-    @RequestMapping(method = RequestMethod.GET, value="/users", produces = { "application/json" })
+    @RequestMapping(method = RequestMethod.GET, value="/users")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchUsers(@RequestParam(
@@ -140,7 +140,7 @@ public class SearchController extends AbstractLarchController {
      * @return A {@link net.objecthunter.larch.model.SearchResult} containing the found
      *         {@link net.objecthunter.larch.model.Archive}s as s JSON representation
      */
-    @RequestMapping(method = RequestMethod.GET, value="/archives", produces = { "application/json" })
+    @RequestMapping(method = RequestMethod.GET, value="/archives")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public SearchResult searchArchives(@RequestParam(

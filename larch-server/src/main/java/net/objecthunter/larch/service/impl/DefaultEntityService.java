@@ -130,7 +130,7 @@ public class DefaultEntityService implements EntityService {
     public void init() {
         this.metadataindexEnabled =
                 Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
-        final String val = env.getProperty("larch.export.auto");
+        final String val = env.getProperty("escidocng.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
 
@@ -291,6 +291,7 @@ public class DefaultEntityService implements EntityService {
                 }
                 if (md.getSource().isInternal() &&
                         md.isIndexInline() == oldVersion.getMetadata().get(md.getName()).isIndexInline()) {
+                    md.setJsonData(oldVersion.getMetadata().get(md.getName()).getJsonData());
                     md.setUtcLastModified(oldVersion.getMetadata().get(md.getName()).getUtcLastModified());
                     md.setUtcCreated(oldVersion.getMetadata().get(md.getName()).getUtcCreated());
                 }
@@ -322,6 +323,8 @@ public class DefaultEntityService implements EntityService {
                             if (md.getSource().isInternal() &&
                                     md.isIndexInline() == oldVersion.getBinaries().get(b.getName()).getMetadata()
                                             .get(md.getName()).isIndexInline()) {
+                                md.setJsonData(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
+                                        md.getName()).getJsonData());
                                 md.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
                                         md.getName()).getUtcLastModified());
                                 md.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
@@ -381,7 +384,7 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createBinary(String entityId, String name, String contentType,
+    public void createBinary(String entityId, String name, String filename, String contentType,
             InputStream inputStream)
             throws IOException {
         if (StringUtils.isBlank(name)) {
@@ -413,6 +416,7 @@ public class DefaultEntityService implements EntityService {
             b.setUtcCreated(now);
             b.setUtcLastModified(now);
             b.setName(name);
+            b.setFilename(filename);
             b.setMimetype(contentType);
             b.setChecksum(new BigInteger(1, digest.digest()).toString(16));
             b.setChecksumType("MD5");
@@ -437,25 +441,30 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createMetadata(String entityId, String name, String type, String contentType, boolean indexInline,
-            InputStream inputStream)
+    public void createMetadata(String entityId, Metadata metadata, InputStream inputStream)
             throws IOException {
-        if (StringUtils.isBlank(name)) {
+        if (metadata == null) {
+            throw new InvalidParameterException("metadata may not be null");
+        }
+        if (StringUtils.isBlank(metadata.getName())) {
             throw new InvalidParameterException("name of metadata may not be null or empty");
         }
-        if (StringUtils.isBlank(contentType)) {
+        if (StringUtils.isBlank(metadata.getMimetype())) {
             throw new InvalidParameterException("contentType of metadata may not be null or empty");
         }
-        if (StringUtils.isBlank(type)) {
+        if (StringUtils.isBlank(metadata.getType())) {
             throw new InvalidParameterException("type of metadata may not be null or empty");
+        }
+        if (inputStream == null) {
+            throw new InvalidParameterException("inputStream of metadata may not be null or empty");
         }
         final Entity e = retrieve(entityId);
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
 
-        if (e.getMetadata() != null && e.getMetadata().get(name) != null) {
-            throw new AlreadyExistsException("metadata with name " + name + " already exists in entity with id " +
+        if (e.getMetadata() != null && e.getMetadata().get(metadata.getName()) != null) {
+            throw new AlreadyExistsException("metadata with name " + metadata.getName() + " already exists in entity with id " +
                     e.getId());
         }
         this.backendVersionService.addOldVersion(e);
@@ -471,16 +480,17 @@ public class DefaultEntityService implements EntityService {
             final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
             m.setUtcCreated(now);
             m.setUtcLastModified(now);
-            m.setName(name);
-            m.setType(type);
-            m.setMimetype(contentType);
+            m.setName(metadata.getName());
+            m.setType(metadata.getType());
+            m.setMimetype(metadata.getMimetype());
+            m.setFilename(metadata.getFilename());
             m.setChecksum(new BigInteger(1, digest.digest()).toString(16));
             m.setChecksumType("MD5");
             m.setSize(src.getCalculatedSize());
-            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
+            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + metadata.getName()
                     + "/content"), true));
             m.setPath(path);
-            m.setIndexInline(indexInline);
+            m.setIndexInline(metadata.isIndexInline());
             if (m.isIndexInline()) {
                 // Write Metadata-XML as JSON in Entity
                 try (final InputStream jsonSrc = this.backendBlobstoreService.retrieve(m.getPath())) {
@@ -488,14 +498,11 @@ public class DefaultEntityService implements EntityService {
                     m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
                 }
             }
-            m.setUtcCreated(now);
-            m.setUtcLastModified(now);
             if (e.getMetadata() == null) {
                 e.setMetadata(new HashMap<>(1));
             }
-            e.getMetadata().put(name, m);
+            e.getMetadata().put(metadata.getName(), m);
             e.setVersion(e.getVersion() + 1);
-            e.setUtcLastModified(now);
             this.backendEntityService.update(e);
         }
         if (autoExport) {
@@ -505,21 +512,25 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public void createBinaryMetadata(String entityId, String binaryName, String name, String type,
-            String contentType, boolean indexInline,
-            InputStream inputStream)
+    public void createBinaryMetadata(String entityId, String binaryName, Metadata metadata, InputStream inputStream)
             throws IOException {
-        if (StringUtils.isBlank(name)) {
+        if (metadata == null) {
+            throw new InvalidParameterException("metadata may not be null");
+        }
+        if (StringUtils.isBlank(metadata.getName())) {
             throw new InvalidParameterException("name of metadata may not be null or empty");
         }
         if (StringUtils.isBlank(binaryName)) {
             throw new InvalidParameterException("binaryName of metadata may not be null or empty");
         }
-        if (StringUtils.isBlank(contentType)) {
+        if (StringUtils.isBlank(metadata.getMimetype())) {
             throw new InvalidParameterException("contentType of metadata may not be null or empty");
         }
-        if (StringUtils.isBlank(type)) {
+        if (StringUtils.isBlank(metadata.getType())) {
             throw new InvalidParameterException("type of metadata may not be null or empty");
+        }
+        if (inputStream == null) {
+            throw new InvalidParameterException("inputStream of metadata may not be null or empty");
         }
         final Entity e = retrieve(entityId);
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
@@ -533,8 +544,8 @@ public class DefaultEntityService implements EntityService {
         if (bin.getMetadata() == null) {
             bin.setMetadata(new HashMap<>());
         }
-        if (bin.getMetadata().containsKey(name)) {
-            throw new IOException("The meta data " + name + " already exists on the binary " + binaryName +
+        if (bin.getMetadata().containsKey(metadata.getName())) {
+            throw new IOException("The meta data " + metadata.getName() + " already exists on the binary " + binaryName +
                     " of the entity " + entityId);
         }
 
@@ -551,16 +562,17 @@ public class DefaultEntityService implements EntityService {
             final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
             m.setUtcCreated(now);
             m.setUtcLastModified(now);
-            m.setName(name);
-            m.setType(type);
-            m.setMimetype(contentType);
+            m.setName(metadata.getName());
+            m.setType(metadata.getType());
+            m.setMimetype(metadata.getMimetype());
+            m.setFilename(metadata.getFilename());
             m.setChecksum(new BigInteger(1, digest.digest()).toString(16));
             m.setChecksumType("MD5");
             m.setSize(src.getCalculatedSize());
-            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + name
+            m.setSource(new UrlSource(URI.create("/entity/" + entityId + "/metadata/" + metadata.getName()
                     + "/content"), true));
             m.setPath(path);
-            m.setIndexInline(indexInline);
+            m.setIndexInline(metadata.isIndexInline());
             if (m.isIndexInline()) {
                 // Write Metadata-XML as JSON in Entity
                 try (final InputStream dataSrc = this.backendBlobstoreService.retrieve(m.getPath())) {
@@ -568,11 +580,8 @@ public class DefaultEntityService implements EntityService {
                     m.setJsonData(mapper.readValue(mdJson.toString(), JsonNode.class));
                 }
             }
-            m.setUtcCreated(now);
-            m.setUtcLastModified(now);
-            bin.getMetadata().put(name, m);
+            bin.getMetadata().put(metadata.getName(), m);
             e.setVersion(e.getVersion() + 1);
-            e.setUtcLastModified(now);
             this.backendEntityService.update(e);
         }
         if (autoExport) {

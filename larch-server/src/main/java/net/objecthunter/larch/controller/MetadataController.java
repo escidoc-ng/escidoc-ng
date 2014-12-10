@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.objecthunter.larch.exceptions.InvalidParameterException;
 import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
 import net.objecthunter.larch.model.Binary;
@@ -35,6 +36,7 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.source.UrlSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -78,7 +80,6 @@ public class MetadataController extends AbstractLarchController {
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param src the request body as an InputStream, containing the JSON-Representation of a
      *        {@link net.objecthunter.larch.model.Metadata}.
-     * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
     @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST,
@@ -89,8 +90,10 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void addMetadata(@PathVariable("id") final String entityId, final InputStream src) throws IOException {
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        entityService.createMetadata(entityId, md.getName(), md.getType(), md.getMimetype(), md.isIndexInline(), md.getSource()
-                .getInputStream());
+        if (md == null || md.getSource() == null) {
+            throw new InvalidParameterException("Source of metadata may not be null");
+        }
+        entityService.createMetadata(entityId, md, md.getSource().getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
@@ -102,8 +105,8 @@ public class MetadataController extends AbstractLarchController {
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param mdName The name of the Metadata
      * @param type The type of the Metadata
+     * @param indexInline boolean to flag if metadata should get written into elasticsearch.
      * @param file The Spring MVC injected MutlipartFile containing the actual data from a html form submission
-     * @return a redirection to the Entity to which the Metadata was added
      * @throws IOException
      */
     @RequestMapping(value = "/entity/{id}/metadata", method = RequestMethod.POST,
@@ -119,7 +122,14 @@ public class MetadataController extends AbstractLarchController {
                             defaultValue = "false") final String indexInline,
                     @RequestParam("data") final MultipartFile file)
                     throws IOException {
-        entityService.createMetadata(entityId, mdName, type, file.getContentType(), new Boolean(indexInline), file.getInputStream());
+        Metadata metadata = new Metadata();
+        metadata.setName(mdName);
+        metadata.setType(type);
+        metadata.setMimetype(file.getContentType());
+        metadata.setIndexInline(new Boolean(indexInline));
+        metadata.setFilename(file.getOriginalFilename());
+        
+        entityService.createMetadata(entityId, metadata, file.getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
     }
@@ -142,8 +152,7 @@ public class MetadataController extends AbstractLarchController {
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        entityService.createBinaryMetadata(entityId, binaryName, md.getName(), md.getType(), md.getMimetype(), md.isIndexInline(), md
-                .getSource().getInputStream());
+        entityService.createBinaryMetadata(entityId, binaryName, md, md.getSource().getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
@@ -156,6 +165,7 @@ public class MetadataController extends AbstractLarchController {
      * @param binaryName the name of the binary
      * @param mdName the meta data set's name
      * @param type the meta data set's type
+     * @param indexInline boolean to flag if metadata should get written into elasticsearch.
      * @param file the http multipart file containing the actual bytes
      * @throws IOException
      */
@@ -171,8 +181,13 @@ public class MetadataController extends AbstractLarchController {
             @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
                     defaultValue = "false") final String indexInline, @RequestParam("data") final MultipartFile file)
             throws IOException {
-        entityService.createBinaryMetadata(entityId, binaryName, mdName, type, file.getContentType(), new Boolean(indexInline), file
-                .getInputStream());
+        Metadata metadata = new Metadata();
+        metadata.setName(mdName);
+        metadata.setType(type);
+        metadata.setMimetype(file.getContentType());
+        metadata.setIndexInline(new Boolean(indexInline));
+        metadata.setFilename(file.getOriginalFilename());
+        entityService.createBinaryMetadata(entityId, binaryName, metadata, file.getInputStream());
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
     }
