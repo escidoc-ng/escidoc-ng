@@ -162,6 +162,11 @@ public class DefaultMessagingService implements MessagingService {
     }
 
     @Override
+    public void publishPendingEntity(String id) {
+        this.publish("Set entity state to pending" + id);
+    }
+
+    @Override
     public void publishPublishEntity(String id) {
         this.publish("Published entity " + id);
     }

@@ -293,9 +293,9 @@ public class EntityController extends AbstractLarchController {
 
     /**
      * Controller method for setting the status of an {@link net.objecthunter.larch.model.Entity} to PENDING.<br>
-     * Sets the state-attribute of the entity to "withdrawn".
+     * Sets the state-attribute of the entity to "pending".
      * 
-     * @param id The id of the Entity to withdraw.
+     * @param id The id of the Entity to set to pending.
      * @throws IOException
      */
     @RequestMapping(value = "/{id}/pending", method = RequestMethod.PUT)
