@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.service.EntityValidatorService;
 import net.objecthunter.larch.service.ExportService;
 import net.objecthunter.larch.service.backend.BackendBlobstoreService;
@@ -135,9 +136,9 @@ public class DefaultEntityServiceTest {
         expectLastCall();
 
         replay(mockEntitiesService, mockExportService, mockBlobstoreService);
-        this.entityService.createBinary(e.getId(), b.getName(), b.getFilename(), "application/octet-stream",
-                new ByteArrayInputStream(
-                        new byte[3]));
+        b.setMimetype("application/octet-stream");
+        b.setSource(new ByteArraySource(new byte[3]));
+        this.entityService.createBinary(e.getId(), b);
         verify(mockEntitiesService, mockExportService, mockBlobstoreService);
     }
 
