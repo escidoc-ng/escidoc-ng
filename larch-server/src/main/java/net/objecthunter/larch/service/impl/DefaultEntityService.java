@@ -47,7 +47,6 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.LarchConstants;
 import net.objecthunter.larch.model.Metadata;
-import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.Role;
@@ -80,7 +79,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 /**
- * The default implementation of {@link net.objecthunter.larch.service.EntityService} responsible for perofrming CRUD
+ * The default implementation of {@link net.objecthunter.larch.service.EntityService} responsible for performing CRUD
  * operations of {@link net.objecthunter.larch.model.Entity} objects
  */
 public class DefaultEntityService implements EntityService {
@@ -125,8 +124,6 @@ public class DefaultEntityService implements EntityService {
 
     private boolean autoExport;
     
-    private List<MetadataType> metadataTypes;
-
     @PostConstruct
     public void init() {
         final String val = env.getProperty("escidocng.export.auto");

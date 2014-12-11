@@ -1,45 +1,45 @@
 <configuration>
+    <property name="LOG_PATH" value="."/>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>:: [%thread] %-5level - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%c{1}] - %msg%n</pattern>
         </encoder>
     </appender>
-
-    <appender name="LARCH-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_PATH}/${LOG_FILE}</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <FileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}</FileNamePattern>
+            <!-- keep 30 days' worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
         <encoder>
-            <pattern>:: [ larch] %-5level - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="ES-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>:: [ es] %-5level - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="SPRING-STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>:: [spring] %-5level - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%c{1}] - %msg%n</pattern>
         </encoder>
     </appender>
 
     <logger name="net.objecthunter.larch" level="INFO" additivity="false">
-        <appender-ref ref="LARCH-STDOUT"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <logger name="org.elasticsearch" level="INFO" additivity="false">
-        <appender-ref ref="LARCH-STDOUT"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <logger name="org.springframework" level="INFO">
-        <appender-ref ref="SPRING-STDOUT"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <logger name="org.springframework.security" level="INFO">
-        <appender-ref ref="SPRING-STDOUT"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>
