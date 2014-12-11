@@ -49,7 +49,7 @@ public class BinaryControllerIT extends AbstractFSLarchIT {
         // mimetype null
         entity = addBinaryStream(entity, IGNORE, null, IGNORE, 400);
         // resource null
-        entity = addBinaryStream(entity, IGNORE, IGNORE, null, 500);
+        entity = addBinaryStream(entity, IGNORE, IGNORE, null, 400);
         // wrong entityId
         entity.setId("nonexistent");
         entity = addBinaryStream(entity, IGNORE, IGNORE, IGNORE, 404);

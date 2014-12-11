@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 import net.objecthunter.larch.model.AuditRecord;
 import net.objecthunter.larch.model.AuditRecords;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
@@ -45,17 +46,17 @@ public interface EntityService {
 
     Entity retrieve(String id, int i) throws IOException;
 
-    void createBinary(String entityId, String name, String filename, String contentType, InputStream inputStream)
+    void createBinary(String entityId, Binary binary)
             throws IOException;
 
     void deleteBinary(String entityId, String name) throws IOException;
 
     InputStream retrieveBinary(String path) throws IOException;
 
-    void createMetadata(String entityId, Metadata metadata, InputStream inputStream)
+    void createMetadata(String entityId, Metadata metadata)
             throws IOException;
 
-    void createBinaryMetadata(String entityId, String binaryName, Metadata metadata, InputStream inputStream)
+    void createBinaryMetadata(String entityId, String binaryName, Metadata metadata)
             throws IOException;
 
     InputStream retrieveMetadataContent(String path) throws IOException;

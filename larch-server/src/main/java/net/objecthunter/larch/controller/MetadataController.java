@@ -36,6 +36,7 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.source.InputStreamSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -92,7 +93,7 @@ public class MetadataController extends AbstractLarchController {
         if (md == null || md.getSource() == null) {
             throw new InvalidParameterException("Source of metadata may not be null");
         }
-        entityService.createMetadata(entityId, md, md.getSource().getInputStream());
+        entityService.createMetadata(entityId, md);
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, md.getName());
     }
@@ -127,8 +128,9 @@ public class MetadataController extends AbstractLarchController {
         metadata.setMimetype(file.getContentType());
         metadata.setIndexInline(new Boolean(indexInline));
         metadata.setFilename(file.getOriginalFilename());
+        metadata.setSource(new InputStreamSource(file.getInputStream()));
         
-        entityService.createMetadata(entityId, metadata, file.getInputStream());
+        entityService.createMetadata(entityId, metadata);
         this.entityService.createAuditRecord(AuditRecordHelper.createMetadataRecord(entityId));
         this.messagingService.publishCreateMetadata(entityId, mdName);
     }
@@ -151,7 +153,7 @@ public class MetadataController extends AbstractLarchController {
     public void addBinaryMetadata(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, final InputStream src) throws IOException {
         final Metadata md = this.mapper.readValue(src, Metadata.class);
-        entityService.createBinaryMetadata(entityId, binaryName, md, md.getSource().getInputStream());
+        entityService.createBinaryMetadata(entityId, binaryName, md);
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, md.getName());
     }
@@ -186,7 +188,8 @@ public class MetadataController extends AbstractLarchController {
         metadata.setMimetype(file.getContentType());
         metadata.setIndexInline(new Boolean(indexInline));
         metadata.setFilename(file.getOriginalFilename());
-        entityService.createBinaryMetadata(entityId, binaryName, metadata, file.getInputStream());
+        metadata.setSource(new InputStreamSource(file.getInputStream()));
+        entityService.createBinaryMetadata(entityId, binaryName, metadata);
         this.entityService.createAuditRecord(AuditRecordHelper.createBinaryMetadataRecord(entityId));
         this.messagingService.publishCreateBinaryMetadata(entityId, binaryName, mdName);
     }
