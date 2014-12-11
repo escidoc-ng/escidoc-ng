@@ -202,7 +202,7 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
         if (!resp.isExists()) {
             throw new NotFoundException("The entity '" + id + "' does not exist");
         }
-        /* fetch the named metadata which will be validatet */
+        /* fetch the named metadata which will be validated */
         final Entity e = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
         if (e.getMetadata() == null || !e.getMetadata().containsKey(metadataName)) {
             throw new IOException("The entity '" + id + "' has no meta data record named '" + metadataName);

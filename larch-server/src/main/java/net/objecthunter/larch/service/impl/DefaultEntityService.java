@@ -47,6 +47,7 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.LarchConstants;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.MetadataType;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.Role;
@@ -123,13 +124,11 @@ public class DefaultEntityService implements EntityService {
     private Environment env;
 
     private boolean autoExport;
-
-    private boolean metadataindexEnabled;
+    
+    private List<MetadataType> metadataTypes;
 
     @PostConstruct
     public void init() {
-        this.metadataindexEnabled =
-                Boolean.parseBoolean(env.getProperty("elasticsearch.metadataindex.enabled", "false"));
         final String val = env.getProperty("escidocng.export.auto");
         autoExport = val == null ? false : Boolean.valueOf(val);
     }
@@ -195,8 +194,7 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("contentType of binary may not be null or empty");
         }
         if (b.getSource() == null) {
-            log.warn("No source is set for binary '{}' of entity '{}' nothing to ingest", b.getName(), entityId);
-            return;
+            throw new InvalidParameterException("source of binary may not be null or empty");
         }
         final MessageDigest digest;
         try {
@@ -244,9 +242,9 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("type of metadata may not be null or empty");
         }
         if (md.getSource() == null) {
-            log.warn("No source is set for metadata '{}' of entity '{}' nothing to ingest", md.getName(), entityId);
-            return;
+            throw new InvalidParameterException("source of metadata may not be null or empty");
         }
+        backendSchemaService.getSchemUrlForType(md.getType());
         if (!md.getSource().isInternal()) {
             if (md.getSource().getInputStream() == null) {
                 throw new InvalidParameterException("inputStream of metadata may not be null or empty");
@@ -977,4 +975,5 @@ public class DefaultEntityService implements EntityService {
             }
         }
     }
+    
 }
