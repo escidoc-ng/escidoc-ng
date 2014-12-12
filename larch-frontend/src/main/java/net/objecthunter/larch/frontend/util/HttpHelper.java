@@ -163,6 +163,14 @@ public class HttpHelper {
         return EntityUtils.toString(entity);
     }
 
+    public String getBackendUrl() {
+        return env.getProperty("backend.redirect.url");
+    }
+
+    public String getSelfUrl() {
+        return env.getProperty("self.url");
+    }
+
     private void handleStatusCode(HttpResponse response) throws IOException {
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode < 400) {

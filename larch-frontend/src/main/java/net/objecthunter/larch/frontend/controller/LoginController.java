@@ -41,8 +41,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Web controller for login
  */
@@ -63,7 +61,7 @@ public class LoginController extends AbstractController {
         OAuthClientRequest oauthRequest = null;
         try {
             oauthRequest = OAuthClientRequest
-                    .authorizationLocation(env.getProperty("backend.login.url") + "/oauth/authorize")
+                    .authorizationLocation(env.getProperty("backend.redirect.url") + "/oauth/authorize")
                     .setClientId(env.getProperty("oauth.clientId"))
                     .setResponseType("code")
                     .setRedirectURI(env.getProperty("self.url") + "/login/token")
@@ -79,11 +77,10 @@ public class LoginController extends AbstractController {
      */
     @RequestMapping(value = "/logout", method = RequestMethod.GET, produces = { "text/html" })
     public String logout(HttpServletRequest request) throws IOException {
-        httpHelper.doPost("/logout", null, null);
         request.getSession().removeAttribute(Constants.ACCESS_TOKEN_ATTRIBUTE_NAME);
         request.getSession().removeAttribute(Constants.CURRENT_USER_NAME);
         request.getSession().invalidate();
-        return "redirect:/";
+        return "redirect:" + httpHelper.getBackendUrl() + "/logout-page?redirectUrl=" + httpHelper.getSelfUrl();
     }
 
     /**

@@ -18,6 +18,8 @@ package net.objecthunter.larch.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.objecthunter.larch.model.AlternativeIdentifier;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,9 +48,13 @@ public class LoginController extends AbstractLarchController {
     /**
      * Controller method for logging out.
      */
-    @RequestMapping(value = "/logout")
-    public void logout(HttpServletRequest request) {
+    @RequestMapping(value = "/logout-page")
+    public ModelAndView logout(HttpServletRequest request) {
         request.getSession().invalidate();
+        final ModelMap model = new ModelMap();
+        model.addAttribute("redirectUrl", request.getParameter("redirectUrl"));
+        model.addAttribute("test", "Hello World");
+        return new ModelAndView("logout-page", model);
     }
 
 }

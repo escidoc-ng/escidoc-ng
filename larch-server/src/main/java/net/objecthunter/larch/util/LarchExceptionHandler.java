@@ -121,6 +121,7 @@ public class LarchExceptionHandler {
      * @throws Exception
      */
     private Object handleException(HttpServletRequest req, Exception e, HttpStatus status) throws Exception {
+        log.error(e.getMessage());
         ModelAndView mav = new ModelAndView();
         mav.addObject("timestamp", new Date());
         mav.addObject("status", status.value());
