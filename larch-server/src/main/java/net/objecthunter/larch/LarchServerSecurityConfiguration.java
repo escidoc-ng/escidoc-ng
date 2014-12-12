@@ -61,7 +61,7 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
     protected void configure(HttpSecurity http) throws Exception {
         configureProxy();
         http
-                .logout().logoutSuccessUrl("/")
+                .logout().logoutSuccessUrl("/login-page?logout=true")
                 .and()
                 .requestMatchers()
                 .antMatchers("/**")
@@ -74,12 +74,14 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .and().formLogin()
                 .loginPage("/login-page")
                 .loginProcessingUrl("/form-login")
+                .defaultSuccessUrl("/login-success")
                 .and().httpBasic()
                 .and()
                 .authenticationProvider(openIdAuthenticationProvider)
                 .openidLogin()
                 .loginPage("/login-page")
                 .loginProcessingUrl("/openid-login")
+                .defaultSuccessUrl("/login-success")
                 .attributeExchange("https://www.google.com/.*")
                 .attribute("email")
                 .type("http://axschema.org/contact/email")

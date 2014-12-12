@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.objecthunter.larch;
 
 import net.objecthunter.larch.security.helpers.LarchOauthRegexRequestMatcher;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.builders.ClientDetailsServiceBuilder.ClientBuilder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -75,21 +77,40 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            String redirectUris = env.getProperty("escidocng.oauth.redirectUris");
-            String[] redirectUrisArr = new String[0];
-            if (redirectUris != null) {
-                redirectUrisArr = redirectUris.split("\\|");
+            String clientsConf = env.getProperty("escidocng.oauth.clients");
+            if (clientsConf != null) {
+                String[] clientConfs = clientsConf.split("\\|");
+                if (clientsConf != null) {
+                    ClientBuilder clientBuilder = null;
+                    for (int i = 0; i < clientConfs.length; i++) {
+                        if (clientConfs[i] != null) {
+                            String[] clientConf = clientConfs[i].split("\\,");
+                            if (clientConf != null && clientConf.length == 2) {
+                                String redirectUris =
+                                        env.getProperty("escidocng.oauth.redirectUris." + clientConf[0]);
+                                String[] redirectUrisArr = new String[0];
+                                if (redirectUris != null) {
+                                    redirectUrisArr = redirectUris.split("\\|");
+                                }
+                                if (clientBuilder == null) {
+                                    clientBuilder = clients
+                                            .inMemory()
+                                            .withClient(clientConf[0]);
+                                } else {
+                                    clientBuilder = clientBuilder.and().withClient(clientConf[0]);
+                                }
+                                clientBuilder = clientBuilder.resourceIds("escidoc-ng")
+                                        .authorizedGrantTypes("authorization_code", "implicit")
+                                        .secret(clientConf[1])
+                                        .authorities("ROLE_ADMIN")
+                                        .scopes("read", "write")
+                                        .autoApprove(true)
+                                        .redirectUris(redirectUrisArr);
+                            }
+                        }
+                    }
+                }
             }
-            clients
-                    .inMemory()
-                    .withClient("client")
-                    .resourceIds("escidoc-ng")
-                    .authorizedGrantTypes("authorization_code", "implicit")
-                    .secret("secret")
-                    .authorities("ROLE_ADMIN")
-                    .scopes("read", "write")
-                    .autoApprove(true)
-                    .redirectUris(redirectUrisArr);
         }
 
         @Bean

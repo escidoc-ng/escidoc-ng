@@ -46,6 +46,19 @@ public class LoginController extends AbstractLarchController {
     }
 
     /**
+     * Controller method to show login-success-page.
+     * Endpoint that returns the login-success-page.<br>
+     * Login-Success-Page should get returned to the client-browser, therefore this endpoint should be reachable from outside.<br>
+     * 
+     * @return a Spring MVC {@link org.springframework.web.servlet.ModelAndView} for rendering the HTML view
+     */
+    @RequestMapping(value = "/login-success", method = RequestMethod.GET, produces = { "text/html" })
+    public ModelAndView loginSuccess() {
+        final ModelMap model = new ModelMap();
+        return new ModelAndView("login-success", model);
+    }
+
+    /**
      * Controller method for logging out.
      */
     @RequestMapping(value = "/logout-page")
