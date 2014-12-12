@@ -23,7 +23,7 @@ limitations under the License.
             <font color="red">Your login attempt was not successful, try again.<br />
             Reason: <span th:text="${errorMsg}">Wrong input!</span> </font>
         </div>
-        <div th:if="${param.logout}"><font color="red">Successfully Logged out</font></div>
+        <div th:if="${logout}"><font color="red">Successfully Logged out</font></div>
         <h3>Login with Username and Password</h3>
         <form name='f' th:action="@{/form-login}" method='POST'>
             <table>
