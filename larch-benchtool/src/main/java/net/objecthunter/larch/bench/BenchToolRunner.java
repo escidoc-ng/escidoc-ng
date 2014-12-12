@@ -49,14 +49,15 @@ public class BenchToolRunner {
     private final String level2Id;
 
     public BenchToolRunner(BenchTool.Action action, URI larchUri, String user, String password, int numActions,
-            int numThreads, long size, String level2Id) {
+            int numThreads, long size) throws IOException {
         this.size = size;
         this.numActions = numActions;
         this.action = action;
         this.larchUri = larchUri;
         this.larchClient = new LarchClient(larchUri, user, password);
         this.executor = Executors.newFixedThreadPool(numThreads);
-        this.level2Id = level2Id;
+        String level1Id = larchClient.postEntity(BenchToolEntities.createLevel1Entity());
+        this.level2Id = larchClient.postEntity(BenchToolEntities.createLevel2Entity(level1Id));
     }
 
     public List<BenchToolResult> run() throws IOException {

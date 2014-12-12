@@ -30,7 +30,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uncommons.maths.random.XORShiftRNG;
@@ -102,9 +101,9 @@ public class BenchTool {
 
         log.info("Running {} {} actions with size {} against {} using {} threads", numActions, action,
                 size, larchUri, numThreads);
-        final BenchToolRunner runner =
-                new BenchToolRunner(action, URI.create(larchUri), user, password, numActions, numThreads, size, "ws-" + RandomStringUtils.randomAlphabetic(16));
         try {
+            final BenchToolRunner runner =
+                    new BenchToolRunner(action, URI.create(larchUri), user, password, numActions, numThreads, size);
             final long time = System.currentTimeMillis();
             final List<BenchToolResult> results = runner.run();
             ResultFormatter.printResults(results, System.currentTimeMillis() - time, numActions, size,numThreads, System.out);

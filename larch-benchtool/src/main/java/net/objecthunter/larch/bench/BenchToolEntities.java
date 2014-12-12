@@ -31,4 +31,19 @@ public abstract class BenchToolEntities {
         return e;
     }
 
+    public static Entity createLevel1Entity() {
+        final Entity e = new Entity();
+        e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
+        e.setContentModelId(FixedContentModel.LEVEL1.getName());
+        return e;
+    }
+
+    public static Entity createLevel2Entity(String level1Id) {
+        final Entity e = new Entity();
+        e.setParentId(level1Id);
+        e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
+        e.setContentModelId(FixedContentModel.LEVEL2.getName());
+        return e;
+    }
+
 }
