@@ -53,7 +53,6 @@ public class LoginController extends AbstractLarchController {
         request.getSession().invalidate();
         final ModelMap model = new ModelMap();
         model.addAttribute("redirectUrl", request.getParameter("redirectUrl"));
-        model.addAttribute("test", "Hello World");
         return new ModelAndView("logout-page", model);
     }
 
