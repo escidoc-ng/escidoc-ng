@@ -348,6 +348,26 @@ public class LarchClient {
     }
 
     /**
+     * Update an {@link net.objecthunter.larch.model.Entity} in the larch repository
+     * 
+     * @param e the updated entity object to be written to the repository
+     * @throws IOException if an error occurred during update
+     */
+    public void updateEntity(String entityId, String entity) throws IOException {
+        if (entityId == null || entityId.isEmpty()) {
+            throw new IOException("ID of the entity can not be empty when updating");
+        }
+        final HttpResponse resp = this.execute(Request.Put(larchUri + "/entity/" + entityId)
+                .useExpectContinue()
+                .bodyString(entity, ContentType.APPLICATION_JSON))
+                .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to update entity\n{}", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to update entity " + entityId);
+        }
+    }
+
+    /**
      * Delete an entity in the larch repository
      * 
      * @param id the id of the entity to delete
@@ -383,6 +403,25 @@ public class LarchClient {
     }
 
     /**
+     * Post an {@link net.objecthunter.larch.model.Entity} to the Larch server
+     * 
+     * @param e The entity to ingest
+     * @return the entity's id
+     * @throws IOException if an error occurred while ingesting
+     */
+    public String postEntity(String entity) throws IOException {
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity")
+                .useExpectContinue()
+                .bodyString(entity, ContentType.APPLICATION_JSON))
+                .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 201) {
+            log.error("Unable to post entity to Larch at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to create Entity");
+        }
+        return EntityUtils.toString(resp.getEntity());
+    }
+
+    /**
      * Retrieve an entity using a HTTP GET from the Larch server
      * 
      * @param id the Id of the entity
@@ -395,6 +434,20 @@ public class LarchClient {
                 .returnResponse();
         System.out.println(EntityUtils.toString(resp.getEntity()));
         return mapper.readValue(resp.getEntity().getContent(), Entity.class);
+    }
+
+    /**
+     * Retrieve an entity using a HTTP GET from the Larch server
+     * 
+     * @param id the Id of the entity
+     * @return An entity object
+     */
+    public InputStream retrieveEntityAsStream(String id) throws IOException {
+        final HttpResponse resp = this.execute(Request.Get(larchUri + "/entity/" + id)
+                .useExpectContinue()
+                .addHeader("Accept", "application/json"))
+                .returnResponse();
+        return resp.getEntity().getContent();
     }
 
     /**

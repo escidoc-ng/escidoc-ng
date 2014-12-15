@@ -72,7 +72,7 @@ public class BenchToolRunner {
             int count = 0;
             for (Future<BenchToolResult> f : futures) {
                 results.add(f.get());
-                log.info("Finished {} of {} {} actions", ++count, numActions, action.name());
+                log.debug("Finished {} of {} {} actions", ++count, numActions, action.name());
             }
             return results;
         } catch (InterruptedException | ExecutionException e) {

@@ -54,22 +54,30 @@ public class ActionWorker implements Callable<BenchToolResult> {
     @Override
     public BenchToolResult call() throws Exception {
         switch (this.action) {
-        case INGEST:
-            return doIngest();
-        case RETRIEVE:
-            return doRetrieve();
-        case UPDATE:
-            return doUpdate();
-        case DELETE:
-            return doDelete();
+        case CREATE_ENTITY:
+            return createEntity(false);
+        case CREATE_INDEXED_ENTITY:
+            return createEntity(true);
+        case RETRIEVE_ENTITY:
+            return retrieveEntity(false);
+        case RETRIEVE_INDEXED_ENTITY:
+            return retrieveEntity(true);
+        case UPDATE_ENTITY:
+            return updateEntity(false);
+        case UPDATE_INDEXED_ENTITY:
+            return updateEntity(true);
+        case DELETE_ENTITY:
+            return deleteEntity(false);
+        case DELETE_INDEXED_ENTITY:
+            return deleteEntity(true);
         default:
             throw new IllegalArgumentException("Unknown action '" + this.action + "'");
         }
     }
 
-    private BenchToolResult doDelete() throws IOException {
+    private BenchToolResult deleteEntity(boolean indexInline) throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
         final String entityId = this.larchClient.postEntity(e);
 
         /* add a binary */
@@ -85,60 +93,42 @@ public class ActionWorker implements Callable<BenchToolResult> {
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
-    private BenchToolResult doUpdate() throws IOException {
+    private BenchToolResult updateEntity(boolean indexInline) throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
-        final String entityId = this.larchClient.postEntity(e);
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
+        String entityJson = mapper.writeValueAsString(e);
+        final String entityId = this.larchClient.postEntity(entityJson);
 
-        /* add a binary */
-        final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
-                binaryName,
-                "application/octet-stream",
-                new RandomInputStream(size));
-
-        /* measure the update duration */
+        /* measure the update duration 
+         * NOTE: recreates all binaries + metadata*/
         e.setLabel("updated label");
         e.setId(entityId);
+        entityJson = mapper.writeValueAsString(e);
+        
         long time = System.currentTimeMillis();
-        this.larchClient.postBinary(entityId,
-                binaryName,
-                "application/octet-stream",
-                new RandomInputStream(size));
+        this.larchClient.updateEntity(entityId, entityJson);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
-    private BenchToolResult doRetrieve() throws IOException {
+    private BenchToolResult retrieveEntity(boolean indexInline) throws IOException {
         /* create an entity */
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
-        final String entityId = this.larchClient.postEntity(e);
-
-        /* add a binary */
-        final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
-                binaryName,
-                "application/octet-stream",
-                new RandomInputStream(size));
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
+        String entityJson = mapper.writeValueAsString(e);
+        final String entityId = this.larchClient.postEntity(entityJson);
 
         /* measure the retrieval duration */
         long time = System.currentTimeMillis();
-        this.larchClient.retrieveBinaryContent(entityId, binaryName);
+        this.larchClient.retrieveEntityAsStream(entityId);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
-    private BenchToolResult doIngest() throws IOException {
-        final Entity e = BenchToolEntities.createRandomEmptyEntity(level2Id);
+    private BenchToolResult createEntity(boolean indexInline) throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
+        String entityJson = mapper.writeValueAsString(e);
 
         long time = System.currentTimeMillis();
         /* create an entity */
-        final String entityId = this.larchClient.postEntity(e);
-
-        /* add a binary */
-        this.larchClient.postBinary(entityId,
-                RandomStringUtils.randomAlphabetic(16),
-                "application/octet-stream",
-                new RandomInputStream(size));
-
+        this.larchClient.postEntity(entityJson);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
