@@ -615,11 +615,10 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
 
     private List<User> retrieveUsersWithRight(String anchorId) throws IOException {
         final SearchResponse resp;
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.should(QueryBuilders.wildcardQuery("roles.rights." + anchorId, "*"));
+        QueryStringQueryBuilder builder = QueryBuilders.queryString("roles.rights.anchorId:" + anchorId);
         try {
             resp =
-                    this.client.prepareSearch(INDEX_USERS).setQuery(queryBuilder).execute()
+                    this.client.prepareSearch(INDEX_USERS).setQuery(builder).execute()
                             .actionGet();
         } catch (ElasticsearchException ex) {
             throw new IOException(ex.getMostSpecificCause().getMessage());
