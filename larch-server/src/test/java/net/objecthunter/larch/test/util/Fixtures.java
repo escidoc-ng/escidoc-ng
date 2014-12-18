@@ -18,17 +18,16 @@ package net.objecthunter.larch.test.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
-import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.MetadataType;
+import net.objecthunter.larch.model.Relation;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.source.ByteArraySource;
 
@@ -88,23 +87,23 @@ public abstract class Fixtures {
         e.setLabel("Test label");
         e.setContentModelId(FixedContentModel.DATA.getName());
         e.setTags(Arrays.asList("tag1", "tag2"));
-        e.setMetadata(createMetadataMap());
-        e.setBinaries(createBinaryMap());
+        e.setMetadata(createMetadataList());
+        e.setBinaries(createBinaryList());
         e.setRelations(createRelations());
         e.setParentId(LEVEL2_ID);
         return e;
     }
 
-    public static Map<String, List<String>> createRelations() {
-        Map<String, List<String>> relations = new HashMap<>();
-        relations.put("testpredicate", Arrays.asList("object1", "object2"));
+    public static List<Relation> createRelations() {
+        List<Relation> relations = new ArrayList<>();
+        relations.add(new Relation("testpredicate", Arrays.asList("object1", "object2")));
         return relations;
     }
 
-    public static Map<String, Binary> createBinaryMap() {
-        Map<String, Binary> bins = new HashMap<>(1);
+    public static List<Binary> createBinaryList() {
+        List<Binary> bins = new ArrayList<>(1);
         Binary bin = createBinary();
-        bins.put(bin.getName(), bin);
+        bins.add(bin);
         return bins;
     }
 
@@ -117,11 +116,11 @@ public abstract class Fixtures {
         return bin;
     }
 
-    public static Map<String, Metadata> createMetadataMap() throws Exception {
-        Map<String, Metadata> metadataMap = new HashMap<>(1);
+    public static List<Metadata> createMetadataList() throws Exception {
+        List<Metadata> metadataList = new ArrayList<>(1);
         Metadata md = createMetadata();
-        metadataMap.put(md.getName(), md);
-        return metadataMap;
+        metadataList.add(md);
+        return metadataList;
     }
 
     public static Metadata createMetadata() throws Exception {
@@ -153,25 +152,25 @@ public abstract class Fixtures {
         bin1.setFilename("image_1.png");
         bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("image-1");
-        Map<String, Metadata> bin1Md = new HashMap<>();
+        List<Metadata> bin1Md = new ArrayList<>();
         Metadata md = createRandomDCMetadata(indexInline);
-        bin1Md.put(md.getName(), md);
+        bin1Md.add(md);
         bin1.setMetadata(bin1Md);
         Binary bin2 = new Binary();
         bin2.setMimetype("image/png");
         bin2.setFilename("image_2.png");
         bin2.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin2.setName("image-2");
-        Map<String, Metadata> bin2Md = new HashMap<>();
+        List<Metadata> bin2Md = new ArrayList<>();
         md = createRandomDCMetadata(indexInline);
-        bin2Md.put(md.getName(), md);
+        bin2Md.add(md);
         bin2.setMetadata(bin2Md);
-        Map<String, Binary> binaries = new HashMap<>();
-        binaries.put(bin1.getName(), bin1);
-        binaries.put(bin2.getName(), bin2);
-        Map<String, Metadata> metadata = new HashMap<>();
+        List<Binary> binaries = new ArrayList<>();
+        binaries.add(bin1);
+        binaries.add(bin2);
+        List<Metadata> metadata = new ArrayList<>();
         md = createRandomDCMetadata(indexInline);
-        metadata.put(md.getName(), md);
+        metadata.add(md);
         Entity e = new Entity();
         e.setState(EntityState.PENDING);
         e.setParentId(LEVEL2_ID);
@@ -209,8 +208,8 @@ public abstract class Fixtures {
         bin1.setFilename("image_1.png");
         bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("image-1");
-        Map<String, Binary> binaries = new HashMap<>();
-        binaries.put(bin1.getName(), bin1);
+        List<Binary> binaries = new ArrayList<>();
+        binaries.add(bin1);
         Entity e = new Entity();
         e.setState(EntityState.PENDING);
         e.setLabel("My Label");

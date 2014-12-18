@@ -18,8 +18,8 @@
 package net.objecthunter.larch.integration.fs.authorize;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.objecthunter.larch.integration.fs.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.fs.helpers.AuthConfigurer.MissingPermission;
@@ -27,8 +27,8 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Entity.EntityState;
-import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.source.ByteArraySource;
 import net.objecthunter.larch.test.util.Fixtures;
 
 import org.apache.commons.io.IOUtils;
@@ -183,7 +183,7 @@ public class AuthorizeBinaryControllerIT extends AbstractAuthorizeLarchIT {
         bin1.setFilename("test.png");
         bin1.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
         bin1.setName("test");
-        Map<String, Metadata> bin1Md = new HashMap<>();
+        List<Metadata> bin1Md = new ArrayList<>();
         bin1.setMetadata(bin1Md);
         return bin1;
     }

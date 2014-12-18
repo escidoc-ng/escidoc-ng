@@ -89,21 +89,21 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/content")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/content")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/content")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
@@ -112,11 +112,11 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveBinaryMetadataXml() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
+        String binaryName = entity.getBinaries().iterator().next().getName();
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/content")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
                 .build());
         // create submitted entity
@@ -124,7 +124,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/content")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
                 .build());
         // create published entity
@@ -132,7 +132,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/content")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/content")
                 .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
@@ -143,21 +143,21 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/validate")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/validate")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next() + "/validate")
+                        "/metadata/" + entity.getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
@@ -166,11 +166,11 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     public void testValidateBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
+        String binaryName = entity.getBinaries().iterator().next().getName();
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/validate")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
                 .build());
         // create submitted entity
@@ -178,7 +178,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/validate")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
                 .build());
         // create published entity
@@ -186,7 +186,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next() + "/validate")
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName() + "/validate")
                 .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
@@ -214,21 +214,21 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                        "/metadata/" + entity.getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_PENDING_METADATA)
                 .build());
         // create submitted entity
         entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                        "/metadata/" + entity.getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_SUBMITTED_METADATA)
                 .build());
         // create published entity
         entity = createEntity(EntityState.PUBLISHED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                        "/metadata/" + entity.getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_PUBLISHED_METADATA)
                 .build());
     }
@@ -237,11 +237,11 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     public void testRetrieveBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
+        String binaryName = entity.getBinaries().iterator().next().getName();
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_PENDING_BINARY)
                 .build());
         // create submitted entity
@@ -249,7 +249,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_SUBMITTED_BINARY)
                 .build());
         // create published entity
@@ -257,7 +257,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.GET, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.READ_PUBLISHED_BINARY)
                 .build());
     }
@@ -268,7 +268,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                        "/metadata/" + entity.getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.WRITE_PENDING_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
@@ -277,7 +277,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         entity = createEntity(EntityState.SUBMITTED, FixedContentModel.DATA.getName(), level2Id, false);
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
-                        "/metadata/" + entity.getMetadata().keySet().iterator().next())
+                        "/metadata/" + entity.getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_METADATA)
                 .resetState(true)
                 .resetStateId(entity.getId())
@@ -288,11 +288,11 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
     public void testDeleteBinaryMetadata() throws Exception {
         // create pending entity
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.DATA.getName(), level2Id, false);
-        String binaryName = entity.getBinaries().keySet().iterator().next();
+        String binaryName = entity.getBinaries().iterator().next().getName();
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.WRITE_PENDING_BINARY)
                 .resetState(true)
                 .resetStateId(entity.getId())
@@ -302,7 +302,7 @@ public class AuthorizeMetadataControllerIT extends AbstractAuthorizeLarchIT {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.DELETE, entityUrl + entity.getId() +
                         "/binary/" + binaryName + "/metadata/" +
-                        entity.getBinaries().get(binaryName).getMetadata().keySet().iterator().next())
+                        entity.getBinary(binaryName).getMetadata().iterator().next().getName())
                 .neededPermission(MissingPermission.WRITE_SUBMITTED_BINARY)
                 .resetState(true)
                 .resetStateId(entity.getId())

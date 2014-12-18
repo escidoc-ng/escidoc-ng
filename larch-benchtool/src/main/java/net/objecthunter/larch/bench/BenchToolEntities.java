@@ -17,8 +17,8 @@
 package net.objecthunter.larch.bench;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.objecthunter.larch.bench.BenchTool.MdSize;
 import net.objecthunter.larch.model.Binary;
@@ -46,9 +46,9 @@ public abstract class BenchToolEntities {
         e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
         e.setContentModelId(FixedContentModel.DATA.getName());
         //add metadata
-        e.setMetadata(BenchToolEntities.createMetadataMap(3, dataSize, indexInline));
+        e.setMetadata(BenchToolEntities.createMetadataList(3, dataSize, indexInline));
         //add binary
-        e.setBinaries(BenchToolEntities.createBinaryMap(2, dataSize, indexInline));
+        e.setBinaries(BenchToolEntities.createBinaryList(2, dataSize, indexInline));
         return e;
     }
 
@@ -77,7 +77,7 @@ public abstract class BenchToolEntities {
         return data;
     }
 
-    public static Map<String, Metadata> createMetadataMap(int size, long dataSize, boolean indexInline) throws IOException {
+    public static List<Metadata> createMetadataList(int size, long dataSize, boolean indexInline) throws IOException {
         //metadata-size is proportional to binary-size
         MdSize mdSize;
         if (dataSize < 100000) {
@@ -87,12 +87,12 @@ public abstract class BenchToolEntities {
         } else {
             mdSize = MdSize.BIG;
         }
-        Map<String, Metadata> metadataMap = new HashMap<String, Metadata>();
+        List<Metadata> metadataList = new ArrayList<Metadata>();
         for (int i = 0; i < size; i++) {
             Metadata md = createRandomMetadata(mdSize, indexInline);
-            metadataMap.put(md.getName(), md);
+            metadataList.add(md);
         }
-        return metadataMap;
+        return metadataList;
     }
 
     public static Binary createRandomBinary(long size) throws IOException {
@@ -104,14 +104,14 @@ public abstract class BenchToolEntities {
         return binary;
     }
 
-    public static Map<String, Binary> createBinaryMap(int size, long dataSize, boolean indexInline) throws IOException {
-        Map<String, Binary> binaryMap = new HashMap<String, Binary>();
+    public static List<Binary> createBinaryList(int size, long dataSize, boolean indexInline) throws IOException {
+        List<Binary> binaryList = new ArrayList<Binary>();
         for (int i = 0; i < size; i++) {
             Binary bin = createRandomBinary(dataSize);
-            bin.setMetadata(createMetadataMap(2, dataSize, indexInline));
-            binaryMap.put(bin.getName(), bin);
+            bin.setMetadata(createMetadataList(2, dataSize, indexInline));
+            binaryList.add(bin);
         }
-        return binaryMap;
+        return binaryList;
     }
 
     public static Entity createLevel1Entity() {

@@ -137,10 +137,11 @@ public class BinaryController extends AbstractLarchController {
     public Binary retrieve(@PathVariable("id") final String entityId, @PathVariable("name") final String name)
             throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
+
+        if (!e.hasBinary(name)) {
             throw new NotFoundException("The Binary " + name + " does not exist on the entity " + entityId);
         }
-        return e.getBinaries().get(name);
+        return e.getBinary(name);
     }
 
     /**
@@ -165,10 +166,10 @@ public class BinaryController extends AbstractLarchController {
             final HttpServletResponse response) throws IOException {
         // TODO: Content Size
         final Entity e = entityService.retrieve(id);
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(name)) {
+        final Binary bin = e.getBinary(name);
+        if (bin == null) {
             throw new NotFoundException("The Binary " + name + " does not exist on the entity " + id);
         }
-        final Binary bin = e.getBinaries().get(name);
         response.setContentType(bin.getMimetype());
         response.setContentLength(-1);
         response.setHeader("Content-Disposition", "inline");

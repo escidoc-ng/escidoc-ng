@@ -511,12 +511,12 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if metadata exists
-                assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
+                assertTrue(fetched.hasMetadata(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getMetadata(metadata.getName()).getType());
                 assertEquals(retrieveMetadataContent(entity.getId(), metadata, 200),
-                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata().get(metadata.getName()), 200));
+                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata(metadata.getName()), 200));
             } else {
-                assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
+                assertFalse(fetched.hasMetadata(metadata.getName()));
             }
         }
         return fetched;
@@ -563,12 +563,12 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if metadata exists
-                assertTrue(fetched.getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getMetadata().get(metadata.getName()).getType());
+                assertTrue(fetched.hasMetadata(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getMetadata(metadata.getName()).getType());
                 assertEquals(retrieveMetadataContent(entity.getId(), metadata, 200),
-                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata().get(metadata.getName()), 200));
+                        retrieveMetadataContent(fetched.getId(), fetched.getMetadata(metadata.getName()), 200));
             } else {
-                assertFalse(fetched.getMetadata().containsKey(metadata.getName()));
+                assertFalse(fetched.hasMetadata(metadata.getName()));
             }
         }
         return fetched;
@@ -584,7 +584,7 @@ public abstract class AbstractFSLarchIT {
     protected Entity removeMetadata(Entity entity, String mdName, int expectedStatus) throws Exception {
         String tmdName = mdName;
         if (tmdName != null && tmdName.equals(IGNORE)) {
-            tmdName = entity.getMetadata().keySet().iterator().next();
+            tmdName = entity.getMetadata().iterator().next().getName();
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -600,7 +600,7 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 200) {
                 // check if metadata doesnt exist
-                assertFalse(fetched.getMetadata().containsKey(tmdName));
+                assertFalse(fetched.hasMetadata(tmdName));
             }
         }
         return fetched;
@@ -619,7 +619,7 @@ public abstract class AbstractFSLarchIT {
             boolean indexInline, int expectedStatus) throws Exception {
         String bName = binaryName;
         if (bName != null && bName.equals(IGNORE)) {
-            bName = entity.getBinaries().keySet().iterator().next();
+            bName = entity.getBinaries().iterator().next().getName();
         }
         Metadata metadata = createRandomDCMetadata(indexInline);
         if (mdName == null || !mdName.equals(IGNORE)) {
@@ -646,15 +646,15 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if metadata exists
-                assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
+                assertTrue(fetched.getBinary(bName).hasMetadata(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getBinary(bName).getMetadata(
                         metadata.getName()).getType());
                 assertEquals(retrieveBinaryMetadataContent(entity.getId(), bName, metadata, 200),
-                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinaries().get(bName)
-                                .getMetadata().get(metadata.getName()), 200));
+                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinary(bName)
+                                .getMetadata(metadata.getName()), 200));
             } else {
-                if (fetched.getBinaries().containsKey(bName)) {
-                    assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                if (fetched.hasBinary(bName)) {
+                    assertFalse(fetched.getBinary(bName).hasMetadata(metadata.getName()));
                 }
             }
         }
@@ -674,7 +674,7 @@ public abstract class AbstractFSLarchIT {
             boolean indexInline, int expectedStatus) throws Exception {
         String bName = binaryName;
         if (bName != null && bName.equals(IGNORE)) {
-            bName = entity.getBinaries().keySet().iterator().next();
+            bName = entity.getBinaries().iterator().next().getName();
         }
         Metadata metadata = createRandomDCMetadata(false);
         if (mdName == null || !mdName.equals(IGNORE)) {
@@ -708,15 +708,15 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if metadata exists
-                assertTrue(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
-                assertEquals(metadata.getType(), fetched.getBinaries().get(bName).getMetadata().get(
+                assertTrue(fetched.getBinary(bName).hasMetadata(metadata.getName()));
+                assertEquals(metadata.getType(), fetched.getBinary(bName).getMetadata(
                         metadata.getName()).getType());
                 assertEquals(retrieveBinaryMetadataContent(entity.getId(), bName, metadata, 200),
-                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinaries().get(bName)
-                                .getMetadata().get(metadata.getName()), 200));
+                        retrieveBinaryMetadataContent(fetched.getId(), bName, fetched.getBinary(bName)
+                                .getMetadata(metadata.getName()), 200));
             } else {
-                if (fetched.getBinaries().containsKey(bName)) {
-                    assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(metadata.getName()));
+                if (fetched.hasBinary(bName)) {
+                    assertFalse(fetched.getBinary(bName).hasMetadata(metadata.getName()));
                 }
             }
         }
@@ -737,13 +737,13 @@ public abstract class AbstractFSLarchIT {
         String mName = mdName;
         Binary binary = null;
         if (bName != null && bName.equals(IGNORE)) {
-            binary = entity.getBinaries().values().iterator().next();
+            binary = entity.getBinaries().iterator().next();
         } else {
-            binary = entity.getBinaries().get(bName);
+            binary = entity.getBinary(bName);
         }
         bName = binary.getName();
         if (mName != null && mName.equals(IGNORE)) {
-            mName = binary.getMetadata().keySet().iterator().next();
+            mName = binary.getMetadata().iterator().next().getName();
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -761,7 +761,7 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 200) {
                 // check if metadata doesnt exist
-                assertFalse(fetched.getBinaries().get(bName).getMetadata().containsKey(mName));
+                assertFalse(fetched.getBinary(bName).hasMetadata(mName));
             }
         }
         return fetched;
@@ -807,8 +807,8 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if binary exists
-                assertTrue(fetched.getBinaries().containsKey(binary.getName()));
-                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+                assertTrue(fetched.hasBinary(binary.getName()));
+                assertEquals(binary.getMimetype(), fetched.getBinary(binary.getName()).getMimetype());
             }
         }
         return fetched;
@@ -862,8 +862,8 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if binary exists
-                assertTrue(fetched.getBinaries().containsKey(binary.getName()));
-                assertEquals(binary.getMimetype(), fetched.getBinaries().get(binary.getName()).getMimetype());
+                assertTrue(fetched.hasBinary(binary.getName()));
+                assertEquals(binary.getMimetype(), fetched.getBinary(binary.getName()).getMimetype());
             }
         }
         return fetched;
@@ -879,7 +879,7 @@ public abstract class AbstractFSLarchIT {
     protected Entity removeBinary(Entity entity, String binaryName, int expectedStatus) throws Exception {
         String bName = binaryName;
         if (bName != null && bName.equals(IGNORE)) {
-            bName = entity.getBinaries().keySet().iterator().next();
+            bName = entity.getBinaries().iterator().next().getName();
         }
         HttpResponse resp =
                 this.executeAsAdmin(
@@ -896,7 +896,7 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 200) {
                 // check if binary doesnt exist
-                assertFalse(fetched.getBinaries().containsKey(bName));
+                assertFalse(fetched.hasBinary(bName));
             }
         }
         return fetched;
@@ -1080,10 +1080,10 @@ public abstract class AbstractFSLarchIT {
             fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
             if (expectedStatus == 201) {
                 // check if relation exists
-                assertTrue(fetched.getRelations().containsKey(tpredicate));
-                assertTrue(fetched.getRelations().get(tpredicate).contains(tobject));
+                assertTrue(fetched.hasRelation(tpredicate));
+                assertTrue(fetched.getRelation(tpredicate).getObjects().contains(tobject));
             } else {
-                assertFalse(fetched.getRelations().containsKey(tpredicate));
+                assertFalse(fetched.hasRelation(tpredicate));
             }
         }
         return fetched;
@@ -1229,7 +1229,7 @@ public abstract class AbstractFSLarchIT {
         serializer.setForceTopLevelObject(true);
         serializer.setSkipNamespaces(true);
         if (e.getMetadata() != null) {
-            for (Metadata metadata : e.getMetadata().values()) {
+            for (Metadata metadata : e.getMetadata()) {
                 String content = retrieveMetadataContent(e.getId(), metadata, 200);
                 assertNotNull(content);
                 if (metadata.getFilename() != null) {
@@ -1246,9 +1246,9 @@ public abstract class AbstractFSLarchIT {
             }
         }
         if (e.getBinaries() != null) {
-            for (Binary binary : e.getBinaries().values()) {
+            for (Binary binary : e.getBinaries()) {
                 if (binary.getMetadata() != null) {
-                    for (Metadata metadata : binary.getMetadata().values()) {
+                    for (Metadata metadata : binary.getMetadata()) {
                         String content =
                                 retrieveBinaryMetadataContent(e.getId(), binary.getName(), metadata, 200);
                         assertNotNull(content);

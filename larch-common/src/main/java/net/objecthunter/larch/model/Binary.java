@@ -15,7 +15,7 @@
  */
 package net.objecthunter.larch.model;
 
-import java.util.Map;
+import java.util.List;
 
 import net.objecthunter.larch.model.source.Source;
 
@@ -32,7 +32,7 @@ public class Binary {
 
     private String mimetype;
 
-    private Map<String, Metadata> metadata;
+    private List<Metadata> metadata;
 
     private String filename;
 
@@ -119,12 +119,19 @@ public class Binary {
     public void setMimetype(String mimetype) {
         this.mimetype = mimetype;
     }
-
-    public Map<String, Metadata> getMetadata() {
+    
+    /**
+     * @return the metadata
+     */
+    public List<Metadata> getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(Map<String, Metadata> metadata) {
+    
+    /**
+     * @param metadata the metadata to set
+     */
+    public void setMetadata(List<Metadata> metadata) {
         this.metadata = metadata;
     }
 
@@ -140,4 +147,58 @@ public class Binary {
         this.filename = filename;
     }
 
+    /**
+     * Check if metadata-list contains Metadata with given name.
+     * 
+     * @param name
+     * @return boolean true|false
+     */
+    public boolean hasMetadata(String name) {
+        if (metadata != null) {
+            for(Metadata m : metadata) {
+                if (m.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * get Metadata with given name.
+     * 
+     * @param name
+     * @return Metadata
+     */
+    public Metadata getMetadata(String name) {
+        if (metadata != null) {
+            for(Metadata m : metadata) {
+                if (m.getName().equals(name)) {
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * remove Metadata with given name.
+     * 
+     * @param name
+     */
+    public void removeMetadata(String name) {
+        int index = -1;
+        if (name != null && metadata != null) {
+            for (int i = 0; i < metadata.size(); i++) {
+                if (name.equals(metadata.get(i).getName())) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index > -1) {
+            metadata.remove(index);
+        }
+    }
+    
 }

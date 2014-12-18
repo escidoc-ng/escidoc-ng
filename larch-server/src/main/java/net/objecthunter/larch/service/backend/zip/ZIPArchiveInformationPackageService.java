@@ -63,7 +63,7 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
     private void writeEntity(final String prefix, final Entity e, final ZipOutputStream zipSink) throws IOException {
         /* write the binaries to the package */
         if (e.getBinaries()!= null) {
-            for (final Binary bin : e.getBinaries().values()) {
+            for (final Binary bin : e.getBinaries()) {
 
                 bin.setSource(new UrlSource(URI.create(prefix + "binaries/" + bin.getName() + "/" + bin.getFilename()), false));
 
@@ -89,7 +89,7 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
 
                 /* write the metadatas to the package */
                 if (bin.getMetadata()!= null) {
-                    for (final Metadata md : bin.getMetadata().values()) {
+                    for (final Metadata md : bin.getMetadata()) {
                         writeMetadata(prefix + "binaries/" + bin.getName() + "/metadata/", md, zipSink);
                     }
                 }
@@ -97,7 +97,7 @@ public class ZIPArchiveInformationPackageService implements BackendArchiveInform
         }
         /* write the metadatas to the package */
         if (e.getMetadata()!= null) {
-            for (final Metadata md : e.getMetadata().values()) {
+            for (final Metadata md : e.getMetadata()) {
                 writeMetadata(prefix + "metadata/", md, zipSink);
             }
         }

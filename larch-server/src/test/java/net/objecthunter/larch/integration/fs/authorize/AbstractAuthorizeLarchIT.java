@@ -583,19 +583,18 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
                 this.executeAsAdmin(
                         Request.Get(entityUrl + resetEntity.getId()));
         if (resetEntity.getBinaries() != null) {
-            for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
-                binary.getValue()
-                        .setSource(
+            for (Binary binary : resetEntity.getBinaries()) {
+                binary.setSource(
                                 new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
-                if (binary.getValue().getMetadata() != null) {
-                    for (Metadata md : binary.getValue().getMetadata().values()) {
+                if (binary.getMetadata() != null) {
+                    for (Metadata md : binary.getMetadata()) {
                         md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
                     }
                 }
             }
         }
         if (resetEntity.getMetadata() != null) {
-            for (Metadata md : resetEntity.getMetadata().values()) {
+            for (Metadata md : resetEntity.getMetadata()) {
                 md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
             }
         }
@@ -615,7 +614,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
             if (EntityState.PUBLISHED.equals(storedEntity.getState()) ||
                     EntityState.WITHDRAWN.equals(storedEntity.getState())) {
                 // recreate with different id
-                resetEntity.setBinaries(new HashMap<String, Binary>());
+                resetEntity.setBinaries(new ArrayList<Binary>());
                 resetEntity.setId(null);
                 resp =
                         this.executeAsAdmin(

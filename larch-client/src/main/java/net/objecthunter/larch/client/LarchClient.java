@@ -17,10 +17,18 @@
 
 package net.objecthunter.larch.client;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URI;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Describe;
@@ -28,6 +36,7 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.state.LarchState;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
@@ -40,6 +49,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -419,6 +431,204 @@ public class LarchClient {
             throw new IOException("Unable to create Entity");
         }
         return EntityUtils.toString(resp.getEntity());
+    }
+
+    /**
+     * Post an {@link net.objecthunter.larch.model.Entity} to the Larch server
+     * 
+     * @param e The entity to ingest
+     * @return the entity's id
+     * @throws IOException if an error occurred while ingesting
+     */
+    public String postEntityToES(Entity e) throws IOException {
+        File dir = new File("/home/FIZ/mih/entities/");
+        File[] files = dir.listFiles();
+        long durations = 0;
+        for (int i = 201; i < files.length; i++) {
+            BufferedReader in = null;
+            String json = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(new FileInputStream(files[i].getAbsolutePath()), "UTF-8"));
+                String str = new String("");
+                StringBuffer buf = new StringBuffer("");
+                while ((str = in.readLine()) != null) {
+                    buf.append(str).append("\n");
+                }
+                in.close();
+                json = buf.toString();
+            } catch (Exception e1) {
+                System.out.println(e1);
+            } finally {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (Exception e1) {
+                        System.out.println(e1);
+                    }
+                }
+            }
+            long time = System.currentTimeMillis();
+            final HttpResponse resp1 = this.execute(Request.Post("http://localhost:9200/mih/mih")
+                    .useExpectContinue()
+                    .bodyString(json, ContentType.APPLICATION_JSON))
+                    .returnResponse();
+            durations += System.currentTimeMillis() - time;
+            if (i%100==0) {
+                System.out.println("last 100 avg " + durations/100 + " ms");
+                durations = 0;
+//                try {
+//                    Thread.sleep(30000);
+//                } catch (InterruptedException e1) {}
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Post an {@link net.objecthunter.larch.model.Entity} to the Larch server
+     * 
+     * @param e The entity to ingest
+     * @return the entity's id
+     * @throws IOException if an error occurred while ingesting
+     */
+    public String postJsonToES(Entity e) throws IOException {
+        int size = 50;
+        int depth = 10;
+        List<List<String>> elements = new ArrayList<List<String>>();
+        for (int i = 0; i < depth; i++) {
+            elements.add(new ArrayList<String>());
+        }
+        for (int j = 0; j < size; j++) {
+            for (int i = 0; i < depth; i++) {
+                elements.get(i).add(RandomStringUtils.randomAlphabetic(6));
+            }
+        }
+        long durations = 0;
+        int i = 0;
+        for (;;) {
+            JsonFactory jfactory = new JsonFactory();
+            StringWriter writer = new StringWriter();
+            JsonGenerator jGenerator = jfactory.createGenerator(writer);
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("id", RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeStringField("parentId", RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeStringField("contentModelId", "data");
+            jGenerator.writeStringField("state", "PENDING");
+            jGenerator.writeStringField("version", "1");
+            jGenerator.writeFieldName("children");
+            jGenerator.writeStartArray();
+            jGenerator.writeString(RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeString(RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeString(RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeString(RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeEndArray();
+            jGenerator.writeStringField("label", "benchtool-" + RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeStringField("utcCreated", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeStringField("utcLastModified", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeStringField("tags", null);
+            writeMetadata(jGenerator, 3);
+            writeBinary(jGenerator, 2);
+            jGenerator.writeFieldName("alternativeIdentifiers");
+            jGenerator.writeStartArray();
+            jGenerator.writeEndArray();
+            jGenerator.writeStringField("relations", null);
+            jGenerator.writeEndObject();
+//            for (int j = 0; j < size; j++) {
+//                for (int j2 = 0; j2 < depth; j2++) {
+//                    if (j2 == depth -1) {
+//                        for (int k = 0; k < size; k++) {
+//                            jGenerator.writeStringField(elements.get(j2).get(k), RandomStringUtils.randomAlphabetic(16));
+//                        }
+//                        for (int k = 0; k < depth-1; k++) {
+//                            jGenerator.writeEndObject();
+//                        }
+//                    } else {
+//                        jGenerator.writeFieldName(elements.get(j2).get(j));
+//                        jGenerator.writeStartObject();
+//                    }
+//                }
+//            }
+            jGenerator.close();
+            long time = System.currentTimeMillis();
+            final HttpResponse resp1 = this.execute(Request.Post("http://localhost:9200/mih/mih")
+                    .useExpectContinue()
+                    .bodyString(writer.toString(), ContentType.APPLICATION_JSON))
+                    .returnResponse();
+            durations += System.currentTimeMillis() - time;
+            if (i%100==0) {
+                System.out.println("last 100 avg " + durations/100 + " ms");
+                durations = 0;
+//                try {
+//                    Thread.sleep(30000);
+//                } catch (InterruptedException e1) {}
+            }
+            i++;
+        }
+    }
+    
+    private void writeMetadata(JsonGenerator jGenerator, int count) throws IOException {
+        jGenerator.writeFieldName("metadata");
+        jGenerator.writeStartObject();
+        for (int j = 0; j < count; j++) {
+            jGenerator.writeFieldName(RandomStringUtils.randomAlphabetic(7));
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("name", RandomStringUtils.randomAlphabetic(7));
+            jGenerator.writeNumberField("size", 317);
+            jGenerator.writeStringField("mimetype", "text/xml");
+            jGenerator.writeStringField("filename", "dc.xml");
+            jGenerator.writeStringField("checksum", RandomStringUtils.randomAlphabetic(35));
+            jGenerator.writeStringField("checksumType", "MD5");
+            jGenerator.writeStringField("path", RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeFieldName("source");
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("type", "MD5");
+            jGenerator.writeStringField("uri", "/entity/" + RandomStringUtils.randomAlphabetic(16) + "/metadata/" + RandomStringUtils.randomAlphabetic(7) + "/content");
+            jGenerator.writeBooleanField("internal", true);
+            jGenerator.writeEndObject();
+            jGenerator.writeStringField("type", "DC");
+            jGenerator.writeBooleanField("indexInline", true);
+            jGenerator.writeFieldName("jsonData");
+            jGenerator.writeStartObject();
+            jGenerator.writeFieldName("metadata");
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("title", "Test Object");
+            jGenerator.writeStringField("creator", "fasseg");
+            jGenerator.writeStringField("subject", "Testing Groven");
+            jGenerator.writeStringField("description", "Test Object to implement integration Tests");
+            jGenerator.writeEndObject();
+            jGenerator.writeEndObject();
+            jGenerator.writeStringField("utcCreated", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeStringField("utcLastModified", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeEndObject();
+        }
+        jGenerator.writeEndObject();
+    }
+
+    private void writeBinary(JsonGenerator jGenerator, int count) throws IOException {
+        jGenerator.writeFieldName("binaries");
+        jGenerator.writeStartObject();
+        for (int j = 0; j < 2; j++) {
+            jGenerator.writeFieldName("binary-" + RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("name", "binary-" + RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeNumberField("size", 81920);
+            jGenerator.writeStringField("mimetype", "application/octet-stream");
+            writeMetadata(jGenerator, 2);
+            jGenerator.writeStringField("filename", "binary-" + RandomStringUtils.randomAlphabetic(16) + ".bin");
+            jGenerator.writeStringField("checksum", RandomStringUtils.randomAlphabetic(35));
+            jGenerator.writeStringField("checksumType", "MD5");
+            jGenerator.writeStringField("path", RandomStringUtils.randomAlphabetic(16));
+            jGenerator.writeFieldName("source");
+            jGenerator.writeStartObject();
+            jGenerator.writeStringField("type", "MD5");
+            jGenerator.writeStringField("uri", "/entity/" + RandomStringUtils.randomAlphabetic(16) + "/binary/binary-" + RandomStringUtils.randomAlphabetic(7) + "/content");
+            jGenerator.writeBooleanField("internal", true);
+            jGenerator.writeEndObject();
+            jGenerator.writeStringField("utcCreated", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeStringField("utcLastModified", ZonedDateTime.now(ZoneOffset.UTC).toString());
+            jGenerator.writeEndObject();
+        }
+        jGenerator.writeEndObject();
     }
 
     /**

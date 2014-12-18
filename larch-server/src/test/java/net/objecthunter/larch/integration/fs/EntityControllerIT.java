@@ -87,11 +87,11 @@ public class EntityControllerIT extends AbstractFSLarchIT {
         assertTrue(Duration.between(ZonedDateTime.parse(oldVersion.getUtcLastModified()),
                 ZonedDateTime.parse(fetched.getUtcLastModified())).getNano() > 0);
         assertEquals(ZonedDateTime.parse(oldVersion.getUtcCreated()), ZonedDateTime.parse(fetched.getUtcCreated()));
-        oldVersion.getBinaries().values().forEach(b -> {
+        oldVersion.getBinaries().forEach(b -> {
             assertNotNull(b.getUtcCreated());
             assertNotNull(b.getUtcLastModified());
         });
-        fetched.getBinaries().values().forEach(b -> {
+        fetched.getBinaries().forEach(b -> {
             assertNotNull(b.getUtcCreated());
             assertNotNull(b.getUtcLastModified());
         });
@@ -327,7 +327,7 @@ public class EntityControllerIT extends AbstractFSLarchIT {
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getMetadata());
         assertEquals(1, fetched.getMetadata().size());
-        String name = fetched.getMetadata().keySet().iterator().next();
+        String name = fetched.getMetadata().iterator().next().getName();
 
         // delete metadata
         resp =
@@ -357,10 +357,10 @@ public class EntityControllerIT extends AbstractFSLarchIT {
         Entity fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
         assertNotNull(fetched.getBinaries());
         assertEquals(2, fetched.getBinaries().size());
-        String name = fetched.getBinaries().keySet().iterator().next();
-        assertNotNull(fetched.getBinaries().get(name).getMetadata());
-        assertEquals(1, fetched.getBinaries().get(name).getMetadata().size());
-        String mdName = fetched.getBinaries().get(name).getMetadata().keySet().iterator().next();
+        String name = fetched.getBinaries().iterator().next().getName();
+        assertNotNull(fetched.getBinary(name).getMetadata());
+        assertEquals(1, fetched.getBinary(name).getMetadata().size());
+        String mdName = fetched.getBinary(name).getMetadata().iterator().next().getName();
 
         // delete binary metadata
         resp =
@@ -372,8 +372,8 @@ public class EntityControllerIT extends AbstractFSLarchIT {
         // retrieve entity
         resp = this.executeAsAdmin(Request.Get(entityUrl + newId));
         fetched = mapper.readValue(resp.getEntity().getContent(), Entity.class);
-        assertNotNull(fetched.getBinaries().get(name).getMetadata());
-        assertEquals(0, fetched.getBinaries().get(name).getMetadata().size());
+        assertNotNull(fetched.getBinary(name).getMetadata());
+        assertEquals(0, fetched.getBinary(name).getMetadata().size());
     }
 
 }

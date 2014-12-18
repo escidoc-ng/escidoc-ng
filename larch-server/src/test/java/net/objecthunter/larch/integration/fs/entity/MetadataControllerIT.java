@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.objecthunter.larch.integration.fs.AbstractFSLarchIT;
@@ -59,12 +60,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -81,12 +82,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -103,18 +104,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             m.setIndexInline(true);
         }
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -131,7 +132,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             m.setFilename("dc1.xml");
             m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
             m.setIndexInline(true);
@@ -139,12 +140,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -161,21 +162,21 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 m.setIndexInline(true);
             }
         }
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -192,21 +193,21 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 m.setIndexInline(true);
             }
         }
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -223,18 +224,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             m.setIndexInline(false);
         }
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -251,7 +252,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             m.setFilename("dc1.xml");
             m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
             m.setIndexInline(false);
@@ -259,12 +260,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -281,21 +282,21 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 m.setIndexInline(false);
             }
         }
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -312,9 +313,9 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 m.setFilename("dc1.xml");
                 m.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc1.xml").openStream())));
                 m.setIndexInline(false);
@@ -323,12 +324,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         entity = updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -349,7 +350,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
         boolean mdFound = false;
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             if (m.getName().equals("indexInlineTest")) {
                 mdFound = true;
                 assertTrue(m.isIndexInline());
@@ -358,9 +359,9 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
             }
         }
         assertTrue(mdFound);
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -381,7 +382,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
         boolean mdFound = false;
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             if (m.getName().equals("indexInlineTest")) {
                 mdFound = true;
                 assertTrue(m.isIndexInline());
@@ -390,9 +391,9 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
             }
         }
         assertTrue(mdFound);
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -409,18 +410,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             entity = addBinaryMetadataMultipart(entity, b.getName(), "indexInlineTest", IGNORE, true, 201);
         }
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             boolean mdFound = false;
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 if (m.getName().equals("indexInlineTest")) {
                     mdFound = true;
                     assertTrue(m.isIndexInline());
@@ -443,18 +444,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             entity = addBinaryMetadataStream(entity, b.getName(), "indexInlineTest", IGNORE, true, 201);
         }
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             boolean mdFound = false;
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 if (m.getName().equals("indexInlineTest")) {
                     mdFound = true;
                     assertTrue(m.isIndexInline());
@@ -480,12 +481,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         entity = addMetadataMultipart(entity, "indexInlineTest", IGNORE, false, 201);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -505,12 +506,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         entity = addMetadataStream(entity, "indexInlineTest", IGNORE, false, 201);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -527,17 +528,17 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             entity = addBinaryMetadataMultipart(entity, b.getName(), "indexInlineTest", IGNORE, false, 201);
         }
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -554,17 +555,17 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             entity = addBinaryMetadataStream(entity, b.getName(), "indexInlineTest", IGNORE, false, 201);
         }
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -581,18 +582,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, true);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata md : entity.getMetadata().values()) {
+        for (Metadata md : entity.getMetadata()) {
             entity = removeMetadata(entity, md.getName(), 200);
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 entity = removeBinaryMetadata(entity, b.getName(), m.getName(), 200);
             }
         }
-        assertEquals(new HashMap<String, Metadata>(), entity.getMetadata());
-        for (Binary b : entity.getBinaries().values()) {
-            assertEquals(new HashMap<String, Metadata>(), b.getMetadata());
+        assertEquals(new ArrayList<Metadata>(), entity.getMetadata());
+        for (Binary b : entity.getBinaries()) {
+            assertEquals(new ArrayList<Metadata>(), b.getMetadata());
         }
         checkMetadata(entity);
     }
@@ -607,18 +608,18 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         Entity entity = createEntity(EntityState.PENDING, FixedContentModel.LEVEL1.getName(), null, false);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata md : entity.getMetadata().values()) {
+        for (Metadata md : entity.getMetadata()) {
             entity = removeMetadata(entity, md.getName(), 200);
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 entity = removeBinaryMetadata(entity, b.getName(), m.getName(), 200);
             }
         }
-        assertEquals(new HashMap<String, Metadata>(), entity.getMetadata());
-        for (Binary b : entity.getBinaries().values()) {
-            assertEquals(new HashMap<String, Metadata>(), b.getMetadata());
+        assertEquals(new ArrayList<Metadata>(), entity.getMetadata());
+        for (Binary b : entity.getBinaries()) {
+            assertEquals(new ArrayList<Metadata>(), b.getMetadata());
         }
         checkMetadata(entity);
     }
@@ -637,12 +638,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata md : entity.getMetadata().values()) {
+        for (Metadata md : entity.getMetadata()) {
             md.setIndexInline(false);
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata md : b.getMetadata().values()) {
+            for (Metadata md : b.getMetadata()) {
                 md.setIndexInline(false);
             }
         }
@@ -650,12 +651,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(3, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -663,12 +664,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(1, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -677,12 +678,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(2, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -703,12 +704,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         updateEntity(entity, 200);
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata md : entity.getMetadata().values()) {
+        for (Metadata md : entity.getMetadata()) {
             md.setIndexInline(true);
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata md : b.getMetadata().values()) {
+            for (Metadata md : b.getMetadata()) {
                 md.setIndexInline(true);
             }
         }
@@ -716,12 +717,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(3, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertTrue(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertTrue(m.isIndexInline());
             }
         }
@@ -729,12 +730,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(1, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -743,12 +744,12 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(2, entity.getVersion());
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             assertFalse(m.isIndexInline());
         }
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 assertFalse(m.isIndexInline());
             }
         }
@@ -784,7 +785,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertEquals(201, resp.getStatusLine().getStatusCode());
         
         // add binary metadata
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             metadata = createRandomDCMetadata(false);
             metadata.setName("indexInlineTest");
             bais = new ByteArrayInputStream(((ByteArraySource) metadata.getSource()).getBytes());
@@ -807,7 +808,7 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
         assertNotNull(entity.getMetadata());
         assertNotNull(entity.getBinaries());
         boolean mdFound = false;
-        for (Metadata m : entity.getMetadata().values()) {
+        for (Metadata m : entity.getMetadata()) {
             if (m.getName().equals("indexInlineTest")) {
                 mdFound = true;
                 assertFalse(m.isIndexInline());
@@ -816,10 +817,10 @@ public class MetadataControllerIT extends AbstractFSLarchIT {
             }
         }
         assertTrue(mdFound);
-        for (Binary b : entity.getBinaries().values()) {
+        for (Binary b : entity.getBinaries()) {
             assertNotNull(b.getMetadata());
             mdFound = false;
-            for (Metadata m : b.getMetadata().values()) {
+            for (Metadata m : b.getMetadata()) {
                 if (m.getName().equals("indexInlineTest")) {
                     mdFound = true;
                     assertFalse(m.isIndexInline());
