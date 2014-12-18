@@ -154,9 +154,9 @@ public class Binary {
      * @return boolean true|false
      */
     public boolean hasMetadata(String name) {
-        if (metadata != null) {
+        if (name != null && metadata != null) {
             for(Metadata m : metadata) {
-                if (m.getName().equals(name)) {
+                if (name.equals(m.getName())) {
                     return true;
                 }
             }
@@ -171,9 +171,9 @@ public class Binary {
      * @return Metadata
      */
     public Metadata getMetadata(String name) {
-        if (metadata != null) {
+        if (name != null && metadata != null) {
             for(Metadata m : metadata) {
-                if (m.getName().equals(name)) {
+                if (name.equals(m.getName())) {
                     return m;
                 }
             }

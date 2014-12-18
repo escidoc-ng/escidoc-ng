@@ -5,9 +5,9 @@
 package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService.ArchivesSearchField;
@@ -35,12 +35,12 @@ public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
-            for (Entry<String, List<RoleRight>> rightSet : getRole().getRights().entrySet()) {
-                List<RoleRight> userRights = rightSet.getValue();
+            for (Right right : getRole().getRights()) {
+                List<RoleRight> userRights = right.getRoleRights();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
-                                getLevel1AndLevel2EntitiesRestrictionQuery(rightSet.getKey()));
+                                getLevel1AndLevel2EntitiesRestrictionQuery(right.getAnchorId()));
                     }
                 }
             }
@@ -68,12 +68,12 @@ public class Level1AdminRoleQueryRestriction extends RoleQueryRestriction {
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
-            for (Entry<String, List<RoleRight>> rightSet : getRole().getRights().entrySet()) {
-                List<RoleRight> userRights = rightSet.getValue();
+            for (Right right : getRole().getRights()) {
+                List<RoleRight> userRights = right.getRoleRights();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
-                                getLevel1AndLevel2ArchivesRestrictionQuery(rightSet.getKey()));
+                                getLevel1AndLevel2ArchivesRestrictionQuery(right.getAnchorId()));
                     }
                 }
             }

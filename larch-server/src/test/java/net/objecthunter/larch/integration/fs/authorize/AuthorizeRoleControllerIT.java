@@ -21,15 +21,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.integration.fs.helpers.AuthConfigurer;
 import net.objecthunter.larch.integration.fs.helpers.AuthConfigurer.MissingPermission;
 import net.objecthunter.larch.integration.fs.helpers.AuthConfigurer.RoleRestriction;
 import net.objecthunter.larch.model.security.role.AdminRole;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserAdminRole;
@@ -132,14 +131,14 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
     public void testSetRight() throws Exception {
         testUserRoleAuth(new AuthConfigurer.AuthConfigurerBuilder(
                 HttpMethod.POST, userUrl + username + "/role/role_user_admin/rights/" + username)
-                .body(this.mapper.writeValueAsString(userAdminRole.getRights().get("")))
+                .body(this.mapper.writeValueAsString(userAdminRole.getRight("").getRoleRights()))
                 .roleRestriction(RoleRestriction.ADMIN)
                 .build());
 
         // level1 admin
         HttpResponse resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1,
-                        this.mapper.writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
+                        this.mapper.writeValueAsString(level1AdminRole.getRight(level1Id1).getRoleRights()),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         String response = EntityUtils.toString(resp.getEntity());
@@ -154,7 +153,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_level1_admin/rights/" + level1Id1, this.mapper
-                        .writeValueAsString(level1AdminRole.getRights().get(level1Id1)),
+                        .writeValueAsString(level1AdminRole.getRight(level1Id1).getRoleRights()),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
@@ -162,7 +161,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
-                        .writeValueAsString(userRole.getRights().get(level2Id)),
+                        .writeValueAsString(userRole.getRight(level2Id).getRoleRights()),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + Fixtures.LEVEL1_ID)[1], false);
         response = EntityUtils.toString(resp.getEntity());
@@ -170,7 +169,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
 
         resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
-                        .writeValueAsString(userRole.getRights().get(level2Id)),
+                        .writeValueAsString(userRole.getRight(level2Id).getRoleRights()),
                         level1AdminRoleUsernames.get("ROLE_LEVEL1_ADMIN" + level1Id1)[0], level1AdminRoleUsernames
                                 .get("ROLE_LEVEL1_ADMIN" + level1Id1)[1], false);
         response = EntityUtils.toString(resp.getEntity());
@@ -179,7 +178,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         // userAdmin
         resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
-                        .writeValueAsString(userRole.getRights().get(level2Id)),
+                        .writeValueAsString(userRole.getRight(level2Id).getRoleRights()),
                         userAdminRoleUsernames.get("ROLE_USER_ADMIN")[0], userAdminRoleUsernames
                                 .get("ROLE_USER_ADMIN")[1], false);
         response = EntityUtils.toString(resp.getEntity());
@@ -195,7 +194,7 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
         // user
         resp =
                 this.executeAsUser(HttpMethod.POST, userUrl + username + "/role/role_user/rights/" + level2Id, this.mapper
-                        .writeValueAsString(userRole.getRights().get(level2Id)),
+                        .writeValueAsString(userRole.getRight(level2Id).getRoleRights()),
                         userRoleUsernames.get(MissingPermission.READ_PENDING_BINARY)[0], userRoleUsernames
                                 .get(MissingPermission.READ_PENDING_BINARY)[1], false);
         response = EntityUtils.toString(resp.getEntity());
@@ -221,8 +220,8 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
             level1AdminRoleRights.add(roleRight);
         }
         if (!level1AdminRoleRights.isEmpty()) {
-            Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-            newRights.put(level1Id1, level1AdminRoleRights);
+            List<Right> newRights = new ArrayList<Right>();
+            newRights.add(new Right(level1Id1, level1AdminRoleRights));
             level1AdminRole.setRights(newRights);
         }
 
@@ -233,8 +232,8 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
             userAdminRoleRights.add(roleRight);
         }
         if (!userAdminRoleRights.isEmpty()) {
-            Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-            newRights.put("", userAdminRoleRights);
+            List<Right> newRights = new ArrayList<Right>();
+            newRights.add(new Right("", userAdminRoleRights));
             userAdminRole.setRights(newRights);
         }
 
@@ -245,8 +244,8 @@ public class AuthorizeRoleControllerIT extends AbstractAuthorizeLarchIT {
             userRoleRights.add(roleRight);
         }
         if (!userRoleRights.isEmpty()) {
-            Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
-            newRights.put(level2Id, userRoleRights);
+            List<Right> newRights = new ArrayList<Right>();
+            newRights.add(new Right(level2Id, userRoleRights));
             userRole.setRights(newRights);
         }
 

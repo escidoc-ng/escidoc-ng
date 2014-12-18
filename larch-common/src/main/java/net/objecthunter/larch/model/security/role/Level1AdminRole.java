@@ -7,7 +7,6 @@ package net.objecthunter.larch.model.security.role;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
@@ -18,17 +17,15 @@ import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
- * Level1Admin-Role.
- * Set READ or WRITE-Rights for an LEVEL1_ENTITY.
+ * Level1Admin-Role. Set READ or WRITE-Rights for an LEVEL1_ENTITY.
  * 
  * @author mih
- *
  */
 public class Level1AdminRole extends Role {
 
     private RoleName roleName = RoleName.ROLE_LEVEL1_ADMIN;
 
-    private Map<String, List<RoleRight>> rights;
+    private List<Right> rights;
 
     private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>() {
 
@@ -56,12 +53,12 @@ public class Level1AdminRole extends Role {
     }
 
     @Override
-    public Map<String, List<RoleRight>> getRights() {
+    public List<Right> getRights() {
         return rights;
     }
 
     @Override
-    public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
+    public void setRights(List<Right> rights) throws IOException {
         validate(rights);
         this.rights = rights;
     }
@@ -89,16 +86,19 @@ public class Level1AdminRole extends Role {
                 !FixedContentModel.LEVEL2.getName().equals(checkEntity.getContentModelId())) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getLevel1Id()) ||
-                this.rights.get(entityHierarchy.getLevel1Id()) == null) {
+        if (!hasRight(entityHierarchy.getLevel1Id())) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.READ) &&
-                !this.rights.get(entityHierarchy.getLevel1Id()).contains(RoleRight.READ)) {
+                (getRight(entityHierarchy.getLevel1Id()).getRoleRights() == null || !getRight(
+                        entityHierarchy.getLevel1Id()).getRoleRights()
+                        .contains(RoleRight.READ))) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.WRITE) &&
-                !this.rights.get(entityHierarchy.getLevel1Id()).contains(RoleRight.WRITE)) {
+                (getRight(entityHierarchy.getLevel1Id()).getRoleRights() == null || !getRight(
+                        entityHierarchy.getLevel1Id()).getRoleRights()
+                        .contains(RoleRight.WRITE))) {
             return false;
         }
         return true;
@@ -109,12 +109,14 @@ public class Level1AdminRole extends Role {
         validate(rights);
     }
 
-    private void validate(Map<String, List<RoleRight>> rights) throws IOException {
+    private void validate(List<Right> rights) throws IOException {
         if (rights != null) {
-            for (List<RoleRight> value : rights.values()) {
-                for (RoleRight right : value) {
-                    if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
+            for (Right value : rights) {
+                if (value.getRoleRights() != null) {
+                    for (RoleRight right : value.getRoleRights()) {
+                        if (!allowedRoleRights.contains(right)) {
+                            throw new IOException("right " + right + " not allowed for role " + getRoleName());
+                        }
                     }
                 }
             }

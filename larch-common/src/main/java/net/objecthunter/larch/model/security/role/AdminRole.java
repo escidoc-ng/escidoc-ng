@@ -6,7 +6,6 @@ package net.objecthunter.larch.model.security.role;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
@@ -36,14 +35,14 @@ public class AdminRole extends Role {
     }
 
     @Override
-    public void setRights(Map<String,java.util.List<RoleRight>> rights) throws IOException {
+    public void setRights(List<Right> rights) throws IOException {
         if (rights != null) {
             throw new IOException("not allowed to set rights for role " + getRoleName());
         }
     }
 
     @Override
-    public Map<String,java.util.List<RoleRight>> getRights(){return null;};
+    public List<Right> getRights(){return null;};
     
     @Override
     public List<PermissionAnchorType> anchorTypes() {

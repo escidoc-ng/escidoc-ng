@@ -7,7 +7,6 @@ package net.objecthunter.larch.model.security.role;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
@@ -17,17 +16,15 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.annotation.Permission;
 
 /**
- * UserAdmin-Role.
- * Set READ or WRITE-Rights for an User or for all users (anchorId = "").
+ * UserAdmin-Role. Set READ or WRITE-Rights for an User or for all users (anchorId = "").
  * 
  * @author mih
- *
  */
 public class UserAdminRole extends Role {
 
     private RoleName roleName = RoleName.ROLE_USER_ADMIN;
 
-    private Map<String, List<RoleRight>> rights;
+    private List<Right> rights;
 
     private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>() {
 
@@ -55,12 +52,12 @@ public class UserAdminRole extends Role {
     }
 
     @Override
-    public Map<String, List<RoleRight>> getRights() {
+    public List<Right> getRights() {
         return rights;
     }
 
     @Override
-    public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
+    public void setRights(List<Right> rights) throws IOException {
         validate(rights);
         this.rights = rights;
     }
@@ -80,19 +77,25 @@ public class UserAdminRole extends Role {
             return false;
         }
         User checkUser = (User) checkObject;
-        if (this.rights == null || (!this.rights.containsKey(checkUser.getName()) && !this.rights.containsKey(""))) {
+        if (this.rights == null || (!hasRight(checkUser.getName()) && !hasRight(""))) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.WRITE) &&
-                (this.rights.get(checkUser.getName()) == null || !this.rights.get(checkUser.getName()).contains(
+                (!hasRight(checkUser.getName()) || getRight(checkUser.getName()).getRoleRights() == null || !getRight(
+                        checkUser.getName()).getRoleRights().contains(
                         RoleRight.WRITE)) &&
-                (this.rights.get("") == null || !this.rights.get("").contains(RoleRight.WRITE))) {
+                (!hasRight("") || getRight("").getRoleRights() == null || !getRight(
+                        "").getRoleRights().contains(
+                        RoleRight.WRITE))) {
             return false;
         }
         if (permission.permissionType().equals(PermissionType.READ) &&
-                (this.rights.get(checkUser.getName()) == null || !this.rights.get(checkUser.getName()).contains(
+                (!hasRight(checkUser.getName()) || getRight(checkUser.getName()).getRoleRights() == null || !getRight(
+                        checkUser.getName()).getRoleRights().contains(
                         RoleRight.READ)) &&
-                (this.rights.get("") == null || !this.rights.get("").contains(RoleRight.READ))) {
+                (!hasRight("") || getRight("").getRoleRights() == null || !getRight(
+                        "").getRoleRights().contains(
+                        RoleRight.READ))) {
             return false;
         }
         return true;
@@ -103,12 +106,14 @@ public class UserAdminRole extends Role {
         validate(rights);
     }
 
-    private void validate(Map<String, List<RoleRight>> rights) throws IOException {
+    private void validate(List<Right> rights) throws IOException {
         if (rights != null) {
-            for (List<RoleRight> value : rights.values()) {
-                for (RoleRight right : value) {
-                    if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
+            for (Right value : rights) {
+                if (value.getRoleRights() != null) {
+                    for (RoleRight right : value.getRoleRights()) {
+                        if (!allowedRoleRights.contains(right)) {
+                            throw new IOException("right " + right + " not allowed for role " + getRoleName());
+                        }
                     }
                 }
             }

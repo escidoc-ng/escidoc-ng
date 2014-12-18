@@ -4,8 +4,8 @@
 package net.objecthunter.larch.model.security.role;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.security.ObjectType;
@@ -47,9 +47,9 @@ public abstract class Role {
     /**
      * Get the Rights for the different anchorIds as Map.
      * 
-     * @return Map<String, List<RoleRight>> rights
+     * @return List<Right> rights
      */
-    public abstract Map<String, List<RoleRight>> getRights();
+    public abstract List<Right> getRights();
 
     /**
      * Set the Rights.
@@ -57,7 +57,7 @@ public abstract class Role {
      * @param rights
      * @throws IOException
      */
-    public abstract void setRights(Map<String, List<RoleRight>> rights) throws IOException;
+    public abstract void setRights(List<Right> rights) throws IOException;
     
     /**
      * Returns the anchorTypes that are supported by the extending role.
@@ -91,7 +91,81 @@ public abstract class Role {
      * @throws IOException
      */
     public abstract void validate() throws IOException;
+    
+    /**
+     * Check if right-list contains Right with given anchorId.
+     * 
+     * @param anchorId
+     * @return boolean true|false
+     */
+    public boolean hasRight(String anchorId) {
+        if (anchorId != null && getRights() != null) {
+            for(Right r : getRights()) {
+                if (anchorId.equals(r.getAnchorId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
+    /**
+     * get Right with given anchorId.
+     * 
+     * @param anchorId
+     * @return Right
+     */
+    public Right getRight(String anchorId) {
+        if (anchorId != null && getRights() != null) {
+            for(Right r : getRights()) {
+                if (anchorId.equals(r.getAnchorId())) {
+                    return r;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * remove Right with given anchorId.
+     * 
+     * @param anchorId
+     */
+    public void removeRight(String anchorId) {
+        int index = -1;
+        if (anchorId != null && getRights() != null) {
+            for (int i = 0; i < getRights().size(); i++) {
+                if (anchorId.equals(getRights().get(i).getAnchorId())) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index > -1) {
+            getRights().remove(index);
+        }
+    }
+    
+    /**
+     * retrieve all anchorIds.
+     * 
+     * @return List of anchorIds
+     */
+    public List<String> retrieveAnchorIds() {
+        List<String> anchorIds = new ArrayList<String>();
+        if (getRights() != null) {
+            for (Right right : getRights()) {
+                if (right.getAnchorId() != null) {
+                    anchorIds.add(right.getAnchorId());
+                }
+            }
+        }
+        return anchorIds;
+    }
+    
+
+    
+    
     /**
      * Get an extending Class of this class, depending on the RoleName
      * 

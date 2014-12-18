@@ -4,16 +4,13 @@
 package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import java.util.List;
-import java.util.Map.Entry;
 
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchEntityService.EntitiesSearchField;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 
 
 /**
@@ -49,12 +46,12 @@ public class UserAdminRoleQueryRestriction extends RoleQueryRestriction {
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
-            for (Entry<String, List<RoleRight>> rightSet : getRole().getRights().entrySet()) {
-                List<RoleRight> userRights = rightSet.getValue();
+            for (Right right : getRole().getRights()) {
+                List<RoleRight> userRights = right.getRoleRights();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ.equals(userRight)) {
-                        if (StringUtils.isNotBlank(rightSet.getKey())) {
-                            restrictionQueryBuilder.append(" OR name:").append(rightSet.getKey());
+                        if (StringUtils.isNotBlank(right.getAnchorId())) {
+                            restrictionQueryBuilder.append(" OR name:").append(right.getAnchorId());
                         } else {
                             restrictionQueryBuilder.append(" OR name:*");
                         }

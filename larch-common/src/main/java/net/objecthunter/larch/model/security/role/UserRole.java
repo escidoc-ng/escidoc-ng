@@ -31,7 +31,7 @@ public class UserRole extends Role {
 
     private RoleName roleName = RoleName.ROLE_USER;
 
-    private Map<String, List<RoleRight>> rights;
+    private List<Right> rights;
 
     private List<RoleRight> allowedRoleRights = new ArrayList<RoleRight>() {
 
@@ -106,12 +106,12 @@ public class UserRole extends Role {
     }
 
     @Override
-    public Map<String, List<RoleRight>> getRights() {
+    public List<Right> getRights() {
         return rights;
     }
 
     @Override
-    public void setRights(Map<String, List<RoleRight>> rights) throws IOException {
+    public void setRights(List<Right> rights) throws IOException {
         validate(rights);
         this.rights = rights;
     }
@@ -137,25 +137,28 @@ public class UserRole extends Role {
         if (entityHierarchy == null || entityHierarchy.getLevel2Id() == null) {
             return false;
         }
-        if (this.rights == null || !this.rights.containsKey(entityHierarchy.getLevel2Id()) ||
-                this.rights.get(entityHierarchy.getLevel2Id()) == null) {
+        if (this.rights == null || !hasRight(entityHierarchy.getLevel2Id()) ||
+                getRight(entityHierarchy.getLevel2Id()).getRoleRights() == null) {
             return false;
         }
-        if (this.rights.get(entityHierarchy.getLevel2Id()) == null) {
+        if (getRight(entityHierarchy.getLevel2Id()).getRoleRights() == null) {
             return false;
         }
         if (FixedContentModel.LEVEL2.getName().equals(checkEntity.getContentModelId())) {
             if (permission.permissionType().equals(PermissionType.READ)) {
-                if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(RoleRight.READ_LEVEL2)) {
+                if (!getRight(entityHierarchy.getLevel2Id()).getRoleRights().contains(RoleRight.READ_LEVEL2)) {
+                    return false;
+                }
+                if (!getRight(entityHierarchy.getLevel2Id()).getRoleRights().contains(RoleRight.READ_LEVEL2)) {
                     return false;
                 }
             } else if (permission.permissionType().equals(PermissionType.WRITE)) {
-                if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(RoleRight.WRITE_LEVEL2)) {
+                if (!getRight(entityHierarchy.getLevel2Id()).getRoleRights().contains(RoleRight.WRITE_LEVEL2)) {
                     return false;
                 }
             }
         } else {
-            if (!this.rights.get(entityHierarchy.getLevel2Id()).contains(
+            if (!getRight(entityHierarchy.getLevel2Id()).getRoleRights().contains(
                     validateMatrix.get("" + permission.permissionType() + checkEntity.getState() + objectType))) {
                 return false;
             }
@@ -168,12 +171,14 @@ public class UserRole extends Role {
         validate(rights);
     }
 
-    private void validate(Map<String, List<RoleRight>> rights) throws IOException {
+    private void validate(List<Right> rights) throws IOException {
         if (rights != null) {
-            for (List<RoleRight> value : rights.values()) {
-                for (RoleRight right : value) {
-                    if (!allowedRoleRights.contains(right)) {
-                        throw new IOException("right " + right + " not allowed for role " + getRoleName());
+            for (Right value : rights) {
+                if (value.getRoleRights() != null) {
+                    for (RoleRight right : value.getRoleRights()) {
+                        if (!allowedRoleRights.contains(right)) {
+                            throw new IOException("right " + right + " not allowed for role " + getRoleName());
+                        }
                     }
                 }
             }

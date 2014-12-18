@@ -35,9 +35,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import net.objecthunter.larch.LarchServerConfiguration;
@@ -53,6 +51,7 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.source.ByteArraySource;
@@ -301,7 +300,7 @@ public abstract class AbstractFSLarchIT {
         if (userRoles == null) {
             userRoles = new ArrayList<Role>();
         }
-        Map<String, List<RoleRight>> newRights = new HashMap<String, List<RoleRight>>();
+        List<Right> newRights = new ArrayList<Right>();
         for (Role userRole : userRoles) {
             if (userRole.getRoleName().equals(role.getRoleName()) && userRole.getRights() != null) {
                 newRights = userRole.getRights();
@@ -316,7 +315,7 @@ public abstract class AbstractFSLarchIT {
                 roleRights.add(roleRight);
             }
             if (!roleRights.isEmpty()) {
-                newRights.put(anchorId, roleRights);
+                newRights.add(new Right(anchorId, roleRights));
                 role.setRights(newRights);
                 userRoles.add(role);
             }
