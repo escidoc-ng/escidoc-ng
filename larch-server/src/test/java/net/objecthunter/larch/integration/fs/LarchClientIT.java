@@ -80,7 +80,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testRetrieveMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Metadata orig = e.getMetadata().entrySet().iterator().next().getValue();
+        Metadata orig = e.getMetadata().iterator().next();
         Metadata md = this.client.retrieveMetadata(e.getId(), orig.getName());
         assertNotNull(md);
         assertEquals(orig.getType(), md.getType());
@@ -93,8 +93,8 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testRetrieveBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
-        Metadata orig = bin.getMetadata().entrySet().iterator().next().getValue();
+        Binary bin = e.getBinaries().iterator().next();
+        Metadata orig = bin.getMetadata().iterator().next();
         Metadata md = this.client.retrieveBinaryMetadata(e.getId(), bin.getName(), orig.getName());
         assertNotNull(md);
         assertEquals(orig.getType(), md.getType());
@@ -115,7 +115,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testPostBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
+        Binary bin = e.getBinaries().iterator().next();
         Metadata binMd = Fixtures.createRandomDCMetadata(false);
         this.client.postBinaryMetadata(e.getId(), bin.getName(), binMd);
     }
@@ -133,7 +133,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testDeleteBinaryMetadata() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
+        Binary bin = e.getBinaries().iterator().next();
         Metadata binMd = Fixtures.createRandomDCMetadata(false);
         this.client.postBinaryMetadata(e.getId(), bin.getName(), binMd);
         this.client.deleteBinaryMetadata(e.getId(), bin.getName(), binMd.getName());
@@ -143,7 +143,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testRetrieveBinary() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary orig = e.getBinaries().entrySet().iterator().next().getValue();
+        Binary orig = e.getBinaries().iterator().next();
         Binary fetched = this.client.retrieveBinary(e.getId(), orig.getName());
     }
 
@@ -159,7 +159,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testDeleteBinary() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
+        Binary bin = e.getBinaries().iterator().next();
         this.client.deleteBinary(e.getId(), bin.getName());
     }
 
@@ -167,7 +167,7 @@ public class LarchClientIT extends AbstractFSLarchIT {
     public void testRetrieveBinaryContent() throws Exception {
         Entity e = Fixtures.createFixtureEntityWithRandomId();
         this.client.postEntity(e);
-        Binary bin = e.getBinaries().entrySet().iterator().next().getValue();
+        Binary bin = e.getBinaries().iterator().next();
         InputStream src = this.client.retrieveBinaryContent(e.getId(), bin.getName());
         File target = new File(tempFolder.getRoot(), RandomStringUtils.randomAlphabetic(16));
         try (FileOutputStream sink = new FileOutputStream(target)) {

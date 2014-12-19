@@ -41,6 +41,7 @@ import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.UserRequest;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserAdminRole;
@@ -305,7 +306,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
         // Set permissions for user
         List<Role> roles = new ArrayList<Role>();
         UserRole userRole = new UserRole();
-        Map<String, List<RoleRight>> rights = new HashMap<String, List<RoleRight>>();
+        List<Right> rights = new ArrayList<Right>();
         // permissions
         List<RoleRight> roleRights = new ArrayList<RoleRight>();
         for (RoleRight allowedRoleRight : userRole.allowedRights()) {
@@ -313,29 +314,29 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
                 roleRights.add(allowedRoleRight);
             }
         }
-        rights.put(level2Id, roleRights);
+        rights.add(new Right(level2Id, roleRights));
         userRole.setRights(rights);
         roles.add(userRole);
 
         // set other roles
         // user-admin
         UserAdminRole userAdminRole = new UserAdminRole();
-        Map<String, List<RoleRight>> userAdminRights = new HashMap<String, List<RoleRight>>();
+        List<Right> userAdminRights = new ArrayList<Right>();
         List<RoleRight> userAdminRoleRights = new ArrayList<RoleRight>();
         for (RoleRight userAdminRoleRight : userAdminRole.allowedRights()) {
             userAdminRoleRights.add(userAdminRoleRight);
         }
-        userAdminRights.put(unusedUserId, userAdminRoleRights);
+        userAdminRights.add(new Right(unusedUserId, userAdminRoleRights));
         userAdminRole.setRights(userAdminRights);
         roles.add(userAdminRole);
         // level1-admin
         Level1AdminRole level1AdminRole = new Level1AdminRole();
-        Map<String, List<RoleRight>> level1AdminRights = new HashMap<String, List<RoleRight>>();
+        List<Right> level1AdminRights = new ArrayList<Right>();
         List<RoleRight> level1AdminRoleRights = new ArrayList<RoleRight>();
         for (RoleRight level1AdminRoleRight : level1AdminRole.allowedRights()) {
             level1AdminRoleRights.add(level1AdminRoleRight);
         }
-        level1AdminRights.put(level1Id2, level1AdminRoleRights);
+        level1AdminRights.add(new Right(level1Id2, level1AdminRoleRights));
         level1AdminRole.setRights(level1AdminRights);
         roles.add(level1AdminRole);
 
@@ -583,19 +584,18 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
                 this.executeAsAdmin(
                         Request.Get(entityUrl + resetEntity.getId()));
         if (resetEntity.getBinaries() != null) {
-            for (Entry<String, Binary> binary : resetEntity.getBinaries().entrySet()) {
-                binary.getValue()
-                        .setSource(
+            for (Binary binary : resetEntity.getBinaries()) {
+                binary.setSource(
                                 new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/image_1.png").openStream())));
-                if (binary.getValue().getMetadata() != null) {
-                    for (Metadata md : binary.getValue().getMetadata().values()) {
+                if (binary.getMetadata() != null) {
+                    for (Metadata md : binary.getMetadata()) {
                         md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
                     }
                 }
             }
         }
         if (resetEntity.getMetadata() != null) {
-            for (Metadata md : resetEntity.getMetadata().values()) {
+            for (Metadata md : resetEntity.getMetadata()) {
                 md.setSource(new ByteArraySource(IOUtils.toByteArray(Fixtures.class.getClassLoader().getResource("fixtures/dc.xml").openStream())));
             }
         }
@@ -615,7 +615,7 @@ public abstract class AbstractAuthorizeLarchIT extends AbstractFSLarchIT {
             if (EntityState.PUBLISHED.equals(storedEntity.getState()) ||
                     EntityState.WITHDRAWN.equals(storedEntity.getState())) {
                 // recreate with different id
-                resetEntity.setBinaries(new HashMap<String, Binary>());
+                resetEntity.setBinaries(new ArrayList<Binary>());
                 resetEntity.setId(null);
                 resp =
                         this.executeAsAdmin(

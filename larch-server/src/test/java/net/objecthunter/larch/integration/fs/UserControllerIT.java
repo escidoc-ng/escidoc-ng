@@ -15,7 +15,9 @@
  */
 package net.objecthunter.larch.integration.fs;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.Level1AdminRole;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
@@ -61,8 +63,8 @@ public class UserControllerIT extends AbstractFSLarchIT {
         assertNotNull(user.getRole(RoleName.ROLE_LEVEL1_ADMIN));
         assertNotNull(user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights());
         assertEquals(1, user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().size());
-        assertNotNull(user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().get(level1Id));
-        assertEquals(2, user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().get(level1Id).size());
+        assertNotNull(user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRight(level1Id).getRoleRights());
+        assertEquals(2, user.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRight(level1Id).getRoleRights().size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username1));
         assertEquals(200, resp.getStatusLine().getStatusCode());
@@ -72,13 +74,13 @@ public class UserControllerIT extends AbstractFSLarchIT {
         assertNotNull(user1.getRole(RoleName.ROLE_LEVEL1_ADMIN));
         assertNotNull(user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights());
         assertEquals(1, user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().size());
-        assertNotNull(user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().get(level1Id));
-        assertEquals(2, user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRights().get(level1Id).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRight(level1Id).getRoleRights());
+        assertEquals(2, user1.getRole(RoleName.ROLE_LEVEL1_ADMIN).getRight(level1Id).getRoleRights().size());
         assertNotNull(user1.getRole(RoleName.ROLE_USER));
         assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights());
         assertEquals(1, user1.getRole(RoleName.ROLE_USER).getRights().size());
-        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRights().get(level2Id));
-        assertNotEquals(0, user1.getRole(RoleName.ROLE_USER).getRights().get(level2Id).size());
+        assertNotNull(user1.getRole(RoleName.ROLE_USER).getRight(level2Id).getRoleRights());
+        assertNotEquals(0, user1.getRole(RoleName.ROLE_USER).getRight(level2Id).getRoleRights().size());
 
         resp = this.executeAsAdmin(Request.Get(userUrl + username2));
         assertEquals(200, resp.getStatusLine().getStatusCode());

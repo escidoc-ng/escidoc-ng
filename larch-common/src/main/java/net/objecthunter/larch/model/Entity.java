@@ -17,7 +17,6 @@ package net.objecthunter.larch.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A DTO for a top level larch repository object. Creating any object in the larch repository normally starts with
@@ -45,29 +44,27 @@ public class Entity {
 
     private List<String> tags;
 
-    private Map<String, Metadata> metadata;
+    private List<Metadata> metadata;
 
-    private Map<String, Binary> binaries;
+    private List<Binary> binaries;
 
     private List<AlternativeIdentifier> alternativeIdentifiers;
 
-    private Map<String, List<String>> relations;
+    private List<Relation> relations;
 
+    
     /**
-     * Get the relations of an {@link Entity}
-     * 
-     * @return the Relations of the entity
+     * @return the relations
      */
-    public Map<String, List<String>> getRelations() {
+    public List<Relation> getRelations() {
         return relations;
     }
 
+    
     /**
-     * Set the entity's relations
-     * 
      * @param relations the relations to set
      */
-    public void setRelations(Map<String, List<String>> relations) {
+    public void setRelations(List<Relation> relations) {
         this.relations = relations;
     }
 
@@ -196,26 +193,25 @@ public class Entity {
     public void setParentId(String parentId) {
         this.parentId = parentId;
     }
-
+    
+    
     /**
-     * Get the metadata of an entity
-     * 
-     * @return the metadata of the entity
+     * @return the metadata
      */
-    public Map<String, Metadata> getMetadata() {
+    public List<Metadata> getMetadata() {
         return metadata;
     }
 
+
+    
     /**
-     * Set the metadata of an entity
-     * 
      * @param metadata the metadata to set
      */
-    public void setMetadata(Map<String, Metadata> metadata) {
+    public void setMetadata(List<Metadata> metadata) {
         this.metadata = metadata;
     }
 
-    
+
     /**
      * @return the contentModelId
      */
@@ -231,23 +227,23 @@ public class Entity {
         this.contentModelId = contentModelId;
     }
 
+    
     /**
-     * Get the entity's binaries
-     * 
      * @return the binaries
      */
-    public Map<String, Binary> getBinaries() {
+    public List<Binary> getBinaries() {
         return binaries;
     }
 
+
+    
     /**
-     * Set the entity's binaries
-     * 
      * @param binaries the binaries to set
      */
-    public void setBinaries(Map<String, Binary> binaries) {
+    public void setBinaries(List<Binary> binaries) {
         this.binaries = binaries;
     }
+
 
     /**
      * @return the alternativeIdentifiers
@@ -300,6 +296,148 @@ public class Entity {
      */
     public void setState(EntityState state) {
         this.state = state;
+    }
+    
+    /**
+     * Check if metadata-list contains Metadata with given name.
+     * 
+     * @param name
+     * @return boolean true|false
+     */
+    public boolean hasMetadata(String name) {
+        if (name != null && metadata != null) {
+            for(Metadata m : metadata) {
+                if (name.equals(m.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if binary-list contains Binary with given name.
+     * 
+     * @param name
+     * @return boolean true|false
+     */
+    public boolean hasBinary(String name) {
+        if (name != null && binaries != null) {
+            for(Binary b : binaries) {
+                if (name.equals(b.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if relation-list contains Relation with given predicate.
+     * 
+     * @param predicate
+     * @return boolean true|false
+     */
+    public boolean hasRelation(String predicate) {
+        if (predicate != null && relations != null) {
+            for(Relation r : relations) {
+                if (predicate.equals(r.getPredicate())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * get Metadata with given name.
+     * 
+     * @param name
+     * @return Metadata
+     */
+    public Metadata getMetadata(String name) {
+        if (name != null && metadata != null) {
+            for(Metadata m : metadata) {
+                if (name.equals(m.getName())) {
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * get Binary with given name.
+     * 
+     * @param name
+     * @return Binary
+     */
+    public Binary getBinary(String name) {
+        if (name != null && binaries != null) {
+            for(Binary b : binaries) {
+                if (name.equals(b.getName())) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * get Relation with given predicate.
+     * 
+     * @param predicate
+     * @return Relation
+     */
+    public Relation getRelation(String predicate) {
+        if (predicate != null && relations != null) {
+            for(Relation r : relations) {
+                if (predicate.equals(r.getPredicate())) {
+                    return r;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * remove Metadata with given name.
+     * 
+     * @param name
+     */
+    public void removeMetadata(String name) {
+        int index = -1;
+        if (name != null && metadata != null) {
+            for (int i = 0; i < metadata.size(); i++) {
+                if (name.equals(metadata.get(i).getName())) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index > -1) {
+            metadata.remove(index);
+        }
+    }
+    
+    /**
+     * remove Binary with given name.
+     * 
+     * @param name
+     */
+    public void removeBinary(String name) {
+        int index = -1;
+        if (name != null && binaries != null) {
+            for (int i = 0; i < binaries.size(); i++) {
+                if (name.equals(binaries.get(i).getName())) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (index > -1) {
+            binaries.remove(index);
+        }
     }
     
     public enum EntityState {

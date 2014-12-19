@@ -63,4 +63,8 @@ public class ResultFormatter {
             }
         }
     }
+    
+    public static void print(String msg) {
+        log.info(msg);
+    }
 }

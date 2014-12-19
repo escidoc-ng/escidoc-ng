@@ -42,32 +42,32 @@ public class ElasticSearchNode {
                 NodeBuilder.nodeBuilder()
                         .clusterName(environment.getProperty("elasticsearch.escidocng.cluster.name"))
                         .settings(
-                            ImmutableSettings.settingsBuilder()
-                                .put("path.logs",
-                                     environment.getProperty("elasticsearch.path.logs"))
-                                .put("path.data",
-                                     environment.getProperty("elasticsearch.path.data"))
-                                .put("bootstrap.mlockall",
-                                     environment.getProperty("elasticsearch.bootstrap.mlockall"))
-                                .put("network.bind.host",
-                                     environment.getProperty("elasticsearch.network.bind.host"))
-                                .put("network.host",
-                                     environment.getProperty("elasticsearch.network.host", ""))
-                                .put("gateway.expected_nodes",
-                                     environment
-                                         .getProperty("elasticsearch.gateway.expected_nodes"))
-                                .put("http.port",
-                                     environment.getProperty("elasticsearch.http.port"))
-                                .put("http.enabled",
-                                     environment.getProperty("elasticsearch.http.enabled"))
-                                .put("transport.tcp.port",
-                                     environment
-                                         .getProperty("elasticsearch.transport.tcp.port", ""))
-                                .put("network.publish_host",
-                                     environment
-                                         .getProperty("elasticsearch.network.publish_host", ""))
-                                .put("gateway.type",
-                                     environment.getProperty("elasticsearch.gateway.type"))
+                                ImmutableSettings.settingsBuilder()
+                                        .put("path.logs",
+                                                environment.getProperty("elasticsearch.path.logs"))
+                                        .put("path.data",
+                                                environment.getProperty("elasticsearch.path.data"))
+                                        .put("bootstrap.mlockall",
+                                                environment.getProperty("elasticsearch.bootstrap.mlockall"))
+                                        .put("network.bind.host",
+                                                environment.getProperty("elasticsearch.network.bind.host"))
+                                        .put("network.host",
+                                                environment.getProperty("elasticsearch.network.host", ""))
+                                        .put("gateway.expected_nodes",
+                                                environment
+                                                        .getProperty("elasticsearch.gateway.expected_nodes"))
+                                        .put("http.port",
+                                                environment.getProperty("elasticsearch.http.port"))
+                                        .put("http.enabled",
+                                                environment.getProperty("elasticsearch.http.enabled"))
+                                        .put("transport.tcp.port",
+                                                environment
+                                                        .getProperty("elasticsearch.transport.tcp.port", ""))
+                                        .put("network.publish_host",
+                                                environment
+                                                        .getProperty("elasticsearch.network.publish_host", ""))
+                                        .put("gateway.type",
+                                                environment.getProperty("elasticsearch.gateway.type"))
                         )
                         .node();
     }

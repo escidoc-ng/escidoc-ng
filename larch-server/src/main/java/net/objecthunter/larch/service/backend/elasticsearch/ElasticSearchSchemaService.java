@@ -16,7 +16,6 @@
 
 package net.objecthunter.larch.service.backend.elasticsearch;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +56,6 @@ import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.tags.form.InputTag;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -204,10 +202,10 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
         }
         /* fetch the named metadata which will be validated */
         final Entity e = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        if (e.getMetadata() == null || !e.getMetadata().containsKey(metadataName)) {
+        final Metadata md = e.getMetadata(metadataName);
+        if (md == null) {
             throw new IOException("The entity '" + id + "' has no meta data record named '" + metadataName);
         }
-        final Metadata md = e.getMetadata().get(metadataName);
 
         return this.validate(md);
     }
@@ -226,16 +224,16 @@ public class ElasticSearchSchemaService extends AbstractElasticSearchService imp
         }
         /* fetch the named metadata which will be validated */
         final Entity e = mapper.readValue(resp.getSourceAsBytes(), Entity.class);
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
+        final Binary bin = e.getBinary(binaryName);
+        if (bin == null) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on the entity " + id);
         }
-        final Binary bin = e.getBinaries().get(binaryName);
-        if (bin.getMetadata() == null || !bin.getMetadata().containsKey(metadataName)) {
+        final Metadata md = bin.getMetadata(metadataName);
+        if (md == null) {
             throw new NotFoundException("The binary " + binaryName + " of the entity '" + id +
                     "' has no meta data record " +
                     "named '" + metadataName);
         }
-        final Metadata md = bin.getMetadata().get(metadataName);
         return this.validate(md);
     }
 

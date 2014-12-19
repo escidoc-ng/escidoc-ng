@@ -5,10 +5,10 @@
 package net.objecthunter.larch.service.backend.elasticsearch.queryrestriction;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity.EntityState;
+import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.service.backend.elasticsearch.ElasticSearchArchiveIndexService.ArchivesSearchField;
@@ -36,28 +36,28 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
-            for (Entry<String, List<RoleRight>> rightSet : getRole().getRights().entrySet()) {
-                List<RoleRight> userRights = rightSet.getValue();
+            for (Right right : getRole().getRights()) {
+                List<RoleRight> userRights = right.getRoleRights();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ_PENDING_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataEntitiesRestrictionQuery(EntityState.PENDING,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_PUBLISHED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataEntitiesRestrictionQuery(EntityState.PUBLISHED,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_SUBMITTED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataEntitiesRestrictionQuery(EntityState.SUBMITTED,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataEntitiesRestrictionQuery(EntityState.WITHDRAWN,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_LEVEL2.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
-                                getLevel2EntitiesRestrictionQuery(rightSet.getKey()));
+                                getLevel2EntitiesRestrictionQuery(right.getAnchorId()));
                     }
                 }
             }
@@ -89,28 +89,28 @@ public class UserRoleQueryRestriction extends RoleQueryRestriction {
 
         // add restrictions
         if (getRole() != null && getRole().getRights() != null) {
-            for (Entry<String, List<RoleRight>> rightSet : getRole().getRights().entrySet()) {
-                List<RoleRight> userRights = rightSet.getValue();
+            for (Right right : getRole().getRights()) {
+                List<RoleRight> userRights = right.getRoleRights();
                 for (RoleRight userRight : userRights) {
                     if (RoleRight.READ_PENDING_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataArchivesRestrictionQuery(EntityState.PENDING,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_PUBLISHED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataArchivesRestrictionQuery(EntityState.PUBLISHED,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_SUBMITTED_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataArchivesRestrictionQuery(EntityState.SUBMITTED,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_WITHDRAWN_METADATA.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
                                 getDataArchivesRestrictionQuery(EntityState.WITHDRAWN,
-                                        rightSet.getKey()));
+                                        right.getAnchorId()));
                     } else if (RoleRight.READ_LEVEL2.equals(userRight)) {
                         restrictionQueryBuilder.append(" OR ").append(
-                                getLevel2ArchivesRestrictionQuery(rightSet.getKey()));
+                                getLevel2ArchivesRestrictionQuery(right.getAnchorId()));
                     }
                 }
             }

@@ -47,6 +47,7 @@ import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.EntityHierarchy;
 import net.objecthunter.larch.model.LarchConstants;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.Relation;
 import net.objecthunter.larch.model.SearchResult;
 import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.Role;
@@ -149,7 +150,7 @@ public class DefaultEntityService implements EntityService {
         defaultEntityValidatorService.validate(e);
 
         if (e.getMetadata() != null) {
-            for (final Metadata md : e.getMetadata().values()) {
+            for (final Metadata md : e.getMetadata()) {
                 if (md.getSource() == null) {
                     log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
                     continue;
@@ -161,7 +162,7 @@ public class DefaultEntityService implements EntityService {
             e.setLabel("Unnamed entity");
         }
         if (e.getBinaries() != null) {
-            for (final Binary b : e.getBinaries().values()) {
+            for (final Binary b : e.getBinaries()) {
                 createAndMutateBinary(e.getId(), b);
             }
         }
@@ -214,7 +215,7 @@ public class DefaultEntityService implements EntityService {
             b.setUtcCreated(now);
             b.setUtcLastModified(now);
             if (b.getMetadata() != null) {
-                for (final Metadata md : b.getMetadata().values()) {
+                for (final Metadata md : b.getMetadata()) {
                     if (md.getSource() == null) {
                         log.warn("No source on binary '{}' of entity '{}'", b.getName(), entityId);
                         continue;
@@ -303,16 +304,17 @@ public class DefaultEntityService implements EntityService {
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         e.setVersion(oldVersion.getVersion() + 1);
         if (e.getMetadata() != null) {
-            for (final Metadata md : e.getMetadata().values()) {
+            for (final Metadata md : e.getMetadata()) {
                 if (md.getSource() == null) {
                     log.warn("No source on metadata '{}' of entity '{}'", md.getName(), e.getId());
                     continue;
                 }
-                if (md.getSource().isInternal() &&
-                        md.isIndexInline() == oldVersion.getMetadata().get(md.getName()).isIndexInline()) {
-                    md.setJsonData(oldVersion.getMetadata().get(md.getName()).getJsonData());
-                    md.setUtcLastModified(oldVersion.getMetadata().get(md.getName()).getUtcLastModified());
-                    md.setUtcCreated(oldVersion.getMetadata().get(md.getName()).getUtcCreated());
+                if (md.getSource().isInternal() && oldVersion.hasMetadata(md.getName()) && 
+                        md.isIndexInline() == oldVersion.getMetadata(md.getName()).isIndexInline()) {
+                    Metadata oldMd = oldVersion.getMetadata(md.getName());
+                    md.setJsonData(oldMd.getJsonData());
+                    md.setUtcLastModified(oldMd.getUtcLastModified());
+                    md.setUtcCreated(oldMd.getUtcCreated());
                 }
                 else {
                     createAndMutateMetadata(e.getId(), null, md);
@@ -325,29 +327,29 @@ public class DefaultEntityService implements EntityService {
             e.setLabel("Unnamed entity");
         }
         if (e.getBinaries() != null) {
-            for (final Binary b : e.getBinaries().values()) {
+            for (final Binary b : e.getBinaries()) {
                 if (b.getSource() == null) {
                     log.warn("No source on binary '{}' of entity '{}'", b.getName(), e.getId());
                     continue;
                 }
                 if (b.getSource().isInternal()) {
-                    b.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getUtcLastModified());
-                    b.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getUtcCreated());
+                    Binary oldBin = oldVersion.getBinary(b.getName());
+                    if (oldBin != null) {
+                        b.setUtcLastModified(oldBin.getUtcLastModified());
+                        b.setUtcCreated(oldBin.getUtcCreated());
+                    }
                     if (b.getMetadata() != null) {
-                        for (final Metadata md : b.getMetadata().values()) {
+                        for (final Metadata md : b.getMetadata()) {
                             if (md.getSource() == null) {
                                 log.warn("No source on metadata '{}' of binary '{}'", md.getName(), b.getName());
                                 continue;
                             }
-                            if (md.getSource().isInternal() &&
-                                    md.isIndexInline() == oldVersion.getBinaries().get(b.getName()).getMetadata()
-                                            .get(md.getName()).isIndexInline()) {
-                                md.setJsonData(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
-                                        md.getName()).getJsonData());
-                                md.setUtcLastModified(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
-                                        md.getName()).getUtcLastModified());
-                                md.setUtcCreated(oldVersion.getBinaries().get(b.getName()).getMetadata().get(
-                                        md.getName()).getUtcCreated());
+                            Metadata oldMd = oldBin.getMetadata(md.getName());
+                            if (oldMd != null && md.getSource().isInternal() &&
+                                    md.isIndexInline() == oldMd.isIndexInline()) {
+                                md.setJsonData(oldMd.getJsonData());
+                                md.setUtcLastModified(oldMd.getUtcLastModified());
+                                md.setUtcCreated(oldMd.getUtcCreated());
                             }
                             else {
                                 createAndMutateMetadata(e.getId(), b.getName(), md);
@@ -410,7 +412,7 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
 
-        if (e.getBinaries() != null && e.getBinaries().get(binary.getName()) != null) {
+        if (e.hasBinary(binary.getName())) {
             throw new AlreadyExistsException("binary with name " + binary.getName() + " already exists in entity with id " +
                     e.getId());
         }
@@ -419,9 +421,9 @@ public class DefaultEntityService implements EntityService {
 
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         if (e.getBinaries() == null) {
-            e.setBinaries(new HashMap<>(1));
+            e.setBinaries(new ArrayList<>(1));
         }
-        e.getBinaries().put(binary.getName(), binary);
+        e.getBinaries().add(binary);
         e.setVersion(e.getVersion() + 1);
         e.setUtcLastModified(now);
         this.backendEntityService.update(e);
@@ -439,7 +441,7 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
 
-        if (e.getMetadata() != null && e.getMetadata().get(metadata.getName()) != null) {
+        if (e.hasMetadata(metadata.getName())) {
             throw new AlreadyExistsException("metadata with name " + metadata.getName() + " already exists in entity with id " +
                     e.getId());
         }
@@ -448,9 +450,9 @@ public class DefaultEntityService implements EntityService {
 
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
         if (e.getMetadata() == null) {
-            e.setMetadata(new HashMap<>(1));
+            e.setMetadata(new ArrayList<>(1));
         }
-        e.getMetadata().put(metadata.getName(), metadata);
+        e.getMetadata().add(metadata);
         e.setVersion(e.getVersion() + 1);
         e.setUtcLastModified(now);
         this.backendEntityService.update(e);
@@ -468,14 +470,14 @@ public class DefaultEntityService implements EntityService {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
 
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
+        if (!e.hasBinary(binaryName)) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on the entity " + entityId);
         }
-        final Binary bin = e.getBinaries().get(binaryName);
+        final Binary bin = e.getBinary(binaryName);
         if (bin.getMetadata() == null) {
-            bin.setMetadata(new HashMap<>());
+            bin.setMetadata(new ArrayList<>());
         }
-        if (bin.getMetadata().containsKey(metadata.getName())) {
+        if (bin.hasMetadata(metadata.getName())) {
             throw new IOException("The metadata " + metadata.getName() + " already exists on the binary " + binaryName +
                     " of the entity " + entityId);
         }
@@ -484,7 +486,7 @@ public class DefaultEntityService implements EntityService {
         createAndMutateMetadata(entityId, binaryName, metadata);
 
         final String now = ZonedDateTime.now(ZoneOffset.UTC).toString();
-        bin.getMetadata().put(metadata.getName(), metadata);
+        bin.getMetadata().add(metadata);
         e.setVersion(e.getVersion() + 1);
         e.setUtcLastModified(now);
         this.backendEntityService.update(e);
@@ -553,12 +555,14 @@ public class DefaultEntityService implements EntityService {
         newVersion.setUtcLastModified(now);
         newVersion.setVersion(oldVersion.getVersion() + 1);
         if (newVersion.getRelations() == null) {
-            newVersion.setRelations(new HashMap<>());
+            newVersion.setRelations(new ArrayList<>());
         }
-        if (newVersion.getRelations().get(predicate) == null) {
-            newVersion.getRelations().put(predicate, new ArrayList<>(1));
+        if (newVersion.getRelation(predicate) == null) {
+            newVersion.getRelations().add(new Relation(predicate, new ArrayList<String>()));
+        } else if (newVersion.getRelation(predicate).getObjects() == null) {
+            newVersion.getRelation(predicate).setObjects(new ArrayList<String>());
         }
-        newVersion.getRelations().get(predicate).add(object);
+        newVersion.getRelation(predicate).getObjects().add(object);
         this.backendEntityService.update(newVersion);
     }
 
@@ -568,18 +572,18 @@ public class DefaultEntityService implements EntityService {
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
-        if (e.getBinaries().get(name) == null) {
+        if (e.getBinary(name) == null) {
             throw new NotFoundException("Binary " + name + " does not exist on entity " + entityId);
         }
         // delete metadata from filesystem
-        if (e.getBinaries().get(name).getMetadata() != null) {
-            for (Metadata md : e.getBinaries().get(name).getMetadata().values()) {
+        if (e.getBinary(name).getMetadata() != null) {
+            for (Metadata md : e.getBinary(name).getMetadata()) {
                 this.backendBlobstoreService.delete(md.getPath());
             }
         }
         // delete binary from filesystem
-        this.backendBlobstoreService.delete(e.getBinaries().get(name).getPath());
-        e.getBinaries().remove(name);
+        this.backendBlobstoreService.delete(e.getBinary(name).getPath());
+        e.removeBinary(name);
         this.update(e);
     }
 
@@ -599,11 +603,11 @@ public class DefaultEntityService implements EntityService {
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
-        if (e.getMetadata().get(mdName) == null) {
+        if (e.getMetadata(mdName) == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
-        this.backendBlobstoreService.delete(e.getMetadata().get(mdName).getPath());
-        e.getMetadata().remove(mdName);
+        this.backendBlobstoreService.delete(e.getMetadata(mdName).getPath());
+        e.removeMetadata(mdName);
         this.update(e);
     }
 
@@ -614,16 +618,16 @@ public class DefaultEntityService implements EntityService {
         if (EntityState.PUBLISHED.equals(e.getState()) || EntityState.WITHDRAWN.equals(e.getState())) {
             throw new InvalidParameterException("Cannot update entity in state " + e.getState());
         }
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
+        if (!e.hasBinary(binaryName)) {
             throw new NotFoundException("The binary " + binaryName + " does not exist in the entity " + entityId);
         }
-        final Binary bin = e.getBinaries().get(binaryName);
-        if (bin.getMetadata() == null || !bin.getMetadata().containsKey(mdName)) {
+        final Binary bin = e.getBinary(binaryName);
+        if (!bin.hasMetadata(mdName)) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on binary " + binaryName
                     + " of entity " + entityId);
         }
-        this.backendBlobstoreService.delete(bin.getMetadata().get(mdName).getPath());
-        bin.getMetadata().remove(mdName);
+        this.backendBlobstoreService.delete(bin.getMetadata(mdName).getPath());
+        bin.removeMetadata(mdName);
         this.update(e);
     }
 
@@ -932,7 +936,7 @@ public class DefaultEntityService implements EntityService {
     private void deleteFiles(Entity e, List<String> alreadyDeletedFiles) throws IOException {
         // delete binaries
         if (e.getBinaries() != null) {
-            for (Binary b : e.getBinaries().values()) {
+            for (Binary b : e.getBinaries()) {
                 if (b.getPath() != null && !b.getPath().isEmpty()) {
                     if (!alreadyDeletedFiles.contains(b.getPath())) {
                         try {
@@ -944,7 +948,7 @@ public class DefaultEntityService implements EntityService {
                     }
                 }
                 if (b.getMetadata() != null) {
-                    for (Metadata md : b.getMetadata().values()) {
+                    for (Metadata md : b.getMetadata()) {
                         if (!alreadyDeletedFiles.contains(md.getPath())) {
                             try {
                                 this.backendBlobstoreService.delete(md.getPath());
@@ -960,7 +964,7 @@ public class DefaultEntityService implements EntityService {
 
         // delete metadata from filesystem
         if (e.getMetadata() != null) {
-            for (Metadata md : e.getMetadata().values()) {
+            for (Metadata md : e.getMetadata()) {
                 if (!alreadyDeletedFiles.contains(md.getPath())) {
                     try {
                         this.backendBlobstoreService.delete(md.getPath());

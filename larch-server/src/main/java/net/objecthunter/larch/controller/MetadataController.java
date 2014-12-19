@@ -216,10 +216,10 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse response) throws IOException {
         final Entity e = entityService.retrieve(id);
-        if (e.getMetadata() == null || !e.getMetadata().containsKey(metadataName)) {
+        final Metadata md = e.getMetadata(metadataName);
+        if (md == null) {
             throw new NotFoundException("The Metadata " + metadataName + " does not exist on the entity " + id);
         }
-        final Metadata md = e.getMetadata().get(metadataName);
         response.setContentType(md.getMimetype());
         response.setContentLength(-1);
         response.setHeader("Content-Disposition", "inline");
@@ -252,15 +252,15 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("metadata-name") final String metadataName,
             final HttpServletResponse response) throws IOException {
         final Entity e = entityService.retrieve(id);
-        if (e.getBinaries() == null || !e.getBinaries().containsKey(binaryName)) {
+        final Binary bin = e.getBinary(binaryName);
+        if (bin == null) {
             throw new FileNotFoundException("The binary " + binaryName + " does not exist on entity " + id);
         }
-        final Binary bin = e.getBinaries().get(binaryName);
-        if (bin.getMetadata() == null || !bin.getMetadata().containsKey(metadataName)) {
+        final Metadata md = bin.getMetadata(metadataName);
+        if (md == null) {
             throw new FileNotFoundException("The metadata " + metadataName + " does not exist on the binary "
                     + binaryName + " of the entity " + id);
         }
-        final Metadata md = bin.getMetadata().get(metadataName);
         response.setContentType(md.getMimetype());
         response.setContentLength(-1);
         response.setHeader("Content-Disposition", "inline");
@@ -367,7 +367,7 @@ public class MetadataController extends AbstractLarchController {
     public Metadata retrieveMetadata(@PathVariable("id") final String entityId,
             @PathVariable("metadata-name") final String mdName) throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
-        Metadata md = e.getMetadata().get(mdName);
+        Metadata md = e.getMetadata(mdName);
         if (md == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on entity " + entityId);
         }
@@ -397,11 +397,11 @@ public class MetadataController extends AbstractLarchController {
             @PathVariable("binary-name") final String binaryName, @PathVariable("metadata-name") final String mdName)
             throws IOException {
         final Entity e = this.entityService.retrieve(entityId);
-        final Binary b = e.getBinaries().get(binaryName);
+        final Binary b = e.getBinary(binaryName);
         if (b == null) {
             throw new NotFoundException("Binary " + binaryName + " does not exist on entity " + entityId);
         }
-        final Metadata md = b.getMetadata().get(mdName);
+        final Metadata md = b.getMetadata(mdName);
         if (md == null) {
             throw new NotFoundException("Meta data " + mdName + " does not exist on Binary " + binaryName
                     + " of entity " + entityId);
