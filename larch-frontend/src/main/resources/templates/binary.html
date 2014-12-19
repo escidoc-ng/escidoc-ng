@@ -68,36 +68,36 @@ limitations under the License.
             <p class="value" th:text="${binary.utcLastModified}"></p>
         </div>
         <div th:each="md : ${binary.metadata}" class="panel">
-            <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
+            <p class="panel_title" th:text="'Metadata: ' + ${md.name}"></p>
 
             <p class="property" th:text="Actions" />
-            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinaryMetadata(\'' + ${entityId} + '\', \'' + ${binary.name} + '\', \'' + ${md.key} + '\')'"/>
+            <input class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinaryMetadata(\'' + ${entityId} + '\', \'' + ${binary.name} + '\', \'' + ${md.name} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
 
-            <p class="value" th:text="${md.value.type}"></p>
+            <p class="value" th:text="${md.type}"></p>
 
             <p class="property">Mime type</p>
 
-            <p class="value" th:text="${md.value.mimetype}"></p>
+            <p class="value" th:text="${md.mimetype}"></p>
 
             <p class="property">Original file name</p>
 
-            <p class="value" th:text="${md.value.filename}"></p>
+            <p class="value" th:text="${md.filename}"></p>
 
             <p class="property">Created</p>
 
-            <p class="value" th:text="${md.value.utcCreated}"></p>
+            <p class="value" th:text="${md.utcCreated}"></p>
 
             <p class="property">Last modified</p>
 
-            <p class="value" th:text="${md.value.utcLastModified}"></p>
+            <p class="value" th:text="${md.utcLastModified}"></p>
 
             <p class="property">Content</p>
-            <a th:href="${binary.name} + '/metadata/' + ${md.key} + '/validate'"
+            <a th:href="${binary.name} + '/metadata/' + ${md.name} + '/validate'"
                th:text="'Validate'"></a>
-            <a th:href="${binary.name} + '/metadata/' + ${md.key} + '/content'"
+            <a th:href="${binary.name} + '/metadata/' + ${md.name} + '/content'"
                th:text="'Download'"></a>
         </div>
         <div class="right">

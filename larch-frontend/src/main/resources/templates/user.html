@@ -47,8 +47,8 @@ limitations under the License.
         <div th:each="role : ${user.roles}" class="panel clickable">
             <p class="panel_title" th:text="${role.roleName}"></p>
             <div th:each="rights : ${role.rights}">
-                <p class="property" th:text="anchorId + ': ' + ${rights.key}"></p>
-                <p class="value" th:each="value : ${rights.value}" th:text="${value}"></p>
+                <p class="property" th:text="anchorId + ': ' + ${rights.anchorId}"></p>
+                <p class="value" th:each="value : ${rights.roleRights}" th:text="${value}"></p>
             </div>
         </div>
         <div class="right">

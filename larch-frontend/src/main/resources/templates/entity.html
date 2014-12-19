@@ -93,38 +93,38 @@ limitations under the License.
 
         </div>
         <div th:each="md : ${entity.metadata}" class="panel">
-            <p class="panel_title" th:text="'Metadata: ' + ${md.key}"></p>
+            <p class="panel_title" th:text="'Metadata: ' + ${md.name}"></p>
 
             <p class="property" th:text="Actions" />
-            <input id="metadataDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.key} + '\')'"/>
+            <input id="metadataDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteMetadata(\'' + ${entity.id} + '\', \'' + ${md.name} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Type</p>
 
-            <p class="value" th:text="${md.value.type}"></p>
+            <p class="value" th:text="${md.type}"></p>
 
             <p class="property">Mime type</p>
 
-            <p class="value" th:text="${md.value.mimetype}"></p>
+            <p class="value" th:text="${md.mimetype}"></p>
 
             <p class="property">Original file name</p>
 
-            <p class="value" th:text="${md.value.filename}"></p>
+            <p class="value" th:text="${md.filename}"></p>
 
             <p class="property">Created</p>
 
-            <p class="value" th:text="${md.value.utcCreated}"></p>
+            <p class="value" th:text="${md.utcCreated}"></p>
 
             <p class="property">Last modified</p>
 
-            <p class="value" th:text="${md.value.utcLastModified}"></p>
+            <p class="value" th:text="${md.utcLastModified}"></p>
 
             <p class="property">Validation</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/validate'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.name} + '/validate'"
                th:text="'Validate'"></a>
 
             <p class="property">Content</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/metadata/' + ${md.name} + '/content'"
                th:text="'Download'"></a>
         </div>
         <div th:each="identifier : ${entity.alternativeIdentifiers}" class="panel">
@@ -143,38 +143,38 @@ limitations under the License.
             <p class="value" th:text="${identifier.value}"></p>
         </div>
         <div class="panel clickable" th:each="bin : ${entity.binaries}">
-            <p class="panel_title" th:text="'Binary: ' + ${bin.key}"></p>
+            <p class="panel_title" th:text="'Binary: ' + ${bin.name}"></p>
 
             <p class="property" th:text="Actions" />
-            <input id="binaryDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.key} + '\')'"/>
+            <input id="binaryDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteBinary(\'' + ${entity.id} + '\', \'' + ${bin.name} + '\')'"/>
             <p class="panel_title" />
 
             <p class="property">Mime type</p>
 
-            <p class="value" th:text="${bin.value.mimetype}"></p>
+            <p class="value" th:text="${bin.mimetype}"></p>
 
             <p class="property">Checksum</p>
 
-            <p class="value" th:text="${bin.value.checksum}"></p>
+            <p class="value" th:text="${bin.checksum}"></p>
 
             <p class="property">Checksum type</p>
 
-            <p class="value" th:text="${bin.value.checksumType}"></p>
+            <p class="value" th:text="${bin.checksumType}"></p>
 
             <p class="property">Created</p>
 
-            <p class="value" th:text="${bin.value.utcCreated}"></p>
+            <p class="value" th:text="${bin.utcCreated}"></p>
 
             <p class="property">Last modified</p>
 
-            <p class="value" th:text="${bin.value.utcLastModified}"></p>
+            <p class="value" th:text="${bin.utcLastModified}"></p>
 
             <p class="property">Content</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key} + '/content'"
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.name} + '/content'"
                th:text="'Download'"></a>
 
             <p class="property">Binary</p>
-            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.key}" th:text="'View'"></a>
+            <a th:href="@{/entity/} + ${entity.id} + '/binary/' + ${bin.name}" th:text="'View'"></a>
 
         </div>
         <div class="panel" th:if="${entity.relations != null}">
@@ -182,12 +182,12 @@ limitations under the License.
 
             <div th:each="rel : ${entity.relations}">
             <p class="property" th:text="Actions" />
-            <input id="relationDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteRelation(\'' + ${entity.id} + '\', \'' + ${rel.key} + '\', \'' + ${rel.value} + '\')'"/>
+            <input id="relationDeleteButton" class="button_small" type="submit" value="Delete" th:onclick="'javascript:deleteRelation(\'' + ${entity.id} + '\', \'' + ${rel.predicate} + '\', \'' + ${rel.objects} + '\')'"/>
             <p class="panel_title" />
 
-                <p class="property" th:text="${rel.key}"></p>
+                <p class="property" th:text="${rel.predicate}"></p>
 
-                <div th:each="obj : ${rel.value}">
+                <div th:each="obj : ${rel.objects}">
                     <p th:if="${#strings.startsWith(obj, '&lt;' + T(net.objecthunter.larch.model.LarchConstants).NAMESPACE_LARCH)}">
                         <a th:href="${#strings.substring(obj, 1 +#strings.length(T(net.objecthunter.larch.model.LarchConstants).NAMESPACE_LARCH) ,  #strings.length(obj) - 1)}"
                            th:text="${obj}"></a></p>

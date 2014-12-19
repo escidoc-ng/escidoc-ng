@@ -57,8 +57,4 @@ public class AdminRole extends Role {
         return true;
     }
 
-    @Override
-    public void validate() throws IOException {
-    }
-
 }

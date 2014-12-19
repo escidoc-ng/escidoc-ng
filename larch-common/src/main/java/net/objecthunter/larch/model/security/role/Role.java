@@ -86,13 +86,6 @@ public abstract class Role {
     public abstract boolean compare(Permission permission, ObjectType objectType, Object checkObject, EntityHierarchy entityHierarchy);
 
     /**
-     * Validate the Rights in the extending role against the allowed Rights in the Annotation.
-     * 
-     * @throws IOException
-     */
-    public abstract void validate() throws IOException;
-    
-    /**
      * Check if right-list contains Right with given anchorId.
      * 
      * @param anchorId

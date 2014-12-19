@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend.elasticsearch;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -50,7 +51,6 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
@@ -121,17 +121,6 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 user.setName("user");
                 user.setFirstName("Generic");
                 user.setLastName("User");
-                UserRole userRole = new UserRole();
-                List<Right> rights = new ArrayList<Right>();
-                rights.add(new Right("test", new ArrayList<RoleRight>() {
-
-                    {
-                        add(RoleRight.READ_PENDING_METADATA);
-                        add(RoleRight.WRITE_SUBMITTED_BINARY);
-                    }
-                }));
-                userRole.setRights(rights);
-                user.setRole(userRole);
                 client
                         .prepareIndex(INDEX_USERS, "user", user.getName()).setSource(mapper.writeValueAsBytes(user))
                         .execute()
@@ -268,29 +257,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (StringUtils.isBlank(username)) {
             throw new InvalidParameterException("User name can not be null");
         }
-        List<RoleName> existingRoleNames = new ArrayList<RoleName>();
-        for (Role role : roles) {
-            if (role == null) {
-                throw new InvalidParameterException("role may not be null");
-            }
-            if (existingRoleNames.contains(role.getRoleName())) {
-                throw new InvalidParameterException("duplicate role " + role.getRoleName());
-            }
-            role.validate();
-            if (role.getRights() != null) {
-                for (Right right : role.getRights()) {
-                    List<RoleRight> existingRights = new ArrayList<RoleRight>();
-                    for (RoleRight roleRight : right.getRoleRights()) {
-                        if (existingRights.contains(roleRight)) {
-                            throw new InvalidParameterException("duplicate right " + roleRight);
-                        }
-                        existingRights.add(roleRight);
-                    }
-                }
-                checkAnchorTypes(role.retrieveAnchorIds(), role.anchorTypes());
-            }
-            existingRoleNames.add(role.getRoleName());
-        }
+        validateRoles(roles);
         try {
             final GetResponse get =
                     this.client.prepareGet(INDEX_USERS, INDEX_USERS_TYPE, username).execute().actionGet();
@@ -324,15 +291,11 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         if (anchorId == null) {
             throw new InvalidParameterException("anchorId may not be null");
         }
-
-        List<RoleRight> orderedRights = new ArrayList<RoleRight>();
-        if (rights != null) {
-            for (RoleRight right : rights) {
-                if (orderedRights.contains(right)) {
-                    throw new InvalidParameterException("duplicate right " + right);
-                }
-                orderedRights.add(right);
-            }
+        
+        if (!RoleName.ROLE_ADMIN.equals(roleName) && rights != null && !rights.isEmpty()) {
+            Role roleToSet = Role.getRoleObject(roleName);
+            roleToSet.setRights(Arrays.asList(new Right(anchorId, rights)));
+            validateRoles(Arrays.asList(roleToSet));
         }
 
         try {
@@ -343,7 +306,7 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
             }
 
             User user = mapper.readValue(get.getSourceAsBytes(), User.class);
-            
+
             Role existingRole = user.getRole(roleName);
             if (RoleName.ROLE_ADMIN.equals(roleName)) {
                 // handle admin role
@@ -354,44 +317,36 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
                 }
             } else {
                 // handle other roles
-                if (existingRole != null && !orderedRights.isEmpty()) {
-                    checkAnchorTypes(new ArrayList<String>() {
-
-                        {
-                            add(anchorId);
-                        }
-                    }, existingRole.anchorTypes());
+                if (existingRole != null && rights != null && !rights.isEmpty()) {
                     List<Right> expandedRights = existingRole.getRights();
                     if (expandedRights == null) {
                         expandedRights = new ArrayList<Right>();
                     }
-                    expandedRights.add(new Right(anchorId, orderedRights));
+                    expandedRights.add(new Right(anchorId, rights));
                     existingRole.setRights(expandedRights);
-                } else if (existingRole != null && orderedRights.isEmpty()) {
-                    checkAnchorTypes(new ArrayList<String>() {
-
-                        {
-                            add(anchorId);
-                        }
-                    }, existingRole.anchorTypes());
+                } else if (existingRole != null && (rights == null || rights.isEmpty())) {
                     List<Right> expandedRights = existingRole.getRights();
                     if (expandedRights == null) {
                         expandedRights = new ArrayList<Right>();
                     }
-                    expandedRights.remove(anchorId);
+                    //remove right
+                    int index = -1;
+                    for (int i = 0; i < expandedRights.size(); i++) {
+                        if (anchorId.equals(expandedRights.get(i).getAnchorId())) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index > -1) {
+                        expandedRights.remove(index);
+                    }
                     if (expandedRights.isEmpty()) {
                         user.removeRole(existingRole.getRoleName());
                     }
-                } else if (existingRole == null && !orderedRights.isEmpty()) {
+                } else if (existingRole == null && rights != null && !rights.isEmpty()) {
                     Role newRole = Role.getRoleObject(roleName);
-                    checkAnchorTypes(new ArrayList<String>() {
-
-                        {
-                            add(anchorId);
-                        }
-                    }, newRole.anchorTypes());
                     List<Right> newRights = new ArrayList<Right>();
-                    newRights.add(new Right(anchorId, orderedRights));
+                    newRights.add(new Right(anchorId, rights));
                     newRole.setRights(newRights);
                     user.setRole(newRole);
                 }
@@ -630,6 +585,41 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
         return users;
     }
 
+    private void validateRoles(List<Role> roles) throws IOException {
+        List<RoleName> existingRoleNames = new ArrayList<RoleName>();
+        for (Role role : roles) {
+            if (role == null) {
+                throw new IOException("role may not be null");
+            }
+            if (existingRoleNames.contains(role.getRoleName())) {
+                throw new InvalidParameterException("duplicate role:" + role.getRoleName());
+            }
+
+            if (role.getRights() != null) {
+                for (Right right : role.getRights()) {
+                    List<RoleRight> existingRights = new ArrayList<RoleRight>();
+                    if (right.getRoleRights() != null) {
+                        for (RoleRight roleRight : right.getRoleRights()) {
+                            if (existingRights.contains(roleRight)) {
+                                throw new InvalidParameterException("duplicate role:" + role.getRoleName() +
+                                        " anchorId:" + right.getAnchorId() + " right:" + roleRight);
+                            }
+                            if (role.allowedRights() != null && !role.allowedRights().isEmpty() &&
+                                    !role.allowedRights().contains(roleRight)) {
+                                throw new InvalidParameterException("not allowed role:" + role.getRoleName() +
+                                        " anchorId:" + right.getAnchorId() + " right:" +
+                                        roleRight);
+                            }
+                            existingRights.add(roleRight);
+                        }
+                    }
+                }
+                checkAnchorTypes(role);
+            }
+            existingRoleNames.add(role.getRoleName());
+        }
+    }
+
     /**
      * Checks if the given anchorIds all are of one of the types in anchorTypes. Throw IOException if one of the
      * anchorIds does not belong to one of the anchorTypes.
@@ -638,51 +628,55 @@ public class ElasticSearchCredentialsService extends AbstractElasticSearchServic
      * @param anchorTypes
      * @throws IOException
      */
-    private void checkAnchorTypes(List<String> anchorIds, List<PermissionAnchorType> anchorTypes) throws IOException {
+    private void checkAnchorTypes(Role role) throws IOException {
+        List<String> anchorIds = role.retrieveAnchorIds();
+        List<PermissionAnchorType> anchorTypes = role.anchorTypes();
         List<String> usernames = new ArrayList<String>();
         List<String> contentModelIds = new ArrayList<String>();
         if (anchorTypes == null && anchorIds != null && !anchorIds.isEmpty()) {
-            throw new IOException("No object permissions supported");
+            throw new InvalidParameterException("Not supported role:" + role.getRoleName() + " anchorId:all");
         }
         if (anchorTypes == null || anchorIds == null) {
             return;
         }
         if (anchorTypes.contains(PermissionAnchorType.USER)) {
-            for (String objectId : anchorIds) {
+            for (String anchorId : anchorIds) {
                 try {
-                    if (objectId == null || !objectId.equals("")) {
-                        retrieveUser(objectId);
+                    if (StringUtils.isNotBlank(anchorId)) {
+                        retrieveUser(anchorId);
                     }
-                    usernames.add(objectId);
+                    usernames.add(anchorId);
                 } catch (IOException e) {
                 }
             }
         }
         if (anchorTypes.contains(PermissionAnchorType.LEVEL1_ENTITY) ||
                 anchorTypes.contains(PermissionAnchorType.LEVEL2_ENTITY)) {
-            for (String objectId : anchorIds) {
-                try {
-                    Entity e = backendEntityService.retrieve(objectId);
-                    if (e.getContentModelId() == null) {
-                        throw new IOException("Object " + objectId + " has wrong type for permission-anchor");
+            for (String anchorId : anchorIds) {
+                if (!usernames.contains(anchorId) && StringUtils.isNotBlank(anchorId)) {
+                    try {
+                        Entity e = backendEntityService.retrieve(anchorId);
+                        if (e.getContentModelId() == null) {
+                            throw new InvalidParameterException("Wrong anchorType role:" + role.getRoleName() +
+                                    " anchorId:" + anchorId);
+                        }
+                        if ((FixedContentModel.LEVEL1.getName().equals(e.getContentModelId()) && !anchorTypes
+                                .contains(PermissionAnchorType.LEVEL1_ENTITY)) ||
+                                (FixedContentModel.LEVEL2.getName().equals(e.getContentModelId()) && !anchorTypes
+                                        .contains(PermissionAnchorType.LEVEL2_ENTITY)) ||
+                                (!FixedContentModel.LEVEL1.getName().equals(e.getContentModelId()) && !FixedContentModel.LEVEL2
+                                        .getName().equals(e.getContentModelId()))) {
+                            throw new InvalidParameterException("Wrong anchorType role:" + role.getRoleName() +
+                                    " anchorId:" + anchorId);
+                        }
+                        contentModelIds.add(e.getContentModelId());
+                    } catch (IOException e) {
                     }
-                    contentModelIds.add(e.getContentModelId());
-                } catch (IOException e) {
                 }
             }
         }
         if (anchorIds.size() != (usernames.size() + contentModelIds.size())) {
             throw new IOException("At least one Object has wrong type for permission-anchor");
-        }
-        for (String contentModelId : contentModelIds) {
-            if ((FixedContentModel.LEVEL1.getName().equals(contentModelId) && !anchorTypes
-                    .contains(PermissionAnchorType.LEVEL1_ENTITY)) ||
-                    (FixedContentModel.LEVEL2.getName().equals(contentModelId) && !anchorTypes
-                            .contains(PermissionAnchorType.LEVEL2_ENTITY)) ||
-                    (!FixedContentModel.LEVEL1.getName().equals(contentModelId) && !FixedContentModel.LEVEL2
-                            .getName().equals(contentModelId))) {
-                throw new IOException("At least one Object has wrong type for permission-anchor");
-            }
         }
     }
 

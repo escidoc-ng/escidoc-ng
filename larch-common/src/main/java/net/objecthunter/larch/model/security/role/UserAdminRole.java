@@ -58,7 +58,6 @@ public class UserAdminRole extends Role {
 
     @Override
     public void setRights(List<Right> rights) throws IOException {
-        validate(rights);
         this.rights = rights;
     }
 
@@ -99,25 +98,6 @@ public class UserAdminRole extends Role {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void validate() throws IOException {
-        validate(rights);
-    }
-
-    private void validate(List<Right> rights) throws IOException {
-        if (rights != null) {
-            for (Right value : rights) {
-                if (value.getRoleRights() != null) {
-                    for (RoleRight right : value.getRoleRights()) {
-                        if (!allowedRoleRights.contains(right)) {
-                            throw new IOException("right " + right + " not allowed for role " + getRoleName());
-                        }
-                    }
-                }
-            }
-        }
     }
 
 }
