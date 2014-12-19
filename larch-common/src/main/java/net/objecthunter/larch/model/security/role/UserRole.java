@@ -157,8 +157,12 @@ public class UserRole extends Role {
                 }
             }
         } else {
+            EntityState state = checkEntity.getState();
+            if (state == null) {
+                state = EntityState.PENDING;
+            }
             if (!getRight(entityHierarchy.getLevel2Id()).getRoleRights().contains(
-                    validateMatrix.get("" + permission.permissionType() + checkEntity.getState() + objectType))) {
+                    validateMatrix.get("" + permission.permissionType() + state + objectType))) {
                 return false;
             }
         }
