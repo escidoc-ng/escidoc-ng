@@ -72,8 +72,18 @@ public interface SchemaService {
      * @return a {@link net.objecthunter.larch.model.MetadataValidationResult} containing the result of the validation
      * @throws IOException
      */
-    net.objecthunter.larch.model.MetadataValidationResult validate(String id, String metadataName) throws IOException;
+    MetadataValidationResult validate(String id, String metadataName) throws IOException;
 
+    /**
+     * Retrieve the validation result for a given {@link net.objecthunter.larch.model.Metadata} of an
+     * {@link net.objecthunter.larch.model.Entity}
+     *
+     * @param id The id of the {@link net.objecthunter.larch.model.Entity}
+     * @param binaryName the name of the binary
+     * @param metadataName The name of the {@link net.objecthunter.larch.model.Metadata}
+     * @return a {@link net.objecthunter.larch.model.MetadataValidationResult} containing the result of the validation
+     * @throws IOException
+     */
     MetadataValidationResult validate(String id, String binaryName, String metadataName) throws IOException;
 
 }
