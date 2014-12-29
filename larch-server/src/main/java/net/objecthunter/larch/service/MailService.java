@@ -20,9 +20,21 @@ import java.io.IOException;
 
 import net.objecthunter.larch.model.security.UserRequest;
 
+/**
+ * Interface definition for the mail service
+ */
 public interface MailService {
 
+    /**
+     * Send a registration email for a user request
+     * @param req the user request containing the user information
+     * @throws IOException
+     */
     public void sendUserRequest(UserRequest req) throws IOException;
 
+    /**
+     * Check if the MailService is enabled
+     * @return true if the MailService is enabled, otherwise false
+     */
     public boolean isEnabled();
 }
