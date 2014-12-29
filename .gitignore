@@ -1,6 +1,7 @@
 .*
 target/
 escidocng-data/
+larch-data/
 *.iml
 *.log
 !.gitignore
