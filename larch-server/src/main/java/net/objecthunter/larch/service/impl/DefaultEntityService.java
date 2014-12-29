@@ -396,12 +396,12 @@ public class DefaultEntityService implements EntityService {
     }
 
     @Override
-    public Entity retrieve(String id, int i) throws IOException {
+    public Entity retrieve(String id, int version) throws IOException {
         final Entity e = retrieve(id);
-        if (i == e.getVersion()) {
+        if (version == e.getVersion()) {
             return e; // the current version
         }
-        return this.backendVersionService.getOldVersion(id, i);
+        return this.backendVersionService.getOldVersion(id, version);
     }
 
     @Override
