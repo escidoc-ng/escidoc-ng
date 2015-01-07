@@ -38,6 +38,7 @@ import net.objecthunter.larch.service.AuthorizationService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -68,6 +69,9 @@ public class AuthController extends AbstractLarchController {
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private Environment env;
 
     private Map<Method, List<Matcher>> requestUriMatchers = new HashMap<Method, List<Matcher>>();
 
@@ -171,6 +175,7 @@ public class AuthController extends AbstractLarchController {
      */
     private List<Matcher> getRequestUriMatchers(Method method) {
         if (!requestUriMatchers.containsKey(method)) {
+            String servletContext = env.getProperty("server.contextPath", "");
             List<Matcher> methodRequestUriMatchers = new ArrayList<Matcher>();
             RequestMapping classRequestMapping = method.getDeclaringClass().getAnnotation(RequestMapping.class);
             RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
@@ -180,19 +185,19 @@ public class AuthController extends AbstractLarchController {
                     if (methodRequestMapping != null && methodRequestMapping.value() != null &&
                             methodRequestMapping.value().length > 0) {
                         for (String methodRequestMappingString : methodRequestMapping.value()) {
-                            methodRequestUriMatchers.add(Pattern.compile(
+                            methodRequestUriMatchers.add(Pattern.compile(servletContext + 
                                     (classRequestMappingString + methodRequestMappingString).replaceAll("\\{.*?\\}",
                                             "([^\\/]*?)")).matcher(""));
                         }
                     } else {
-                        methodRequestUriMatchers.add(Pattern.compile(
+                        methodRequestUriMatchers.add(Pattern.compile(servletContext +
                                 classRequestMappingString.replaceAll("\\{.*?\\}", "([^\\/]*?)")).matcher(""));
                     }
                 }
             } else if (methodRequestMapping != null && methodRequestMapping.value() != null &&
                     methodRequestMapping.value().length > 0) {
                 for (String methodRequestMappingString : methodRequestMapping.value()) {
-                    methodRequestUriMatchers.add(Pattern.compile(
+                    methodRequestUriMatchers.add(Pattern.compile(servletContext +
                             methodRequestMappingString.replaceAll("\\{.*?\\}", "([^\\/]*?)")).matcher(""));
                 }
             }
