@@ -11,6 +11,7 @@
         <module>larch-common</module>
         <module>larch-client</module>
         <module>larch-benchtool</module>
+        <module>larch-jmeter</module>
         <module>larch-frontend</module>
     </modules>
 
