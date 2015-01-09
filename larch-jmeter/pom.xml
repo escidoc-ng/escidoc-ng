@@ -6,45 +6,10 @@
         <artifactId>larch</artifactId>
         <groupId>net.objecthunter.larch</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
      </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>larch-jmeter</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>net.objecthunter.larch</groupId>
-            <artifactId>larch-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.objecthunter.larch</groupId>
-            <artifactId>larch-server</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.objecthunter.larch</groupId>
-            <artifactId>larch-client</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.6</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <build>
         <plugins>
@@ -78,13 +43,12 @@
                 <configuration>
                     <properties>
                         <cargo.servlet.port>8080</cargo.servlet.port>
-                        <cargo.logging>high</cargo.logging>
                     </properties>
                 </configuration>
                     <deployables>
                         <deployable>
                             <type>war</type>
-                            <location>${basedir}/../larch-server/target/larch-server-1.0-SNAPSHOT.war</location>
+                            <location>${basedir}/../larch-server/target/larch-server-${version}.war</location>
                             <properties>
                                 <context>/</context>
                             </properties>
