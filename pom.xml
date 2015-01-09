@@ -11,6 +11,7 @@
         <module>larch-common</module>
         <module>larch-client</module>
         <module>larch-benchtool</module>
+        <module>larch-jmeter</module>
         <module>larch-frontend</module>
     </modules>
 
@@ -187,21 +188,22 @@
                     <target>${maven.compiler.version}</target>
                 </configuration>
             </plugin>
-        <!-- Javadoc. Run with mvn javadoc:javadoc -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${javadoc.plugin.version}</version>
-          <configuration>
-            <sourcepath>${basedir}/src/main/java/net/objecthunter/larch/controller</sourcepath>
-            <additionalparam>-Xdoclint:none</additionalparam>
-            <quiet>true</quiet>
-            <useStandardDocletOptions>true</useStandardDocletOptions>
-            <minmemory>128m</minmemory>
-            <maxmemory>512m</maxmemory>
-            <failOnError>false</failOnError>
-          </configuration>
-        </plugin>
+
+            <!-- Javadoc. Run with mvn javadoc:javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc.plugin.version}</version>
+                <configuration>
+                    <sourcepath>${basedir}/src/main/java/net/objecthunter/larch/controller</sourcepath>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <quiet>true</quiet>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                    <minmemory>128m</minmemory>
+                    <maxmemory>512m</maxmemory>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
