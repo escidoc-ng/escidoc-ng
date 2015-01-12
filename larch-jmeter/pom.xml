@@ -13,49 +13,50 @@
 
     <build>
         <plugins>
-        <plugin>
-            <groupId>org.codehaus.cargo</groupId>
-            <artifactId>cargo-maven2-plugin</artifactId>
-            <version>1.4.11</version>
-            <executions>
-                <execution>
-                    <id>start-container</id>
-                    <phase>pre-integration-test</phase>
-                    <goals>
-                        <goal>start</goal>
-                    </goals>
-                    <configuration>
-                        <wait>true</wait>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>stop-container</id>
-                    <phase>post-integration-test</phase>
-                    <goals>
-                        <goal>stop</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <container>
-                    <containerId>tomcat7x</containerId>
-                </container>
-                <configuration>
-                    <properties>
-                        <cargo.servlet.port>8080</cargo.servlet.port>
-                    </properties>
-                </configuration>
-                    <deployables>
-                        <deployable>
-                            <type>war</type>
-                            <location>${basedir}/../larch-server/target/larch-server-${version}.war</location>
-                            <properties>
-                                <context>/</context>
-                            </properties>
-                        </deployable>
-                    </deployables>
-            </configuration>
-        </plugin>
+	        <plugin>
+	            <groupId>org.codehaus.cargo</groupId>
+	            <artifactId>cargo-maven2-plugin</artifactId>
+	            <version>1.4.11</version>
+	            <executions>
+	                <execution>
+	                    <id>start-container</id>
+	                    <phase>pre-integration-test</phase>
+	                    <goals>
+	                        <goal>start</goal>
+	                    </goals>
+	                    <configuration>
+	                        <wait>true</wait>
+	                    </configuration>
+	                </execution>
+	                <execution>
+	                    <id>stop-container</id>
+	                    <phase>post-integration-test</phase>
+	                    <goals>
+	                        <goal>stop</goal>
+	                    </goals>
+	                </execution>
+	            </executions>
+	            <configuration>
+	        		<skip>${skipTests}</skip>
+	                <container>
+	                    <containerId>tomcat7x</containerId>
+	                </container>
+	                <configuration>
+	                    <properties>
+	                        <cargo.servlet.port>8080</cargo.servlet.port>
+	                    </properties>
+	                </configuration>
+	                    <deployables>
+	                        <deployable>
+	                            <type>war</type>
+	                            <location>${basedir}/../larch-server/target/larch-server-${version}.war</location>
+	                            <properties>
+	                                <context>/</context>
+	                            </properties>
+	                        </deployable>
+	                    </deployables>
+	            </configuration>
+	        </plugin>
             <plugin>
                 <groupId>com.lazerycode.jmeter</groupId>
                 <artifactId>jmeter-maven-plugin</artifactId>
@@ -66,6 +67,9 @@
                         <goals>
                             <goal>jmeter</goal>
                         </goals>
+      					<configuration>
+        					<skipTests>${skipTests}</skipTests>
+      					</configuration>
                     </execution>
                 </executions>
             </plugin>
