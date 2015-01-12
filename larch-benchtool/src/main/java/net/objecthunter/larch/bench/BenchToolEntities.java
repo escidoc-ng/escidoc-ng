@@ -82,7 +82,7 @@ public abstract class BenchToolEntities {
         MdSize mdSize;
         if (dataSize < 100000) {
             mdSize = MdSize.SMALL;
-        } else if (dataSize < 1000000) {
+        } else if (dataSize < 20000000) {
             mdSize = MdSize.MEDIUM;
         } else {
             mdSize = MdSize.BIG;
