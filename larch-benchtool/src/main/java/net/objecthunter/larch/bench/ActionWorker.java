@@ -15,7 +15,9 @@
  */
 package net.objecthunter.larch.bench;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.concurrent.Callable;
 
 import net.objecthunter.larch.client.LarchClient;
@@ -131,5 +133,25 @@ public class ActionWorker implements Callable<BenchToolResult> {
         this.larchClient.postEntity(entityJson);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
+    
+    private void writeFile(String filepath, String text) {
+        OutputStreamWriter ostr = null;
+        try {
+            ostr = new OutputStreamWriter(new FileOutputStream(filepath, false), "UTF-8");
+            ostr.write(text);
+            ostr.flush();
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            if (ostr != null) {
+                try {
+                    ostr.close();
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }
+    }
+
 
 }
