@@ -74,7 +74,7 @@
         					<skipTests>${skipTests}</skipTests>
                             <jMeterProcessJVMSettings>
                                 <xms>1024</xms>
-                                <xmx>1524</xmx>
+                                <xmx>1024</xmx>
                                 <!-- arguments>
                                     <argument>-Xprof</argument>
                                     <argument>-Xfuture</argument>
