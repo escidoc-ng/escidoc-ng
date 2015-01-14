@@ -46,7 +46,7 @@
 	                        <cargo.servlet.port>8080</cargo.servlet.port>
 	                    </properties>
   						<systemProperties>
-    						<JAVA_OPTS>-Xms256m -Xmx1512m -XX:MaxPermSize=256m</JAVA_OPTS>
+    						<JAVA_OPTS>-Xms256m -Xmx1012m</JAVA_OPTS>
   						</systemProperties>
 	                </configuration>
 	                    <deployables>
