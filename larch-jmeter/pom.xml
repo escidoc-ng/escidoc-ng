@@ -69,6 +69,14 @@
                         </goals>
       					<configuration>
         					<skipTests>${skipTests}</skipTests>
+                            <jMeterProcessJVMSettings>
+                                <xms>1524</xms>
+                                <xmx>1524</xmx>
+                                <arguments>
+                                    <argument>-Xprof</argument>
+                                    <argument>-Xfuture</argument>
+                                </arguments>
+                            </jMeterProcessJVMSettings>
       					</configuration>
                     </execution>
                 </executions>
