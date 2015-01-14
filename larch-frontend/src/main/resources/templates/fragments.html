@@ -21,7 +21,7 @@ limitations under the License.
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta id="contextPath"
         th:src="${#httpServletRequest.getContextPath()}"/>
-    <title th:if="!${isErrorPage}">Larch repository</title>
+    <title th:if="!${isErrorPage}">eSciDoc NG Repository</title>
     <title th:if="${isErrorPage}">Error Page</title>
     <script th:src="@{/js/jquery-1.11.0.min.js}"></script>
     <script th:src="@{/js/jquery.watermark.min.js}"></script>
@@ -37,7 +37,7 @@ limitations under the License.
 <div th:fragment="banner">
     <span class="three_bars"></span>
 
-    <h1 th:if="!${isErrorPage}">Larch repository</h1>
+    <h1 th:if="!${isErrorPage}">eSciDoc NG Repository</h1>
 
     <h1 th:if="${isErrorPage}">Error Page</h1>
     <script>
