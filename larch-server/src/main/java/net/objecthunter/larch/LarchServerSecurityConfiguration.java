@@ -103,16 +103,6 @@ public class LarchServerSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .and()
                 .attribute("fullname")
                 .type("http://axschema.org/namePerson")
-                .required(true)
-                .and()
-                .and()
-                .attributeExchange(".*myopenid.com.*")
-                .attribute("email")
-                .type("http://schema.openid.net/contact/email")
-                .required(true)
-                .and()
-                .attribute("fullname")
-                .type("http://schema.openid.net/namePerson")
                 .required(true);
 
         http.csrf().requireCsrfProtectionMatcher(new LarchCsrfRequestMatcher());
