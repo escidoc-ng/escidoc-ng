@@ -45,6 +45,9 @@
 	                    <properties>
 	                        <cargo.servlet.port>8080</cargo.servlet.port>
 	                    </properties>
+  						<systemProperties>
+    						<JAVA_OPTS>-Xms256m -Xmx1512m -XX:MaxPermSize=256m</JAVA_OPTS>
+  						</systemProperties>
 	                </configuration>
 	                    <deployables>
 	                        <deployable>
@@ -70,12 +73,12 @@
       					<configuration>
         					<skipTests>${skipTests}</skipTests>
                             <jMeterProcessJVMSettings>
-                                <xms>1524</xms>
+                                <xms>1024</xms>
                                 <xmx>1524</xmx>
-                                <arguments>
+                                <!-- arguments>
                                     <argument>-Xprof</argument>
                                     <argument>-Xfuture</argument>
-                                </arguments>
+                                </arguments -->
                             </jMeterProcessJVMSettings>
       					</configuration>
                     </execution>
