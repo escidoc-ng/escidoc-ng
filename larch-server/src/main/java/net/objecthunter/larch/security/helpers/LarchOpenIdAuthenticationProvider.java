@@ -25,6 +25,7 @@ import net.objecthunter.larch.model.security.User;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.service.backend.BackendCredentialsService;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +174,7 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
         user.setName(encryptedUserName);
         // check for eMail-address
         boolean eMailAddressFound = false;
-        if (token.getAttributes() != null) {
+        if (token.getAttributes() != null && !token.getAttributes().isEmpty()) {
             for (OpenIDAttribute att : token.getAttributes()) {
                 if (att.getType() != null &&
                         (OpenIdTypes.EMAIL.getNames().contains(att.getType()) ||
@@ -199,8 +200,11 @@ public class LarchOpenIdAuthenticationProvider implements AuthenticationProvider
                 }
             }
         }
+        if (StringUtils.isBlank(user.getFirstName()) && StringUtils.isBlank(user.getLastName())) {
+        	user.setLastName(token.getName());
+        }
         if (!eMailAddressFound) {
-            throw new UsernameNotFoundException("User-Attributes did not contain a valid eMail-Address");
+        	user.setEmail(RandomStringUtils.randomAlphanumeric(16) + "@mail.com");
         }
         try {
             backendCredentialsService.createUser(user);
