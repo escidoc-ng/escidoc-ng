@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.objecthunter.larch.bench;
 
 import java.io.ByteArrayInputStream;
@@ -96,7 +97,7 @@ public class BenchTool {
                 }
             }
             if (cli.hasOption('x')) {
-                runAutomatic(larchUri, user, password);
+                runAutomatic(larchUri);
                 return;
             }
         } catch (ParseException e) {
@@ -110,59 +111,57 @@ public class BenchTool {
                     new BenchToolRunner(action, URI.create(larchUri), user, password, numActions, numThreads, size);
             final long time = System.currentTimeMillis();
             final List<BenchToolResult> results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, numActions, size,numThreads, System.out);
+            ResultFormatter.printResults(results, System.currentTimeMillis() - time, numActions, size, numThreads,
+                    System.out);
         } catch (IOException e) {
             log.error("Error while running bench\n", e);
         }
     }
-    
-    private static void runAutomatic(String larchUri, String user, String password) {
+
+    private static void runAutomatic(String larchUri) {
+        String user = "admin";
+        String password = "admin";
+        int numActions = 20;
+        int numThreads = 1;
+        int size = 10000000;
         try {
-            ResultFormatter.print("CREATE ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 1k, MD-Size 1k");
-            BenchToolRunner runner =
-                    new BenchToolRunner(Action.CREATE_ENTITY, URI.create(larchUri), user, password, 20, 2, 1000);
-            long time = System.currentTimeMillis();
-            List<BenchToolResult> results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 1000,2, System.out);
-            
-            ResultFormatter.print("CREATE ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 100k, MD-Size 22k");
-            runner =
-                    new BenchToolRunner(Action.CREATE_ENTITY, URI.create(larchUri), user, password, 20, 2, 100000);
-            time = System.currentTimeMillis();
-            results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 100000,2, System.out);
-            
-            ResultFormatter.print("CREATE ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 10m, MD-Size 425k");
-            runner =
-                    new BenchToolRunner(Action.CREATE_ENTITY, URI.create(larchUri), user, password, 20, 2, 10000000);
-            time = System.currentTimeMillis();
-            results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 10000000,2, System.out);
-            
-            ResultFormatter.print("CREATE INDEXED ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 1k, MD-Size 1k");
-            runner =
-                    new BenchToolRunner(Action.CREATE_INDEXED_ENTITY, URI.create(larchUri), user, password, 20, 2, 1000);
-            time = System.currentTimeMillis();
-            results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 1000,2, System.out);
-            
-            ResultFormatter.print("CREATE INDEXED ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 100k, MD-Size 22k");
-            runner =
-                    new BenchToolRunner(Action.CREATE_INDEXED_ENTITY, URI.create(larchUri), user, password, 20, 2, 100000);
-            time = System.currentTimeMillis();
-            results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 100000,2, System.out);
-            
-            ResultFormatter.print("CREATE INDEXED ENTITY 3 MD-Records, 2 Binaries each 2 MD-Records, BinarySize 10m, MD-Size 425k");
-            runner =
-                    new BenchToolRunner(Action.CREATE_INDEXED_ENTITY, URI.create(larchUri), user, password, 20, 2, 10000000);
-            time = System.currentTimeMillis();
-            results = runner.run();
-            ResultFormatter.printResults(results, System.currentTimeMillis() - time, 20, 10000000,2, System.out);
-            
+            runAction("AUTH CREATE ENTITY", Action.AUTH_CREATE_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("CREATE ENTITY", Action.CREATE_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("CREATE INDEXED ENTITY", Action.CREATE_INDEXED_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("UPDATE ENTITY", Action.UPDATE_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("CREATE METADATA", Action.CREATE_METADATA, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("CREATE INDEXED METADATA", Action.CREATE_INDEXED_METADATA, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("CREATE BINARY", Action.CREATE_BINARY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("RETRIEVE ENTITY", Action.RETRIEVE_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("RETRIEVE INDEXED ENTITY", Action.RETRIEVE_INDEXED_ENTITY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("RETRIEVE BINARY", Action.RETRIEVE_BINARY, larchUri, user, password, numActions,
+                    numThreads, size);
+            runAction("RETRIEVE METADATA", Action.RETRIEVE_METADATA, larchUri, user, password, numActions,
+                    numThreads, size);
+
         } catch (IOException e) {
             log.error("Error while running bench\n", e);
         }
+    }
+
+    private static void runAction(String label, Action action, String uri, String user, String password,
+            int numActions, int numThreads, int size) throws IOException {
+        ResultFormatter.print(label);
+        BenchToolRunner runner =
+                new BenchToolRunner(action, URI.create(uri), user, password, numActions, numThreads, size);
+        long time = System.currentTimeMillis();
+        List<BenchToolResult> results = runner.run();
+        ResultFormatter.printResults(results, System.currentTimeMillis() - time, numActions, size, numThreads,
+                System.out);
     }
 
     private static void enableHttpWireDebug() throws IOException {
@@ -275,9 +274,11 @@ public class BenchTool {
         formatter.printHelp("BenchTool", ops);
         System.out.println("\n\nExamples:\n");
         System.out.println(" * Create a single 100mb file:\n   ---------------------------");
-        System.out.println("   java -jar larch-benchtool.jar -l http://localhost:8080 -n 1 -a create_entity -s 100m\n");
+        System.out
+                .println("   java -jar larch-benchtool.jar -l http://localhost:8080 -n 1 -a create_entity -s 100m\n");
         System.out.println(" * Create 20 files of 1gb using 5 threads\n   --------------------------------------");
-        System.out.println("   java -jar larch-benchtool.jar -l http://localhost:8080 -n 20 -a create_entity -s 1g -t 5\n");
+        System.out
+                .println("   java -jar larch-benchtool.jar -l http://localhost:8080 -n 20 -a create_entity -s 1g -t 5\n");
         System.out.println(" * Retrieve 20 files of 1gb using 5 threads\n   --------------------------------------");
         System.out
                 .println(
@@ -285,18 +286,25 @@ public class BenchTool {
     }
 
     public static enum Action {
-        CREATE_ENTITY, 
-        CREATE_INDEXED_ENTITY, 
-        RETRIEVE_ENTITY, 
-        RETRIEVE_INDEXED_ENTITY, 
-        UPDATE_ENTITY, 
-        UPDATE_INDEXED_ENTITY, 
+        CREATE_ENTITY,
+        CREATE_INDEXED_ENTITY,
+        RETRIEVE_ENTITY,
+        RETRIEVE_INDEXED_ENTITY,
+        UPDATE_ENTITY,
+        UPDATE_INDEXED_ENTITY,
         DELETE_ENTITY,
-        DELETE_INDEXED_ENTITY;
+        DELETE_INDEXED_ENTITY,
+        CREATE_BINARY,
+        CREATE_METADATA,
+        CREATE_INDEXED_METADATA,
+        RETRIEVE_BINARY,
+        RETRIEVE_METADATA,
+        AUTH_CREATE_ENTITY,
+        AUTH_RETRIEVE_ENTITY;
     }
 
     public static enum MdSize {
         SMALL, MEDIUM, BIG;
     }
-    
+
 }

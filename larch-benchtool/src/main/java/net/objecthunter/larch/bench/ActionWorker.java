@@ -18,11 +18,17 @@ package net.objecthunter.larch.bench;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
+import net.objecthunter.larch.bench.BenchTool.MdSize;
 import net.objecthunter.larch.client.LarchClient;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Metadata;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,17 +45,17 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
     private final LarchClient larchClient;
 
-    private final String larchUri;
-
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private final String level1Id;
 
     private final String level2Id;
 
-    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String larchUri, String level2Id) {
+    protected ActionWorker(BenchTool.Action action, long size, LarchClient larchClient, String level1Id, String level2Id) {
         this.action = action;
         this.size = size;
         this.larchClient = larchClient;
-        this.larchUri = larchUri;
+        this.level1Id = level1Id;
         this.level2Id = level2Id;
     }
 
@@ -72,6 +78,20 @@ public class ActionWorker implements Callable<BenchToolResult> {
             return deleteEntity(false);
         case DELETE_INDEXED_ENTITY:
             return deleteEntity(true);
+        case CREATE_BINARY:
+            return createBinary();
+        case CREATE_METADATA:
+            return createMetadata(false);
+        case CREATE_INDEXED_METADATA:
+            return createMetadata(true);
+        case RETRIEVE_BINARY:
+            return retrieveBinary();
+        case RETRIEVE_METADATA:
+            return retrieveMetadata();
+        case AUTH_CREATE_ENTITY:
+            return authCreateEntity();
+        case AUTH_RETRIEVE_ENTITY:
+            return authRetrieveEntity();
         default:
             throw new IllegalArgumentException("Unknown action '" + this.action + "'");
         }
@@ -101,10 +121,12 @@ public class ActionWorker implements Callable<BenchToolResult> {
         String entityJson = mapper.writeValueAsString(e);
         final String entityId = this.larchClient.postEntity(entityJson);
 
-        /* measure the update duration 
-         * NOTE: recreates all binaries + metadata*/
+        /* measure the update duration */
         e.setLabel("updated label");
         e.setId(entityId);
+        Binary bin = BenchToolEntities.createRandomBinary(size);
+        bin.setMetadata(BenchToolEntities.createMetadataList(2, size, indexInline));
+        e.getBinaries().add(bin);
         entityJson = mapper.writeValueAsString(e);
         
         long time = System.currentTimeMillis();
@@ -120,10 +142,24 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
         /* measure the retrieval duration */
         long time = System.currentTimeMillis();
-        this.larchClient.retrieveEntityAsStream(entityId);
+        IOUtils.toString(this.larchClient.retrieveEntityAsStream(entityId));
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
 
+    private BenchToolResult authRetrieveEntity() throws IOException {
+    	String password = "passwd";
+    	List<String> level2Ids = new ArrayList<String>();
+    	level2Ids.add(level2Id);
+    	for (int i = 0; i < 10; i++) {
+            level2Ids.add(larchClient.postEntity(BenchToolEntities.createLevel2Entity(level1Id)));
+		}
+    	String username = larchClient.createUser(null, password, level2Ids);
+    	String entityId = larchClient.postEntity(BenchToolEntities.createRandomFullEntity(level2Id, size, true));
+
+        Object[] results = this.larchClient.executeAsUser("GET", "/entity/" + entityId, null, username, password);
+        return new BenchToolResult(size, (long)results[1]);
+    }
+    
     private BenchToolResult createEntity(boolean indexInline) throws IOException {
         final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
         String entityJson = mapper.writeValueAsString(e);
@@ -131,6 +167,75 @@ public class ActionWorker implements Callable<BenchToolResult> {
         long time = System.currentTimeMillis();
         /* create an entity */
         this.larchClient.postEntity(entityJson);
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult authCreateEntity() throws IOException {
+    	String password = "passwd";
+    	List<String> level2Ids = new ArrayList<String>();
+    	level2Ids.add(level2Id);
+    	for (int i = 0; i < 10; i++) {
+            level2Ids.add(larchClient.postEntity(BenchToolEntities.createLevel2Entity(level1Id)));
+		}
+    	String username = larchClient.createUser(null, password, level2Ids);
+    	
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, true);
+        String entityJson = mapper.writeValueAsString(e);
+
+        Object[] results = this.larchClient.executeAsUser("POST", "/entity", entityJson, username, password);
+        return new BenchToolResult(size, (long)results[1]);
+    }
+    
+    private BenchToolResult createBinary() throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, false);
+        String entityJson = mapper.writeValueAsString(e);
+        String entityId = this.larchClient.postEntity(entityJson);
+        final Binary binary = BenchToolEntities.createRandomBinary(size);
+
+        long time = System.currentTimeMillis();
+        this.larchClient.postBinary(entityId, binary);
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult createMetadata(boolean indexInline) throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
+        String entityJson = mapper.writeValueAsString(e);
+        String entityId = this.larchClient.postEntity(entityJson);
+        MdSize mdSize;
+        if (size < 100000) {
+            mdSize = MdSize.SMALL;
+        } else if (size < 20000000) {
+            mdSize = MdSize.MEDIUM;
+        } else {
+            mdSize = MdSize.BIG;
+        }
+        
+        final Metadata metadata = BenchToolEntities.createRandomMetadata(mdSize, indexInline);
+
+        long time = System.currentTimeMillis();
+        this.larchClient.postMetadata(entityId, metadata);
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult retrieveBinary() throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, false);
+        String binaryName = e.getBinaries().get(0).getName();
+        String entityJson = mapper.writeValueAsString(e);
+        String entityId = this.larchClient.postEntity(entityJson);
+
+        long time = System.currentTimeMillis();
+        IOUtils.toString(this.larchClient.retrieveBinaryContent(entityId, binaryName));
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult retrieveMetadata() throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, false);
+        String mdName = e.getMetadata().get(0).getName();
+        String entityJson = mapper.writeValueAsString(e);
+        String entityId = this.larchClient.postEntity(entityJson);
+
+        long time = System.currentTimeMillis();
+        IOUtils.toString(this.larchClient.retrieveMetadataContent(entityId, mdName));
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
     

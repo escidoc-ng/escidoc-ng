@@ -24,6 +24,7 @@ import net.objecthunter.larch.bench.BenchTool.MdSize;
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.ContentModel.FixedContentModel;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Entity.EntityState;
 import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.source.ByteArraySource;
 
@@ -37,6 +38,7 @@ public abstract class BenchToolEntities {
         e.setParentId(level2Id);
         e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
         e.setContentModelId(FixedContentModel.DATA.getName());
+        e.setState(EntityState.PENDING);
         return e;
     }
 
@@ -45,6 +47,7 @@ public abstract class BenchToolEntities {
         e.setParentId(level2Id);
         e.setLabel("benchtool-" + RandomStringUtils.randomAlphabetic(16));
         e.setContentModelId(FixedContentModel.DATA.getName());
+        e.setState(EntityState.PENDING);
         //add metadata
         e.setMetadata(BenchToolEntities.createMetadataList(3, dataSize, indexInline));
         //add binary

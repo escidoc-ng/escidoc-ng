@@ -34,24 +34,42 @@ import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Describe;
 import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
+import net.objecthunter.larch.model.security.role.Right;
+import net.objecthunter.larch.model.security.role.Role;
+import net.objecthunter.larch.model.security.role.Role.RoleRight;
+import net.objecthunter.larch.model.security.role.UserRole;
 import net.objecthunter.larch.model.state.LarchState;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -84,6 +102,37 @@ public class LarchClient {
         };
     }
 
+    /**
+     * Execute Http-Request as user with given username/password.
+     * 
+     * @param method String
+     * @param uri
+     * @param body String-body for PUT/POST requests
+     * @param username
+     * @param password
+     * @return InputStream
+     * @throws IOException
+     */
+    public Object[] executeAsUser(String method, String uri, Object body, String username,
+            String password)
+            throws IOException {
+        HttpClient httpClient = HttpClients.createDefault();
+        HttpUriRequest request = getRequest(method, this.larchUri + uri, body);
+        if (request != null) {
+            byte[] encodedBytes = Base64.encodeBase64((username + ":" + password).getBytes());
+            String authorization = "Basic " + new String(encodedBytes);
+            request.setHeader("Authorization", authorization);
+            long time = System.currentTimeMillis();
+            HttpResponse resp = httpClient.execute(request);
+            if (resp.getStatusLine().getStatusCode() > 400) {
+                throw new IOException("Unable to execute request: " + resp.getStatusLine().getReasonPhrase());
+            }
+            String respStr = IOUtils.toString(resp.getEntity().getContent());
+            return new Object[] {respStr, System.currentTimeMillis() - time};
+        }
+        return null;
+    }
+    
     /**
      * Retrieve a {@link net.objecthunter.larch.model.state.LarchState} response from the repository containing
      * detailed state information
@@ -136,6 +185,26 @@ public class LarchClient {
             throw new IOException("Unable to fetch meta data " + metadataName + " from entity " + entityId);
         }
         return mapper.readValue(resp.getEntity().getContent(), Metadata.class);
+    }
+
+    /**
+     * Retrieve a {@link net.objecthunter.larch.model.Metadata} of an Entity from the repository
+     * 
+     * @param entityId the entity's id
+     * @param metadataName the meta data set's name
+     * @return the Metadata as a POJO
+     * @throws IOException if an error occurred while fetching the meta data
+     */
+    public InputStream retrieveMetadataContent(String entityId, String metadataName) throws IOException {
+        final HttpResponse resp =
+                this.execute(Request.Get(larchUri + "/entity/" + entityId + "/metadata/" + metadataName + "/content")
+                        .useExpectContinue())
+                        .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to fetch meta data\n{}", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to fetch meta data " + metadataName + " from entity " + entityId);
+        }
+        return resp.getEntity().getContent();
     }
 
     /**
@@ -642,7 +711,6 @@ public class LarchClient {
                 .useExpectContinue()
                 .addHeader("Accept", "application/json"))
                 .returnResponse();
-        System.out.println(EntityUtils.toString(resp.getEntity()));
         return mapper.readValue(resp.getEntity().getContent(), Entity.class);
     }
 
@@ -657,7 +725,99 @@ public class LarchClient {
                 .useExpectContinue()
                 .addHeader("Accept", "application/json"))
                 .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to retrieve entity at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to retrieve Entity");
+        }
         return resp.getEntity().getContent();
+    }
+
+    /**
+     * Create new user with given name + password + UserRole for given level2Ids
+     * 
+     * @param name the name of the user
+     * @param password the password of the user
+     * @param level2ids the level2Ids to assign user-rights for
+     * @return name of the new user
+     */
+    public String createUser(String name, String password, List<String> level2Ids) throws IOException {
+        if (StringUtils.isBlank(name)) {
+            name = RandomStringUtils.randomAlphabetic(5);
+        }
+        // Create User
+        HttpResponse resp =
+                this.execute(
+                Request.Post(larchUri + "/user")
+                        .body(MultipartEntityBuilder.create()
+                                .addTextBody("name", name)
+                                .addTextBody("first_name", "test")
+                                .addTextBody("last_name", "test")
+                                .addTextBody("email", name + "@fiz.de")
+                                .build()
+                        ).useExpectContinue())
+                        .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to create user at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to create user");
+        }
+        EntityUtils.consume(resp.getEntity());
+        final String token = EntityUtils.toString(resp.getEntity());
+        
+        //Confirm User
+        resp =
+                this.execute(
+                Request.Post(larchUri + "/confirm/" + token)
+                        .body(MultipartEntityBuilder.create()
+                                .addTextBody("password", password)
+                                .addTextBody("passwordRepeat", password)
+                                .build()
+                        ).useExpectContinue()).returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to confirm user at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to confirm user");
+        }
+        
+        //Set Roles
+        List<Role> roles = new ArrayList<Role>();
+        Role userRole = new UserRole();
+        List<RoleRight> userRoleRights = new ArrayList<RoleRight>();
+        for (RoleRight roleRight : userRole.allowedRights()) {
+            userRoleRights.add(roleRight);
+        }
+        if (!userRoleRights.isEmpty()) {
+            List<Right> newRights = new ArrayList<Right>();
+            for (String level2Id : level2Ids) {
+                newRights.add(new Right(level2Id, userRoleRights));
+            }
+            userRole.setRights(newRights);
+        }
+        roles.add(userRole);
+        createRoles(name, roles);
+
+        return name;
+    }
+
+    /**
+     * Create Roles for user with given username
+     * 
+     * @param username the name of the user
+     * @param roles the roles to set
+     * @return response-string
+     */
+    public String createRoles(String username, List<Role> roles) throws IOException {
+        if (StringUtils.isBlank(username)) {
+            log.error("Username may not be null");
+            throw new IOException("Username may not be null");
+        }
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/user/" + username + "/roles")
+                .useExpectContinue()
+                .bodyString(mapper.writeValueAsString(roles), ContentType.APPLICATION_JSON))
+                .returnResponse();
+        if (resp.getStatusLine().getStatusCode() != 200) {
+            log.error("Unable to create roles at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to create roles: " + resp.getStatusLine().getReasonPhrase());
+        }
+        return EntityUtils.toString(resp.getEntity());
     }
 
     /**
@@ -670,4 +830,80 @@ public class LarchClient {
     protected Response execute(Request req) throws IOException {
         return this.executor.get().execute(req);
     }
+
+    /**
+     * Get HttpUriRequest for given parameters.
+     * 
+     * @param method
+     * @param url
+     * @param body
+     * @return
+     * @throws IOException
+     */
+    private HttpUriRequest getRequest(String method, String url, Object body) throws IOException {
+        if ("POST".equals(method)) {
+            HttpPost httpPost =
+                    new HttpPost(url);
+            setBody(httpPost, body);
+            return httpPost;
+        } else if ("PUT".equals(method)) {
+            HttpPut httpPut =
+                    new HttpPut(url);
+            setBody(httpPut, body);
+            return httpPut;
+        } else if ("PATCH".equals(method)) {
+            HttpPatch httpPatch =
+                    new HttpPatch(url);
+            setBody(httpPatch, body);
+            return httpPatch;
+        } else if ("GET".equals(method)) {
+            HttpGet httpGet = new HttpGet(url);
+            return httpGet;
+        } else if ("DELETE".equals(method)) {
+            HttpDelete httpDelete = new HttpDelete(url);
+            return httpDelete;
+        }
+        return null;
+    }
+
+    /**
+     * Sets the body of the request.
+     * 
+     * @param request
+     * @param body
+     * @return HttpEntityEnclosingRequestBase
+     * @throws IOException
+     */
+    private void setBody(HttpEntityEnclosingRequestBase request, Object body)
+            throws IOException {
+        if (body != null) {
+            if (body instanceof String) {
+                String bodyString = (String) body;
+                if (StringUtils.isNotBlank(bodyString)) {
+                    request.setEntity(new StringEntity(bodyString));
+                    if (isJson(bodyString)) {
+                        request.setHeader("Content-type", "application/json; charset=UTF-8");
+                    } else {
+                        request.setHeader("Content-type", ContentType.APPLICATION_FORM_URLENCODED.toString());
+                    }
+                }
+            } else if (body instanceof HttpEntity) {
+                request.setEntity((HttpEntity) body);
+            }
+        }
+    }
+
+    private boolean isJson(String text) {
+        boolean isJson = false;
+        JsonFactory f = new JsonFactory();
+        try {
+            JsonParser parser = f.createParser(text);
+            while (parser.nextToken() != null) {
+            }
+            isJson = true;
+        } catch (Exception e) {
+        }
+        return isJson;
+    }
+
 }

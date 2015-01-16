@@ -46,6 +46,8 @@ public class BenchToolRunner {
 
     private final URI larchUri;
 
+    private final String level1Id;
+
     private final String level2Id;
 
     public BenchToolRunner(BenchTool.Action action, URI larchUri, String user, String password, int numActions,
@@ -56,15 +58,14 @@ public class BenchToolRunner {
         this.larchUri = larchUri;
         this.larchClient = new LarchClient(larchUri, user, password);
         this.executor = Executors.newFixedThreadPool(numThreads);
-        String level1Id = larchClient.postEntity(BenchToolEntities.createLevel1Entity());
+        this.level1Id = larchClient.postEntity(BenchToolEntities.createLevel1Entity());
         this.level2Id = larchClient.postEntity(BenchToolEntities.createLevel2Entity(level1Id));
     }
 
     public List<BenchToolResult> run() throws IOException {
         final List<Future<BenchToolResult>> futures = new ArrayList<>();
         for (int i = 0; i < numActions; i++) {
-            futures.add(executor.submit(new ActionWorker(this.action, this.size, this.larchClient, this.larchUri
-                    .toASCIIString(), level2Id)));
+            futures.add(executor.submit(new ActionWorker(this.action, this.size, this.larchClient, level1Id, level2Id)));
         }
 
         try {
