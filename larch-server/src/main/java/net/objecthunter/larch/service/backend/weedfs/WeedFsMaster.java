@@ -29,6 +29,7 @@ import javax.annotation.PreDestroy;
 
 import net.objecthunter.larch.helpers.InputStreamLoggerTask;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,13 +83,16 @@ public class WeedFsMaster {
         }
         try {
 
-            final List<String> command = Arrays.asList(
+            List<String> command = Arrays.asList(
                     env.getProperty("blobstore.weedfs.binary"),
                     "master",
                     "-mdir=" + env.getProperty("blobstore.weedfs.master.dir"),
                     "-port=" + env.getProperty("blobstore.weedfs.master.port"),
                     "-ip=" + env.getProperty("blobstore.weedfs.master.public")
                     );
+            if (StringUtils.isNotBlank(env.getProperty("blobstore.weedfs.master.peers"))) {
+                command.add("-peers=" + env.getProperty("blobstore.weedfs.master.peers"));
+            }
             log.info("Starting weedfs master with command '" + String.join(" ", command) + "'");
             masterProcess = new ProcessBuilder(command)
                     .redirectErrorStream(true)
