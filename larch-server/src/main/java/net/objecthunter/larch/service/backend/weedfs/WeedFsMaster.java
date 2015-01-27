@@ -19,6 +19,7 @@ package net.objecthunter.larch.service.backend.weedfs;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -83,13 +84,13 @@ public class WeedFsMaster {
         }
         try {
 
-            List<String> command = Arrays.asList(
-                    env.getProperty("blobstore.weedfs.binary"),
-                    "master",
-                    "-mdir=" + env.getProperty("blobstore.weedfs.master.dir"),
-                    "-port=" + env.getProperty("blobstore.weedfs.master.port"),
-                    "-ip=" + env.getProperty("blobstore.weedfs.master.public")
-                    );
+            List<String> command = new ArrayList<String> (){{
+                    add(env.getProperty("blobstore.weedfs.binary"));
+                    add("master");
+                    add("-mdir=" + env.getProperty("blobstore.weedfs.master.dir"));
+                    add("-port=" + env.getProperty("blobstore.weedfs.master.port"));
+                    add("-ip=" + env.getProperty("blobstore.weedfs.master.public"));
+            }};
             if (StringUtils.isNotBlank(env.getProperty("blobstore.weedfs.master.peers"))) {
                 command.add("-peers=" + env.getProperty("blobstore.weedfs.master.peers"));
             }
