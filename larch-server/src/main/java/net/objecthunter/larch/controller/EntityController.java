@@ -18,16 +18,26 @@ package net.objecthunter.larch.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.HashMap;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+
+import net.objecthunter.larch.exceptions.NotFoundException;
 import net.objecthunter.larch.helpers.AuditRecordHelper;
+import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Entities;
 import net.objecthunter.larch.model.Entity;
+import net.objecthunter.larch.model.Metadata;
 import net.objecthunter.larch.model.security.ObjectType;
 import net.objecthunter.larch.model.security.PermissionType;
 import net.objecthunter.larch.model.security.annotation.Permission;
 import net.objecthunter.larch.model.security.annotation.PostAuth;
 import net.objecthunter.larch.model.security.annotation.PreAuth;
 import net.objecthunter.larch.model.security.role.Role.RoleName;
+import net.objecthunter.larch.model.source.InputStreamSource;
 import net.objecthunter.larch.service.EntityService;
 import net.objecthunter.larch.service.MessagingService;
 import net.objecthunter.larch.service.SchemaService;
@@ -131,7 +141,8 @@ public class EntityController extends AbstractLarchController {
      * {@link net.objecthunter.larch.model.Entity}
      * 
      * @param id the {@link net.objecthunter.larch.model.Entity}'s id
-     * @return An {@link net.objecthunter.larch.model.Entities} object which gets transformed into a JSON response by Spring MVC
+     * @return An {@link net.objecthunter.larch.model.Entities} object which gets transformed into a JSON response by
+     *         Spring MVC
      * @throws IOException
      */
     @RequestMapping("/{id}/versions")
@@ -162,6 +173,56 @@ public class EntityController extends AbstractLarchController {
         Entity e = mapper.readValue(src, Entity.class);
         String entityId = helpCreate(e);
         return entityId;
+    }
+
+    /**
+     * Controller method for creation of a new {@link net.objecthunter.larch.model.Entity} using a HTTP POST with a
+     * Multipart Form Request.
+     * 
+     * @throws IOException
+     */
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = {
+                "multipart/form-data",
+                "application/x-www-form-urlencoded",
+                "application/octet-stream"})
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
+            @Permission(rolename = RoleName.ROLE_ADMIN),
+            @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
+    public void createMultipart(HttpServletRequest request) throws IOException {
+        try {
+            Collection<Part> parts = request.getParts();
+            HashMap<String, InputStream> hashedParts = new HashMap<String, InputStream>();
+            for(Part part : parts) {
+                hashedParts.put(part.getName(), part.getInputStream());
+            }
+            if (!hashedParts.containsKey("entity")) {
+                throw new NotFoundException("Part named 'entity' not found");
+            }
+            Entity e = mapper.readValue(hashedParts.get("entity"), Entity.class);
+            for (Binary b : e.getBinaries()) {
+                if (!hashedParts.containsKey("binary:" + b.getName())) {
+                    throw new NotFoundException("Part named 'binary:" + b.getName() + "' not found");
+                }
+                b.setSource(new InputStreamSource(hashedParts.get("binary:" + b.getName())));
+                for (Metadata m : b.getMetadata()) {
+                    if (!hashedParts.containsKey("binary:" + b.getName() + "metadata:" + m.getName())) {
+                        throw new NotFoundException("Part named 'binary:" + b.getName() + "metadata:" + m.getName() + "' not found");
+                    }
+                    m.setSource(new InputStreamSource(hashedParts.get("binary:" + b.getName() + "metadata:" + m.getName())));
+                }
+            }
+            for (Metadata m : e.getMetadata()) {
+                if (!hashedParts.containsKey("metadata:" + m.getName())) {
+                    throw new NotFoundException("Part named 'metadata:" + m.getName() + "' not found");
+                }
+                m.setSource(new InputStreamSource(hashedParts.get("metadata:" + m.getName())));
+            }
+            helpCreate(e);
+        } catch (IllegalStateException | ServletException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
     /**

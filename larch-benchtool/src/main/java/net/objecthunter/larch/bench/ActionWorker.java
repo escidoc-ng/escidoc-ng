@@ -29,7 +29,6 @@ import net.objecthunter.larch.model.Entity;
 import net.objecthunter.larch.model.Metadata;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +65,10 @@ public class ActionWorker implements Callable<BenchToolResult> {
             return createEntity(false);
         case CREATE_INDEXED_ENTITY:
             return createEntity(true);
+        case CREATE_ENTITY_PARTED:
+            return createEntityParted(false);
+        case CREATE_INDEXED_ENTITY_PARTED:
+            return createEntityParted(true);
         case RETRIEVE_ENTITY:
             return retrieveEntity(false);
         case RETRIEVE_INDEXED_ENTITY:
@@ -80,6 +83,8 @@ public class ActionWorker implements Callable<BenchToolResult> {
             return deleteEntity(true);
         case CREATE_BINARY:
             return createBinary();
+        case CREATE_BINARY_MULTIPART:
+            return createBinaryMultipart();
         case CREATE_METADATA:
             return createMetadata(false);
         case CREATE_INDEXED_METADATA:
@@ -103,11 +108,8 @@ public class ActionWorker implements Callable<BenchToolResult> {
         final String entityId = this.larchClient.postEntity(e);
 
         /* add a binary */
-        final String binaryName = RandomStringUtils.randomAlphabetic(16);
-        this.larchClient.postBinary(entityId,
-                binaryName,
-                "application/octet-stream",
-                new RandomInputStream(size));
+        final Binary binary = BenchToolEntities.createRandomBinary(size);
+        this.larchClient.postBinary(entityId, binary);
 
         /* measure the deletion duration */
         long time = System.currentTimeMillis();
@@ -165,8 +167,15 @@ public class ActionWorker implements Callable<BenchToolResult> {
         String entityJson = mapper.writeValueAsString(e);
 
         long time = System.currentTimeMillis();
-        /* create an entity */
         this.larchClient.postEntity(entityJson);
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult createEntityParted(boolean indexInline) throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, indexInline);
+
+        long time = System.currentTimeMillis();
+        this.larchClient.postEntityMultipart(e);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
     
@@ -194,6 +203,17 @@ public class ActionWorker implements Callable<BenchToolResult> {
 
         long time = System.currentTimeMillis();
         this.larchClient.postBinary(entityId, binary);
+        return new BenchToolResult(size, System.currentTimeMillis() - time);
+    }
+    
+    private BenchToolResult createBinaryMultipart() throws IOException {
+        final Entity e = BenchToolEntities.createRandomFullEntity(level2Id, size, false);
+        String entityJson = mapper.writeValueAsString(e);
+        String entityId = this.larchClient.postEntity(entityJson);
+        final Binary binary = BenchToolEntities.createRandomBinary(size);
+
+        long time = System.currentTimeMillis();
+        this.larchClient.postBinaryMultipart(entityId, binary);
         return new BenchToolResult(size, System.currentTimeMillis() - time);
     }
     

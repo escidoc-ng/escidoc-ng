@@ -116,7 +116,7 @@ public class MetadataController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
     public void
-            addMetadata(@PathVariable("id") final String entityId,
+            addMetadataMultipart(@PathVariable("id") final String entityId,
                     @RequestParam("name") final String mdName,
                     @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
                             defaultValue = "false") final String indexInline,
@@ -177,7 +177,7 @@ public class MetadataController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public void addBinaryMetadata(@PathVariable("id") final String entityId,
+    public void addBinaryMetadataMultipart(@PathVariable("id") final String entityId,
             @PathVariable("binary-name") final String binaryName, @RequestParam("name") final String mdName,
             @RequestParam("type") final String type, @RequestParam(value = "indexInline", required = false,
                     defaultValue = "false") final String indexInline, @RequestParam("data") final MultipartFile file)

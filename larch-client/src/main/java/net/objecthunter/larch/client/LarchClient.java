@@ -28,7 +28,10 @@ import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import net.objecthunter.larch.model.Binary;
 import net.objecthunter.larch.model.Describe;
@@ -38,6 +41,7 @@ import net.objecthunter.larch.model.security.role.Right;
 import net.objecthunter.larch.model.security.role.Role;
 import net.objecthunter.larch.model.security.role.Role.RoleRight;
 import net.objecthunter.larch.model.security.role.UserRole;
+import net.objecthunter.larch.model.source.Source;
 import net.objecthunter.larch.model.state.LarchState;
 
 import org.apache.commons.codec.binary.Base64;
@@ -61,7 +65,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -251,6 +254,31 @@ public class LarchClient {
     }
 
     /**
+     * Add {@link net.objecthunter.larch.model.Metadata} to an existing entity
+     * 
+     * @param entityId the entity's id
+     * @param md the Metadata object
+     * @throws IOException
+     */
+    public void postMetadataMultipart(String entityId, Metadata md) throws IOException {
+        HttpResponse resp =
+                this.execute(
+                        Request.Post(larchUri + "/entity/" + entityId + "/metadata").body(MultipartEntityBuilder.create()
+                                .addTextBody("name", md.getName())
+                                .addTextBody("type", md.getType())
+                                .addTextBody("indexInline", new Boolean(md.isIndexInline()).toString())
+                                .addBinaryBody(
+                                        "data",
+                                        md.getSource().getInputStream(), ContentType.APPLICATION_XML, md.getFilename())
+                                .build())).returnResponse();
+
+        if (resp.getStatusLine().getStatusCode() != 201) {
+            log.error("Unable to add meta data\n{}", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to add meta data " + md.getName() + " from entity " + entityId);
+        }
+    }
+
+    /**
      * Add {@link net.objecthunter.larch.model.Metadata} to an existing binary
      * 
      * @param entityId the entity's id
@@ -267,6 +295,31 @@ public class LarchClient {
             log.error("Unable to add meta data to binary\n{}", EntityUtils.toString(resp.getEntity()));
             throw new IOException("Unable to add meta data " + md.getName() + " to binary " + binaryName +
                     " of entity " + entityId);
+        }
+    }
+
+    /**
+     * Add {@link net.objecthunter.larch.model.Metadata} to an existing entity
+     * 
+     * @param entityId the entity's id
+     * @param md the Metadata object
+     * @throws IOException
+     */
+    public void postBinaryMetadataMultipart(String entityId, String binaryName, Metadata md) throws IOException {
+        HttpResponse resp =
+                this.execute(
+                        Request.Post(larchUri + "/entity/" + entityId + "/binary/" + binaryName + "/metadata").body(MultipartEntityBuilder.create()
+                                .addTextBody("name", md.getName())
+                                .addTextBody("type", md.getType())
+                                .addTextBody("indexInline", new Boolean(md.isIndexInline()).toString())
+                                .addBinaryBody(
+                                        "data",
+                                        md.getSource().getInputStream(), ContentType.APPLICATION_XML, md.getFilename())
+                                .build())).returnResponse();
+
+        if (resp.getStatusLine().getStatusCode() != 201) {
+            log.error("Unable to add meta data\n{}", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to add meta data " + md.getName() + " from entity " + entityId);
         }
     }
 
@@ -351,22 +404,29 @@ public class LarchClient {
         }
     }
 
-    public void postBinary(String entityId, String name, String mimeType, InputStream src) throws IOException {
-        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary?name=" + name
-                + "&mimetype=" + mimeType)
+    /**
+     * Add a {@link net.objecthunter.larch.model.Binary} to an existing entity
+     * 
+     * @param entityId the entity's id
+     * @param bin the binary object to add
+     * @throws IOException
+     */
+    public void postBinaryMultipart(String entityId, Binary bin) throws IOException {
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        if (bin.getName() != null) {
+            entityBuilder.addTextBody("name", bin.getName());
+        }
+        if (bin.getSource().getInputStream() != null) {
+            entityBuilder.addBinaryBody("binary", bin.getSource().getInputStream(), ContentType.create(null), bin.getFilename());
+        }
+        
+        final HttpResponse resp = this.execute(Request.Post(larchUri + "/entity/" + entityId + "/binary")
                 .useExpectContinue()
-                .body(MultipartEntityBuilder.create()
-                        .addTextBody("name", "test")
-                        .addTextBody("mimetype", "image/png")
-                        .addPart(
-                                "binary",
-                                new InputStreamBody(src, "image/png"))
-                        .build()))
-//                .bodyStream(src))
+                .body(entityBuilder.build()))
                 .returnResponse();
         if (resp.getStatusLine().getStatusCode() != 201) {
-            log.error("Unable to add binary. Server says:\n{}", EntityUtils.toString(resp.getEntity()));
-            throw new IOException("Unable to add binary " + name + " to entity " + entityId);
+            log.error("Unable to add binary. Server says:\n", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to add binary " + bin.getName() + " to entity " + entityId);
         }
     }
 
@@ -498,6 +558,50 @@ public class LarchClient {
         if (resp.getStatusLine().getStatusCode() != 201) {
             log.error("Unable to post entity to Larch at {}\n{}", larchUri, EntityUtils.toString(resp.getEntity()));
             throw new IOException("Unable to create Entity");
+        }
+        return EntityUtils.toString(resp.getEntity());
+    }
+
+    /**
+     * Post an {@link net.objecthunter.larch.model.Entity} to the Larch server
+     * 
+     * @param entityId the entity's id
+     * @param md the Metadata object
+     * @throws IOException
+     */
+    public String postEntityMultipart(Entity entity) throws IOException {
+        Map<String, Source> savedBinaries = new HashMap<String, Source>();
+        Map<String, Source> savedMetadata = new HashMap<String, Source>();
+        for (Binary b : entity.getBinaries()) {
+            savedBinaries.put("binary:" + b.getName(), b.getSource());
+            b.setSource(null);
+            for(Metadata m : b.getMetadata()) {
+                savedMetadata.put("binary:" + b.getName() + "metadata:" + m.getName(), m.getSource());
+                m.setSource(null);
+            }
+        }
+        for (Metadata m : entity.getMetadata()) {
+            savedMetadata.put("metadata:" + m.getName(), m.getSource());
+            m.setSource(null);
+        }
+
+        String entityString = mapper.writeValueAsString(entity);
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        entityBuilder.addTextBody("entity", entityString);
+        for(Entry<String, Source> e : savedBinaries.entrySet()) {
+            entityBuilder.addBinaryBody(e.getKey(), e.getValue().getInputStream(), ContentType.create(ContentType.APPLICATION_OCTET_STREAM.getMimeType()), "filename");
+        }
+        for(Entry<String, Source> e : savedMetadata.entrySet()) {
+            entityBuilder.addBinaryBody(e.getKey(), e.getValue().getInputStream(), ContentType.create(ContentType.APPLICATION_XML.getMimeType()), "filename");
+        }
+        
+        HttpResponse resp =
+                this.execute(
+                        Request.Post(larchUri + "/entity/").body(entityBuilder.build())).returnResponse();
+
+        if (resp.getStatusLine().getStatusCode() != 201) {
+            log.error("Unable to create entity\n{}", EntityUtils.toString(resp.getEntity()));
+            throw new IOException("Unable to create entity");
         }
         return EntityUtils.toString(resp.getEntity());
     }

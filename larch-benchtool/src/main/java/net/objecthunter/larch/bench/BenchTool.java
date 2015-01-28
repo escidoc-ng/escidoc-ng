@@ -288,6 +288,8 @@ public class BenchTool {
     public static enum Action {
         CREATE_ENTITY,
         CREATE_INDEXED_ENTITY,
+        CREATE_ENTITY_PARTED,
+        CREATE_INDEXED_ENTITY_PARTED,
         RETRIEVE_ENTITY,
         RETRIEVE_INDEXED_ENTITY,
         UPDATE_ENTITY,
@@ -295,6 +297,7 @@ public class BenchTool {
         DELETE_ENTITY,
         DELETE_INDEXED_ENTITY,
         CREATE_BINARY,
+        CREATE_BINARY_MULTIPART,
         CREATE_METADATA,
         CREATE_INDEXED_METADATA,
         RETRIEVE_BINARY,

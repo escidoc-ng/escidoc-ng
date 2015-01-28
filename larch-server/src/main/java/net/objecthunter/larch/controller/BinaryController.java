@@ -85,7 +85,7 @@ public class BinaryController extends AbstractLarchController {
     @PreAuth(objectType = ObjectType.BINARY, idIndex = 0, permissions = {
             @Permission(rolename = RoleName.ROLE_ADMIN),
             @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE) })
-    public void create(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
+    public void createMultipart(@PathVariable("id") final String entityId, @RequestParam("name") final String name,
             @RequestParam("binary") final MultipartFile file) throws IOException {
         Binary binary = new Binary();
         binary.setName(name);
