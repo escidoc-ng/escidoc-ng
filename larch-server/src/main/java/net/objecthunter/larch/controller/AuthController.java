@@ -109,7 +109,7 @@ public class AuthController extends AbstractLarchController {
                         method.getName().equals("create") && method.getParameters() != null &&
                         method.getParameters().length == 1 &&
                         method.getParameters()[0].getType().equals(InputStream.class)) {
-                    method = EntityController.class.getMethod("create", Entity.class);
+                    method = EntityController.class.getMethod("helpCreate", Entity.class);
                     try {
                         Entity e = mapper.readValue(req.getInputStream(), Entity.class);
                         e.setState(EntityState.PENDING);
