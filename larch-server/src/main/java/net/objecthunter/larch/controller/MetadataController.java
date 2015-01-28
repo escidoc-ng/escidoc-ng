@@ -75,7 +75,9 @@ public class MetadataController extends AbstractLarchController {
 
     /**
      * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
-     * {@link net.objecthunter.larch.model.Entity} using a HTTP POST with application/json
+     * {@link net.objecthunter.larch.model.Entity} using a HTTP POST with application/json<br>
+     * NOTE: Use this Method only for small metadata-files<br>
+     * For bigger metadata-files use POST with MultipartRequest.
      * 
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param src the request body as an InputStream, containing the JSON-Representation of a
@@ -137,7 +139,9 @@ public class MetadataController extends AbstractLarchController {
 
     /**
      * Controller method for adding {@link net.objecthunter.larch.model.Metadata} with a given name to an
-     * {@link net .objecthunter.larch.model.Binary} using a HTTP POST with application/json
+     * {@link net .objecthunter.larch.model.Binary} using a HTTP POST with application/json<br>
+     * NOTE: Use this Method only for small metadata-files<br>
+     * For bigger metadata-files use POST with MultipartRequest.
      * 
      * @param entityId The is of the Entity to which the Metadata should be added
      * @param src the request body as an InputStream

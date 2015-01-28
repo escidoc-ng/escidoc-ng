@@ -99,7 +99,9 @@ public class BinaryController extends AbstractLarchController {
 
     /**
      * Controller method for adding a {@link net.objecthunter.larch.model.Binary} to an existing
-     * {@link net .objecthunter.larch.model.Entity} using a application/json POST
+     * {@link net .objecthunter.larch.model.Entity} using a application/json POST<br>
+     * NOTE: Use this Method only for small binary-files<br>
+     * For bigger binary-files use POST with MultipartRequest.
      * 
      * @param entityId The {@link net.objecthunter.larch.model.Entity}'s to which the created Binary should get added.
      * @param src An Inputstream holding the request body's content

@@ -159,7 +159,9 @@ public class EntityController extends AbstractLarchController {
 
     /**
      * Controller method for creation of a new {@link net.objecthunter.larch.model.Entity} using a HTTP POST with the
-     * JSON representation of the entity as the request body
+     * JSON representation of the entity as the request body.<br><br>
+     * NOTE: Use this Method only for Entities with small or no binaries/metadtata-files<br>
+     * For Entities with bigger binaries/metadata-files use POST with MultipartRequest.
      * 
      * @param src The Stream injected by Spring MVC containing the JSON representation of the Entity to create.
      * @return The id of the created entity.
@@ -177,7 +179,15 @@ public class EntityController extends AbstractLarchController {
 
     /**
      * Controller method for creation of a new {@link net.objecthunter.larch.model.Entity} using a HTTP POST with a
-     * Multipart Form Request.
+     * Multipart Form Request.<br>
+     * Use this Method for Entities for entities containing bigger binaries/metadata-files.<br>
+     * Send Entity-JSON with no source + One Multipart-InputStream for each file.<br><br>
+     * Naming of the Multipart-InputStreams:<br>
+     * Entity-JSON: entity<br>
+     * Binary: binary:{binaryName}<br>
+     * Metadata: metadata:{metadataName}<br>
+     * Binary-Metadata: binary:{binaryName}metadata:{metadataName}<br><br>
+     * All Metadatas and Binaries given in the Entity-JSON must have an associated InputStream
      * 
      * @throws IOException
      */
