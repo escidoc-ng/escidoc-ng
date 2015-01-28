@@ -160,7 +160,7 @@ public class EntityController extends AbstractLarchController {
     public String create(final InputStream src)
             throws IOException {
         Entity e = mapper.readValue(src, Entity.class);
-        String entityId = create(e);
+        String entityId = helpCreate(e);
         return entityId;
     }
 
@@ -175,7 +175,7 @@ public class EntityController extends AbstractLarchController {
         @Permission(rolename = RoleName.ROLE_ADMIN),
         @Permission(rolename = RoleName.ROLE_USER, permissionType = PermissionType.WRITE),
         @Permission(rolename = RoleName.ROLE_LEVEL1_ADMIN, permissionType = PermissionType.WRITE) })
-    public String create(final Entity entity) throws IOException {
+    public String helpCreate(final Entity entity) throws IOException {
         final String id = this.entityService.create(entity);
         this.entityService.createAuditRecord(AuditRecordHelper.createEntityRecord(id));
         this.messagingService.publishCreateEntity(id);
