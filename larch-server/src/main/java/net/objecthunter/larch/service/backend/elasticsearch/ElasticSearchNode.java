@@ -70,7 +70,7 @@ public class ElasticSearchNode {
                                                 environment.getProperty("elasticsearch.gateway.type"))
                                         .put("discovery.zen.ping.multicast.enabled", false)
                                         .put("discovery.zen.ping.unicast.hosts",
-                                                environment.getProperty("elasticsearch.unicast.hosts", ""))
+                                                environment.getProperty("elasticsearch.unicast.hosts", "localhost"))
                         )
                         .node();
     }
