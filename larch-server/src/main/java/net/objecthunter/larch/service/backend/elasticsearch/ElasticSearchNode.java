@@ -68,6 +68,9 @@ public class ElasticSearchNode {
                                                         .getProperty("elasticsearch.network.publish_host", ""))
                                         .put("gateway.type",
                                                 environment.getProperty("elasticsearch.gateway.type"))
+                                        .put("discovery.zen.ping.multicast.enabled", false)
+                                        .put("discovery.zen.ping.unicast.hosts",
+                                                environment.getProperty("elasticsearch.unicast.hosts", ""))
                         )
                         .node();
     }

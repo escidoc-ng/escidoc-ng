@@ -79,18 +79,18 @@ public class OAuth2ServerConfiguration {
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             String clientsConf = env.getProperty("escidocng.oauth.clients");
             if (clientsConf != null) {
-                String[] clientConfs = clientsConf.split("\\|");
+                String[] clientConfs = clientsConf.split("\\s*\\|\\s*");
                 if (clientsConf != null) {
                     ClientBuilder clientBuilder = null;
                     for (int i = 0; i < clientConfs.length; i++) {
                         if (clientConfs[i] != null) {
-                            String[] clientConf = clientConfs[i].split("\\,");
+                            String[] clientConf = clientConfs[i].split("\\s*,\\s*");
                             if (clientConf != null && clientConf.length == 2) {
                                 String redirectUris =
                                         env.getProperty("escidocng.oauth.redirectUris." + clientConf[0]);
                                 String[] redirectUrisArr = new String[0];
                                 if (redirectUris != null) {
-                                    redirectUrisArr = redirectUris.split("\\|");
+                                    redirectUrisArr = redirectUris.split("\\s*\\|\\s*");
                                 }
                                 if (clientBuilder == null) {
                                     clientBuilder = clients
