@@ -206,4 +206,11 @@
             </plugin>
         </plugins>
     </build>
+	<distributionManagement>
+  		<repository>
+    		<id>ecs-marep</id>
+    		<name>ecs-marep</name>
+    		<url>http://ecs-marep.fiz-karlsruhe.de:8081/artifactory/libs-snapshot-local</url>
+  		</repository>
+	</distributionManagement>
 </project>

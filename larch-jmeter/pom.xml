@@ -52,7 +52,7 @@
 	                    <deployables>
 	                        <deployable>
 	                            <type>war</type>
-	                            <location>${basedir}/../larch-server/target/larch-server-${version}.war</location>
+	                            <location>${basedir}/../larch-server/target/larch-server-${project.version}.war</location>
 	                            <properties>
 	                                <context>/</context>
 	                            </properties>
