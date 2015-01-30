@@ -171,9 +171,7 @@ public class WeedFSBlobstoreService implements BackendBlobstoreService {
     }
 
     private String lookupVolumeUrl(String fid) throws IOException {
-        final int separator = fid.indexOf(',');
         final String volumeId = fid.substring(0, fid.indexOf(','));
-        final String id = fid.substring(separator + 1);
         final HttpResponse resp =
                 Request.Get(this.weedfsUrl + "/dir/lookup?volumeId=" + volumeId).execute().returnResponse();
         if (resp.getStatusLine().getStatusCode() != 200) {
