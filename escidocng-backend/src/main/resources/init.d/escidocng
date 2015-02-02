@@ -1,24 +1,24 @@
 #!/bin/bash
 
-export ESCIDOCNG_SERVER_HOME=/data/escidoc-ng/server
-export ESCIDOCNG_SERVER_NAME=escidoc-ng-server
-export ESCIDOCNG_FRONTEND_HOME=/data/escidoc-ng/frontend
-export ESCIDOCNG_FRONTEND_NAME=escidoc-ng-frontend
+export ESCIDOCNG_BACKEND_HOME=/data/escidocng/backend
+export ESCIDOCNG_BACKEND_NAME=escidocng-backend
+export ESCIDOCNG_FRONTEND_HOME=/data/escidocng/frontend
+export ESCIDOCNG_FRONTEND_NAME=escidocng-frontend
 
-#Names of startscripts. Has to be located in ESCIDOCNG_SERVER_HOME + ESCIDOCNG_FRONTEND_HOME
-export ESCIDOCNG_SERVER_STARTSCRIPT=server.start
+#Names of startscripts. Has to be located in ESCIDOCNG_BACKEND_HOME + ESCIDOCNG_FRONTEND_HOME
+export ESCIDOCNG_BACKEND_STARTSCRIPT=backend.start
 export ESCIDOCNG_FRONTEND_STARTSCRIPT=frontend.start
 
 export ESCIDOCNG_USER=admin
 
 function start {
-    if pkill -0 -f $ESCIDOCNG_SERVER_NAME.jar > /dev/null 2>&1
+    if pkill -0 -f $ESCIDOCNG_BACKEND_NAME.jar > /dev/null 2>&1
     then
-    	pkill -f $ESCIDOCNG_SERVER_NAME.jar > /dev/null 2>&1
+    	pkill -f $ESCIDOCNG_BACKEND_NAME.jar > /dev/null 2>&1
     fi
     echo "Starting server..."
-    cd $ESCIDOCNG_SERVER_HOME
-    sudo -u $ESCIDOCNG_USER ./$ESCIDOCNG_SERVER_STARTSCRIPT
+    cd $ESCIDOCNG_BACKEND_HOME
+    sudo -u $ESCIDOCNG_USER ./$ESCIDOCNG_BACKEND_STARTSCRIPT
     
     sleep 30
     
@@ -32,11 +32,11 @@ function start {
 }
 
 function stop {
-    if ! pkill -0 -f $ESCIDOCNG_SERVER_NAME.jar > /dev/null 2>&1
+    if ! pkill -0 -f $ESCIDOCNG_BACKEND_NAME.jar > /dev/null 2>&1
     then
-        echo "Service [$ESCIDOCNG_SERVER_NAME] is not running. Ignoring shutdown request."
+        echo "Service [$ESCIDOCNG_BACKEND_NAME] is not running. Ignoring shutdown request."
     else
-    	pkill -f $ESCIDOCNG_SERVER_NAME.jar > /dev/null 2>&1
+    	pkill -f $ESCIDOCNG_BACKEND_NAME.jar > /dev/null 2>&1
     fi
 
     if ! pkill -0 -f $ESCIDOCNG_FRONTEND_NAME.jar > /dev/null 2>&1

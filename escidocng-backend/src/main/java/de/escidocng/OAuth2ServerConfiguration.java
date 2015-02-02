@@ -44,7 +44,7 @@ public class OAuth2ServerConfiguration {
 
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) {
-            resources.resourceId("escidoc-ng");
+            resources.resourceId("escidocng");
         }
 
         @Override
@@ -99,7 +99,7 @@ public class OAuth2ServerConfiguration {
                                 } else {
                                     clientBuilder = clientBuilder.and().withClient(clientConf[0]);
                                 }
-                                clientBuilder = clientBuilder.resourceIds("escidoc-ng")
+                                clientBuilder = clientBuilder.resourceIds("escidocng")
                                         .authorizedGrantTypes("authorization_code", "implicit")
                                         .secret(clientConf[1])
                                         .authorities("ROLE_ADMIN")

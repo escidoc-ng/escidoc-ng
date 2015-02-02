@@ -35,7 +35,7 @@ import de.escidocng.model.security.annotation.PreAuth;
 import de.escidocng.service.AuthorizationService;
 
 /**
- * Interceptor used for securing the escidoc-ng framework.
+ * Interceptor used for securing the escidocng framework.
  * <p/>
  * <p/>
  * This Interceptor is invoked every time a method in a class of package de.escidocng.controller is called.
