@@ -188,11 +188,11 @@ limitations under the License.
                 <p class="property" th:text="${rel.predicate}"></p>
 
                 <div th:each="obj : ${rel.objects}">
-                    <p th:if="${#strings.startsWith(obj, '&lt;' + T(net.objecthunter.larch.model.LarchConstants).NAMESPACE_LARCH)}">
-                        <a th:href="${#strings.substring(obj, 1 +#strings.length(T(net.objecthunter.larch.model.LarchConstants).NAMESPACE_LARCH) ,  #strings.length(obj) - 1)}"
+                    <p th:if="${#strings.startsWith(obj, '&lt;' + T(de.escidocng.model.EscidocngConstants).NAMESPACE_ESCIDOCNG)}">
+                        <a th:href="${#strings.substring(obj, 1 +#strings.length(T(de.escidocng.model.EscidocngConstants).NAMESPACE_ESCIDOCNG) ,  #strings.length(obj) - 1)}"
                            th:text="${obj}"></a></p>
 
-                    <p th:if="${#strings.startsWith(obj, '&lt;') and not #strings.startsWith(obj, '&lt;' + T(net.objecthunter.larch.model.LarchConstants).NAMESPACE_LARCH)}">
+                    <p th:if="${#strings.startsWith(obj, '&lt;') and not #strings.startsWith(obj, '&lt;' + T(de.escidocng.model.EscidocngConstants).NAMESPACE_ESCIDOCNG)}">
                         <a th:href="${#strings.substring(obj,1,#strings.length(obj) -1)}"
                            th:text="${obj}"></a></p>
 

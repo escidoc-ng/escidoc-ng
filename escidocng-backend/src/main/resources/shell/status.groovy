@@ -15,10 +15,10 @@
  */
 package shell
 
-import net.objecthunter.larch.model.Describe
-import net.objecthunter.larch.model.state.LarchState
-import net.objecthunter.larch.service.RepositoryService
-import net.objecthunter.larch.util.ServiceProvider
+import de.escidocng.model.Describe
+import de.escidocng.model.state.EscidocngState
+import de.escidocng.service.RepositoryService
+import de.escidocng.util.ServiceProvider
 import org.crsh.cli.Command
 import org.crsh.cli.Usage
 import org.crsh.command.InvocationContext
@@ -37,16 +37,16 @@ class status {
                 getService(ctx,
                            RepositoryService.class);
         final Describe desc = repositoryService.describe();
-        final LarchState state = repositoryService.status();
+        final EscidocngState state = repositoryService.status();
         final StringBuilder resp = new StringBuilder();
         sink = ctx.getWriter();
-        printHeader("Module Larch");
+        printHeader("Module Escidocng");
         printField("Version\t\t\t\t");
-        printValue(desc.larchVersion);
+        printValue(desc.escidocngVersion);
         printField("Cluster name\t\t\t");
-        printValue(desc.larchClusterName);
+        printValue(desc.escidocngClusterName);
         printField("Host name\t\t\t");
-        printValue(desc.larchHost);
+        printValue(desc.escidocngHost);
         printHeader("Module ElasticSearch");
         printField("Version\t\t\t\t");
         printValue(desc.esVersion);

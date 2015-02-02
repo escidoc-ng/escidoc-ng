@@ -3,7 +3,7 @@
         "analysis": {
             "filter": {
                 "german_normalization": {
-                    "type" : "net.objecthunter.larch.service.backend.elasticsearch.analysis.GermanNormalizationFilterFactory"
+                    "type" : "de.escidocng.service.backend.elasticsearch.analysis.GermanNormalizationFilterFactory"
                 }
             },
             "analyzer": {

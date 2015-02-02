@@ -60,7 +60,7 @@ limitations under the License.
             <td th:text="${state.indexState.totalRefreshTime}"></td>
         </tr>
     </table>
-    <table th:if="${state.blobstoreState instanceof T(net.objecthunter.larch.model.state.WeedFsBlobstoreState)}">
+    <table th:if="${state.blobstoreState instanceof T(de.escidocng.model.state.WeedFsBlobstoreState)}">
         <tr>
             <td>Name</td>
             <td th:text="${state.blobstoreState.name}"></td>
@@ -78,7 +78,7 @@ limitations under the License.
             <td th:text="${state.blobstoreState.max}"></td>
         </tr>
     </table>
-    <table th:if="${state.blobstoreState instanceof T(net.objecthunter.larch.model.state.FilesystemBlobstoreState)}">
+    <table th:if="${state.blobstoreState instanceof T(de.escidocng.model.state.FilesystemBlobstoreState)}">
         <tr>
             <td>Name</td>
             <td th:text="${state.blobstoreState.name}"></td>

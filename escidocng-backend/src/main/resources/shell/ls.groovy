@@ -15,9 +15,9 @@
  */
 package shell
 
-import net.objecthunter.larch.model.Entity
-import net.objecthunter.larch.model.SearchResult
-import net.objecthunter.larch.util.ServiceProvider
+import de.escidocng.model.Entity
+import de.escidocng.model.SearchResult
+import de.escidocng.util.ServiceProvider
 import org.crsh.cli.Command
 import org.crsh.cli.Usage
 import org.crsh.command.InvocationContext

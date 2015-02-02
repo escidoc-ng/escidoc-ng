@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/escidoc-ng/escidoc-ng.svg?branch=master)](https://travis-ci.org/escidoc-ng/escidoc-ng)
 
-# Larch repository
+# Escidocng repository
 
 This project integrates ElasticSearch and WeedFs into a large scale distributed repository system modeled after Fedora 3
 
@@ -12,7 +12,7 @@ This project integrates ElasticSearch and WeedFs into a large scale distributed 
  * [Facebook's Haystack paper](http://www.usenix.org/event/osdi10/tech/full_papers/Beaver.pdf)
 
 
-## Build Larch
+## Build Escidocng
 
 ```
 #> mvn clean package
@@ -22,18 +22,18 @@ This project integrates ElasticSearch and WeedFs into a large scale distributed 
 This will start a WeedFs master and volume server
 
 ```
-#> java -jar larch-server/target/larch-server-VERSION.jar
+#> java -jar escidocng-server/target/escidocng-server-VERSION.jar
 ```
 
 ## Run the application using the plain filesystem adapter
 
 ```
-#> java -jar larch-server/target/larch-server-1.0-SNAPSHOT.jar --spring.profiles.active=fs
+#> java -jar escidocng-server/target/escidocng-server-1.0-SNAPSHOT.jar --spring.profiles.active=fs
 ```
 
 ## Accessing the repository
 
-Various endpoints are exposed via a REST API (see package `net.objecthunter.larch.controller` in `larch-server` for now).
+Various endpoints are exposed via a REST API (see package `de.escidocng.controller` in `escidocng-server` for now).
 A Dashboard view is exposed at the webserver root `http://localhost:8080/`
 
 ## Settings
@@ -46,13 +46,13 @@ Settings can be found in
 All settings can be overwritten on the command line using spring-boot's property substitution e.g.:
 The property `elasticsearch.http.enabled` can be passed on the commandline in the following way:
 ```
-#> java -jar larch-server/target/larch-server-VERSION.jar --elasticsearch.http.enabled=false
+#> java -jar escidocng-server/target/escidocng-server-VERSION.jar --elasticsearch.http.enabled=false
 ```
 
 ## Developer information
 
  * Code style is copied from the [Fedora 4 project](https://wiki.duraspace.org/display/FF/Code+Style+Guide)
- * [Eclipse Formatter XML](https://github.com/fasseg/larch/tree/master/doc/developer/eclipse-larch-formatter.xml)
+ * [Eclipse Formatter XML](https://github.com/fasseg/escidocng/tree/master/doc/developer/eclipse-escidocng-formatter.xml)
  * [IntelliJ Eclipse Formatter plugin](http://plugins.jetbrains.com/plugin/6546?pr=)
  * A Service interaction diagram can be opened using the [draw.io website](https://www.draw.io/) can be found in the `doc/developer` directory
  

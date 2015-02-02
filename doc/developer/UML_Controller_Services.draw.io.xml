@@ -20,7 +20,7 @@
             <mxGeometry x="50" y="538" width="610" height="315" as="geometry"/>
         </mxCell>
         <mxCell id="4"
-                value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;&lt;i&gt;AbstractLarchController&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ success(): ModelAndView&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ error(): ModelAndView&lt;/p&gt;"
+                value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;&lt;i&gt;AbstractEscidocngController&lt;/i&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ success(): ModelAndView&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ error(): ModelAndView&lt;/p&gt;"
                 style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1"
                 parent="1" vertex="1">
             <mxGeometry x="460" y="85" width="160" height="70" as="geometry"/>
@@ -242,17 +242,17 @@
                 <mxPoint x="340" y="648" as="targetPoint"/>
             </mxGeometry>
         </mxCell>
-        <mxCell id="48" value="net.objecthunter.larch.service.backend.*"
+        <mxCell id="48" value="de.escidocng.service.backend.*"
                 style="text;align=center;verticalAlign=middle;fontStyle=3;fontSize=14" parent="1"
                 vertex="1">
             <mxGeometry x="136" y="547" width="180" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="53" value="net.objecthunter.larch.service.impl.*"
+        <mxCell id="53" value="de.escidocng.service.impl.*"
                 style="text;align=center;verticalAlign=middle;fontStyle=3;fontSize=14" parent="1"
                 vertex="1">
             <mxGeometry x="118" y="246" width="180" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="54" value="net.objecthunter.larch.controller.*"
+        <mxCell id="54" value="de.escidocng.controller.*"
                 style="text;align=center;verticalAlign=middle;fontStyle=3;fontSize=14" parent="1"
                 vertex="1">
             <mxGeometry x="110" y="30" width="180" height="20" as="geometry"/>

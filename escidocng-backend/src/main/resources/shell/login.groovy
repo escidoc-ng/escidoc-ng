@@ -26,9 +26,9 @@ welcome = { ->
         hostName = "localhost";
     }
 
-    return """\n:: Larch server on $hostName ::\n""";
+    return """\n:: Escidocng server on $hostName ::\n""";
 }
 
 prompt = { ->
-    return "larch > ";
+    return "escidocng > ";
 }
