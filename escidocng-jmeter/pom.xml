@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>larch</artifactId>
-        <groupId>net.objecthunter.larch</groupId>
+        <artifactId>escidocng</artifactId>
+        <groupId>de.escidocng</groupId>
         <version>1.0-SNAPSHOT</version>
      </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>larch-jmeter</artifactId>
+    <artifactId>escidocng-jmeter</artifactId>
 
     <build>
         <plugins>
@@ -52,7 +52,7 @@
 	                    <deployables>
 	                        <deployable>
 	                            <type>war</type>
-	                            <location>${basedir}/../larch-server/target/larch-server-${project.version}.war</location>
+	                            <location>${basedir}/../escidocng-backend/target/escidocng-backend-${project.version}.war</location>
 	                            <properties>
 	                                <context>/</context>
 	                            </properties>

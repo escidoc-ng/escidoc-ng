@@ -2,17 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.objecthunter.larch</groupId>
-    <artifactId>larch</artifactId>
+    <groupId>de.escidocng</groupId>
+    <artifactId>escidocng</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>larch-server</module>
-        <module>larch-common</module>
-        <module>larch-client</module>
-        <module>larch-benchtool</module>
-        <module>larch-jmeter</module>
-        <module>larch-frontend</module>
+        <module>escidocng-backend</module>
+        <module>escidocng-common</module>
+        <module>escidocng-client</module>
+        <module>escidocng-benchtool</module>
+        <module>escidocng-jmeter</module>
+        <module>escidocng-frontend</module>
     </modules>
 
     <properties>
@@ -34,29 +34,29 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>net.objecthunter.larch</groupId>
-                <artifactId>larch-server</artifactId>
+                <groupId>de.escidocng</groupId>
+                <artifactId>escidocng-backend</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.objecthunter.larch</groupId>
-                <artifactId>larch-server</artifactId>
+                <groupId>de.escidocng</groupId>
+                <artifactId>escidocng-backend</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.objecthunter.larch</groupId>
-                <artifactId>larch-benchtool</artifactId>
+                <groupId>de.escidocng</groupId>
+                <artifactId>escidocng-benchtool</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.objecthunter.larch</groupId>
-                <artifactId>larch-common</artifactId>
+                <groupId>de.escidocng</groupId>
+                <artifactId>escidocng-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.objecthunter.larch</groupId>
-                <artifactId>larch-client</artifactId>
+                <groupId>de.escidocng</groupId>
+                <artifactId>escidocng-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -195,7 +195,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${javadoc.plugin.version}</version>
                 <configuration>
-                    <sourcepath>${basedir}/src/main/java/net/objecthunter/larch/controller</sourcepath>
+                    <sourcepath>${basedir}/src/main/java/de/escidocng/controller</sourcepath>
                     <additionalparam>-Xdoclint:none</additionalparam>
                     <quiet>true</quiet>
                     <useStandardDocletOptions>true</useStandardDocletOptions>

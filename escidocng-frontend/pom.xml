@@ -3,22 +3,22 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>net.objecthunter.larch</groupId>
-    <artifactId>larch</artifactId>
+    <groupId>de.escidocng</groupId>
+    <artifactId>escidocng</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <groupId>net.objecthunter.larch.frontend</groupId>
-  <artifactId>larch-frontend</artifactId>
+  <groupId>de.escidocng.frontend</groupId>
+  <artifactId>escidocng-frontend</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>larch-frontend</name>
+  <name>escidocng-frontend</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <dependencies>
         <dependency>
-            <groupId>net.objecthunter.larch</groupId>
-            <artifactId>larch-common</artifactId>
+            <groupId>de.escidocng</groupId>
+            <artifactId>escidocng-common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
